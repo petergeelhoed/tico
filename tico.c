@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     int hvalue = 21600;
     int lvalue = 0;
     int rvalue = 0;
-    int qvalue = 0;
+    int qvalue = 2000;
     int mvalue = 0;
     int svalue = 8000;
     int tvalue = 0;
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nc lower limit\nu upper limit\nn maximum points\nd max distance\nl left trim (s)\nq move points up\nr right trim (s)\nm mean, use with -s\nt show only peakvalue\nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\n");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nc lower limit\nu upper limit\nn maximum points\nd max distance\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nt show only peakvalue\nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",

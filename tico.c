@@ -43,8 +43,8 @@ int main(int argc, char **argv)
 {
     FILE *outfile=stdout;
     int uvalue = 32768;
-    int nvalue = 8000;
-    int dvalue = 8000;
+    int nvalue = 48000;
+    int dvalue = nvalue;
     int c;
     int cvalue = 0;
     int evalue = 0;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     int rvalue = 0;
     int qvalue = 2000;
     int mvalue = 0;
-    int svalue = 8000;
+    int svalue = nvalue;
     int tvalue = 0;
     int wvalue = 0;
     int vvalue = 0;
@@ -466,7 +466,7 @@ int main(int argc, char **argv)
      fclose(outfile);
 
      char command[1024] ;
-     sprintf(command," echo ' f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"oink\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"oink\" u ($1/h):(int($1)%%2==0?$2/f:NaN) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"oink\" u ($1/h):(int($1)%%2==1?$2/f:NaN) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\"; set ylabel sprintf(\"modulo 1/%d s (s)\",h);plot \"oink\" u ($1/h):($2/f):(int($1)%%2) pal ps 3 pt  5 t sprintf(\"%%.1f s/d %%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms\",c1*1000) ; print \"beaterror: \",1000*(a-a1), \"ms\";'  | gnuplot -persist ",fvalue,hvalue,hvalue/3600);
+     sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"oink\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"oink\" u ($1/h):(int($1)%%2==0?$2/f:NaN) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"oink\" u ($1/h):(int($1)%%2==1?$2/f:NaN) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\"; set ylabel sprintf(\"modulo 1/%d s (s)\",h);plot \"oink\" u ($1/h):($2/f):(int($1)%%2) pal ps 3 pt  5 t sprintf(\"%%.1f s/d %%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms\",c1*1000) ; print \"beaterror: \",1000*(a-a1), \"ms\";'  | gnuplot -persist ",fvalue,hvalue,hvalue/3600);
 
 
      if (vvalue) fprintf(stderr,"%s\n",command);

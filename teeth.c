@@ -314,11 +314,23 @@ int main(int argc, char **argv)
          int Npeak =0;
 		 int shift = NN;
          long length = header.overall_size/2+qvalue-rvalue*NN-100 - NN*2 ; 
+
+             for(int j=0;j<qvalue;j++)
+			 {
+				 read = fread(lsb, sizeof(lsb), 1, stdin);
+				 read += fread(msb, sizeof(msb), 1, stdin);
+				 if (read == 2) 
+				 {
+					 i++;
+				 } else {
+					 printf("Error reading file. %d bytes\n", read);
+					 return -1;
+				 }
+			 }
          while ( i < length) 
          {
              shift=jvalue?shift:NN;
-	//         if (DEBUG != 0) 
-//fprintf(stderr,"%d %ld/%ld shift:%d prev peak%d\n",Npeak,i,length,shift,peaks[Npeak-1] );
+	         if (DEBUG != 0) fprintf(stderr,"%d %ld/%ld shift:%d prev peak%d\n",Npeak,i,length,shift,peaks[Npeak-1] );
              for(int j=shift;j<NN;j++)
              { 
 				 // 'reread' the data for smaller shitfs

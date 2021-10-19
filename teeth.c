@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     int c;
     int evalue = 0;
     int ovalue = 0;
-    int pvalue = 15;
+    int pvalue = 30;
     int fvalue = 48000;
     int jvalue = 0;
     int hvalue = 21600;

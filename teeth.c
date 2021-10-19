@@ -132,7 +132,7 @@ int main(int argc, char **argv)
                 rvalue = atoi(optarg);
                 break;
             case 'd':
-                //maximum distandce to peak 
+                //max windowshift
                 dvalue = atoi(optarg);
                 break;
             case '?':
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\n");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -317,7 +317,8 @@ int main(int argc, char **argv)
          while ( i < length) 
          {
              shift=jvalue?shift:NN;
-	         if (DEBUG != 0) fprintf(stderr,"%d %ld/%ld %d %d\n",Npeak,i,length,shift,peaks[Npeak-1] );
+	//         if (DEBUG != 0) 
+//fprintf(stderr,"%d %ld/%ld shift:%d prev peak%d\n",Npeak,i,length,shift,peaks[Npeak-1] );
              for(int j=shift;j<NN;j++)
              { 
 				 // 'reread' the data for smaller shitfs
@@ -419,14 +420,15 @@ int main(int argc, char **argv)
 				 fprintf(outfile,"%d %d %d\n",Npeak,k,max);
 			 }
 
-             //shift data to next peak
-
-//			 shift=(peaks[Npeak]+peaks[Npeak-1])/2+NN/2;
-			 shift=peaks[Npeak]+NN/2;
-			 if ((peaks[Npeak] > NN/2+ dvalue || peaks[Npeak] < NN/2-dvalue) && Npeak > 10 )
+             //slowly hift data to next peak
+			 if (Npeak > 1 && peaks[Npeak] >= 0)
 			 {
-				 shift = NN;
-			 }
+				 shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
+				 shift=(shift>NN+dvalue)?NN+dvalue:shift;
+				 shift=(shift<NN-dvalue)?NN-dvalue:shift;
+			 } else {
+				 shift =NN;
+			 } 
 			 Npeak++;
 		 }
 		 fftw_destroy_plan(p);

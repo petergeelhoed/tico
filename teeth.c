@@ -417,7 +417,6 @@ int main(int argc, char **argv)
 				 }
 			 }
 			 peaks[Npeak]=(max>0&&(abs(k-mvalue) < svalue ))?k:-1;
-
 			 for (int j=0; j < NN ; j++)
 			 {
 				 x[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]/max;
@@ -432,10 +431,11 @@ int main(int argc, char **argv)
 				 fprintf(outfile,"%d %d %d\n",Npeak,k,max);
 			 }
 
-             //slowly hift data to next peak
-			 if (Npeak > 1 && peaks[Npeak] >= 0)
+			 //slowly hift data to next peak
+			 if (jvalue && Npeak > 0 && peaks[Npeak] >= 0 && ((abs(mvalue-peaks[Npeak])< dvalue || Npeak < 10 )))
 			 {
-				 shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
+				 shift=peaks[Npeak]+NN/2;
+				 //shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
 				 shift=(shift>NN+dvalue)?NN+dvalue:shift;
 				 shift=(shift<NN-dvalue)?NN-dvalue:shift;
 			 } else {

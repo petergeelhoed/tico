@@ -282,7 +282,7 @@ int main(int argc, char **argv)
              read += fread(msb, sizeof(msb), 1, stdin);
          }
          int mean[NN];
-         int peaks[fvalue];  //frequency of 48000 gives you 8000 seconds
+         int peaks[nvalue];  //frequency of 48000 gives you 8000 seconds
 
          float x[NN*2][pvalue];
          float xx[NN*2][pvalue];
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
 					 return -1;
 				 }
 			 }
-         while ( i < length && Npeak < fvalue) 
+         while ( i < length && Npeak < nvalue) 
          {
              shift=jvalue?shift:NN;
 	         if (DEBUG != 0) fprintf(stderr,"%d %ld/%ld shift:%d prev peak%d\n",Npeak,i,length,shift,peaks[Npeak-1] );

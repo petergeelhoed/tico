@@ -93,7 +93,6 @@ int main(int argc, char **argv)
             case 'j':
                 //flatten
                 jvalue = 1;
-                mvalue = 4000;
                 break;
             case 'v':
                 //verbose
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
     NN=(int)(fvalue*3600/hvalue);
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
-
+	if (jvalue) {mvalue =NN/2;};
 
     outfile = fopen("oink", "w");
 
@@ -419,28 +418,32 @@ int main(int argc, char **argv)
 			 peaks[Npeak]=(max>0&&(abs(k-mvalue) < svalue ))?k:-1;
 			 for (int j=0; j < NN ; j++)
 			 {
-				 x[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]/max;
-				 xx[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]*mean[j]/max/max;
-				 nn[j-peaks[Npeak]+NN][Npeak%pvalue] += 1; 
+				 if (max>0 && mean[j]>0)
+				 {
+					 x[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]/max;
+					 xx[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]*mean[j]/max/max;
+					 nn[j-peaks[Npeak]+NN][Npeak%pvalue] += 1; 
+				 }
 			 }
 
  
              if ((Npeak>=lvalue && n <= nvalue && max > 0 &&
                          ( abs(k-mvalue) < svalue) ))  
 			 {
-				 fprintf(outfile,"%d %d %d\n",Npeak,k,max);
+				 fprintf(outfile,"%d %d %d\n",Npeak,peaks[Npeak],max);
 			 }
 
 			 //slowly hift data to next peak
-			 if (jvalue && Npeak > 0 && peaks[Npeak] >= 0 && ((abs(mvalue-peaks[Npeak])< dvalue || Npeak < 10 )))
+			 if (jvalue && Npeak > 0 && peaks[Npeak] >= 0 )
 			 {
 				 shift=peaks[Npeak]+NN/2;
-				 //shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
+	//			 shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
 				 shift=(shift>NN+dvalue)?NN+dvalue:shift;
 				 shift=(shift<NN-dvalue)?NN-dvalue:shift;
 			 } else {
 				 shift =NN;
 			 } 
+				 fprintf(stderr,"%d %d\n",peaks[Npeak],shift);
 			 Npeak++;
 		 }
 		 fftw_destroy_plan(p);

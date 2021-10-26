@@ -42,18 +42,18 @@ struct HEADER header;
 int main(int argc, char **argv) 
 {
     FILE *outfile=stdout;
+    FILE *rawfile=stdout;
     int nvalue = 48000;
-    int dvalue = 500;
+    int dvalue = 4000;
     int c;
-    int evalue = 0;
+    int evalue = 4;
     int ovalue = 0;
-    int pvalue = 30;
+    int pvalue = 15;
     int fvalue = 48000;
-    int jvalue = 0;
     int hvalue = 21600;
     int lvalue = 0;
     int rvalue = 0;
-    int qvalue = 2000;
+    int qvalue = 4000;
     int mvalue = 0;
     int svalue = nvalue;
     int tvalue = 0;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     int NN;
     opterr=0;
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:j")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:")) != -1)
         switch (c)
         {
             case 'n':
@@ -89,10 +89,6 @@ int main(int argc, char **argv)
                 //mean output normalised and shifted
                 wvalue = 1;
                 ovalue = 1;
-                break;
-            case 'j':
-                //flatten
-                jvalue = 1;
                 break;
             case 'v':
                 //verbose
@@ -149,13 +145,12 @@ int main(int argc, char **argv)
                 abort ();
         }
 
-    NN=(int)(fvalue*3600/hvalue);
+    NN=(int)(fvalue*3600/hvalue*2);
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
-	if (jvalue) {mvalue =NN/2;};
 
     outfile = fopen("oink", "w");
-
+    rawfile = fopen("indata", "w");
 
     int read = 0;
 
@@ -280,15 +275,20 @@ int main(int argc, char **argv)
              read = fread(lsb, sizeof(lsb), 1, stdin);
              read += fread(msb, sizeof(msb), 1, stdin);
          }
-         int mean[NN];
-         int peaks[nvalue];  //frequency of 48000 gives you 8000 seconds
 
-         float x[NN*2][pvalue];
-         float xx[NN*2][pvalue];
-         int nn[NN*2][pvalue];
 
-         fftw_complex *in, *out, *out2, *conv,  *in2; /* double [2] */
-         fftw_plan p, q, pr;
+int globalshift = 0;
+         float mean[NN];
+		 for(int j=0;j<NN;j++)
+		 { 
+			 mean[j]=0;
+		 }
+		 mean[0]=1;
+
+         float last[NN];
+
+         fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; /* double [2] */
+         fftw_plan p, q, pr,cf,cr;
 
          in = fftw_alloc_complex(NN);
          in2 = fftw_alloc_complex(NN);
@@ -299,13 +299,18 @@ int main(int argc, char **argv)
              in2[j][1] = 0.0;
          }
          out = fftw_alloc_complex(NN);
-         out2 = fftw_alloc_complex(NN);
+         filterFFT = fftw_alloc_complex(NN);
          conv = fftw_alloc_complex(NN);
+         tmp = fftw_alloc_complex(NN);
+         corr = fftw_alloc_complex(NN);
 
          // filter
          p = fftw_plan_dft_1d(NN, in,out, FFTW_FORWARD, FFTW_ESTIMATE );
-         q = fftw_plan_dft_1d(NN, in2,out2, FFTW_FORWARD, FFTW_ESTIMATE );
+         q = fftw_plan_dft_1d(NN, in2,filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
          pr = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+//correration
+         cf = fftw_plan_dft_1d(NN,  in2,tmp, FFTW_FORWARD, FFTW_ESTIMATE );
+         cr = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
          fftw_execute(q);
          fftw_destroy_plan(q);
 
@@ -326,10 +331,14 @@ int main(int argc, char **argv)
 					 return -1;
 				 }
 			 }
-         while ( i < length && Npeak < nvalue) 
+         while ( i < length) 
          {
-             shift=jvalue?shift:NN;
-	         if (DEBUG != 0) fprintf(stderr,"%d %ld/%ld shift:%d prev peak%d\n",Npeak,i,length,shift,peaks[Npeak-1] );
+			 for(int j=0;j<NN;j++)
+			 { 
+				 // save last peak
+				 last[j]=mean[j];
+			 }
+//             shift=jvalue?shift:NN;
              for(int j=shift;j<NN;j++)
              { 
 				 // 'reread' the data for smaller shitfs
@@ -356,7 +365,7 @@ int main(int argc, char **argv)
 				 if (read == 2) 
 				 {
 					 i++;
-					 mean[j] = abs((msb[0] << 8) | lsb[0]);
+					 mean[j] = (float)abs((msb[0] << 8) | lsb[0]);
 				 } else {
 					 printf("Error reading file. %d bytes\n", read);
 					 return -1;
@@ -369,7 +378,7 @@ int main(int argc, char **argv)
 			 {
 				 for (int j=0; j < NN; j++) 
 				 {
-					 in[j][0] = (float)mean[j];
+					 in[j][0] = mean[j];
 					 in[j][1] = 0.0;
 				 }
 				 fftw_execute(p);
@@ -377,11 +386,11 @@ int main(int argc, char **argv)
 				 for (int j=0; j < NN ; j++)
 				 {
 					 conv[j][0] = (
-							 +out[j][0]*out2[j][0]
-							 -out[j][1]*out2[j][1]);
+							 +out[j][0]*filterFFT[j][0]
+							 -out[j][1]*filterFFT[j][1])/NN;
 					 conv[j][1] = (
-							 out[j][0]*out2[j][1]
-							 +out[j][1]*out2[j][0]);
+							 out[j][0]*filterFFT[j][1]
+							 +out[j][1]*filterFFT[j][0])/NN;
 
 				 }
 
@@ -391,7 +400,7 @@ int main(int argc, char **argv)
 
 				 for (int j=0; j < NN ; j++)
 				 {
-					 mean[j] = (int)(in[j][0]/NN);
+					 mean[j] = in[j][0];
 				 }
 
 
@@ -399,91 +408,102 @@ int main(int argc, char **argv)
                      
 			 float tot=0;
 			 float mom=0;
-			 int center = 0;
 			 int j=0;
 			 int n=0;
-			 int max=-1;
-			 int k=0;
-			 for (j=0; j < NN ; j++) 
 			 {
-				 n+=(mean[j]>0);
-				 tot += mean[j];
-				 mom += j*mean[j];
-				 if (mean[j]>max)
+				 for (int j=0; j < NN ; j++)
 				 {
-					 max = mean[j];
-					 k = j;
+					 in[j][0] = mean[j];
+					 in[j][1]= 0.0;
 				 }
-			 }
-			 peaks[Npeak]=(max>0&&(abs(k-mvalue) < svalue ))?k:-1;
-			 for (int j=0; j < NN ; j++)
-			 {
-				 if (max>0 && mean[j]>0)
+
+				 double ix = 0.0;
+				 double ixx =0.0;
+				 for (int j=0; j < NN ; j++)
 				 {
-					 x[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]/max;
-					 xx[j-peaks[Npeak]+NN][Npeak%pvalue] += (float)mean[j]*mean[j]/max/max;
-					 nn[j-peaks[Npeak]+NN][Npeak%pvalue] += 1; 
+					 in[j][0] = (float)(in[j][0]/NN);
+					 in[j][1] = 0.0;
+					 ix+=in[j][0];
 				 }
-			 }
+				 //use in2 for second into tmp
+				 double i2x = 0.0;
+				 double i2xx =0.0;
+				 for (int j=0; j < NN ; j++)
+				 {
+					 in2[j][0]= last[j];
+					// in2[j][0]= in[j][0];
+					 in2[j][1] = 0.0;
+					 i2x+=in2[j][0];
+				 }
+				 float m=ix/NN;
+				 float m2=i2x/NN;
 
- 
-             if ((Npeak>=lvalue && n <= nvalue && max > 0 &&
-                         ( abs(k-mvalue) < svalue) ))  
-			 {
-				 fprintf(outfile,"%d %d %d\n",Npeak,peaks[Npeak],max);
-			 }
+				 for (int j=0; j < NN ; j++)
+				 {
+					 in[j][0] = (in[j][0] - m);
+					 ixx+=in[j][0]*in[j][0];
+					 in2[j][0] = (in2[j][0] - m2);
+					 i2xx+=in2[j][0]*in2[j][0];
+				 }
+				 double s = sqrt(ixx/NN-m/NN*m/NN);
+				 double s2 = sqrt(i2xx*NN-m2*m2)/NN;
+				 fftw_execute(p);
+				 fftw_execute(cf);
+				 // calculate cross correlation
+				 for (int j=0; j < NN ; j++)
+				 {
+					 float tmpbuf= tmp[j][0];
+					 tmp[j][0] = (
+							 +out[j][0]*tmpbuf
+							 +out[j][1]*tmp[j][1])/NN/NN/s/s2;
+					 tmp[j][1] = (
+							 -out[j][0]*tmp[j][1]
+							 +out[j][1]*tmpbuf)/NN/NN/s/s2;
+				 }
+				 // transform back into corr
+				 fftw_execute(cr);
+				 float maxcor=-1;
+				 int poscor=0;
+				 // use cross correlation for peak
+				 for (int j=0; j < NN ; j++)
+				 {
+					 if (corr[j][0]>maxcor && (j < dvalue || NN-dvalue < j))
+					 {
+						 maxcor =corr[j][0];
+						 poscor=j;
+						 poscor=(j+4000)%8000-4000;
 
-			 //slowly hift data to next peak
-			 if (jvalue && Npeak > 0 && peaks[Npeak] >= 0 )
-			 {
-				 shift=peaks[Npeak]+NN/2;
-	//			 shift=((peaks[Npeak]+peaks[Npeak-1])/2+NN/2+NN*4)/5;
-				 shift=(shift>NN+dvalue)?NN+dvalue:shift;
-				 shift=(shift<NN-dvalue)?NN-dvalue:shift;
-			 } else {
-				 shift =NN;
-			 } 
-				 fprintf(stderr,"%d %d\n",peaks[Npeak],shift);
-			 Npeak++;
+					 }
+				 }
+				 for (int j=0; j < NN ; j++)
+				 {
+					 if (Npeak%15==6) fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", ( j+8000)%16000-8000,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
+
+				 }
+ fprintf(stderr,"%8d %5d %12.6f %d   %d\n",Npeak,poscor,maxcor,shift,globalshift);
+if (Npeak <10 || maxcor > 0.90 )
+{
+                 shift = NN+poscor/2;//+globalshift/2;
+}else{
+shift=NN;
+}
+				 globalshift+=NN-shift;
+//				 globalshift+=poscor;
+				 Npeak++;
+			 }
 		 }
 		 fftw_destroy_plan(p);
-         fftw_destroy_plan(pr);
-         fftw_cleanup();
-		 for (int k=0; k < pvalue ; k++)
-		 {
-			 for (int j=0; j < 2*NN; j++)
-			 {
-				 if (nn[j][k] > 1 )
-				 {
-					 printf("%d %f %f %d %d\n",
-							 j-NN,
-							 x[j][k]/nn[j][k]*(1-2*(k%2==0)),
-							 sqrt(xx[j][k]/nn[j][k]-x[j][k]*x[j][k]/nn[j][k]/nn[j][k]),nn[j][k],
-							 (int)(((int)(k+2)/2)*(1-2*(k%2==0))));
-				 }
-			 }
-			 printf("\n");
-		 }
-		 float y=0;
-		 float yy=0;
-		 int n=0;
-		 for (int j=0; j < Npeak ; j++) 
-		 {
-             if (peaks[j]>=0&&peaks[j]<NN)
-             {
-                 n++;
-                 y+=peaks[j];
-                 yy+=peaks[j]*peaks[j];
-             }
-         }
-         fprintf(stderr,"points: %d  mean:%f  stdev:%f\n",n,y/n,sqrt(yy/n-y/n*y/n));
+		 fftw_destroy_plan(pr);
+		 fftw_cleanup();
      }
      fclose(outfile);
+     fclose(rawfile);
 
      char command[1024] ;
-     sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"oink\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"oink\" u ($1/h):(int($1)%%2==0?$2/f:NaN) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"oink\" u ($1/h):(int($1)%%2==1?$2/f:NaN) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\"; set ylabel sprintf(\"modulo 1/%d s (s)\",h);plot \"oink\" u ($1/h):($2/f):(int($1)%%2) pal ps 3 pt  5 t sprintf(\"%%.1f s/d %%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms beaterror: \%%.3fms\",c1*1000,1000*(a-a1)) ; print \"beaterror: \",1000*(a-a1), \"ms\";'  | gnuplot -persist ",fvalue,hvalue,hvalue/3600);
+//     sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"oink\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"oink\" u ($1/h):(int($1)%%2==0?$2/f:NaN) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"oink\" u ($1/h):(int($1)%%2==1?$2/f:NaN) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\"; set ylabel sprintf(\"modulo 1/%d s (s)\",h);plot \"oink\" u ($1/h):($2/f):(int($1)%%2) pal ps 3 pt  5 t sprintf(\"%%.1f s/d %%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms beaterror: \%%.3fms\",c1*1000,1000*(a-a1)) ; print \"beaterror: \",1000*(a-a1), \"ms\";'  | gnuplot -persist ",fvalue,hvalue,hvalue/3600);
 
 
-     if (vvalue) fprintf(stderr,"%s\n",command);
-     return system(command);
+ //    if (vvalue) fprintf(stderr,"%s\n",command);
+ //    return system(command);
+return 0;
 }

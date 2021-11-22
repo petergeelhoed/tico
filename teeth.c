@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     int c;
     int evalue = 4;
     int ovalue = 0;
-    int pvalue = 15;
+    int pvalue = 15*2;
     int fvalue = 48000;
     int hvalue = 21600;
     int lvalue = 0;
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     int vvalue = 0;
     int NN;
     opterr=0;
-    double ps[16000];
+    double ps[8000];
 
     while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:")) != -1)
         switch (c)
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
                 abort ();
         }
 
-    NN=(int)(fvalue*3600/hvalue*2);
+    NN=(int)(fvalue*3600/hvalue);
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
 
@@ -481,13 +481,14 @@ int globalshift = 0;
 					 {
 						 maxcor =corr[j][0];
 						 poscor=j;
-						 poscor=(j+8000)%16000-8000;
+						 poscor=(j+4000)%8000-4000;
 
 					 }
 				 }
 				 for (int j=0; j < NN ; j++)
 				 {
-					 if (Npeak%15==3) fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
+//					 if (Npeak%pvalue==8) 
+fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
 
 				 }
 				 fprintf(outfile,"%8d %5d %12.6f %d   %d\n",Npeak,poscor,maxcor,shift,globalshift);

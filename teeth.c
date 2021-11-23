@@ -487,14 +487,16 @@ int globalshift = 0;
 				 }
 				 for (int j=0; j < NN ; j++)
 				 {
-//					 if (Npeak%pvalue==8) 
-fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
+					 //if (Npeak%pvalue==16) 
+					 if (Npeak>15&&Npeak<25) 
+fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j-poscor,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
 
 				 }
-				 fprintf(outfile,"%8d %5d %12.6f %d   %d\n",Npeak,poscor,maxcor,shift,globalshift);
+					 if (Npeak>0) 
+ fprintf(outfile,"%8d %5d %12.6f %d\n",Npeak,poscor+globalshift,maxcor,shift);
 // cat oink  | plot 'u 1:($2+$5) w l ; set xrange [1:]'
 
-				 if (Npeak <10 || maxcor > 0.70 )
+				 if (Npeak <10 || maxcor > 0.70 && Npeak%2==1)
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }
@@ -502,6 +504,7 @@ fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j,in[j][0],in2[j][0],
 				 {
 					 shift=NN;
 				 }
+//shift=NN;
 				 globalshift-=(NN-shift);
 				 //				 globalshift+=poscor;
 				 Npeak++;

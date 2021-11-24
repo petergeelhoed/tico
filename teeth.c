@@ -481,19 +481,32 @@ int globalshift = 0;
 					 {
 						 maxcor =corr[j][0];
 						 poscor=j;
-						 poscor=(j+4000)%8000-4000;
+						 poscor=(j+NN/2)%NN-NN/2;
 
 					 }
 				 }
+				 // we know maxcor now find the max in the indata
+				 float maxin=-1.;
+				 int maxpos =1;
+
+				 for (int j=NN/2-1000; j < NN/2+1001 ; j++)
+				 {
+					 if (in[j][0] > maxin)
+					 {
+						 maxpos = j; 
+						 maxin = in[j][0];
+					 }
+
+				 }
 				 for (int j=0; j < NN ; j++)
 				 {
-					 //if (Npeak%pvalue==16) 
-					 if (Npeak>15&&Npeak<25) 
-fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j-poscor,in[j][0],in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift);
+		//			 if (Npeak%pvalue==18) 
+		//			 if (Npeak<40) 
+fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 
 				 }
 					 if (Npeak>0) 
- fprintf(outfile,"%8d %5d %12.6f %d\n",Npeak,poscor+globalshift,maxcor,shift);
+ fprintf(outfile,"%8d %5d %12.6f %d %d %d\n",Npeak,poscor+globalshift,maxcor,shift,poscor,maxpos);
 // cat oink  | plot 'u 1:($2+$5) w l ; set xrange [1:]'
 
 				 if (Npeak <10 || maxcor > 0.70 && Npeak%2==1)
@@ -504,7 +517,6 @@ fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d\n", j-poscor,in[j][0],in2
 				 {
 					 shift=NN;
 				 }
-//shift=NN;
 				 globalshift-=(NN-shift);
 				 //				 globalshift+=poscor;
 				 Npeak++;

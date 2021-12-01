@@ -43,6 +43,7 @@ int main(int argc, char **argv)
 {
     FILE *tickfile=stdout;
     FILE *tockfile=stdout;
+    FILE *corfile=stdout;
     FILE *rawfile=stdout;
     FILE *pulsefile;
     int nvalue = 48000;
@@ -59,6 +60,7 @@ int main(int argc, char **argv)
     int mvalue = 0;
     int svalue = nvalue;
     int tvalue = 0;
+    int kvalue = 0;
     int wvalue = 0;
     int vvalue = 0;
     int jvalue = 0;
@@ -66,7 +68,7 @@ int main(int argc, char **argv)
     opterr=0;
     double ps[8000];
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:j")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:jk")) != -1)
         switch (c)
         {
             case 'n':
@@ -82,8 +84,11 @@ int main(int argc, char **argv)
                 //print teeth hisdev
                 pvalue = atoi(optarg)*2;
                 fprintf(stderr,"teeth: %d\n",pvalue/2);
-                wvalue = 1;
                 ovalue = 1;
+                break;
+            case 'k':
+                //no corrshift
+                kvalue = 1;
                 break;
             case 'j':
                 //middle
@@ -95,7 +100,6 @@ int main(int argc, char **argv)
                 break;
             case 'o':
                 //mean output normalised and shifted
-                wvalue = 1;
                 ovalue = 1;
                 break;
             case 'v':
@@ -159,7 +163,8 @@ int main(int argc, char **argv)
 
     tickfile = fopen("tick", "w");
     tockfile = fopen("tock", "w");
-    rawfile = fopen("indata", "w");
+    corfile = fopen("indata", "w");
+    rawfile = fopen("raw", "w");
     pulsefile = fopen("pulseshape", "r");
 	if (pulsefile == 0)
 	{
@@ -430,6 +435,7 @@ int globalshift = 0;
 				 for (int j=0; j < NN ; j++)
 				 {
 					 in[j][0] = mean[j];
+					 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
 					 in[j][1]= 0.0;
 				 }
 
@@ -496,7 +502,7 @@ int globalshift = 0;
 				 float maxin=-1.;
 				 int maxpos =1;
 
-				 for (int j=NN/2-1000; j < NN/2+1001 ; j++)
+				 for (int j=NN/2-2000; j < NN/2+2001 ; j++)
 				 {
 					 if (in[j][0] > maxin)
 					 {
@@ -509,7 +515,7 @@ int globalshift = 0;
 				 {
 		//			 if (Npeak%pvalue==18) 
 if (jvalue) 
-fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
+fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }
@@ -519,7 +525,7 @@ fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 
 // cat oink  | plot 'u 1:($2+$5) w l ; set xrange [1:]'
 
-				 if (Npeak <10 || maxcor > 0.70 && Npeak%2==1)
+				 if (kvalue==0 && (Npeak <10 || maxcor > 0.70 && Npeak%2==1))
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }
@@ -538,6 +544,7 @@ fprintf(rawfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 	 }
 fclose(tickfile);
 fclose(tockfile);
+fclose(corfile);
 fclose(rawfile);
 
      char command[1024] ;

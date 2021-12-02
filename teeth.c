@@ -50,6 +50,7 @@ int main(int argc, char **argv)
     int dvalue = 4000;
     int c;
     int evalue = 4;
+    float cvalue = 0;
     int ovalue = 0;
     int pvalue = 15*2;
     int fvalue = 48000;
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
     opterr=0;
     double ps[8000];
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jk")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:")) != -1)
         switch (c)
         {
             case 'n':
@@ -94,6 +95,10 @@ int main(int argc, char **argv)
             case 'v':
                 //verbose
                 vvalue = 1;
+                break;
+            case 'c':
+                //exp filter s=optarg 2stdev
+                cvalue = atof(optarg);
                 break;
             case 'e':
                 //exp filter s=optarg 2stdev
@@ -505,15 +510,16 @@ int globalshift = 0;
 				 for (int j=0; j < NN ; j++)
 				 {
 		//			 if (Npeak%pvalue==18) 
-if (jvalue) 
+if (jvalue && abs(j-maxpos+200)<dvalue ) 
 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }
 					 if (Npeak-lvalue==1) startshift = globalshift+maxpos;
-					 if (Npeak>lvalue+1) 
+					 if (Npeak>lvalue+1 && maxcor>cvalue && abs(maxcor)<dvalue) 
+{
  fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d\n",Npeak,globalshift+maxpos-startshift,maxcor,shift,poscor,maxpos,startshift);
-
+}
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
 
@@ -542,7 +548,7 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
      sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"tick\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; set ylabel sprintf(\"modulo 1/%%d s (s)\",h);\
 d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"tick\" u ($1/h):($2/f) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"tock\" u ($1/h):($2/f) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\";\
 set title sprintf(\"beaterror: %%.2fms\",1000*(a-a1));\
- plot \"tick\" u ($1/h):($2/f)   w p pt 13 ps 2  t sprintf(\"%%.1f s/d\",b*86400) , \"tock\" u ($1/h):($2/f)  w p pt 5 ps 2  t sprintf(\"%%.1f s/d\",b1*86400) , f(x) lc 7 t sprintf(\"ampl: %%.2fms\",c*1000), g(x) lc 5 t sprintf(\"ampl: %%.2fms\",c1*1000) ; print \"beaterror: \",1000*(a-a1), \"ms\" ; ' | gnuplot -persist ",fvalue,hvalue);
+ plot \"tick\" u ($1/h):($2/f)   w p pt 13 ps 2  t sprintf(\"%%.1f s/d\",b*86400) , \"tock\" u ($1/h):($2/f)  w p pt 5 ps 2  t sprintf(\"%%.1f s/d\",b1*86400) , f(x) lc 1 t sprintf(\"ampl: %%.2fms\",c*1000), g(x) lc 2 t sprintf(\"ampl: %%.2fms\",c1*1000) ; print \"beaterror: \",1000*(a-a1), \"ms\" ; ' | gnuplot -persist ",fvalue,hvalue);
 
 
      if (vvalue) fprintf(stderr,"%s\n",command);

@@ -57,8 +57,6 @@ int main(int argc, char **argv)
     int lvalue = 0;
     int rvalue = 0;
     int qvalue = 4000;
-    int mvalue = 0;
-    int svalue = nvalue;
     int tvalue = 0;
     int kvalue = 0;
     int wvalue = 0;
@@ -68,17 +66,12 @@ int main(int argc, char **argv)
     opterr=0;
     double ps[8000];
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:m:s:twvh:f:e:op:jk")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jk")) != -1)
         switch (c)
         {
             case 'n':
                 // maximum number of peak points
                 nvalue = atoi(optarg);
-                break;
-            case 's':
-                // around m
-                svalue = atoi(optarg);
-                mvalue=0?-1:mvalue;
                 break;
             case 'p':
                 //print teeth hisdev
@@ -91,12 +84,8 @@ int main(int argc, char **argv)
                 kvalue = 1;
                 break;
             case 'j':
-                //middle
+                //indata
                 jvalue = 1;
-                break;
-            case 'm':
-                //middle
-                mvalue = atoi(optarg);
                 break;
             case 'o':
                 //mean output normalised and shifted
@@ -143,7 +132,7 @@ int main(int argc, char **argv)
                 dvalue = atoi(optarg);
                 break;
             case '?':
-                if (optopt == 'r' || optopt == 'l' || optopt == 'c' || optopt == 'u' || optopt == 'n' || optopt == 'd' || optopt == 'm')
+                if (optopt == 'r' || optopt == 'l' || optopt == 'c' || optopt == 'u' || optopt == 'n' || optopt == 'd' )
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -351,6 +340,7 @@ int globalshift = 0;
          int val = 0;
          int Npeak =0;
 		 int shift = NN;
+		 int startshift = NN;
          long length = header.overall_size/2+qvalue-rvalue*NN-100 - NN*2 ; 
 
              for(int j=0;j<qvalue;j++)
@@ -431,6 +421,7 @@ int globalshift = 0;
 			 float mom=0;
 			 int j=0;
 			 int n=0;
+			 if (Npeak>= lvalue)
 			 {
 				 for (int j=0; j < NN ; j++)
 				 {
@@ -502,7 +493,7 @@ int globalshift = 0;
 				 float maxin=-1.;
 				 int maxpos =1;
 
-				 for (int j=NN/2-2000; j < NN/2+2001 ; j++)
+				 for (int j=NN/2-dvalue; j < NN/2+dvalue ; j++)
 				 {
 					 if (in[j][0] > maxin)
 					 {
@@ -519,13 +510,14 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }
-					 if (Npeak>1) 
- fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d\n",Npeak,poscor+globalshift,maxcor,shift,poscor,maxpos);
-//cat tick | plot ' u 1:6  w lp pt 5 ps 2, "tock" u 1:6  w lp pt 5 ps 2 '
+					 if (Npeak-lvalue==1) startshift = globalshift+maxpos;
+					 if (Npeak>lvalue+1) 
+ fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d\n",Npeak,globalshift+maxpos-startshift,maxcor,shift,poscor,maxpos,startshift);
 
-// cat oink  | plot 'u 1:($2+$5) w l ; set xrange [1:]'
+//cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
-				 if (kvalue==0 && (Npeak <10 || maxcor > 0.70 && Npeak%2==1))
+
+				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }
@@ -534,25 +526,26 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 					 shift=NN;
 				 }
 				 globalshift-=(NN-shift);
-				 //				 globalshift+=poscor;
-				 Npeak++;
 			 }
+			 Npeak++;
 		 }
 		 fftw_destroy_plan(p);
 		 fftw_destroy_plan(pr);
 		 fftw_cleanup();
 	 }
-fclose(tickfile);
-fclose(tockfile);
-fclose(corfile);
-fclose(rawfile);
+	 fclose(tickfile);
+	 fclose(tockfile);
+	 fclose(corfile);
+	 fclose(rawfile);
 
      char command[1024] ;
-     sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"tick\" u ($1/h):($6/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; set ylabel sprintf(\"modulo 1/%%d s (s)\",h);\
-d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"tick\" u ($1/h):($6/f) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"tock\" u ($1/h):($6/f) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\";\
- plot \"tick\" u ($1/h):($6/f)   w p pt 5 ps 2, \"tock\" u ($1/h):($6/f)  w p pt 5 ps 2 t sprintf(\"%%.1f s/d %%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms beaterror: \%%.3fms\",c1*1000,1000*(a-a1)) ; print \"beaterror: \",1000*(a-a1), \"ms\" ;' | gnuplot -persist ",fvalue,hvalue);
+     sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"tick\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; set ylabel sprintf(\"modulo 1/%%d s (s)\",h);\
+d=15;d1=15; f(x)=(a-b*x+c*cos(3.1415926*(x-x0)*h/d)); g(x)=(a1-b1*x+c1*cos(3.1415926*(x-x1)*h/d1)); fit []f(x) \"tick\" u ($1/h):($2/f) via a,b,c,d,x0; print d,c*1000,\"ms \",b*86400,\"s/d\"; fit []g(x) \"tock\" u ($1/h):($2/f) via a1,b1,c1,d1,x1; print d1,c1*1000,\"ms \",b1*86400,\"s/d\"; set xrange [:]; set key below;set samples 1000; set xlabel \"time (s)\";\
+set title sprintf(\"beaterror: %%.2fms\",1000*(a-a1));\
+ plot \"tick\" u ($1/h):($2/f)   w p pt 13 ps 2  t sprintf(\"%%.1f s/d\",b*86400) , \"tock\" u ($1/h):($2/f)  w p pt 5 ps 2  t sprintf(\"%%.1f s/d\",b1*86400) , f(x) lc 7 t sprintf(\"ampl: %%.2fms\",c*1000), g(x) lc 5 t sprintf(\"ampl: %%.2fms\",c1*1000) ; print \"beaterror: \",1000*(a-a1), \"ms\" ; ' | gnuplot -persist ",fvalue,hvalue);
 
 
      if (vvalue) fprintf(stderr,"%s\n",command);
      return system(command);
+
 }

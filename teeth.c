@@ -538,7 +538,7 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 					 if (Npeak-lvalue==1) startshift = globalshift+maxpos;
 					 if (Npeak>lvalue+1 && maxcor>cvalue && abs(maxcor)<dvalue) 
 {
- fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d %d\n",Npeak,globalshift+poscor-startshift,maxcor,shift,poscor,maxpos,startshift,globalshift+poscor-startshift);
+ fprintf(Npeak%2==tvalue?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d %d\n",Npeak,globalshift+poscor-startshift,maxcor,shift,poscor,maxpos,startshift,globalshift+poscor-startshift);
 }
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 

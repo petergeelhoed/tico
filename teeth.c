@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     FILE *corfile=stdout;
     FILE *rawfile=stdout;
     FILE *pulsefile;
+    FILE *pulsefiletock;
     int nvalue = 48000;
     int dvalue = 4000;
     int c;
@@ -66,6 +67,7 @@ int main(int argc, char **argv)
     int NN;
     opterr=0;
     double ps[8000];
+    double pst[8000];
 
     while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:")) != -1)
         switch (c)
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
                 wvalue = 1;
                 break;
             case 't':
-                //peak only
+                // toglle tic tock?
                 tvalue = 1;
                 break;
             case 'h':
@@ -157,8 +159,14 @@ int main(int argc, char **argv)
 
     tickfile = fopen("tick", "w");
     tockfile = fopen("tock", "w");
-    corfile = fopen("indata", "w");
+    corfile = fopen("/media/verbext/indata", "w");
     rawfile = fopen("raw", "w");
+    pulsefiletock = fopen("pulseshapetock", "r");
+	if (pulsefiletock == 0)
+	{
+		fprintf (stderr,"no pulsefile called pulseshapetock\n");
+		return 1;
+	}
     pulsefile = fopen("pulseshape", "r");
 	if (pulsefile == 0)
 	{
@@ -176,9 +184,19 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		ps[p] = val;
-		//fprintf (stderr,"%d %g\n",p,ps[p]);
 	}
 	fclose(pulsefile);
+    for (int p=0; p < NN ; p++) 
+	{
+		pst[p]=0.0;
+		if (fscanf(pulsefiletock,"%g %g", &row,&val) != 2)
+		{
+			fprintf (stderr,"pulsefiletock should be 1 .0223 with %d rows\n",NN);
+			return 1;
+		}
+		pst[p] = val;
+	}
+	fclose(pulsefiletock);
 
     int read = 0;
 
@@ -382,6 +400,7 @@ int globalshift = 0;
 				 {
 					 i++;
 					 mean[j] = (float)abs((msb[0] << 8) | lsb[0]);
+	//				 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
 				 } else {
 					 printf("Error reading file. %d bytes\n", read);
 					 return -1;
@@ -450,7 +469,7 @@ int globalshift = 0;
 				 {
 					// in2[j][0]= last[j];
 					 // in2[j][0]= in[j][0];
-					 in2[j][0]= ps[j];
+					 in2[j][0]= (Npeak%2==tvalue)?pst[j]:ps[j];
 					 in2[j][1] = 0.0;
 					 i2x+=in2[j][0];
 				 }
@@ -509,7 +528,7 @@ int globalshift = 0;
 				 }
 				 for (int j=0; j < NN ; j++)
 				 {
-		//			 if (Npeak%pvalue==18) 
+	//				if (Npeak%pvalue==17 && jvalue) 
 if (jvalue && abs(j-maxpos+200)<dvalue ) 
 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
@@ -523,7 +542,8 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
 
-				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
+				 //if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
+				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) ))
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }

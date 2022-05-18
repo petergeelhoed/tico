@@ -529,7 +529,8 @@ int globalshift = 0;
 				 for (int j=0; j < NN ; j++)
 				 {
 	//				if (Npeak%pvalue==17 && jvalue) 
-if (jvalue && abs(j-maxpos+200)<dvalue ) 
+//if (jvalue && abs(j-maxpos+200)<dvalue ) 
+if (jvalue ) 
 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
@@ -537,13 +538,12 @@ fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in
 					 if (Npeak-lvalue==1) startshift = globalshift+maxpos;
 					 if (Npeak>lvalue+1 && maxcor>cvalue && abs(maxcor)<dvalue) 
 {
- fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d\n",Npeak,globalshift+maxpos-startshift,maxcor,shift,poscor,maxpos,startshift);
+ fprintf(Npeak%2==0?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d %d\n",Npeak,globalshift+poscor-startshift,maxcor,shift,poscor,maxpos,startshift,globalshift+poscor-startshift);
 }
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
 
-				 //if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
-				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) ))
+				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }

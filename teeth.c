@@ -44,7 +44,7 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile, FILE *pulsefiletock,
 			  double *ps,      double *pst,
-			  int jvalue, int wvalue);
+			  int jvalue, int wvalue, int NN);
 
 int main(int argc, char **argv) 
 {
@@ -71,10 +71,11 @@ int main(int argc, char **argv)
     int wvalue = 0;
     int vvalue = 0;
     int jvalue = 0;
-    int NN;
+    int NN     = 8000;
     opterr=0;
-    double ps[8000];
-    double pst[8000];
+    double *ps;
+    double *pst;
+    int read = 0;
 
     while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:")) != -1)
         switch (c)
@@ -149,7 +150,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\n");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -160,23 +161,31 @@ int main(int argc, char **argv)
         }
 
     NN=(int)(fvalue*3600/hvalue);
+    pst = malloc(NN*sizeof(double));
+    ps = malloc(NN*sizeof(double));
+
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
 	if (openfiles(&tickfile,  &tockfile, 
 				  &corfile,   &rawfile, 
 				   pulsefile, pulsefiletock,
-				   ps, pst, jvalue, wvalue))
+				   ps, pst, jvalue, wvalue,NN))
 	{
 		fprintf (stderr,"files errored out\n");
 		exit(1);
 	}
-    int read = 0;
+
 	struct HEADER header = readheader();
-	 // read each sample from data chunk if PCM
-	 if (header.format_type == 1) { // PCM
+	// read each sample from data chunk if PCM
+	if (header.format_type == 1) 
+	{ // PCM
          long i =0;
          unsigned char lsb[1];
          signed char msb[1];
+		 int globalshift = 0;
+         float mean[NN];
+		 mean[0]=1.;
+		 for(int j=1;j<NN;j++) { mean[j]=0.; }
 
          for (i =44; i <= 100 ; i++) {
              //skip shit
@@ -185,38 +194,28 @@ int main(int argc, char **argv)
          }
 
 
-		 int globalshift = 0;
-         float mean[NN];
-		 for(int j=0;j<NN;j++)
-		 { 
-			 mean[j]=0;
-		 }
-		 mean[0]=1;
-
-         float last[NN];
-
-         fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; /* double [2] */
+         fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; 
          fftw_plan p, q, pr,cf,cr;
 
          in = fftw_alloc_complex(NN);
          in2 = fftw_alloc_complex(NN);
-         for (int j=0; j < NN; j++) 
-         {
-             in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
-             //in2[j][0] = (exp(-((float)(j*j))/(float)(evalue*evalue)/2) + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
-             in2[j][1] = 0.0;
-         }
          out = fftw_alloc_complex(NN);
          filterFFT = fftw_alloc_complex(NN);
          conv = fftw_alloc_complex(NN);
          tmp = fftw_alloc_complex(NN);
          corr = fftw_alloc_complex(NN);
 
-         // filter
+
+		 // make filter array
+         for (int j=0; j < NN; j++) 
+         {
+             in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
+             in2[j][1] = 0.0;
+         }
+         
          p = fftw_plan_dft_1d(NN, in,out, FFTW_FORWARD, FFTW_ESTIMATE );
          q = fftw_plan_dft_1d(NN, in2,filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
          pr = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-//correration
          cf = fftw_plan_dft_1d(NN,  in2,tmp, FFTW_FORWARD, FFTW_ESTIMATE );
          cr = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
          fftw_execute(q);
@@ -228,31 +227,26 @@ int main(int argc, char **argv)
 		 int startshift = NN;
          long length = header.overall_size/2+qvalue-rvalue*NN-100 - NN*2 ; 
 
-             for(int j=0;j<qvalue;j++)
+		 // skip q values
+		 for(int j=0;j<qvalue;j++)
+		 {
+			 read = fread(lsb, sizeof(lsb), 1, stdin);
+			 read += fread(msb, sizeof(msb), 1, stdin);
+			 if (read == 2) 
 			 {
-				 read = fread(lsb, sizeof(lsb), 1, stdin);
-				 read += fread(msb, sizeof(msb), 1, stdin);
-				 if (read == 2) 
-				 {
-					 i++;
-				 } else {
-					 printf("Error reading file. %d bytes\n", read);
-					 return -1;
-				 }
+				 i++;
+			 } else {
+				 printf("Error reading file. %d bytes\n", read);
+				 return -1;
 			 }
-         while ( i < length) 
-         {
-			 for(int j=0;j<NN;j++)
-			 { 
-				 // save last peak
-				 last[j]=mean[j];
-			 }
-//             shift=jvalue?shift:NN;
-             for(int j=shift;j<NN;j++)
-             { 
-				 // 'reread' the data for smaller shitfs
-				 mean[j-shift]=mean[j];
-             }
+		 }
+
+		 // loop the entire file
+		 while ( i < length) 
+		 {
+			 // 'reread' the data for smaller shitfs
+			 for(int j=shift;j<NN;j++) { mean[j-shift]=mean[j]; }
+
 			 // now get the data you need
              for(int j=NN-shift;j<NN;j++)
 			 {
@@ -262,10 +256,9 @@ int main(int argc, char **argv)
 				 {
 					 i++;
 					 mean[j] = (float)abs((msb[0] << 8) | lsb[0]);
-	//				 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
 				 } else {
 					 printf("Error reading file. %d bytes\n", read);
-					 return -1;
+					 exit(-1);
 				 }
 			 }
 
@@ -288,19 +281,10 @@ int main(int argc, char **argv)
 					 conv[j][1] = (
 							 out[j][0]*filterFFT[j][1]
 							 +out[j][1]*filterFFT[j][0])/NN;
-
 				 }
-
 
 				 fftw_execute(pr);
-
-
-				 for (int j=0; j < NN ; j++)
-				 {
-					 mean[j] = in[j][0];
-				 }
-
-
+				 for (int j=0; j < NN ; j++) { mean[j] = in[j][0]; }
 			 }
                      
 			 float tot=0;
@@ -312,8 +296,8 @@ int main(int argc, char **argv)
 				 for (int j=0; j < NN ; j++)
 				 {
 					 in[j][0] = mean[j];
-					 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
 					 in[j][1]= 0.0;
+					 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
 				 }
 
 				 double ix = 0.0;
@@ -329,8 +313,6 @@ int main(int argc, char **argv)
 				 double i2xx =0.0;
 				 for (int j=0; j < NN ; j++)
 				 {
-					// in2[j][0]= last[j];
-					 // in2[j][0]= in[j][0];
 					 in2[j][0]= (Npeak%2==tvalue)?pst[j]:ps[j];
 					 in2[j][1] = 0.0;
 					 i2x+=in2[j][0];
@@ -561,7 +543,8 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile, FILE *pulsefiletock,
 			  double *ps,      double *pst,
-			  int jvalue,      int wvalue)
+			  int jvalue,      int wvalue,
+              int NN)
 {
 	int result = 0;
 	float row;
@@ -604,12 +587,12 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
 	} 
 	else
 	{
-		for (int p=0; p < 8000 ; p++) 
+		for (int p=0; p < NN ; p++) 
 		{
 			ps[p]=0.0;
 			if (fscanf(pulsefile,"%g %g", &row,&val) != 2)
 			{
-				fprintf (stderr,"pulsefile should be 1 .0223 with %d rows\n",8000);
+				fprintf (stderr,"pulsefile should be 1 .0223 with %d rows\n",NN);
 				result++;
 			}
 			ps[p] = val;
@@ -624,12 +607,12 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
 	}
 	else
 	{
-		for (int p=0; p < 8000 ; p++) 
+		for (int p=0; p < NN ; p++) 
 		{
 			pst[p]=0.0;
 			if (fscanf(pulsefiletock,"%g %g", &row,&val) != 2)
 			{
-				fprintf (stderr,"pulsefiletock should be 1 .0223 with %d rows\n",8000);
+				fprintf (stderr,"pulsefiletock should be 1 .0223 with %d rows\n",NN);
 				result++;
 			}
 			pst[p] = val;

@@ -40,6 +40,12 @@ unsigned char buffer2[2];
 struct HEADER header;
 
 struct HEADER readheader();
+int openfiles(FILE **tickfile,  FILE **tockfile, 
+              FILE **corfile,   FILE **rawfile, 
+              FILE *pulsefile, FILE *pulsefiletock,
+			  double *ps,      double *pst,
+			  int jvalue, int wvalue);
+
 int main(int argc, char **argv) 
 {
     FILE *tickfile=stdout;
@@ -156,48 +162,14 @@ int main(int argc, char **argv)
     NN=(int)(fvalue*3600/hvalue);
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
-
-    tickfile = fopen("tick", "w");
-    tockfile = fopen("tock", "w");
-    corfile = fopen("/media/verbext/indata", "w");
-    rawfile = fopen("raw", "w");
-    pulsefiletock = fopen("pulseshapetock", "r");
-    pulsefile = fopen("pulseshape", "r");
-	if (pulsefiletock == 0)
+	if (openfiles(&tickfile,  &tockfile, 
+				  &corfile,   &rawfile, 
+				   pulsefile, pulsefiletock,
+				   ps, pst, jvalue, wvalue))
 	{
-		fprintf (stderr,"no pulsefile called pulseshapetock\n");
-		return 1;
+		fprintf (stderr,"files errored out\n");
+		exit(1);
 	}
-	if (pulsefile == 0)
-	{
-		fprintf (stderr,"no pulsefile called pulseshape\n");
-		return 1;
-	}
-	float row;
-	float val;
-    for (int p=0; p < NN ; p++) 
-	{
-		ps[p]=0.0;
-		if (fscanf(pulsefile,"%g %g", &row,&val) != 2)
-		{
-			fprintf (stderr,"pulsefile should be 1 .0223 with %d rows\n",NN);
-			return 1;
-		}
-		ps[p] = val;
-	}
-	fclose(pulsefile);
-    for (int p=0; p < NN ; p++) 
-	{
-		pst[p]=0.0;
-		if (fscanf(pulsefiletock,"%g %g", &row,&val) != 2)
-		{
-			fprintf (stderr,"pulsefiletock should be 1 .0223 with %d rows\n",NN);
-			return 1;
-		}
-		pst[p] = val;
-	}
-	fclose(pulsefiletock);
-
     int read = 0;
 	struct HEADER header = readheader();
 	 // read each sample from data chunk if PCM
@@ -466,106 +438,108 @@ set title sprintf(\"beaterror: %%.2fms\",1000*(a-a1));\
 
 }
 
+/* functions */
+
 struct HEADER readheader()
 {
-    int read = 0;
-unsigned char buffer4[4];
-unsigned char buffer2[2];
+	int read = 0;
+	unsigned char buffer4[4];
+	unsigned char buffer2[2];
 
-    struct HEADER header;
-    // read header parts
+	struct HEADER header;
+	// read header parts
 
-    
-    read = fread(header.riff, sizeof(header.riff), 1, stdin);
-    if (DEBUG != 0) printf("(1-4): %s \n", header.riff);
 
-    read = fread(buffer4, sizeof(buffer4), 1, stdin);
-    if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+	read = fread(header.riff, sizeof(header.riff), 1, stdin);
+	if (DEBUG != 0) printf("(1-4): %s \n", header.riff);
 
-    // convert little endian to big endian 4 byte int
-    header.overall_size  = buffer4[0] |
-        (buffer4[1]<<8) |
-        (buffer4[2]<<16) |
-        (buffer4[3]<<24);
-    if (DEBUG != 0) printf("(5-8) Overall size: bytes:%u, Kb:%u \n", header.overall_size, header.overall_size/1024);
+	read = fread(buffer4, sizeof(buffer4), 1, stdin);
+	if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
 
-    read = fread(header.wave, sizeof(header.wave), 1, stdin);
-    if (DEBUG != 0) printf("(9-12) Wave marker: %s\n", header.wave);
+	// convert little endian to big endian 4 byte int
+	header.overall_size  = buffer4[0] |
+		(buffer4[1]<<8) |
+		(buffer4[2]<<16) |
+		(buffer4[3]<<24);
+	if (DEBUG != 0) printf("(5-8) Overall size: bytes:%u, Kb:%u \n", header.overall_size, header.overall_size/1024);
 
-    read = fread(header.fmt_chunk_marker, sizeof(header.fmt_chunk_marker), 1, stdin);
-    if (DEBUG != 0) printf("(13-16) Fmt marker: %s\n", header.fmt_chunk_marker);
+	read = fread(header.wave, sizeof(header.wave), 1, stdin);
+	if (DEBUG != 0) printf("(9-12) Wave marker: %s\n", header.wave);
 
-    read = fread(buffer4, sizeof(buffer4), 1, stdin);
-    if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+	read = fread(header.fmt_chunk_marker, sizeof(header.fmt_chunk_marker), 1, stdin);
+	if (DEBUG != 0) printf("(13-16) Fmt marker: %s\n", header.fmt_chunk_marker);
 
-    // convert little endian to big endian 4 byte integer
-    header.length_of_fmt = buffer4[0] |
-        (buffer4[1] << 8) |
-        (buffer4[2] << 16) |
-        (buffer4[3] << 24);
-    if (DEBUG != 0) printf("(17-20) Length of Fmt header: %u \n", header.length_of_fmt);
+	read = fread(buffer4, sizeof(buffer4), 1, stdin);
+	if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
 
-    read = fread(buffer2, sizeof(buffer2), 1, stdin); if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
+	// convert little endian to big endian 4 byte integer
+	header.length_of_fmt = buffer4[0] |
+		(buffer4[1] << 8) |
+		(buffer4[2] << 16) |
+		(buffer4[3] << 24);
+	if (DEBUG != 0) printf("(17-20) Length of Fmt header: %u \n", header.length_of_fmt);
 
-    header.format_type = buffer2[0] | (buffer2[1] << 8);
-    char format_name[10] = "";
-    if (header.format_type == 1)
-        strcpy(format_name,"PCM");
-    else if (header.format_type == 6)
-        strcpy(format_name, "A-law");
-	 else if (header.format_type == 7)
-	  strcpy(format_name, "Mu-law");
-	 if (DEBUG != 0) printf("(21-22) Format type: %u %s \n", header.format_type, format_name);
+	read = fread(buffer2, sizeof(buffer2), 1, stdin); if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
 
-	 read = fread(buffer2, sizeof(buffer2), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
-	
-	 header.channels = buffer2[0] | (buffer2[1] << 8);
-	 if (DEBUG != 0) printf("(23-24) Channels: %u \n", header.channels);
-	
-	 read = fread(buffer4, sizeof(buffer4), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
-	
-	 header.sample_rate = buffer4[0] |
-	                        (buffer4[1] << 8) |
-	                        (buffer4[2] << 16) |
-	                        (buffer4[3] << 24);
-	
-	 if (DEBUG != 0) printf("(25-28) Sample rate: %u\n", header.sample_rate);
-	
-	 read = fread(buffer4, sizeof(buffer4), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
-	
-	 header.byterate  = buffer4[0] |
-	                        (buffer4[1] << 8) |
-	                        (buffer4[2] << 16) |
-	                        (buffer4[3] << 24);
-	 if (DEBUG != 0) printf("(29-32) Byte Rate: %u , Bit Rate:%u\n", header.byterate, header.byterate*8);
-	 read = fread(buffer2, sizeof(buffer2), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
-	
-	 header.block_align = buffer2[0] |
-	                    (buffer2[1] << 8);
-	 if (DEBUG != 0) printf("(33-34) Block Alignment: %u \n", header.block_align);
-	
-	 read = fread(buffer2, sizeof(buffer2), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
-	
-	 header.bits_per_sample = buffer2[0] |
-	                    (buffer2[1] << 8);
-	 if (DEBUG != 0) printf("(35-36) Bits per sample: %u \n", header.bits_per_sample);
-	
-	 read = fread(header.data_chunk_header, sizeof(header.data_chunk_header), 1, stdin);
-	 if (DEBUG != 0) printf("(37-40) Data Marker: %s \n", header.data_chunk_header);
-	
-	 read = fread(buffer4, sizeof(buffer4), 1, stdin);
-	 if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
-	
-	 header.data_size = buffer4[0] |
-	                (buffer4[1] << 8) |
-	                (buffer4[2] << 16) |
-	                (buffer4[3] << 24 );
-	 if (DEBUG != 0) printf("(41-44) Size of data chunk: %u \n", header.data_size);
+	header.format_type = buffer2[0] | (buffer2[1] << 8);
+	char format_name[10] = "";
+	if (header.format_type == 1)
+		strcpy(format_name,"PCM");
+	else if (header.format_type == 6)
+		strcpy(format_name, "A-law");
+	else if (header.format_type == 7)
+		strcpy(format_name, "Mu-law");
+	if (DEBUG != 0) printf("(21-22) Format type: %u %s \n", header.format_type, format_name);
+
+	read = fread(buffer2, sizeof(buffer2), 1, stdin);
+	if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
+
+	header.channels = buffer2[0] | (buffer2[1] << 8);
+	if (DEBUG != 0) printf("(23-24) Channels: %u \n", header.channels);
+
+	read = fread(buffer4, sizeof(buffer4), 1, stdin);
+	if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+
+	header.sample_rate = buffer4[0] |
+		(buffer4[1] << 8) |
+		(buffer4[2] << 16) |
+		(buffer4[3] << 24);
+
+	if (DEBUG != 0) printf("(25-28) Sample rate: %u\n", header.sample_rate);
+
+	read = fread(buffer4, sizeof(buffer4), 1, stdin);
+	if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+
+	header.byterate  = buffer4[0] |
+		(buffer4[1] << 8) |
+		(buffer4[2] << 16) |
+		(buffer4[3] << 24);
+	if (DEBUG != 0) printf("(29-32) Byte Rate: %u , Bit Rate:%u\n", header.byterate, header.byterate*8);
+	read = fread(buffer2, sizeof(buffer2), 1, stdin);
+	if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
+
+	header.block_align = buffer2[0] |
+		(buffer2[1] << 8);
+	if (DEBUG != 0) printf("(33-34) Block Alignment: %u \n", header.block_align);
+
+	read = fread(buffer2, sizeof(buffer2), 1, stdin);
+	if (DEBUG != 0) printf("%u %u \n", buffer2[0], buffer2[1]);
+
+	header.bits_per_sample = buffer2[0] |
+		(buffer2[1] << 8);
+	if (DEBUG != 0) printf("(35-36) Bits per sample: %u \n", header.bits_per_sample);
+
+	read = fread(header.data_chunk_header, sizeof(header.data_chunk_header), 1, stdin);
+	if (DEBUG != 0) printf("(37-40) Data Marker: %s \n", header.data_chunk_header);
+
+	read = fread(buffer4, sizeof(buffer4), 1, stdin);
+	if (DEBUG != 0) printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+
+	header.data_size = buffer4[0] |
+		(buffer4[1] << 8) |
+		(buffer4[2] << 16) |
+		(buffer4[3] << 24 );
+	if (DEBUG != 0) printf("(41-44) Size of data chunk: %u \n", header.data_size);
 	
 	
 	 // calculate no.of samples
@@ -579,11 +553,88 @@ unsigned char buffer2[2];
 	 float duration_in_seconds = (float) header.overall_size / header.byterate;
 	 if (DEBUG != 0) printf("Approx.Duration in seconds=%f\n", duration_in_seconds);
 	
-	 printf("Approx.Duration in seconds=%u\n", header.overall_size);
-	
-	
-	
-	
-fprintf(stderr,"length= %u\n",header.format_type);
-return header;
+	 return header;
+}
+
+
+int openfiles(FILE **tickfile,  FILE **tockfile, 
+              FILE **corfile,   FILE **rawfile, 
+              FILE *pulsefile, FILE *pulsefiletock,
+			  double *ps,      double *pst,
+			  int jvalue,      int wvalue)
+{
+	int result = 0;
+	float row;
+	float val;
+	*tickfile = fopen("tick", "w");
+	if (*tickfile == 0)
+	{
+		fprintf (stderr,"cannot open tick\n");
+		result++;
+	}
+	*tockfile = fopen("tock", "w");
+	if (*tockfile == 0)
+	{
+		fprintf (stderr,"cannot open tock\n");
+		result++;
+	}
+	if (jvalue)
+	{
+		*corfile = fopen("/media/verbext/indata", "w");
+		if (*corfile == 0)
+		{
+			fprintf (stderr,"cannot open /media/verbext/indata\n");
+			result++;
+		}
+	}
+	if (wvalue)
+	{
+		*rawfile = fopen("raw", "w");
+		if (*rawfile == 0)
+		{
+			fprintf (stderr,"cannot open raw\n");
+			result++;
+		}
+	}
+	pulsefile = fopen("pulseshape", "r");
+	if (pulsefile == 0)
+	{
+		fprintf (stderr,"no pulsefile called pulseshape\n");
+		result++;
+	} 
+	else
+	{
+		for (int p=0; p < 8000 ; p++) 
+		{
+			ps[p]=0.0;
+			if (fscanf(pulsefile,"%g %g", &row,&val) != 2)
+			{
+				fprintf (stderr,"pulsefile should be 1 .0223 with %d rows\n",8000);
+				result++;
+			}
+			ps[p] = val;
+		}
+		fclose(pulsefile);
+	}
+	pulsefiletock = fopen("pulseshapetock", "r");
+	if (pulsefiletock == 0)
+	{
+		fprintf (stderr,"no pulsefile called pulseshapetock\n");
+		result++;
+	}
+	else
+	{
+		for (int p=0; p < 8000 ; p++) 
+		{
+			pst[p]=0.0;
+			if (fscanf(pulsefiletock,"%g %g", &row,&val) != 2)
+			{
+				fprintf (stderr,"pulsefiletock should be 1 .0223 with %d rows\n",8000);
+				result++;
+			}
+			pst[p] = val;
+		}
+		fclose(pulsefiletock);
+	}
+	return result;
 }

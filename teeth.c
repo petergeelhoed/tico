@@ -262,15 +262,15 @@ int main(int argc, char **argv)
 				 }
 			 }
 
+			 for (int j=0; j < NN; j++) 
+			 {
+				 in[j][0] = mean[j];
+				 in[j][1] = 0.0;
+			 }
 
-			 // filter mean 
+			 // filter in array
 			 if (evalue > 0)
 			 {
-				 for (int j=0; j < NN; j++) 
-				 {
-					 in[j][0] = mean[j];
-					 in[j][1] = 0.0;
-				 }
 				 fftw_execute(p);
 
 				 for (int j=0; j < NN ; j++)
@@ -284,7 +284,6 @@ int main(int argc, char **argv)
 				 }
 
 				 fftw_execute(pr);
-				 for (int j=0; j < NN ; j++) { mean[j] = in[j][0]; }
 			 }
                      
 			 float tot=0;
@@ -293,12 +292,7 @@ int main(int argc, char **argv)
 			 int n=0;
 			 if (Npeak>= lvalue)
 			 {
-				 for (int j=0; j < NN ; j++)
-				 {
-					 in[j][0] = mean[j];
-					 in[j][1]= 0.0;
-					 if (wvalue) fprintf(rawfile, "%f\n",mean[j]);
-				 }
+				 if (wvalue) for (int j=0; j < NN ; j++)fprintf(rawfile, "%f\n",in[j][0]);
 
 				 double ix = 0.0;
 				 double ixx =0.0;

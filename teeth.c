@@ -161,6 +161,11 @@ int main(int argc, char **argv)
         }
 
     NN=(int)(fvalue*3600/hvalue);
+	if (dvalue >NN/2) 
+	{
+		fprintf(stderr,"dvalue can be max half of the number of samples per tick\n");
+		exit(-1);
+	}
     pst = malloc(NN*sizeof(double));
     ps = malloc(NN*sizeof(double));
 
@@ -206,6 +211,12 @@ int main(int argc, char **argv)
          corr = fftw_alloc_complex(NN);
 
 
+         p = fftw_plan_dft_1d(NN,  in,   out,       FFTW_FORWARD, FFTW_ESTIMATE );
+         q = fftw_plan_dft_1d(NN,  in2,  filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
+         pr = fftw_plan_dft_1d(NN, conv, in       , FFTW_BACKWARD, FFTW_ESTIMATE);
+         cf = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD, FFTW_ESTIMATE );
+         cr = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
+
 		 // make filter array
          for (int j=0; j < NN; j++) 
          {
@@ -213,11 +224,6 @@ int main(int argc, char **argv)
              in2[j][1] = 0.0;
          }
          
-         p = fftw_plan_dft_1d(NN, in,out, FFTW_FORWARD, FFTW_ESTIMATE );
-         q = fftw_plan_dft_1d(NN, in2,filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
-         pr = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-         cf = fftw_plan_dft_1d(NN,  in2,tmp, FFTW_FORWARD, FFTW_ESTIMATE );
-         cr = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
          fftw_execute(q);
          fftw_destroy_plan(q);
 
@@ -343,7 +349,7 @@ int main(int argc, char **argv)
 				 // use cross correlation for peak
 				 for (int j=0; j < NN ; j++)
 				 {
-					 if (corr[j][0]>maxcor && (j < dvalue || NN-dvalue < j))
+					 if (corr[j][0]>maxcor && ( Npeak < lvalue+10 || (j < dvalue || NN-dvalue < j)))
 					 {
 						 maxcor =corr[j][0];
 						 poscor=j;
@@ -364,24 +370,23 @@ int main(int argc, char **argv)
 					 }
 
 				 }
-				 for (int j=0; j < NN ; j++)
+				 if (jvalue ) for (int j=0; j < NN ; j++)
 				 {
 	//				if (Npeak%pvalue==17 && jvalue) 
-//if (jvalue && abs(j-maxpos+200)<dvalue ) 
-if (jvalue ) 
-fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
-// cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
+					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
+						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
+					 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }
 					 if (Npeak-lvalue==1) startshift = globalshift+maxpos;
 					 if (Npeak>lvalue+1 && maxcor>cvalue && abs(maxcor)<dvalue) 
-{
+				 {
  fprintf(Npeak%2==tvalue?tickfile:tockfile,"%8d %5d %12.6f %d %d %d %d %d\n",Npeak,globalshift+(ovalue?maxpos:poscor)-startshift,maxcor,shift,poscor,maxpos,startshift,globalshift+poscor-startshift);
-}
+				 }
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
 
-				 if (kvalue==0 && ((Npeak <10 || maxcor > 0.70) && Npeak%2==1))
+				 if (kvalue==0 && ((Npeak < lvalue + 10 || maxcor > 0.70) && Npeak%2==1))
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }

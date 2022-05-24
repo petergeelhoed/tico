@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 				 if (read == 2) 
 				 {
 					 i++;
-					 mean[j] = (float)abs((msb[0] << 8) | lsb[0]);
+					 mean[j] = (float)((msb[0] << 8) | lsb[0]);
 				 } else {
 					 printf("Error reading file. %d bytes\n", read);
 					 exit(-1);
@@ -270,7 +270,8 @@ int main(int argc, char **argv)
 
 			 for (int j=0; j < NN; j++) 
 			 {
-				 in[j][0] = mean[j];
+				 if (wvalue) fprintf(rawfile, "%d %f\n",j,mean[j]);
+				 in[j][0] = abs(mean[j]);
 				 in[j][1] = 0.0;
 			 }
 
@@ -298,7 +299,6 @@ int main(int argc, char **argv)
 			 int n=0;
 			 if (Npeak>= lvalue)
 			 {
-				 if (wvalue) for (int j=0; j < NN ; j++)fprintf(rawfile, "%f\n",in[j][0]);
 
 				 double ix = 0.0;
 				 double ixx =0.0;
@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 				 {
 	//				if (Npeak%pvalue==17 && jvalue) 
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
-						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-maxpos,in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
+						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-(ovalue?maxpos:poscor),in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 					 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }

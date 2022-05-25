@@ -43,11 +43,13 @@ struct HEADER readheader();
 int openfiles(FILE **tickfile,  FILE **tockfile, 
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile, FILE *pulsefiletock,
+              FILE **tickavg, 
 			  double *ps,      double *pst,
 			  int jvalue, int wvalue, int NN);
 
 int main(int argc, char **argv) 
 {
+    FILE *tickavg=stdout;
     FILE *tickfile=stdout;
     FILE *tockfile=stdout;
     FILE *corfile=stdout;
@@ -72,10 +74,15 @@ int main(int argc, char **argv)
     int vvalue = 0;
     int jvalue = 0;
     int NN     = 8000;
+	int Ntick  = 0;
+	int Ntock  = 0;
     opterr=0;
     double *ps;
     double *pst;
+    double *avgtick;
+    double *avgtock;
     int read = 0;
+    opterr=0;
 
     while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:")) != -1)
         switch (c)
@@ -168,12 +175,14 @@ int main(int argc, char **argv)
 	}
     pst = malloc(NN*sizeof(double));
     ps = malloc(NN*sizeof(double));
+    avgtick = malloc(NN*sizeof(double));
+    avgtock = malloc(NN*sizeof(double));
 
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
 	if (openfiles(&tickfile,  &tockfile, 
 				  &corfile,   &rawfile, 
-				   pulsefile, pulsefiletock,
+				   pulsefile, pulsefiletock, &tickavg,
 				   ps, pst, jvalue, wvalue,NN))
 	{
 		fprintf (stderr,"files errored out\n");
@@ -370,10 +379,25 @@ int main(int argc, char **argv)
 					 }
 
 				 }
-				 if (jvalue ) for (int j=0; j < NN ; j++)
+				 for (int j=0; j < NN ; j++)
 				 {
-	//				if (Npeak%pvalue==17 && jvalue) 
+					 if (Npeak%2!=tvalue&&maxcor > cvalue) {
+						 if (j-poscor >= 0 && j-poscor <NN)
+						 {
+							 if (j-poscor==0)Ntick++;
+							 avgtick[j-poscor] += in[j][0];
+						 }
+					 }
+					 if (Npeak%2==tvalue&&maxcor > cvalue) {
+						 if (j-poscor >= 0 && j-poscor <NN)
+						 {
+							 if (j-poscor==0)Ntock++;
+							 avgtock[j-poscor] += in[j][0];
+						 }
+					 }
+					 //				if (Npeak%pvalue==17 && jvalue) 
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
+				 if (jvalue ) 
 						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-(ovalue?maxpos:poscor),in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
 					 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
@@ -401,7 +425,15 @@ int main(int argc, char **argv)
 		 fftw_destroy_plan(p);
 		 fftw_destroy_plan(pr);
 		 fftw_cleanup();
+		for (int j=0; j < NN ; j++)
+		{
+			fprintf(tickavg,"%d %lf %lf \n",j,
+				avgtick[j]/Ntick,
+				avgtock[j]/Ntock);
+		}
 	 }
+
+	 fclose(tickavg);
 	 fclose(tickfile);
 	 fclose(tockfile);
 	 fclose(corfile);
@@ -541,6 +573,7 @@ struct HEADER readheader()
 int openfiles(FILE **tickfile,  FILE **tockfile, 
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile, FILE *pulsefiletock,
+			  FILE **tickavg,
 			  double *ps,      double *pst,
 			  int jvalue,      int wvalue,
               int NN)
@@ -548,6 +581,12 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
 	int result = 0;
 	float row;
 	float val;
+	*tickavg = fopen("shape", "w");
+	if (*tickavg == 0)
+	{
+		fprintf (stderr,"cannot open shape\n");
+		result++;
+	}
 	*tickfile = fopen("tick", "w");
 	if (*tickfile == 0)
 	{

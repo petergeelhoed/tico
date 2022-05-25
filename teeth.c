@@ -45,7 +45,7 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE *pulsefile, 
               FILE **tickavg, 
 			  double *ps,      double *pst,
-			  int jvalue, int wvalue, int NN);
+			  int jvalue, int wvalue, int svalue, int NN);
 
 int main(int argc, char **argv) 
 {
@@ -66,6 +66,7 @@ int main(int argc, char **argv)
     int hvalue = 21600;
     int lvalue = 0;
     int rvalue = 0;
+    int svalue = 0;
     int qvalue = 4000;
     int tvalue = 0;
     int kvalue = 0;
@@ -83,7 +84,7 @@ int main(int argc, char **argv)
     int read = 0;
     opterr=0;
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:s")) != -1)
         switch (c)
         {
             case 'n':
@@ -98,6 +99,10 @@ int main(int argc, char **argv)
             case 'k':
                 //no corrshift
                 kvalue = 1;
+                break;
+            case 's':
+                //split peaks
+                svalue = 1;
                 break;
             case 'j':
                 //indata
@@ -156,7 +161,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nm mean, use with -s\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -182,7 +187,7 @@ int main(int argc, char **argv)
 	if (openfiles(&tickfile,  &tockfile, 
 				  &corfile,   &rawfile, 
 				   pulsefile, &tickavg,
-				   ps, pst, jvalue, wvalue,NN))
+				   ps, pst, jvalue, wvalue,svalue,NN))
 	{
 		fprintf (stderr,"files errored out\n");
 		exit(1);
@@ -577,7 +582,7 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE *pulsefile,
 			  FILE **tickavg,
 			  double *ps,      double *pst,
-			  int jvalue,      int wvalue,
+			  int jvalue,      int wvalue, int svalue,
               int NN)
 {
 	int result = 0;
@@ -629,7 +634,7 @@ int defaultpulse[8000] = {-97, -97, -97, -97, -97, -97, -98, -98, -98, -98, -98,
 		for (int j=0; j < NN ; j++) 
 {
 ps[j] = defaultpulse[j];
-pst[j] = defaulttock[j];
+pst[j] = svalue?defaulttock[j]:defaultpulse[j];
 }
 	} 
 	else

@@ -172,7 +172,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
         }
 
     NN=(int)(fvalue*3600/hvalue);
-    bvalue = fvalue/bvalue;
+    bvalue = (bvalue>0)?fvalue/bvalue:0;
 	if (dvalue >NN/2) 
 	{
 		fprintf(stderr,"dvalue can be max half of the number of samples per tick\n");
@@ -298,7 +298,8 @@ int main(int argc, char **argv)
 
 			 for (int j=0; j < NN; j++) 
 			 {
-				 in[j][0] = abs(mean[j]);
+
+				 in[j][0] = (j>0)?abs(mean[j]-mean[j-1]):0.0;
 				 in[j][1] = 0.0;
                  if (Npeak==xvalue) fprintf(rawfile, "%d %f %f\n",j,in[j][0],mean[j]);
 			 }
@@ -327,7 +328,7 @@ int main(int argc, char **argv)
 				 fftw_execute(pr);
 			 }
 
-             if (Npeak==xvalue) for (int j=0; j < NN; j++) { fprintf(rawfile, "%d %f\n",j,in[j][0]); }
+             if (Npeak==xvalue) for (int j=0; j < NN; j++) { fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], filterFFT[j][0],filterFFT[j][1]); }
                      
 			 float tot=0;
 			 float mom=0;

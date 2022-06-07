@@ -183,6 +183,10 @@ int main(int argc, char **argv)
         }
 
     NN=(int)(fvalue*3600/hvalue);
+    if (bvalue && evalue == 0)
+    {
+		fprintf(stderr,"-b high pass filter only works with an e value for the gaussian window. ignoring -b %d  for now.\n",bvalue );
+    }
     bvalue = (bvalue>0)?fvalue/bvalue:0;
 	if (dvalue >NN/2) 
 	{

@@ -67,6 +67,7 @@ int main(int argc, char **argv)
     int hvalue = 21600;
     int lvalue = 0;
     int rvalue = 0;
+    int yvalue = 0;
     int svalue = 0;
     int bvalue = 0;
     int uvalue = 0;
@@ -87,7 +88,7 @@ int main(int argc, char **argv)
     int read = 0;
     opterr=0;
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:sx:b:")) != -1)
+    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:sx:b:y")) != -1)
         switch (c)
         {
             case 'n':
@@ -163,6 +164,10 @@ int main(int argc, char **argv)
                 //trim right
                 rvalue = atoi(optarg);
                 break;
+            case 'y':
+                // no reivative
+                yvalue = 1;
+                break;
             case 'd':
                 //max windowshift
                 dvalue = atoi(optarg);
@@ -172,7 +177,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative \n t toggle tic/tock");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -302,10 +307,16 @@ int main(int argc, char **argv)
 
 			 for (int j=0; j < NN; j++) 
 			 {
+				 if (yvalue) 
+                 {
+                     in[j][0]= mean[j];
+                 }
+                 else 
+                 {
+                     in[j][0] = (j>0)?abs(mean[j]-mean[j-1]):0.0;
+                 }
 
-				 in[j][0] = (j>0)?abs(mean[j]-mean[j-1]):0.0;
 				 in[j][1] = 0.0;
-                 if (Npeak==xvalue) fprintf(rawfile, "%d %f %f\n",j,in[j][0],mean[j]);
 			 }
 
 			 // filter in array
@@ -329,10 +340,19 @@ int main(int argc, char **argv)
 							 +out[j][1]*filterFFT[j][0])/NN;
 				 }
 
+                 // in to in
 				 fftw_execute(pr);
 			 }
 
-             if (Npeak==xvalue) for (int j=0; j < NN; j++) { fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], filterFFT[j][0],filterFFT[j][1]); }
+                 if (Npeak==xvalue) 
+                {
+                  for (int j=0; j < NN; j++) 
+                  { 
+                      fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], mean[j],filterFFT[j][0]); 
+                  }
+                }
+
+
                      
 			 float tot=0;
 			 float mom=0;
@@ -433,7 +453,7 @@ int main(int argc, char **argv)
 	//				 				if (Npeak%pvalue==17 && jvalue) 
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
 			 if (jvalue ) 
-						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d\n", j-(ovalue?maxpos:poscor),in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos);
+						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d %12.6f\n", j-(ovalue?maxpos:poscor),in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos,mean[j]);
 					 // cat indata | plot 'u (int($5)%2==0?$1:NaN):2:5pal , "" u (int($5)%2==1?$1:NaN):(-$2):5 pal ; set xrange [-500:500]'
 
 				 }

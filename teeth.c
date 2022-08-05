@@ -172,7 +172,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nn maximum points\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative \n t toggle tic/tock");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative \n t toggle tic/tock");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
 
          fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; 
-         fftw_plan p, q, pr,cf,cr;
+         fftw_plan forward, makefilter, reverse,corforward,correverse;
 
          in = fftw_alloc_complex(NN);
          in2 = fftw_alloc_complex(NN);
@@ -240,11 +240,11 @@ int main(int argc, char **argv)
          corr = fftw_alloc_complex(NN);
 
 
-         p = fftw_plan_dft_1d(NN,  in,   out,       FFTW_FORWARD, FFTW_ESTIMATE );
-         q = fftw_plan_dft_1d(NN,  in2,  filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
-         pr = fftw_plan_dft_1d(NN, conv, in       , FFTW_BACKWARD, FFTW_ESTIMATE);
-         cf = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD, FFTW_ESTIMATE );
-         cr = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
+         forward = fftw_plan_dft_1d(NN,  in,   out,       FFTW_FORWARD, FFTW_ESTIMATE );
+         makefilter = fftw_plan_dft_1d(NN,  in2,  filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
+         reverse = fftw_plan_dft_1d(NN, conv, in       , FFTW_BACKWARD, FFTW_ESTIMATE);
+         corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD, FFTW_ESTIMATE );
+         correverse = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
 
 		 if (evalue > 0)
          {
@@ -255,9 +255,9 @@ int main(int argc, char **argv)
                  in2[j][1] = 0.0;
              }
 
-             fftw_execute(q);
+             fftw_execute(makefilter);
          }
-         fftw_destroy_plan(q);
+         fftw_destroy_plan(makefilter);
 
          int val = 0;
          int Npeak =0;
@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 			 // filter in array
 			 if (evalue > 0)
 			 {
-				 fftw_execute(p);
+				 fftw_execute(forward);
 
 				 for (int j=0; j < NN ; j++)
 				 {
@@ -336,19 +336,10 @@ int main(int argc, char **argv)
 				 }
 
                  // in to in
-				 fftw_execute(pr);
+				 fftw_execute(reverse);
 			 }
 
-                 if (Npeak==xvalue) 
-                {
-                  for (int j=0; j < NN; j++) 
-                  { 
-                      fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], mean[j],filterFFT[j][0]); 
-                  }
-                }
 
-
-                     
 			 float tot=0;
 			 float mom=0;
 			 int j=0;
@@ -363,7 +354,6 @@ int main(int argc, char **argv)
 					 in[j][0] = (float)(in[j][0]/NN);
 					 in[j][1] = 0.0;
 					 ix+=in[j][0];
-              //       if (wvalue) fprintf(rawfile, "%d %f\n",j,in[j][0]);
 				 }
 				 //use in2 for second into tmp
 				 double i2x = 0.0;
@@ -386,8 +376,11 @@ int main(int argc, char **argv)
 				 }
 				 double s = sqrt(ixx/NN-m/NN*m/NN);
 				 double s2 = sqrt(i2xx*NN-m2*m2)/NN;
-				 fftw_execute(p);
-				 fftw_execute(cf);
+                 // into out
+				 fftw_execute(forward);
+
+                 // into tmp
+				 fftw_execute(corforward);
 				 // calculate cross correlation
 				 for (int j=0; j < NN ; j++)
 				 {
@@ -400,8 +393,18 @@ int main(int argc, char **argv)
 							 +out[j][1]*tmpbuf)/NN/NN/s/s2;
 				 }
 				 // transform back into corr
-				 fftw_execute(cr);
-             if (Npeak==xvalue) for (int j=0; j < NN; j++) { fprintf(rawfile, "%d %f\n",j,corr[j][0]); }
+				 fftw_execute(correverse);
+                 
+                 if (Npeak==xvalue) 
+                {
+                  for (int j=0; j < NN; j++) 
+                  { 
+                      fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], mean[j],corr[j][0]); 
+                  }
+                }
+
+                     
+
 				 float maxcor=-1;
 				 int poscor=0;
 				 // use cross correlation for peak
@@ -472,8 +475,8 @@ int main(int argc, char **argv)
 			 }
 			 Npeak++;
 		 }
-		 fftw_destroy_plan(p);
-		 fftw_destroy_plan(pr);
+		 fftw_destroy_plan(forward);
+		 fftw_destroy_plan(reverse);
 		 fftw_cleanup();
 		for (int j=0; j < NN ; j++)
 		{

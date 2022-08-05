@@ -55,7 +55,6 @@ int main(int argc, char **argv)
     FILE *corfile=stdout;
     FILE *rawfile=stdout;
     FILE *pulsefile = 0 ;
-    int nvalue = 48000;
     int dvalue = 4000;
     int c;
     int evalue = 0;
@@ -88,13 +87,9 @@ int main(int argc, char **argv)
     int read = 0;
     opterr=0;
 
-    while ((c = getopt (argc, argv, "n:d:l:r:q:twvh:f:e:op:jkc:sx:b:y")) != -1)
+    while ((c = getopt (argc, argv, "d:l:r:q:twvh:f:e:op:jkc:sx:b:y")) != -1)
         switch (c)
         {
-            case 'n':
-                // maximum number of peak points
-                nvalue = atoi(optarg);
-                break;
             case 'p':
                 //print teeth hisdev
                 pvalue = atoi(optarg)*2;

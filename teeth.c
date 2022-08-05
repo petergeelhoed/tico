@@ -1,7 +1,7 @@
 /**
  * Read and parse a wave file
  * PG
-* assumes 6Hz and 48000 wav
+* assumes 21600bph and 48000 wav
  **/
 #include <unistd.h>
 #include <math.h>
@@ -15,7 +15,6 @@
 #define FALSE 0
 #define DEBUG 0
 
-// WAVE header structure
  // WAVE file header format
 struct HEADER {
     unsigned char riff[4];                      // RIFF string
@@ -240,10 +239,10 @@ int main(int argc, char **argv)
          corr = fftw_alloc_complex(NN);
 
 
-         forward = fftw_plan_dft_1d(NN,  in,   out,       FFTW_FORWARD, FFTW_ESTIMATE );
-         makefilter = fftw_plan_dft_1d(NN,  in2,  filterFFT, FFTW_FORWARD, FFTW_ESTIMATE );
-         reverse = fftw_plan_dft_1d(NN, conv, in       , FFTW_BACKWARD, FFTW_ESTIMATE);
-         corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD, FFTW_ESTIMATE );
+         forward    = fftw_plan_dft_1d(NN, in,   out,       FFTW_FORWARD,  FFTW_ESTIMATE);
+         makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
+         reverse    = fftw_plan_dft_1d(NN, conv, in,        FFTW_BACKWARD, FFTW_ESTIMATE);
+         corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD,  FFTW_ESTIMATE);
          correverse = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
 
 		 if (evalue > 0)
@@ -308,6 +307,7 @@ int main(int argc, char **argv)
                  }
                  else 
                  {
+                     // default: take the derivative
                      in[j][0] = (j>0)?abs(mean[j]-mean[j-1]):0.0;
                  }
 
@@ -395,15 +395,6 @@ int main(int argc, char **argv)
 				 // transform back into corr
 				 fftw_execute(correverse);
                  
-                 if (Npeak==xvalue) 
-                {
-                  for (int j=0; j < NN; j++) 
-                  { 
-                      fprintf(rawfile, "%d %f %f %f\n",j,in[j][0], mean[j],corr[j][0]); 
-                  }
-                }
-
-                     
 
 				 float maxcor=-1;
 				 int poscor=0;
@@ -427,11 +418,26 @@ int main(int argc, char **argv)
 					 if (in[j][0] > maxin)
 					 {
 						 maxpos = j; 
+						 maxpos=j-NN/2;
 						 maxin = in[j][0];
 					 }
 
 				 }
-             if (Npeak==xvalue) for (int j=0; j < NN; j++) { fprintf(rawfile, "%d %f\n",j-poscor,in[j][0]); }
+                 if (Npeak==xvalue) 
+                 {
+                     // debug
+                     for (int j=0; j < NN; j++) 
+                     { 
+                         fprintf(rawfile, "%d %d  %d %f %f %f\n",
+                                 j,
+                                 maxpos,
+                                 poscor,
+                                 in[j][0],
+                                 mean[j],
+                                 corr[j][0]); 
+                     }
+                 }
+
 				 for (int j=0; j < NN ; j++)
 				 {
 					 if (Npeak%2!=tvalue&&maxcor > cvalue) {
@@ -478,22 +484,22 @@ int main(int argc, char **argv)
 		 fftw_destroy_plan(forward);
 		 fftw_destroy_plan(reverse);
 		 fftw_cleanup();
-		for (int j=0; j < NN ; j++)
-		{
-			fprintf(tickavg,"%d %lf %lf \n",j,
-				avgtick[j]/Ntick,
-				avgtock[j]/Ntock);
+         for (int j=0; j < NN ; j++)
+         {
+             fprintf(tickavg,"%d %lf %lf \n",j,
+                     avgtick[j]/Ntick,
+                     avgtock[j]/Ntock);
 
-//  cat shape  | plot 'u ($1-4000)/48.:2 w l t "tick" , "" u ($1-4000)/48.:3 w l t "tock" ; set xrange [-15:5]; set format y ""; set ylabel "abs(pressure)"; set xlabel "time (ms)"; set xtics 1 '
+             //  cat shape  | plot 'u ($1-4000)/48.:2 w l t "tick" , "" u ($1-4000)/48.:3 w l t "tock" ; set xrange [-15:5]; set format y ""; set ylabel "abs(pressure)"; set xlabel "time (ms)"; set xtics 1 '
 
-		}
-	 }
+         }
+    }
 
-	 fclose(tickavg);
-	 fclose(tickfile);
-	 fclose(tockfile);
-	 fclose(corfile);
-	 fclose(rawfile);
+    fclose(tickavg);
+    fclose(tickfile);
+    fclose(tockfile);
+    fclose(corfile);
+    fclose(rawfile);
 
      char command[1024] ;
      sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"tick\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; set ylabel sprintf(\"modulo 1/%%d s (s)\",h);\

@@ -171,7 +171,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\n s split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative \n t toggle tic/tock");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\ns split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative (probably a really bad idea)\n t toggle tic/tock\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",

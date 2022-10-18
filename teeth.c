@@ -301,6 +301,7 @@ int main(int argc, char **argv)
 
 			 for (int j=0; j < NN; j++) 
 			 {
+ if (wvalue && xvalue == Npeak) { fprintf(rawfile, "%d %f 2\n",j,mean[j]); }
 				 if (yvalue) 
                  {
                      in[j][0]= mean[j];
@@ -310,6 +311,7 @@ int main(int argc, char **argv)
                      // default: take the derivative
                      in[j][0] = (j>0)?abs(mean[j]-mean[j-1]):0.0;
                  }
+ if (wvalue && xvalue == Npeak) { fprintf(rawfile, "%d %f 4\n",j,in[j][0]); }
 
 				 in[j][1] = 0.0;
 			 }
@@ -354,6 +356,7 @@ int main(int argc, char **argv)
 					 in[j][0] = (float)(in[j][0]/NN);
 					 in[j][1] = 0.0;
 					 ix+=in[j][0];
+ if (wvalue && xvalue == Npeak) { fprintf(rawfile, "%d %f 6\n",j,in[j][0]*NN); }
 				 }
 				 //use in2 for second into tmp
 				 double i2x = 0.0;
@@ -363,6 +366,7 @@ int main(int argc, char **argv)
 					 in2[j][0]= (Npeak%2==tvalue)?pst[j]:ps[j];
 					 in2[j][1] = 0.0;
 					 i2x+=in2[j][0];
+ if (wvalue && xvalue == Npeak) { fprintf(rawfile, "%d %f 8\n",j,in2[j][0]*4000); }
 				 }
 				 float m=ix/NN;
 				 float m2=i2x/NN;
@@ -401,6 +405,7 @@ int main(int argc, char **argv)
 				 // use cross correlation for peak
 				 for (int j=0; j < NN ; j++)
 				 {
+ if (wvalue && xvalue == Npeak) { fprintf(rawfile, "%d %f 10\n",(j+NN/2)%NN,corr[j][0]*200); }
 					 if (corr[j][0]>maxcor && ( Npeak < lvalue+10 || (j < dvalue || NN-dvalue < j)))
 					 {
 						 maxcor =corr[j][0];
@@ -423,7 +428,7 @@ int main(int argc, char **argv)
 					 }
 
 				 }
-                 if (Npeak==xvalue) 
+/*                 if (Npeak==xvalue) 
                  {
                      // debug
                      for (int j=0; j < NN; j++) 
@@ -437,7 +442,7 @@ int main(int argc, char **argv)
                                  corr[j][0]); 
                      }
                  }
-
+*/
 				 for (int j=0; j < NN ; j++)
 				 {
 					 if (Npeak%2!=tvalue&&maxcor > cvalue) {

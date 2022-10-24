@@ -11,16 +11,12 @@ tico -h
 # use -t to get only the top of the sound
 -r cuts off the last 10 seconds
 -l cuts off the first 20 seconds
+-d narrow search round max
 -v prints the gnuplot statement
--q moves the data in the modulo 8000 tics 
--m sets the center of the search area
--s the maximum distance to the -m
+-s split tick tock pulseshape
 -e applies a gaussian window o f8 
--p 15 sets the number of teeth in the escapement wheel and prints the averaged data tot the stdout
 
 # generate a plot in lussen/www/tico.png and raw data
-~/tico/tico/tico  -v -q 4000 -t   -l20 -r 10 -m5450 -s 100  -e8  -p15  < out.wav > raw
-#plot the raw data with a bit of a scale up for the first sound
-cat raw | plot 'u ($1/48):((1+9*($1/48<-8))*$2):($3):(sqrt($5**2)) w ye pal ;set xrange [-12:4]'
+~/tico/tico/tico -l 4 -r 5 -s -e4 -d 50 < out.wav 
 
 

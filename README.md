@@ -12,9 +12,10 @@ tico -h
 -r cuts off the last 10 seconds
 -l cuts off the first 20 seconds
 -d narrow search round max
+-c crosscorrelation threshold
 -v prints the gnuplot statement
 -s split tick tock pulseshape
--e applies a gaussian window o f8 
+-e applies a gaussian window of s=8 
 
 # generate a plot in lussen/www/tico.png and raw data
 ~/tico/tico/tico -l 4 -r 5 -s -e4 -d 50 < out.wav 

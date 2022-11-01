@@ -72,6 +72,7 @@ int main(int argc, char **argv)
     int qvalue = 4000;
     int tvalue = 0;
     int kvalue = 0;
+    int zvalue = 0;
     int wvalue = 0;
     int vvalue = 0;
     int jvalue = 0;
@@ -83,16 +84,21 @@ int main(int argc, char **argv)
     double *pst;
     double *avgtick;
     double *avgtock;
+    double *zavg;
     int read = 0;
     opterr=0;
 
-    while ((c = getopt (argc, argv, "d:l:r:q:twvh:f:e:op:jkc:sx:b:y")) != -1)
+    WHIle ((c = getopt (argc, argv, "d:l:r:q:twvh:f:e:op:jkc:sx:b:yz")) != -1)
         switch (c)
         {
             case 'p':
                 //print teeth hisdev
                 pvalue = atoi(optarg)*2;
                 fprintf(stderr,"teeth: %d\n",pvalue/2);
+                break;
+            case 'z':
+                //print full tick avg
+                zvalue = 1;
                 break;
             case 'k':
                 //no corrshift
@@ -171,7 +177,7 @@ int main(int argc, char **argv)
                     fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt)){
                     fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\ns split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative (probably a really bad idea)\n t toggle tic/tock\n");
+                    fprintf (stderr, "h bph default 21600\nf wav frequency default 48000\nd max distance for window shift\nl left trim (s)\nq move points up (default 2000)\nr right trim (s)\nj flatten the curve \nw raw input\nv show gnuplot command\ne gausfiliter stdev\np teethfor hisdev\nt toggle tick/tock\ns split tick and tock correlation peaks\nx <n> , print one tick/tock, completely\nb <n> bandpass all samples over <n>Hz\no use loudest noise and not correlation\ny no deriviative (probably a really bad idea)\n t toggle tic/tock\nz print sum of sound per teeth\n");
                 }else
                     fprintf (stderr,
                             "Unknown option character `\\x%x'.\n",
@@ -196,6 +202,7 @@ int main(int argc, char **argv)
     ps = malloc(NN*sizeof(double));
     avgtick = malloc(NN*sizeof(double));
     avgtock = malloc(NN*sizeof(double));
+    zavg = malloc(pvalue*NN*sizeof(double));
 
     lvalue = lvalue*hvalue/3600;
     rvalue = rvalue*hvalue/3600;
@@ -459,7 +466,10 @@ int main(int argc, char **argv)
 							 avgtock[j-poscor] += in[j][0];
 						 }
 					 }
-	//				 				if (Npeak%pvalue==17 && jvalue) 
+				 	 if (zvalue && j>=poscor)
+                     {
+                         zavg[Npeak%pvalue*NN+j-poscor]+=in[j][0];
+                     }
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
 			 if (jvalue ) 
 						 fprintf(corfile, "%8d %12.6f %12.6f %12.6f %d %d %d %d %12.6f %d %12.6f\n", j-(ovalue?maxpos:poscor),in[j][0]/((maxin>0)?maxin:1),in2[j][0],corr[j][0],Npeak,shift,poscor,globalshift, maxin, maxpos,mean[j]);
@@ -497,6 +507,16 @@ int main(int argc, char **argv)
 
              //  cat shape  | plot 'u ($1-4000)/48.:2 w l t "tick" , "" u ($1-4000)/48.:3 w l t "tock" ; set xrange [-15:5]; set format y ""; set ylabel "abs(pressure)"; set xlabel "time (ms)"; set xtics 1 '
 
+         }
+         if (zvalue)
+         {
+             for (int p=0; p < pvalue ; p++)
+                 for (int j=0; j < NN ; j++)
+                 {
+                     {
+                         printf("%d %d %f\n",p,j,zavg[p*NN+j]);;
+                     }
+                 }
          }
     }
 

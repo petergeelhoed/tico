@@ -43,6 +43,7 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile, 
               FILE **tickavg, 
+              FILE **teethfile, 
 			  double *ps,      double *pst,
 			  int jvalue, int wvalue, int svalue, int NN);
 
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
     FILE *corfile=stdout;
     FILE *rawfile=stdout;
     FILE *pulsefile = 0 ;
+    FILE *teethfile = 0 ;
     int dvalue = 4000;
     int c;
     int evalue = 0;
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
     int read = 0;
     opterr=0;
 
-    WHIle ((c = getopt (argc, argv, "d:l:r:q:twvh:f:e:op:jkc:sx:b:yz")) != -1)
+    while ((c = getopt (argc, argv, "d:l:r:q:twvh:f:e:op:jkc:sx:b:yz")) != -1)
         switch (c)
         {
             case 'p':
@@ -208,7 +210,7 @@ int main(int argc, char **argv)
     rvalue = rvalue*hvalue/3600;
 	if (openfiles(&tickfile,  &tockfile, 
 				  &corfile,   &rawfile, 
-				   pulsefile, &tickavg,
+				   pulsefile, &tickavg, &teethfile,
 				   ps, pst, jvalue, wvalue,svalue,NN))
 	{
 		fprintf (stderr,"files errored out\n");
@@ -514,7 +516,7 @@ int main(int argc, char **argv)
                  for (int j=0; j < NN ; j++)
                  {
                      {
-                         printf("%d %d %f\n",p,j,zavg[p*NN+j]);;
+                         fprintf(teethfile,"%d %d %f\n",p,j,zavg[p*NN+j]);;
                      }
                  }
          }
@@ -525,6 +527,7 @@ int main(int argc, char **argv)
     fclose(tockfile);
     fclose(corfile);
     fclose(rawfile);
+    fclose(teethfile);
 
      char command[1024] ;
      sprintf(command," echo 'uns colorbox; f=%d;h=%d/3600; set cbtics 1; set term png size 1920,1080 font \"DejaVuSansCondensed,12 truecolor \" ; set ytics nomirror; set out \"/dev/null\"; plot \"tick\" u ($1/h):($2/f); set y2tics ; set y2range [GPVAL_Y_MIN*f:GPVAL_Y_MAX*f]; set out \"/home/pi/lussen/www/tico.png\"; set fit quiet; set samples 1000; set ylabel sprintf(\"modulo 1/%%d s (s)\",h);\
@@ -662,6 +665,7 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
               FILE **corfile,   FILE **rawfile, 
               FILE *pulsefile,
 			  FILE **tickavg,
+			  FILE **teethfile,
 			  double *ps,      double *pst,
 			  int jvalue,      int wvalue, int svalue,
               int NN)
@@ -670,6 +674,12 @@ int openfiles(FILE **tickfile,  FILE **tockfile,
 	float row;
 	float val,val2;
 
+	*teethfile = fopen("teethshape", "w");
+	if (*teethfile == 0)
+	{
+		fprintf (stderr,"cannot open teethshape\n");
+		result++;
+	}
 	*tickavg = fopen("shape", "w");
 	if (*tickavg == 0)
 	{

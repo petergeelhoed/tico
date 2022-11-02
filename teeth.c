@@ -418,7 +418,6 @@ int main(int argc, char **argv)
 					 if (corr[j][0]>maxcor && ( Npeak < lvalue+10 || (j < dvalue || NN-dvalue < j)))
 					 {
 						 maxcor =corr[j][0];
-						 poscor=j;
 						 poscor=(j+NN/2)%NN-NN/2;
 
 					 }
@@ -431,46 +430,33 @@ int main(int argc, char **argv)
 				 {
 					 if (in[j][0] > maxin)
 					 {
-						 maxpos = j; 
 						 maxpos=j-NN/2;
 						 maxin = in[j][0];
 					 }
 
 				 }
-/*                 if (Npeak==xvalue) 
-                 {
-                     // debug
-                     for (int j=0; j < NN; j++) 
-                     { 
-                         fprintf(rawfile, "%d %d  %d %f %f %f\n",
-                                 j,
-                                 maxpos,
-                                 poscor,
-                                 in[j][0],
-                                 mean[j],
-                                 corr[j][0]); 
-                     }
-                 }
-*/
+
+                 int zeropos = ovalue ? maxpos : poscor;
+
 				 for (int j=0; j < NN ; j++)
 				 {
 					 if (Npeak%2!=tvalue&&maxcor > cvalue) {
-						 if (j-poscor >= 0 && j-poscor <NN)
+						 if (j-zeropos >= 0 && j-zeropos <NN)
 						 {
-							 if (j-poscor==0)Ntick++;
-							 avgtick[j-poscor] += in[j][0];
+							 if (j-zeropos==NN/2)Ntick++;
+							 avgtick[j-zeropos] += in[j][0];
 						 }
 					 }
 					 if (Npeak%2==tvalue&&maxcor > cvalue) {
-						 if (j-poscor >= 0 && j-poscor <NN)
+						 if (j-zeropos >= 0 && j-zeropos <NN)
 						 {
-							 if (j-poscor==0)Ntock++;
-							 avgtock[j-poscor] += in[j][0];
+							 if (j-zeropos==NN/2)Ntock++;
+							 avgtock[j-zeropos] += in[j][0];
 						 }
 					 }
-				 	 if (zvalue && j>=(ovalue?maxpos:poscor))
+				 	 if (zvalue && j>=zeropos && j-zeropos<NN)
                      {
-                         zavg[Npeak%pvalue*NN+j-(ovalue?maxpos:poscor)]+=in[j][0];
+                         zavg[Npeak%pvalue*NN+j-zeropos]+=in[j][0];
                      }
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
 			 if (jvalue ) 
@@ -501,11 +487,22 @@ int main(int argc, char **argv)
 		 fftw_destroy_plan(forward);
 		 fftw_destroy_plan(reverse);
 		 fftw_cleanup();
+         // before outputting tockfile move it to the maxpos
+         float maxtock = -1.;
+         int postock = 0;
+         for (int j=0; j < NN ; j++)
+         {
+             if (avgtock[j]>maxtock)
+             {
+                 maxtock = avgtock[j];
+                 postock = j;
+             }
+         }
          for (int j=0; j < NN ; j++)
          {
              fprintf(tickavg,"%d %lf %lf \n",j,
                      avgtick[j]/Ntick,
-                     avgtock[j]/Ntock);
+                     avgtock[((j-NN/2+postock)+NN)%NN]/Ntock);
 
              //  cat shape  | plot 'u ($1-4000)/48.:2 w l t "tick" , "" u ($1-4000)/48.:3 w l t "tock" ; set xrange [-15:5]; set format y ""; set ylabel "abs(pressure)"; set xlabel "time (ms)"; set xtics 1 '
 

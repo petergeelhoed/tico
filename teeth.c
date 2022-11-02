@@ -468,9 +468,9 @@ int main(int argc, char **argv)
 							 avgtock[j-poscor] += in[j][0];
 						 }
 					 }
-				 	 if (zvalue && j>=poscor)
+				 	 if (zvalue && j>=(ovalue?maxpos:poscor))
                      {
-                         zavg[Npeak%pvalue*NN+j-poscor]+=in[j][0];
+                         zavg[Npeak%pvalue*NN+j-(ovalue?maxpos:poscor)]+=in[j][0];
                      }
 					 //if (jvalue && abs(j-maxpos+200)<dvalue ) 
 			 if (jvalue ) 

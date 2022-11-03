@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 				 float maxin=-1.;
 				 int maxpos =1;
 
-				 for (int j=NN/2-dvalue; j < NN/2+dvalue ; j++)
+				 for (int j=NN/2-dvalue+poscor; j < NN/2+dvalue+poscor ; j++)
 				 {
 					 if (in[j][0] > maxin)
 					 {
@@ -454,7 +454,7 @@ int main(int argc, char **argv)
 							 avgtock[j-zeropos] += in[j][0];
 						 }
 					 }
-				 	 if (zvalue && j>=zeropos && j-zeropos<NN)
+				 	 if (zvalue && j>=zeropos && j-zeropos<NN && maxcor > cvalue)
                      {
                          zavg[Npeak%pvalue*NN+j-zeropos]+=in[j][0];
                      }

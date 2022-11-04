@@ -472,7 +472,8 @@ int main(int argc, char **argv)
 //cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp pt 5 ps 2 '
 
 
-				 if (kvalue==0 && ((Npeak < lvalue + 10 || maxcor > 0.70) && Npeak%2==1))
+				 if (kvalue==0 && ((Npeak < lvalue + 10 || maxcor > 0.70) && Npeak%2==1)
+                         && abs(poscor) > 100)
 				 {
 					 shift = NN+poscor;//+globalshift/2;
 				 }
@@ -502,7 +503,8 @@ int main(int argc, char **argv)
          {
              fprintf(tickavg,"%d %lf %lf \n",j,
                      avgtick[j]/Ntick,
-                     avgtock[((j-NN/2+postock)+NN)%NN]/Ntock);
+//                     avgtock[((j-NN/2+postock)+NN)%NN]/Ntock);
+                     avgtock[j]/Ntock);
 
              //  cat shape  | plot 'u ($1-4000)/48.:2 w l t "tick" , "" u ($1-4000)/48.:3 w l t "tock" ; set xrange [-15:5]; set format y ""; set ylabel "abs(pressure)"; set xlabel "time (ms)"; set xtics 1 '
 

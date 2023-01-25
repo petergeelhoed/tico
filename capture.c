@@ -12,14 +12,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <alsa/asoundlib.h>
 
 int main (int argc, char *argv[])
 {
+
+    struct timespec beg,start,end;
     int i;
     int err;
     char *buffer;
-    int buffer_frames = 128;
+    int buffer_frames = 1024;
     unsigned int rate = 48000;
     snd_pcm_t *capture_handle;
     snd_pcm_hw_params_t *hw_params;
@@ -102,8 +105,10 @@ int main (int argc, char *argv[])
 
     fprintf(stderr, "audio interface prepared\n");
 
-    buffer = malloc(128 * snd_pcm_format_width(format) / 8 );
+    buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8 );
 
+    clock_gettime(CLOCK_REALTIME, &beg);
+    clock_gettime(CLOCK_REALTIME, &start);
     fprintf(stderr, "buffer allocated %d\n",snd_pcm_format_width(format)); 
     for (i = 0; i < 48000/buffer_frames; ++i) {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
@@ -111,15 +116,25 @@ int main (int argc, char *argv[])
                     err, snd_strerror (err));
             exit (1);
         }
+        clock_gettime(CLOCK_REALTIME, &end);
+        
+        double f = (double)(end.tv_sec*1e9 + end.tv_nsec);
+        double g = (double)(start.tv_sec*1e9 + start.tv_nsec);
+        start = end;
+        fprintf(stderr,"time %lf\n",(f-g)/1e9 );
          unsigned char lsb;
          signed char msb;
         for (int j = 0; j < buffer_frames*2; j+=2) {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
-            printf("%d %d %d\n",msb, lsb ,(msb << 8)| lsb );
+            printf("%d\n" ,(msb << 8)| lsb );
         }
     }
 
+        double f = (double)(end.tv_sec*1e9 + end.tv_nsec);
+        double g = (double)(beg.tv_sec*1e9 + beg.tv_nsec);
+        start = end;
+        fprintf(stderr,"Total time %lf\n",(f-g)/1e9 );
     free(buffer);
 
     fprintf(stderr, "buffer freed\n");

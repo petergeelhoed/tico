@@ -32,7 +32,7 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "audio interface opened\n");
+    fprintf(stderr, "audio interface %s opened\n",argv[1]);
 
     if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
         fprintf (stderr, "cannot allocate hardware parameter structure (%s)\n",
@@ -115,7 +115,7 @@ int main (int argc, char *argv[])
     wdth=atoi(out);
 
 
-    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms\n",wdth - 1 , 400./48);
+    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",wdth - 1 , 400./48,400000/48./(wdth-1));
     for (i = 0; i < 30*rate/buffer_frames; ++i)
     {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {

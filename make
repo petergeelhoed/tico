@@ -11,3 +11,4 @@ gcc teeth.c  -lm -o teeth -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/
   #sort -k3,3g -k1,1g  raw |  plot 'u ($1-4000)/48:($2+100*$3):3  w l lw 2  pal    ; set xrange [-14:3]; set cbtics ("raw" 2,"abs(d/dt)" 4 , "gauss smooth" 6, "average pulseshape" 8 , "crosscor" 10 ); uns key ; set xlabel "time (ms)"; set ylabel "";  set format y; set colorbox user origin 0.01,0.33 size 0.02,0.53;'
 
 arecord -Ddefault:1 -r 48000 -d 10  -f S16_LE - | teeth -e 4
+gcc -o capture capture.c -lasound -Wall && ./capture default:1

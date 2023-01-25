@@ -20,6 +20,7 @@ int main (int argc, char *argv[])
     int err;
     char *buffer;
     int buffer_frames = 8000;
+    int mod = buffer_frames/20;
     unsigned int rate = 48000;
     snd_pcm_t *capture_handle;
     snd_pcm_hw_params_t *hw_params;
@@ -32,15 +33,11 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "audio interface %s opened\n",argv[1]);
-
     if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
         fprintf (stderr, "cannot allocate hardware parameter structure (%s)\n",
                 snd_strerror (err));
         exit (1);
     }
-
-    fprintf(stderr, "hw_params allocated\n");
 
     if ((err = snd_pcm_hw_params_any (capture_handle, hw_params)) < 0) {
         fprintf (stderr, "cannot initialize hardware parameter structure (%s)\n",
@@ -48,15 +45,11 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "hw_params initialized\n");
-
     if ((err = snd_pcm_hw_params_set_access (capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
         fprintf (stderr, "cannot set access type (%s)\n",
                 snd_strerror (err));
         exit (1);
     }
-
-    fprintf(stderr, "hw_params access setted\n");
 
     if ((err = snd_pcm_hw_params_set_format (capture_handle, hw_params, format)) < 0) {
         fprintf (stderr, "cannot set sample format (%s)\n",
@@ -64,15 +57,11 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "hw_params format setted\n");
-
     if ((err = snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &rate, 0)) < 0) {
         fprintf (stderr, "cannot set sample rate (%s)\n",
                 snd_strerror (err));
         exit (1);
     }
-
-    fprintf(stderr, "hw_params rate setted\n");
 
     if ((err = snd_pcm_hw_params_set_channels (capture_handle, hw_params, 1)) < 0) {
         fprintf (stderr, "cannot set channel count (%s)\n",
@@ -80,19 +69,13 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "hw_params channels setted\n");
-
     if ((err = snd_pcm_hw_params (capture_handle, hw_params)) < 0) {
         fprintf (stderr, "cannot set parameters (%s)\n",
                 snd_strerror (err));
         exit (1);
     }
 
-    fprintf(stderr, "hw_params setted\n");
-
     snd_pcm_hw_params_free (hw_params);
-
-    fprintf(stderr, "hw_params freed\n");
 
     if ((err = snd_pcm_prepare (capture_handle)) < 0) {
         fprintf (stderr, "cannot prepare audio interface for use (%s)\n",
@@ -100,11 +83,7 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    fprintf(stderr, "audio interface prepared\n");
-
     buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8 );
-
-    fprintf(stderr, "buffer allocated %d\n",snd_pcm_format_width(format)); 
 
     FILE *fp;
     char out[16];
@@ -114,9 +93,12 @@ int main (int argc, char *argv[])
     fclose(fp);
     wdth=atoi(out);
 
+    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            wdth - 1,
+            mod/48.,
+            mod*1000/48./(wdth-1));
 
-    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",wdth - 1 , 400./48,400000/48./(wdth-1));
-    for (i = 0; i < 30*rate/buffer_frames; ++i)
+    for (i = 0; i < 30 * rate/buffer_frames; ++i)
     {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
@@ -141,17 +123,14 @@ int main (int argc, char *argv[])
         }
 
         int columns = wdth - 1;
-        int width = (maxpos%400)*columns/400;
+        int width = (maxpos%mod)*columns/mod;
         for (int j = 0; j < width; j++) fprintf(stderr," ");
         fprintf(stderr,"%s\n",i%2==0?"\e[31mO\e[0m":"\e[32mX\e[0m");
     }
 
     free(buffer);
 
-    fprintf(stderr, "buffer freed\n");
-
     snd_pcm_close (capture_handle);
-    fprintf(stderr, "audio interface closed\n");
 
     exit (0);
 }

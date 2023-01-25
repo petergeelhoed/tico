@@ -12,13 +12,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <alsa/asoundlib.h>
 
 int main (int argc, char *argv[])
 {
-
-    struct timespec beg,end;
     int i;
     int err;
     char *buffer;
@@ -107,48 +104,48 @@ int main (int argc, char *argv[])
 
     buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8 );
 
-    clock_gettime(CLOCK_REALTIME, &beg);
-  //  clock_gettime(CLOCK_REALTIME, &start);
     fprintf(stderr, "buffer allocated %d\n",snd_pcm_format_width(format)); 
-    for (i = 0; i < 30*rate/buffer_frames; ++i) {
+
+    FILE *fp;
+    char out[16];
+    int wdth;
+    fp =popen("/usr/bin/tput cols" , "r");
+    fgets(out,16,fp);
+    fclose(fp);
+    wdth=atoi(out);
+
+
+    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms\n",wdth - 1 , 400./48);
+    for (i = 0; i < 30*rate/buffer_frames; ++i)
+    {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
-            fprintf (stderr, "read from audio interface failed %d (%s)\n",
-                    err, snd_strerror (err));
+            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
             exit (1);
         }
-     //   clock_gettime(CLOCK_REALTIME, &end);
-        
- //       double f = (double)(end.tv_sec*1e9 + end.tv_nsec);
-  //      double g = (double)(start.tv_sec*1e9 + start.tv_nsec);
-  //      start = end;
- //       fprintf(stderr,"time %lf\n",(f-g)/1e9 );
-         unsigned char lsb;
-         signed char msb;
-         int in[8000];
-         int max = 0;
-         int maxpos = 0;
+        unsigned char lsb;
+        signed char msb;
+        int in[8000];
+        int max = 0;
+        int maxpos = 0;
         for (int j = 0; j < buffer_frames*2; j+=2) {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
             in[j/2]=(msb << 8)| lsb ;
             int derivative = (in[j/2]-in[j/2-1] )*(in[j/2]-in[j/2-1] );
-            printf("%d\n",derivative );
+            //  printf("%d\n",derivative );
             if (derivative > max)
             {
-            max = derivative;
-            maxpos = j/2;
+                max = derivative;
+                maxpos = j/2;
             }
         }
 
-        int width = (maxpos%400)*2/5;
+        int columns = wdth - 1;
+        int width = (maxpos%400)*columns/400;
         for (int j = 0; j < width; j++) fprintf(stderr," ");
-            fprintf(stderr,"%s\n",i%2==0?"O":"X");
+        fprintf(stderr,"%s\n",i%2==0?"\e[31mO\e[0m":"\e[32mX\e[0m");
     }
 
-        double f = (double)(end.tv_sec*1e9 + end.tv_nsec);
-        double g = (double)(beg.tv_sec*1e9 + beg.tv_nsec);
-   //     start = end;
-        fprintf(stderr,"Total time %lf\n",(f-g)/1e9 );
     free(buffer);
 
     fprintf(stderr, "buffer freed\n");

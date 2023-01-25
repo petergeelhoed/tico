@@ -1,15 +1,3 @@
-/* 
-   A Minimal Capture Program
-   This program opens an audio interface for capture, configures it for
-   stereo, 16 bit, 44.1kHz, interleaved conventional read/write
-   access. Then its reads a chunk of random data from it, and exits. It
-   isn't meant to be a real program.
-   From on Paul David's tutorial : http://equalarea.com/paul/alsa-audio.html
-   Fixes rate and buffer problems
-   sudo apt-get install libasound2-dev
-   gcc -o alsa-record-example -lasound alsa-record-example.c && ./alsa-record-example hw:0
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
@@ -19,9 +7,11 @@ int main (int argc, char *argv[])
     int i;
     int err;
     char *buffer;
-    int buffer_frames = 8000;
-    int mod = buffer_frames/20;
     unsigned int rate = 48000;
+    int bph = 21600;
+    int buffer_frames = rate*3600/bph;
+    int mod = buffer_frames/20;
+
     snd_pcm_t *capture_handle;
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
@@ -95,8 +85,8 @@ int main (int argc, char *argv[])
 
     fprintf(stderr, "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             wdth - 1,
-            mod/48.,
-            mod*1000/48./(wdth-1));
+            mod*1000./rate,
+            mod*1000000./rate/(wdth-1));
 
     for (i = 0; i < 30 * rate/buffer_frames; ++i)
     {
@@ -106,7 +96,7 @@ int main (int argc, char *argv[])
         }
         unsigned char lsb;
         signed char msb;
-        int in[8000];
+        int in[buffer_frames];
         int max = 0;
         int maxpos = 0;
         for (int j = 0; j < buffer_frames*2; j+=2) {

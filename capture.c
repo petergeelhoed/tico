@@ -4,19 +4,42 @@
 
 int main (int argc, char *argv[])
 {
-    int i;
-    int err;
-    char *buffer;
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
-    int mod = buffer_frames/20;
+    int mvalue = 20;
+    int c;
+    while ((c = getopt (argc, argv, "b:r:m:h")) != -1)
+    {
+        switch (c)
+        {
+            case 'b':
+                bph = atoi(optarg);
+                break;
+            case 'm':
+                mvalue = atoi(optarg);
+                break;
+            case 'r':
+                rate = atoi(optarg);
+                break;
+            case 'h':
+                fprintf (stderr, "usage:\n capture device (default default:1)\noptions:\n -m <fraction of tick to modulate and plot (default: 20)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default 48000Hz)\n"); 
+                exit(0);
+
+            default:
+                break;
+        }
+    }
+    int i;
+    int err;
+    char *buffer;
+    int mod = buffer_frames/mvalue;
 
     snd_pcm_t *capture_handle;
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 
-    if ((err = snd_pcm_open (&capture_handle, argv[1], SND_PCM_STREAM_CAPTURE, 0)) < 0) {
+    if ((err = snd_pcm_open (&capture_handle, argv[optind], SND_PCM_STREAM_CAPTURE, 0)) < 0) {
         fprintf (stderr, "cannot open audio device %s (%s)\n", 
                 argv[1],
                 snd_strerror (err));

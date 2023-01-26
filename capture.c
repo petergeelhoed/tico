@@ -8,12 +8,12 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
-    int mvalue = 20;
+    int mvalue = 10;
     int time = 30;
     int c;
     int verbose = 0;
     double threshold =3.;
-    while ((c = getopt (argc, argv, "b:r:m:ht:vs:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:")) != -1)
     {
         switch (c)
         {
@@ -29,14 +29,14 @@ int main (int argc, char *argv[])
             case 'b':
                 bph = atoi(optarg);
                 break;
-            case 'm':
+            case 'z':
                 mvalue = atoi(optarg);
                 break;
             case 'r':
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture device (default default:1)\noptions:\n -m <fraction of tick to modulate and plot (default: 20)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n"); 
+                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n"); 
                 exit(0);
 
             default:
@@ -125,6 +125,13 @@ int main (int argc, char *argv[])
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
 
+    for (i = 0; i < rate/buffer_frames; ++i)
+    {
+        if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
+            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
+            exit (1);
+        }
+    }
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {

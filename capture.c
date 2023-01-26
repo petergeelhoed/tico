@@ -147,7 +147,8 @@ int main (int argc, char *argv[])
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
             in[j/2]=(msb << 8)| lsb ;
-            int derivative = (in[j/2]-in[j/2-1] )*(in[j/2]-in[j/2-1] );
+
+            int derivative = (j==0)?0:(in[j/2]-in[j/2-1] )*(in[j/2]-in[j/2-1] );
             //  printf("%d\n",derivative );
             if (derivative > max)
             {

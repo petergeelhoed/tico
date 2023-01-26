@@ -8,11 +8,15 @@ int main (int argc, char *argv[])
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
     int mvalue = 20;
+    int time = 30;
     int c;
-    while ((c = getopt (argc, argv, "b:r:m:h")) != -1)
+    while ((c = getopt (argc, argv, "b:r:m:ht:")) != -1)
     {
         switch (c)
         {
+            case 't':
+                time = atoi(optarg);
+                break;
             case 'b':
                 bph = atoi(optarg);
                 break;
@@ -23,7 +27,7 @@ int main (int argc, char *argv[])
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture device (default default:1)\noptions:\n -m <fraction of tick to modulate and plot (default: 20)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default 48000Hz)\n"); 
+                fprintf (stderr, "usage:\n capture device (default default:1)\noptions:\n -m <fraction of tick to modulate and plot (default: 20)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)"); 
                 exit(0);
 
             default:
@@ -33,6 +37,7 @@ int main (int argc, char *argv[])
     int i;
     int err;
     char *buffer;
+    int maxes[time * rate/buffer_frames];
     int mod = buffer_frames/mvalue;
 
     snd_pcm_t *capture_handle;
@@ -111,7 +116,7 @@ int main (int argc, char *argv[])
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
 
-    for (i = 0; i < 30 * rate/buffer_frames; ++i)
+    for (i = 0; i < time * rate/buffer_frames; ++i)
     {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
@@ -134,7 +139,7 @@ int main (int argc, char *argv[])
                 maxpos = j/2;
             }
         }
-
+        maxes[i] = maxpos;
         int columns = wdth - 1;
         int width = (maxpos%mod)*columns/mod;
         for (int j = 0; j < width; j++) fprintf(stderr," ");
@@ -144,6 +149,30 @@ int main (int argc, char *argv[])
     free(buffer);
 
     snd_pcm_close (capture_handle);
+    double x = 0;
+    double y = 0;
+    double xx = 0;
+    double xy = 0;
+    int n = time*rate/buffer_frames;
+    for (i = 0; i < n; ++i)
+    {
+        y+=maxes[i];
+        xx+=i*i;
+        x+=i;
+        xy+=i*maxes[i];
+    }
+
+    x=x*buffer_frames/rate;
+    y=y/rate;
+    xx=xx*buffer_frames/rate*buffer_frames/rate;
+    xy=xy*buffer_frames/rate/rate;
+    fprintf(stderr,"%f s/d\n",-(n*xy-x*y)/(n*xx-x*x)*86400);
+
+    for (i = 0; i < time * rate/buffer_frames; ++i)
+    {
+       // printf("%f %f\n",(double)i,(double)maxes[i]);
+        printf("%f %f\n",(double)i*buffer_frames/rate,(double)maxes[i]/rate);
+    }
 
     exit (0);
 }

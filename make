@@ -12,3 +12,4 @@ gcc teeth.c  -lm -o teeth -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/
 
 arecord -Ddefault:1 -r 48000 -d 10  -f S16_LE - | teeth -e 4
 gcc -o capture capture.c -lasound -Wall && ./capture default:1
+ gcc -o capture capture.c -lasound -lm -Wall && ./capture  default:1 -t 10   -v > oink

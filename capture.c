@@ -209,7 +209,7 @@ int defaultpulse[8000] = {
 -4
 };
 
-int fftfit(int *mean)
+int fftfit(int *mean, double *total)
 {
     int NN = 8000;
     fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; 
@@ -261,17 +261,13 @@ int fftfit(int *mean)
 
          double ix = 0.0;
          double ixx =0.0;
+         double i2x = 0.0;
+         double i2xx =0.0;
          for (int j=0; j < NN ; j++)
          {
              in[j][0] = (float)(in[j][0]/NN);
              in[j][1] = 0.0;
              ix+=in[j][0];
-         }
-
-         double i2x = 0.0;
-         double i2xx =0.0;
-         for (int j=0; j < NN ; j++)
-         {
              in2[j][0] = defaultpulse[j];
              in2[j][1] = 0.0;
              i2x+=in2[j][0];
@@ -311,12 +307,16 @@ int fftfit(int *mean)
          int poscor=0;
          for (int j=0; j < NN ; j++)
          {
-             printf("%f\n",corr[j][0]);
              if (corr[j][0]>maxcor)
              {
                  maxcor =corr[j][0];
-                 poscor=(j+NN/2)%NN-NN/2;
+                 poscor=(j+NN/2)%NN;
              }
+         }
+         for (int j=0; j < NN ; j++)
+         {
+             total[j] = total[j] + (double)mean[j];
+          //   printf("%d %d %f %f %f \n",j, mean[j], total[j],in2[j][0],corr[j][0]);
          }
          return poscor;
 }
@@ -328,15 +328,19 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
+    int xvalue = 0;
     int mvalue = 10;
     int time = 30;
     int c;
     int verbose = 0;
     double threshold =3.;
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:x")) != -1)
     {
         switch (c)
         {
+            case 'x':
+                xvalue = 1;
+                break;
             case 'v':
                 verbose = 1;
                 break;
@@ -356,7 +360,7 @@ int main (int argc, char *argv[])
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n"); 
+                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x use crosscorrelation instead of peak derivative\n"); 
                 exit(0);
 
             default:
@@ -452,6 +456,9 @@ int main (int argc, char *argv[])
             exit (1);
         }
     }
+    double total[8000];
+    for (int j = 0; j < 8000; j++) total[j] = 0.0;
+
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
         if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
@@ -469,8 +476,8 @@ int main (int argc, char *argv[])
             lsb = *(buffer+j);
             in[j/2]=(msb << 8)| lsb ;
 
-            int derivative = (j==0)?0:(in[j/2]-in[j/2-1] )*(in[j/2]-in[j/2-1] );
-            der[j] = derivative;
+            int derivative = (j==0)?0:fabs(in[j/2]-in[j/2-1]);
+            der[j/2] = derivative;
             //  printf("%d\n",derivative );
             if (derivative > max)
             {
@@ -479,7 +486,11 @@ int main (int argc, char *argv[])
             }
         }
 
-        fprintf(stderr,"%d %d\n",maxpos,fftfit(der));
+if (xvalue)
+{
+    maxpos = fftfit(der,total);
+}
+ //       fprintf(stderr,"%d %d\n",maxpos,fftfit(der,total));
 
         maxes[i] = maxpos;
         int columns = wdth - 1;
@@ -487,6 +498,7 @@ int main (int argc, char *argv[])
         for (int j = 0; j < width; j++) fprintf(stderr," ");
         fprintf(stderr,"%s\n",i%2==0?"\e[31mO\e[0m":"\e[32mX\e[0m");
     }
+//    for (int j = 0; j < 8000; j++) fprintf(stdout,"%lf\n",total[j]);
 
     free(buffer);
 

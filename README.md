@@ -20,4 +20,4 @@ tico -h
 # generate a plot in lussen/www/tico.png and raw data
 ~/tico/tico/tico -l 4 -r 5 -s -e4 -d 50 < out.wav 
 
-
+teeth -e4 -c 0.8 -l 4 -r 4 < out.wav

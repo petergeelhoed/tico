@@ -360,7 +360,7 @@ int main (int argc, char *argv[])
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x use crosscorrelation instead of peak derivative\n"); 
+                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x use crosscorrelation instead of peak derivative"); 
                 exit(0);
 
             default:

@@ -364,6 +364,8 @@ int main (int argc, char *argv[])
                 exit(0);
 
             default:
+                fprintf(stderr,"invalid option %c",c);
+                exit(-2);
                 break;
         }
     }

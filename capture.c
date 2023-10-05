@@ -318,7 +318,7 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
          *val = (int)(maxcor*16);
          
 
-         if (total[4000]>30000||total[0]>100)
+         if (total[4000]>100000000||total[0]>100)
          {
 
              long int avg = 0;
@@ -359,7 +359,6 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
 
 int main (int argc, char *argv[])
 {
-
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;

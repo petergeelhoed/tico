@@ -332,7 +332,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
-    int xvalue = 0;
+    int xvalue = 1;
     int mvalue = 10;
     int time = 30;
     int c;
@@ -351,7 +351,7 @@ int main (int argc, char *argv[])
         switch (c)
         {
             case 'x':
-                xvalue = 1;
+                xvalue = 0;
                 break;
             case 'w':
                 rawfile = fopen("rawcapture","w");
@@ -380,7 +380,7 @@ int main (int argc, char *argv[])
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -m <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x use crosscorrelation instead of peak derivative"); 
+                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -z <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x do not use crosscorrelation instead use peak derivative"); 
                 exit(0);
 
             default:

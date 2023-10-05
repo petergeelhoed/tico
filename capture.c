@@ -209,7 +209,7 @@ int defaultpulse[8000] = {
 -4
 };
 
-int fftfit(int *mean, double *total)
+int fftfit(int *mean, int *total, FILE* rawfile, int *base)
 {
     int NN = 8000;
     fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; 
@@ -268,7 +268,8 @@ int fftfit(int *mean, double *total)
              in[j][0] = (float)(in[j][0]/NN);
              in[j][1] = 0.0;
              ix+=in[j][0];
-             in2[j][0] = defaultpulse[j];
+ //            in2[j][0] = defaultpulse[j];
+             in2[j][0] = base[j];
              in2[j][1] = 0.0;
              i2x+=in2[j][0];
          }
@@ -312,10 +313,13 @@ int fftfit(int *mean, double *total)
                  maxcor =corr[j][0];
                  poscor=(j+NN/2)%NN;
              }
+            if (rawfile != 0) fprintf(rawfile,"%d %f\n",j,corr[j][0]);
          }
+         int factor = total[4000]>30000?2:1;
+
          for (int j=0; j < NN ; j++)
          {
-             total[j] = total[j] + (double)mean[j];
+             total[j] = (total[j] + mean[(j+poscor+4000+8000)%8000])/factor;
           //   printf("%d %d %f %f %f \n",j, mean[j], total[j],in2[j][0],corr[j][0]);
          }
          return poscor;
@@ -334,12 +338,28 @@ int main (int argc, char *argv[])
     int c;
     int verbose = 0;
     double threshold =3.;
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:x")) != -1)
+    FILE* rawfile = 0;
+    FILE* fptotal = fopen("total","w");
+    if (fptotal == 0)
+    {
+        fprintf(stderr,"cannot open total\n");
+        return -4;
+    }
+
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xw")) != -1)
     {
         switch (c)
         {
             case 'x':
                 xvalue = 1;
+                break;
+            case 'w':
+                rawfile = fopen("rawcapture","w");
+                if (rawfile == 0)
+                {
+                    fprintf(stderr,"cannot open rawcapture\n");
+                    return -4;
+                }
                 break;
             case 'v':
                 verbose = 1;
@@ -458,8 +478,8 @@ int main (int argc, char *argv[])
             exit (1);
         }
     }
-    double total[8000];
-    for (int j = 0; j < 8000; j++) total[j] = 0.0;
+    int total[8000];
+    for (int j = 0; j < 8000; j++) total[j] = 0;
 
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
@@ -486,13 +506,13 @@ int main (int argc, char *argv[])
                 max = derivative;
                 maxpos = j/2;
             }
+ //           if (rawfile != 0) fprintf(rawfile,"%d %d %d\n",j/2,in[j/2],derivative);
         }
 
-if (xvalue)
-{
-    maxpos = fftfit(der,total);
-}
- //       fprintf(stderr,"%d %d\n",maxpos,fftfit(der,total));
+        if (xvalue)
+        {
+            maxpos = fftfit(der,total,rawfile,i<10*rate/buffer_frames?defaultpulse:total);
+        }
 
         maxes[i] = maxpos;
         int columns = wdth - 1;
@@ -500,7 +520,8 @@ if (xvalue)
         for (int j = 0; j < width; j++) fprintf(stderr," ");
         fprintf(stderr,"%s\n",i%2==0?"\e[31mO\e[0m":"\e[32mX\e[0m");
     }
-//    for (int j = 0; j < 8000; j++) fprintf(stdout,"%lf\n",total[j]);
+    
+    for (int j = 0; j < 8000; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
 
     free(buffer);
 

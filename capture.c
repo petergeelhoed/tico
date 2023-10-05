@@ -330,7 +330,7 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
              }
              avg /= NN;
              int avi = (int)avg;
-             fprintf(stderr,"rescaling 4000:%d 0:%d avg:%d",total[4000],total[0],avi);
+            // fprintf(stderr,"rescaling 4000:%d 0:%d avg:%d\n",total[4000],total[0],avi);
              if (avi > 100)
              {
                  for (int j=0; j < NN ; j++)
@@ -350,9 +350,7 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
          }
          for (int j=0; j < NN ; j++)
          {
-             // dit komt niet goed steeds minder bijdrage
-             total[j] = (total[j] + mean[(j+poscor+4000+8000)%8000]);
-             //total[j] = (total[j]*(int)(10*maxcor*maxcor) + mean[(j+poscor+4000+8000)%8000])/factor;
+             total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+4000+8000)%8000]);
           //   printf("%d %d %f %f %f \n",j, mean[j], total[j],in2[j][0],corr[j][0]);
          }
          return poscor;

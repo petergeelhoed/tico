@@ -313,13 +313,14 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
                  maxcor =corr[j][0];
                  poscor=(j+NN/2)%NN;
              }
-            if (rawfile != 0) fprintf(rawfile,"%d %f\n",j,corr[j][0]);
+ //           if (rawfile != 0) fprintf(rawfile,"%d %f\n",j,corr[j][0]);
          }
          int factor = total[4000]>30000?2:1;
          *val = (int)(maxcor*16);
 
          for (int j=0; j < NN ; j++)
          {
+             // dit komt niet goed steeds minder bijdrage
              total[j] = (total[j] + mean[(j+poscor+4000+8000)%8000])/factor;
              //total[j] = (total[j]*(int)(10*maxcor*maxcor) + mean[(j+poscor+4000+8000)%8000])/factor;
           //   printf("%d %d %f %f %f \n",j, mean[j], total[j],in2[j][0],corr[j][0]);
@@ -334,6 +335,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
+    int evalue = 0;
     int xvalue = 1;
     int mvalue = 10;
     int time = 30;
@@ -348,10 +350,13 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xw")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:")) != -1)
     {
         switch (c)
         {
+            case 'e':
+                evalue = atoi(optarg);
+                break;
             case 'x':
                 xvalue = 0;
                 break;
@@ -508,12 +513,25 @@ int main (int argc, char *argv[])
                 max = derivative;
                 maxpos = j/2;
             }
- //           if (rawfile != 0) fprintf(rawfile,"%d %d %d\n",j/2,in[j/2],derivative);
         }
 
         if (i==10*rate/buffer_frames) fprintf(stderr,"10 seconds, starting crosscor\n");
 
         int val = 1;
+
+        if (evalue)
+        {
+            for (int j = 0; j < 8000-evalue; j++)
+            {
+                for (int k = 1; k < evalue; k++)
+                    der[j] += der[j+k];
+            }
+
+            for (int j = 8000-evalue; j<8000; j++)
+            {
+                der[j] *= evalue;
+            }
+        }
 
         if (xvalue)
         {

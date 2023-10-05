@@ -315,13 +315,43 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
              }
  //           if (rawfile != 0) fprintf(rawfile,"%d %f\n",j,corr[j][0]);
          }
-         int factor = total[4000]>30000?2:1;
          *val = (int)(maxcor*16);
+         
 
+         if (total[4000]>30000||total[0]>100)
+         {
+
+             long int avg = 0;
+
+             for (int j=0; j < NN ; j++)
+             {
+                 avg += total[j];
+
+             }
+             avg /= NN;
+             int avi = (int)avg;
+             fprintf(stderr,"rescaling 4000:%d 0:%d avg:%d",total[4000],total[0],avi);
+             if (avi > 100)
+             {
+                 for (int j=0; j < NN ; j++)
+                 {
+                     total[j] -= avi;
+                 }
+             }
+             else
+             {
+                 for (int j=0; j < NN ; j++)
+                 {
+                     total[j] /= 2;
+                 }
+
+             }
+
+         }
          for (int j=0; j < NN ; j++)
          {
              // dit komt niet goed steeds minder bijdrage
-             total[j] = (total[j] + mean[(j+poscor+4000+8000)%8000])/factor;
+             total[j] = (total[j] + mean[(j+poscor+4000+8000)%8000]);
              //total[j] = (total[j]*(int)(10*maxcor*maxcor) + mean[(j+poscor+4000+8000)%8000])/factor;
           //   printf("%d %d %f %f %f \n",j, mean[j], total[j],in2[j][0],corr[j][0]);
          }

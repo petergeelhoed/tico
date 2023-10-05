@@ -565,9 +565,34 @@ int main (int argc, char *argv[])
             maxpos = fftfit(der,total,rawfile,i<10*rate/buffer_frames?defaultpulse:total,&val);
         }
 
+        double a=0.0;
+        double b=0.0;
+
         maxes[i] = maxpos;
-        int columns = wdth - 1;
+        if (i > 120 )
+        {
+            double x = 0;
+            double y = 0;
+            double xx = 0;
+            double xy = 0;
+            double yy = 0;
+            int n=0;
+            for (int k = 0; k < 120; k+=1)
+            {
+                n++;
+                y+=maxes[i-k];
+                xx+=k*k;
+                x+=k;
+                xy+=k*maxes[i-k];
+                yy+=maxes[i-k]*maxes[i-k];
+            }
+            b = (n*xy-x*y)/(n*xx-x*x);
+
+
+        }
+        int columns = wdth - 1-10;
         int width = (maxpos%mod)*columns/mod;
+        fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
         for (int j = 0; j < width; j++) fprintf(stderr," ");
 
         fprintf(stderr,"%s%X\e[0m\n",i%2==0?"\e[31m": "\e[32m",val);

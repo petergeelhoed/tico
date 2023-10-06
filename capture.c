@@ -17,7 +17,8 @@ fftw_complex * makeFilter(int evalue)
     // make filter array
     for (int j=0; j < NN; j++)
     {
-        in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
+        in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
+                + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
         in2[j][1] = 0.0;
     }
 
@@ -30,19 +31,17 @@ fftw_complex * makeFilter(int evalue)
 int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT)
 {
     int NN = 8000;
-    fftw_complex *in, *out, *conv,  *in2, *tmp,*corr;
-    in = fftw_alloc_complex(NN);
-    in2 = fftw_alloc_complex(NN);
-    out = fftw_alloc_complex(NN);
-    conv = fftw_alloc_complex(NN);
-    tmp = fftw_alloc_complex(NN);
-    corr = fftw_alloc_complex(NN);
+    fftw_complex *in = fftw_alloc_complex(NN);
+    fftw_complex *in2 = fftw_alloc_complex(NN);
+    fftw_complex *out = fftw_alloc_complex(NN);
+    fftw_complex *conv = fftw_alloc_complex(NN);
+    fftw_complex *tmp = fftw_alloc_complex(NN);
+    fftw_complex *corr = fftw_alloc_complex(NN);
 
-    fftw_plan forward, reverse,corforward,correverse;
-    forward    = fftw_plan_dft_1d(NN, in,   out,       FFTW_FORWARD,  FFTW_ESTIMATE);
-    reverse    = fftw_plan_dft_1d(NN, conv, in,        FFTW_BACKWARD, FFTW_ESTIMATE);
-    corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD,  FFTW_ESTIMATE);
-    correverse = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan corforward = fftw_plan_dft_1d(NN, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     for (int j=0; j < NN; j++)
     {
@@ -54,12 +53,8 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
 
     for (int j=0; j < NN ; j++)
     {
-        conv[j][0] = (
-                +out[j][0]*filterFFT[j][0]
-                -out[j][1]*filterFFT[j][1])/NN;
-        conv[j][1] = (
-                out[j][0]*filterFFT[j][1]
-                +out[j][1]*filterFFT[j][0])/NN;
+        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
+        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
     }
 
     fftw_execute(reverse);
@@ -73,7 +68,6 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
         in[j][0] = (float)(in[j][0]/NN);
         in[j][1] = 0.0;
         ix+=in[j][0];
-        //            in2[j][0] = defaultpulse[j];
         in2[j][0] = base[j];
         in2[j][1] = 0.0;
         i2x+=in2[j][0];
@@ -99,12 +93,8 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
     for (int j=0; j < NN ; j++)
     {
         float tmpbuf= tmp[j][0];
-        tmp[j][0] = (
-                +out[j][0]*tmpbuf
-                +out[j][1]*tmp[j][1])/NN/NN/s/s2;
-        tmp[j][1] = (
-                -out[j][0]*tmp[j][1]
-                +out[j][1]*tmpbuf)/NN/NN/s/s2;
+        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN/s/s2;
+        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN/s/s2;
     }
     // transform back into corr
     fftw_execute(correverse);
@@ -118,11 +108,12 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
             maxcor =corr[j][0];
             poscor=(j+NN/2)%NN;
         }
-        //           if (rawfile != 0) fprintf(rawfile,"%d %f\n",j,corr[j][0]);
     }
+    // for hexadecimal print 
     *val = (int)(maxcor*16);
 
 
+    // rescale if large
     if (total[4000]>100000000||total[0]>100)
     {
 
@@ -135,7 +126,6 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
         }
         avg /= NN;
         int avi = (int)avg;
-        // fprintf(stderr,"rescaling 4000:%d 0:%d avg:%d\n",total[4000],total[0],avi);
         if (avi > 100)
         {
             for (int j=0; j < NN ; j++)
@@ -149,10 +139,10 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
             {
                 total[j] /= 2;
             }
-
         }
-
     }
+
+    // weigh with square of correlation
     for (int j=0; j < NN ; j++)
     {
         total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+4000+8000)%8000]);

@@ -71,9 +71,8 @@ snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
     return capture_handle;
 }
 
-fftw_complex * makeFilter(int evalue)
+fftw_complex * makeFilter(int evalue, int NN)
 {
-    int NN = 8000;
     fftw_complex *in2 = fftw_alloc_complex(NN);
     fftw_complex *filterFFT = fftw_alloc_complex(NN);
     fftw_plan makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
@@ -92,9 +91,8 @@ fftw_complex * makeFilter(int evalue)
 }
 
 
-int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT)
+int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT, int NN)
 {
-    int NN = 8000;
     fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *in2 = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
@@ -178,7 +176,7 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
 
 
     // rescale if large
-    if (total[4000]>100000000||total[0]>100)
+    if (total[NN/2]>100000000||total[0]>100)
     {
 
         long int avg = 0;
@@ -209,7 +207,7 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
     // weigh with square of correlation
     for (int j=0; j < NN ; j++)
     {
-        total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+4000+8000)%8000]);
+        total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
     }
     return poscor;
 }
@@ -220,6 +218,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
+    int NN = 8000;
     int evalue = 4;
     int xvalue = 1;
     int mvalue = 10;
@@ -311,7 +310,7 @@ int main (int argc, char *argv[])
     }
     device = device==0?defdev:device;
 
-    fftw_complex *filterFFT = makeFilter(evalue);
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
     int i;
     int err;
     char *buffer;
@@ -334,7 +333,8 @@ int main (int argc, char *argv[])
     fclose(fp);
     wdth=atoi(out);
 
-    fprintf(stderr, "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+    fprintf(stderr,
+            "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             wdth - 1,
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
@@ -346,8 +346,8 @@ int main (int argc, char *argv[])
             exit (1);
         }
     }
-    int total[8000];
-    for (int j = 0; j < 8000; j++) total[j] = 0;
+    int total[NN];
+    for (int j = 0; j < NN; j++) total[j] = 0;
 
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
@@ -388,7 +388,7 @@ int main (int argc, char *argv[])
                     rawfile,
                     i<10*rate/buffer_frames?defaultpulse:total,
                     &val,
-                    filterFFT);
+                    filterFFT, NN);
         }
 
         double b=0.0;
@@ -428,7 +428,7 @@ int main (int argc, char *argv[])
         fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
     }
 
-    for (int j = 0; j < 8000; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
+    for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
 
     free(buffer);
 

@@ -6,6 +6,70 @@
 
 #include "defaultpulse.h"
 
+snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
+{
+    int err;
+    snd_pcm_t *capture_handle;
+    snd_pcm_hw_params_t *hw_params;
+
+    if ((err = snd_pcm_open (&capture_handle, device, SND_PCM_STREAM_CAPTURE, 0)) < 0) {
+        fprintf (stderr, "cannot open audio device %s (%s)\n",
+                device,
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
+        fprintf (stderr, "cannot allocate hardware parameter structure (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_any (capture_handle, hw_params)) < 0) {
+        fprintf (stderr, "cannot initialize hardware parameter structure (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_set_access (capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+        fprintf (stderr, "cannot set access type (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_set_format (capture_handle, hw_params, format)) < 0) {
+        fprintf (stderr, "cannot set sample format (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &rate, 0)) < 0) {
+        fprintf (stderr, "cannot set sample rate (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params_set_channels (capture_handle, hw_params, 1)) < 0) {
+        fprintf (stderr, "cannot set channel count (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    if ((err = snd_pcm_hw_params (capture_handle, hw_params)) < 0) {
+        fprintf (stderr, "cannot set parameters (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+
+    snd_pcm_hw_params_free (hw_params);
+
+    if ((err = snd_pcm_prepare (capture_handle)) < 0) {
+        fprintf (stderr, "cannot prepare audio interface for use (%s)\n",
+                snd_strerror (err));
+        exit (1);
+    }
+    return capture_handle;
+}
 
 fftw_complex * makeFilter(int evalue)
 {
@@ -161,6 +225,8 @@ int main (int argc, char *argv[])
     int mvalue = 10;
     int time = 30;
     int c;
+    char *device = 0;
+    char defdev[20] = "default:1";
     int cvalue = 8;
     int qvalue = 0;
     int verbose = 0;
@@ -173,10 +239,13 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:qc:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:qc:d:")) != -1)
     {
         switch (c)
         {
+            case 'd':
+                device = optarg;
+                break;
             case 'c':
                 cvalue = atoi(optarg);
                 break;
@@ -218,8 +287,9 @@ int main (int argc, char *argv[])
             case 'h':
                 fprintf (stderr,
                         "usage:\n"\
-                        " capture <capture device> (e.g. default:1)\n"\
+                        "capture " 
                         "options:\n"\
+                        " -d <capture device> (default:1)\n"\
                         " -z <zoom> (default: 10)\n"\
                         " -b bph of the watch (default: 21600/h) \n"\
                         " -r sampling rate (default: 48000Hz)\n"\
@@ -239,6 +309,7 @@ int main (int argc, char *argv[])
                 break;
         }
     }
+    device = device==0?defdev:device;
 
     fftw_complex *filterFFT = makeFilter(evalue);
     int i;
@@ -248,66 +319,10 @@ int main (int argc, char *argv[])
     int maxvals[time * rate/buffer_frames];
     int mod = buffer_frames/mvalue;
 
-    snd_pcm_t *capture_handle;
-    snd_pcm_hw_params_t *hw_params;
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 
-    if ((err = snd_pcm_open (&capture_handle, argv[optind], SND_PCM_STREAM_CAPTURE, 0)) < 0) {
-        fprintf (stderr, "cannot open audio device %s (%s)\n",
-                argv[1],
-                snd_strerror (err));
-        exit (1);
-    }
+    snd_pcm_t *capture_handle = initAudio(format, device, rate);
 
-    if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
-        fprintf (stderr, "cannot allocate hardware parameter structure (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params_any (capture_handle, hw_params)) < 0) {
-        fprintf (stderr, "cannot initialize hardware parameter structure (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params_set_access (capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-        fprintf (stderr, "cannot set access type (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params_set_format (capture_handle, hw_params, format)) < 0) {
-        fprintf (stderr, "cannot set sample format (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params_set_rate_near (capture_handle, hw_params, &rate, 0)) < 0) {
-        fprintf (stderr, "cannot set sample rate (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params_set_channels (capture_handle, hw_params, 1)) < 0) {
-        fprintf (stderr, "cannot set channel count (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    if ((err = snd_pcm_hw_params (capture_handle, hw_params)) < 0) {
-        fprintf (stderr, "cannot set parameters (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
-
-    snd_pcm_hw_params_free (hw_params);
-
-    if ((err = snd_pcm_prepare (capture_handle)) < 0) {
-        fprintf (stderr, "cannot prepare audio interface for use (%s)\n",
-                snd_strerror (err));
-        exit (1);
-    }
 
     buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8 );
 

@@ -367,6 +367,8 @@ int main (int argc, char *argv[])
     int mvalue = 10;
     int time = 30;
     int c;
+    int cvalue = 0;
+    int qvalue = 0;
     int verbose = 0;
     double threshold =3.;
     FILE* rawfile = 0;
@@ -377,10 +379,16 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:qc:")) != -1)
     {
         switch (c)
         {
+            case 'c':
+                cvalue = atoi(optarg);
+                break;
+            case 'q':
+                qvalue = 1;
+                break;
             case 'e':
                 evalue = atoi(optarg);
                 break;
@@ -414,7 +422,7 @@ int main (int argc, char *argv[])
                 rate = atoi(optarg);
                 break;
             case 'h':
-                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -z <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x do not use crosscorrelation instead use peak derivative"); 
+                fprintf (stderr, "usage:\n capture <capture device> (e.g. default:1)\noptions:\n -z <zoom> (default: 10)\n -b bph of the watch (default: 21600/h) \n -r sampling rate (default: 48000Hz)\n -t <measurment time> (default: 30s)\n -v verbose, print points to stdout\n time, tick position modulo(3600/rate), deviation, σ\n -s cutoff standarddeviation (default: 3)\n -x do not use crosscorrelation instead use peak derivative\n -c 8 threshold for local rate\n -q split local tick/tock rate"); 
                 exit(0);
 
             default:
@@ -427,6 +435,7 @@ int main (int argc, char *argv[])
     int err;
     char *buffer;
     int maxes[time * rate/buffer_frames];
+    int maxvals[time * rate/buffer_frames];
     int mod = buffer_frames/mvalue;
 
     snd_pcm_t *capture_handle;
@@ -565,34 +574,38 @@ int main (int argc, char *argv[])
             maxpos = fftfit(der,total,rawfile,i<10*rate/buffer_frames?defaultpulse:total,&val);
         }
 
-        double a=0.0;
         double b=0.0;
 
         maxes[i] = maxpos;
-        if (i > 120 )
+        maxvals[i] = val;
+            int n=0;
+        if (i > 120)
         {
             double x = 0;
             double y = 0;
             double xx = 0;
             double xy = 0;
             double yy = 0;
-            int n=0;
-            for (int k = 0; k < 120; k+=1)
+            for (int k = 0; k < 60;k+=qvalue+1)
             {
+                if (maxvals[i-k] > cvalue)
+                {
                 n++;
                 y+=maxes[i-k];
                 xx+=k*k;
                 x+=k;
                 xy+=k*maxes[i-k];
                 yy+=maxes[i-k]*maxes[i-k];
+                }
             }
-            b = (n*xy-x*y)/(n*xx-x*x);
+            b = (n>1)?(n*xy-x*y)/(n*xx-x*x):0;
 
 
         }
         int columns = wdth - 1-10;
         int width = (maxpos%mod)*columns/mod;
         fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
+
         for (int j = 0; j < width; j++) fprintf(stderr," ");
 
         fprintf(stderr,"%s%X\e[0m\n",i%2==0?"\e[31m": "\e[32m",val);

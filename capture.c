@@ -7,28 +7,15 @@
 #include "defaultpulse.h"
 
 
-int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
+fftw_complex * makeFilter(int evalue)
 {
     int NN = 8000;
-    fftw_complex *in, *out, *filterFFT, *conv,  *in2, *tmp,*corr; 
-    in = fftw_alloc_complex(NN);
-    in2 = fftw_alloc_complex(NN);
-    out = fftw_alloc_complex(NN);
-    filterFFT = fftw_alloc_complex(NN);
-    conv = fftw_alloc_complex(NN);
-    tmp = fftw_alloc_complex(NN);
-    corr = fftw_alloc_complex(NN);
+    fftw_complex *in2 = fftw_alloc_complex(NN);
+    fftw_complex *filterFFT = fftw_alloc_complex(NN);
+    fftw_plan makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
-    fftw_plan forward, makefilter, reverse,corforward,correverse;
-    forward    = fftw_plan_dft_1d(NN, in,   out,       FFTW_FORWARD,  FFTW_ESTIMATE);
-    makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
-    reverse    = fftw_plan_dft_1d(NN, conv, in,        FFTW_BACKWARD, FFTW_ESTIMATE);
-    corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD,  FFTW_ESTIMATE);
-    correverse = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
-
-    int evalue = 4;
     // make filter array
-    for (int j=0; j < NN; j++) 
+    for (int j=0; j < NN; j++)
     {
         in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
         in2[j][1] = 0.0;
@@ -36,8 +23,28 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val)
 
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
+    return filterFFT;
+}
 
-    for (int j=0; j < NN; j++) 
+
+int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT)
+{
+    int NN = 8000;
+    fftw_complex *in, *out, *conv,  *in2, *tmp,*corr;
+    in = fftw_alloc_complex(NN);
+    in2 = fftw_alloc_complex(NN);
+    out = fftw_alloc_complex(NN);
+    conv = fftw_alloc_complex(NN);
+    tmp = fftw_alloc_complex(NN);
+    corr = fftw_alloc_complex(NN);
+
+    fftw_plan forward, reverse,corforward,correverse;
+    forward    = fftw_plan_dft_1d(NN, in,   out,       FFTW_FORWARD,  FFTW_ESTIMATE);
+    reverse    = fftw_plan_dft_1d(NN, conv, in,        FFTW_BACKWARD, FFTW_ESTIMATE);
+    corforward = fftw_plan_dft_1d(NN, in2,  tmp,       FFTW_FORWARD,  FFTW_ESTIMATE);
+    correverse = fftw_plan_dft_1d(NN, tmp,  corr,      FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    for (int j=0; j < NN; j++)
     {
         in[j][0]= (float)mean[j];
         in[j][1] = 0.0;
@@ -159,7 +166,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
-    int evalue = 0;
+    int evalue = 4;
     int xvalue = 1;
     int mvalue = 10;
     int time = 30;
@@ -232,7 +239,8 @@ int main (int argc, char *argv[])
                         " -s cutoff standarddeviation (default: 3)\n"\
                         " -x do not use crosscorrelation instead use peak derivative\n"\
                         " -c 8 threshold for local rate\n"\
-                        " -q split local tick/tock rate"); 
+                        " -e 4 Gauss smooth\n"\
+                        " -q split local tick/tock rate");
                 exit(0);
 
             default:
@@ -241,6 +249,8 @@ int main (int argc, char *argv[])
                 break;
         }
     }
+
+    fftw_complex *filterFFT = makeFilter(evalue);
     int i;
     int err;
     char *buffer;
@@ -253,7 +263,7 @@ int main (int argc, char *argv[])
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
 
     if ((err = snd_pcm_open (&capture_handle, argv[optind], SND_PCM_STREAM_CAPTURE, 0)) < 0) {
-        fprintf (stderr, "cannot open audio device %s (%s)\n", 
+        fprintf (stderr, "cannot open audio device %s (%s)\n",
                 argv[1],
                 snd_strerror (err));
         exit (1);
@@ -365,23 +375,15 @@ int main (int argc, char *argv[])
 
         int val = 1;
 
-        if (evalue)
-        {
-            for (int j = 0; j < 8000-evalue; j++)
-            {
-                for (int k = 1; k < evalue; k++)
-                    der[j] += der[j+k];
-            }
-
-            for (int j = 8000-evalue; j<8000; j++)
-            {
-                der[j] *= evalue;
-            }
-        }
-
         if (xvalue)
         {
-            maxpos = fftfit(der,total,rawfile,i<10*rate/buffer_frames?defaultpulse:total,&val);
+            maxpos = fftfit(
+                    der,
+                    total,
+                    rawfile,
+                    i<10*rate/buffer_frames?defaultpulse:total,
+                    &val,
+                    filterFFT);
         }
 
         double b=0.0;

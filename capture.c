@@ -12,7 +12,6 @@ int main (int argc, char *argv[])
 
     unsigned int rate = 48000;
     int bph = 21600;
-    int buffer_frames = rate*3600/bph;
     int evalue = 4;
     int xvalue = 1;
     int mvalue = 10;
@@ -102,6 +101,7 @@ int main (int argc, char *argv[])
                 break;
         }
     }
+    int buffer_frames = rate*3600/bph;
     device = device==0?defdev:device;
 
     fftw_complex *filterFFT = makeFilter(evalue, buffer_frames);

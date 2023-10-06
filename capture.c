@@ -295,12 +295,12 @@ int main (int argc, char *argv[])
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
                         " -v verbose, print points to stdout\n"\
-                        " time, tick position modulo(3600/rate), deviation, σ\n"\
+                        "    time, tick position modulo(3600/rate), deviation, σ\n"\
                         " -s cutoff standarddeviation (default: 3)\n"\
                         " -x do not use crosscorrelation instead use peak derivative\n"\
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
-                        " -q split local tick/tock rate");
+                        " -q split local tick/tock rate\n");
                 exit(0);
 
             default:

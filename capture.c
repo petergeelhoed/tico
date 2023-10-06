@@ -71,17 +71,17 @@ snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
     return capture_handle;
 }
 
-fftw_complex * makeFilter(int evalue, int NN)
+fftw_complex * makeFilter(int evalue, int buffer_frames)
 {
-    fftw_complex *in2 = fftw_alloc_complex(NN);
-    fftw_complex *filterFFT = fftw_alloc_complex(NN);
-    fftw_plan makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
+    fftw_complex *in2 = fftw_alloc_complex(buffer_frames);
+    fftw_complex *filterFFT = fftw_alloc_complex(buffer_frames);
+    fftw_plan makefilter = fftw_plan_dft_1d(buffer_frames, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
     // make filter array
-    for (int j=0; j < NN; j++)
+    for (int j=0; j < buffer_frames; j++)
     {
         in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
-                + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
+                + exp(-((float)(buffer_frames-j)*(buffer_frames-j))/(float)(evalue*evalue)/2));
         in2[j][1] = 0.0;
     }
 
@@ -91,21 +91,21 @@ fftw_complex * makeFilter(int evalue, int NN)
 }
 
 
-int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT, int NN)
+int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw_complex *filterFFT, int buffer_frames)
 {
-    fftw_complex *in = fftw_alloc_complex(NN);
-    fftw_complex *in2 = fftw_alloc_complex(NN);
-    fftw_complex *out = fftw_alloc_complex(NN);
-    fftw_complex *conv = fftw_alloc_complex(NN);
-    fftw_complex *tmp = fftw_alloc_complex(NN);
-    fftw_complex *corr = fftw_alloc_complex(NN);
+    fftw_complex *in = fftw_alloc_complex(buffer_frames);
+    fftw_complex *in2 = fftw_alloc_complex(buffer_frames);
+    fftw_complex *out = fftw_alloc_complex(buffer_frames);
+    fftw_complex *conv = fftw_alloc_complex(buffer_frames);
+    fftw_complex *tmp = fftw_alloc_complex(buffer_frames);
+    fftw_complex *corr = fftw_alloc_complex(buffer_frames);
 
-    fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_plan corforward = fftw_plan_dft_1d(NN, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan forward = fftw_plan_dft_1d(buffer_frames, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(buffer_frames, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan corforward = fftw_plan_dft_1d(buffer_frames, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan correverse = fftw_plan_dft_1d(buffer_frames, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    for (int j=0; j < NN; j++)
+    for (int j=0; j < buffer_frames; j++)
     {
         in[j][0]= (float)mean[j];
         in[j][1] = 0.0;
@@ -113,10 +113,10 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
 
     fftw_execute(forward);
 
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
-        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
-        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
+        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/buffer_frames;
+        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/buffer_frames;
     }
 
     fftw_execute(reverse);
@@ -125,50 +125,50 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
     double ixx =0.0;
     double i2x = 0.0;
     double i2xx =0.0;
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
-        in[j][0] = (float)(in[j][0]/NN);
+        in[j][0] = (float)(in[j][0]/buffer_frames);
         in[j][1] = 0.0;
         ix+=in[j][0];
         in2[j][0] = base[j];
         in2[j][1] = 0.0;
         i2x+=in2[j][0];
     }
-    float m=ix/NN;
-    float m2=i2x/NN;
+    float m=ix/buffer_frames;
+    float m2=i2x/buffer_frames;
 
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
         in[j][0] = (in[j][0] - m);
         ixx+=in[j][0]*in[j][0];
         in2[j][0] = (in2[j][0] - m2);
         i2xx+=in2[j][0]*in2[j][0];
     }
-    double s = sqrt(ixx/NN-m/NN*m/NN);
-    double s2 = sqrt(i2xx*NN-m2*m2)/NN;
+    double s = sqrt(ixx/buffer_frames-m/buffer_frames*m/buffer_frames);
+    double s2 = sqrt(i2xx*buffer_frames-m2*m2)/buffer_frames;
     // into out
     fftw_execute(forward);
 
     // into tmp
     fftw_execute(corforward);
     // calculate cross correlation
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
         float tmpbuf= tmp[j][0];
-        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN/s/s2;
-        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN/s/s2;
+        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/buffer_frames/buffer_frames/s/s2;
+        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/buffer_frames/buffer_frames/s/s2;
     }
     // transform back into corr
     fftw_execute(correverse);
 
     float maxcor=-1;
     int poscor=0;
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
         if (corr[j][0]>maxcor)
         {
             maxcor =corr[j][0];
-            poscor=(j+NN/2)%NN;
+            poscor=(j+buffer_frames/2)%buffer_frames;
         }
     }
     // for hexadecimal print 
@@ -176,28 +176,28 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
 
 
     // rescale if large
-    if (total[NN/2]>100000000||total[0]>100)
+    if (total[buffer_frames/2]>100000000||total[0]>100)
     {
 
         long int avg = 0;
 
-        for (int j=0; j < NN ; j++)
+        for (int j=0; j < buffer_frames ; j++)
         {
             avg += total[j];
 
         }
-        avg /= NN;
+        avg /= buffer_frames;
         int avi = (int)avg;
         if (avi > 100)
         {
-            for (int j=0; j < NN ; j++)
+            for (int j=0; j < buffer_frames ; j++)
             {
                 total[j] -= avi;
             }
         }
         else
         {
-            for (int j=0; j < NN ; j++)
+            for (int j=0; j < buffer_frames ; j++)
             {
                 total[j] /= 2;
             }
@@ -205,9 +205,9 @@ int fftfit(int *mean, int *total, FILE* rawfile, int *base, int *val, const fftw
     }
 
     // weigh with square of correlation
-    for (int j=0; j < NN ; j++)
+    for (int j=0; j < buffer_frames ; j++)
     {
-        total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
+        total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
     }
     return poscor;
 }
@@ -218,7 +218,6 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int buffer_frames = rate*3600/bph;
-    int NN = 8000;
     int evalue = 4;
     int xvalue = 1;
     int mvalue = 10;
@@ -310,7 +309,7 @@ int main (int argc, char *argv[])
     }
     device = device==0?defdev:device;
 
-    fftw_complex *filterFFT = makeFilter(evalue, NN);
+    fftw_complex *filterFFT = makeFilter(evalue, buffer_frames);
     int i;
     int err;
     char *buffer;
@@ -346,8 +345,8 @@ int main (int argc, char *argv[])
             exit (1);
         }
     }
-    int total[NN];
-    for (int j = 0; j < NN; j++) total[j] = 0;
+    int total[buffer_frames];
+    for (int j = 0; j < buffer_frames; j++) total[j] = 0;
 
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
@@ -388,7 +387,7 @@ int main (int argc, char *argv[])
                     rawfile,
                     i<10*rate/buffer_frames?defaultpulse:total,
                     &val,
-                    filterFFT, NN);
+                    filterFFT, buffer_frames);
         }
 
         double b=0.0;
@@ -428,7 +427,7 @@ int main (int argc, char *argv[])
         fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
     }
 
-    for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
+    for (int j = 0; j < buffer_frames; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
 
     free(buffer);
 

@@ -76,15 +76,17 @@ fftw_complex * makeFilter(int evalue, int buffer_frames)
     fftw_plan makefilter = fftw_plan_dft_1d(buffer_frames, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
     // make filter array
-    for (int j=0; j < buffer_frames; j++)
+    in2[0][0] =1.0;
+    for (int j=1; j < buffer_frames; j++)
     {
-        in2[j][0] = .398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
+        in2[j][0] = (evalue==0)?0.0:.398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
                 + exp(-((float)(buffer_frames-j)*(buffer_frames-j))/(float)(evalue*evalue)/2));
         in2[j][1] = 0.0;
     }
 
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
+    filterFFT[0][0] = 0.0;
     return filterFFT;
 }
 

@@ -1,3 +1,4 @@
+all: teeth capture
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 

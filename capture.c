@@ -179,7 +179,6 @@ int main (int argc, char *argv[])
             maxpos = fftfit(
                     der,
                     total,
-                    rawfile,
                     i<10*rate/buffer_frames?defaultpulse:total,
                     &val,
                     filterFFT, buffer_frames);

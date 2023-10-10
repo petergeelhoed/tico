@@ -304,5 +304,6 @@ int main (int argc, char *argv[])
         }
         }
      */
+    fftw_free(filterFFT);
     exit (0);
 }

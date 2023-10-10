@@ -86,6 +86,7 @@ fftw_complex * makeFilter(int evalue, int buffer_frames)
 
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
+    fftw_free(in2);
     filterFFT[0][0] = 0.0;
     return filterFFT;
 }
@@ -209,6 +210,13 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     {
         total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
     }
+    fftw_free(*in);
+    fftw_free(*in2);
+    fftw_free(*out);
+    fftw_free(*conv);
+    fftw_free(*tmp);
+    fftw_free(*corr);
+
     return poscor;
 }
 

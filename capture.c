@@ -107,25 +107,23 @@ int main (int argc, char *argv[])
     fftw_complex *filterFFT = makeFilter(evalue, buffer_frames);
     int i;
     int err;
-    char *buffer;
     int maxes[time * rate/buffer_frames];
     int maxvals[time * rate/buffer_frames];
     int mod = buffer_frames/mvalue;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
 
+    char *buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8);
 
-    buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8 );
-
-    FILE *fp;
     char out[16];
     int wdth;
-    fp =popen("/usr/bin/tput cols" , "r");
+    FILE *fp =popen("/usr/bin/tput cols" , "r");
     fgets(out,16,fp);
     fclose(fp);
     wdth=atoi(out);
+    int columns = wdth - 10;
+    char spaces[columns+1];
 
     fprintf(stderr,
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
@@ -140,8 +138,14 @@ int main (int argc, char *argv[])
             exit (1);
         }
     }
+
     int total[buffer_frames];
     for (int j = 0; j < buffer_frames; j++) total[j] = 0;
+
+    int in[buffer_frames];
+    int der[buffer_frames];
+    unsigned char lsb;
+    signed char msb;
 
     for (i = 0; i < time * rate/buffer_frames; ++i)
     {
@@ -149,20 +153,15 @@ int main (int argc, char *argv[])
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
             exit (1);
         }
-        unsigned char lsb;
-        signed char msb;
-        int in[buffer_frames];
-        int der[buffer_frames];
         int max = 0;
         int maxpos = 0;
         for (int j = 0; j < buffer_frames*2; j+=2) {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
-            in[j/2]=(msb << 8)| lsb ;
+            in[j/2] = (msb << 8) | lsb ;
 
             int derivative = (j==0)?0:fabs(in[j/2]-in[j/2-1]);
             der[j/2] = derivative;
-            //  printf("%d\n",derivative );
             if (derivative > max)
             {
                 max = derivative;
@@ -181,7 +180,8 @@ int main (int argc, char *argv[])
                     total,
                     i<10*rate/buffer_frames?defaultpulse:total,
                     &val,
-                    filterFFT, buffer_frames);
+                    filterFFT,
+                    buffer_frames);
         }
 
         double b=0.0;
@@ -212,10 +212,8 @@ int main (int argc, char *argv[])
 
 
         }
-        int columns = wdth - 1-9;
         int width = (maxpos%mod)*columns/mod;
         fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
-        char spaces[width+1];
         memset(spaces, ' ', width);
         spaces[width+1] = '\0';
         fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
@@ -290,20 +288,7 @@ int main (int argc, char *argv[])
     b=(m*xy-x*y)/(m*xx-x*x);
     s = sqrt(( yy -2*a*y-2*b*xy+2*a*b*x+a*a*m+b*b*xx)/m);
     fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400);
-    /*  if (verbose)
-        {
-        for (i = 0; i < time * rate/buffer_frames; ++i)
-        {
-        e = (((double)maxes[i]/rate-( a+(double)i*buffer_frames/rate*b))/s);
-        if (e*e < threshold*threshold)
-        {
-        printf("%f %f %f\n",
-        (double)i*buffer_frames/rate,(double)maxes[i]/rate,
-        ((double)maxes[i]/rate-( a+(double)i*buffer_frames/rate*b))/s);
-        }
-        }
-        }
-     */
     fftw_free(filterFFT);
+ //   free(buffer);
     exit (0);
 }

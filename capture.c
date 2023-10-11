@@ -19,7 +19,7 @@ int main (int argc, char *argv[])
     int c;
     char *device = 0;
     char defdev[20] = "default:1";
-    int cvalue = 8;
+    int cvalue = 5;
     int qvalue = 0;
     double threshold =3.;
     FILE* rawfile = 0;
@@ -183,29 +183,30 @@ int main (int argc, char *argv[])
         maxes[i] = maxpos;
         maxvals[i] = val;
         int n=0;
-        if (i > 120)
+        int fitwindow = 60;
+        if (i > fitwindow *(1+qvalue) )
         {
-            double x = 0;
-            double y = 0;
-            double xx = 0;
-            double xy = 0;
-            double yy = 0;
-            for (int k = 0; k < 60;k+=qvalue+1)
+            int xarr[fitwindow];
+            int yarr[fitwindow];
+            double a = 0;
+            double s = 0;
+            for (int k = 0; k < fitwindow;k+=qvalue+1)
             {
                 if (maxvals[i-k] > cvalue)
                 {
+                    yarr[n]=maxes[i-k];
+                    xarr[n]=k;
+           // fprintf(stderr,"%d %12d %12d\n",n,xarr[n],yarr[n]);
                     n++;
-                    y+=maxes[i-k];
-                    xx+=k*k;
-                    x+=k;
-                    xy+=k*maxes[i-k];
-                    yy+=maxes[i-k]*maxes[i-k];
                 }
             }
-            b = (n>1)?(n*xy-x*y)/(n*xx-x*x):0;
-
-
+            if (n > 1)
+            {
+                linreg(xarr,yarr, n, &a, &b, &s);
+            }
+          //  fprintf(stderr,"%d %f %f\n",n,b,b*86400/buffer_frames);
         }
+
         int width = (maxpos%mod)*columns/mod;
         fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
         memset(spaces, ' ', columns);

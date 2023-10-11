@@ -78,6 +78,7 @@ fftw_complex * makeFilter(int evalue, int buffer_frames)
 
     // make filter array
     in2[0][0] =1.0;
+    in2[0][1] =0.0;
     for (int j=1; j < buffer_frames; j++)
     {
         in2[j][0] = (evalue==0)?0.0:.398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 

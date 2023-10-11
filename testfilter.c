@@ -16,8 +16,8 @@ int main (int argc, char *argv[])
     for (int j = 0; j < buffer_frames; j++) 
     {
         float a = filterFFT[j][0];
-        float b = a;
-       fprintf(stderr,"%3d %12.4f %12.4f\n",j,a,b);
+       fprintf(stderr,"%3d %12.4f %12.4f\n",j,a,filterFFT[j][1]);
+
     }
  //   filterFFT[0][0] = 0;
     exit (0);

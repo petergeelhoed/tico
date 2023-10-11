@@ -21,7 +21,6 @@ int main (int argc, char *argv[])
     char defdev[20] = "default:1";
     int cvalue = 8;
     int qvalue = 0;
-    int verbose = 0;
     double threshold =3.;
     FILE* rawfile = 0;
     FILE* fptotal = fopen("total","w");
@@ -31,7 +30,7 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:vs:xwe:qc:d:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:xwe:qc:d:")) != -1)
     {
         switch (c)
         {
@@ -58,9 +57,6 @@ int main (int argc, char *argv[])
                     return -4;
                 }
                 break;
-            case 'v':
-                verbose = 1;
-                break;
             case 's':
                 threshold = atoi(optarg);
                 break;
@@ -86,8 +82,6 @@ int main (int argc, char *argv[])
                         " -b bph of the watch (default: 21600/h) \n"\
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
-                        " -v verbose, print points to stdout\n"\
-                        "    time, tick position modulo(3600/rate), deviation, σ\n"\
                         " -s cutoff standarddeviation (default: 3)\n"\
                         " -x do not use crosscorrelation instead use peak derivative\n"\
                         " -c 8 threshold for local rate\n"\
@@ -214,7 +208,7 @@ int main (int argc, char *argv[])
         }
         int width = (maxpos%mod)*columns/mod;
         fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
-        memset(spaces, ' ', width);
+        memset(spaces, ' ', columns);
         spaces[width+1] = '\0';
         fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
     }
@@ -224,71 +218,40 @@ int main (int argc, char *argv[])
     free(buffer);
 
     snd_pcm_close (capture_handle);
-    double x = 0;
-    double y = 0;
-    double xx = 0;
-    double xy = 0;
-    double yy = 0;
     int n = time*rate/buffer_frames;
-    for (i = 0; i < n; ++i)
-    {
-        y+=maxes[i];
-        xx+=i*i;
-        x+=i;
-        xy+=i*maxes[i];
-        yy+=maxes[i]*maxes[i];
-    }
 
-    x=x*buffer_frames/rate;
-    y=y/rate;
-    yy=yy/rate/rate;
-    xx=xx*buffer_frames/rate*buffer_frames/rate;
-    xy=xy*buffer_frames/rate/rate;
-    double a = (y*xx-x*xy)/(n*xx-x*x);
-    double b=(n*xy-x*y)/(n*xx-x*x);
-    double s = sqrt(( yy -2*a*y-2*b*xy+2*a*b*x+a*a*n+b*b*xx)/n);
-    fprintf(stderr,"raw rate: %f s/d\n",-b*86400);
-    x = 0.;
-    y = 0.;
-    xx = 0.;
-    xy = 0.;
-    yy = 0.;
+    double a = 0.0;
+    double b = 0.0;
+    double s = 0.0;
+    int xarr[buffer_frames];
+    for (int i = 0; i < n ; ++i) {xarr[i]=i;}
+
+    linreg(xarr,maxes, n, &a, &b, &s);
+    
+    /*
+    a /= buffer_frames*buffer_frames;
+    b /= buffer_frames;
+    s /= rate;
+    */
+
+    fprintf(stderr,"raw rate: %f s/d\n",-b*86400/buffer_frames);
     int m = 0;
-    if (verbose)
-    {
-        for (i = 0; i < time * rate/buffer_frames; ++i)
-        {
-            printf("%f %f %f %f\n",
-                    (double)i*buffer_frames/rate,(double)maxes[i]/rate,
-                    ((double)maxes[i]/rate-( a+(double)i*buffer_frames/rate*b)),s);
-        }
-    }
 
     double e;
 
-    for (i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
-        e = (((double)maxes[i]/rate-( a+(double)i*buffer_frames/rate*b))/s);
-        if (e*e < threshold*threshold)
+        e = fabs(((double)maxes[i]-(a+xarr[i]*b))/s);
+        if (e < threshold)
         {
-            y+=maxes[i];
-            xx+=i*i;
-            x+=i;
-            xy+=i*maxes[i];
-            yy+=maxes[i]*maxes[i];
+            maxes[m] = maxes[i];
+            xarr[m] = xarr[i];
             m++;
         }
     }
-    x=x*buffer_frames/rate;
-    y=y/rate;
-    yy=yy/rate/rate;
-    xx=xx*buffer_frames/rate*buffer_frames/rate;
-    xy=xy*buffer_frames/rate/rate;
-    a = (y*xx-x*xy)/(m*xx-x*x);
-    b=(m*xy-x*y)/(m*xx-x*x);
-    s = sqrt(( yy -2*a*y-2*b*xy+2*a*b*x+a*a*m+b*b*xx)/m);
-    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400);
+    linreg(xarr, maxes, m, &a, &b, &s);
+
+    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/buffer_frames);
     fftw_free(filterFFT);
- //   free(buffer);
     exit (0);
 }

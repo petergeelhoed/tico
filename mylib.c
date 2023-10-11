@@ -69,6 +69,7 @@ snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
     return capture_handle;
 }
 
+
 fftw_complex * makeFilter(int evalue, int buffer_frames)
 {
     fftw_complex *in2 = fftw_alloc_complex(buffer_frames);
@@ -221,3 +222,23 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 }
 
 
+void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s)
+{
+    double x = 0;
+    double y = 0;
+    double xx = 0;
+    double xy = 0;
+    double yy = 0;
+    for (int i = 0; i < NN; ++i)
+    {
+        y  += yarr[i];
+        xx += xarr[i]*xarr[i];
+        x  += xarr[i];
+        xy += xarr[i]*yarr[i];
+        yy += yarr[i]*yarr[i];
+    }
+    
+    *a = (y*xx-x*xy)/(NN*xx-x*x);
+    *b = (NN*xy-x*y)/(NN*xx-x*x);
+    *s = sqrt(( yy -2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
+}

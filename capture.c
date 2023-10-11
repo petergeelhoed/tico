@@ -196,7 +196,6 @@ int main (int argc, char *argv[])
                 {
                     yarr[n]=maxes[i-k];
                     xarr[n]=k;
-           // fprintf(stderr,"%d %12d %12d\n",n,xarr[n],yarr[n]);
                     n++;
                 }
             }
@@ -204,7 +203,6 @@ int main (int argc, char *argv[])
             {
                 linreg(xarr,yarr, n, &a, &b, &s);
             }
-          //  fprintf(stderr,"%d %f %f\n",n,b,b*86400/buffer_frames);
         }
 
         int width = (maxpos%mod)*columns/mod;

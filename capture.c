@@ -133,8 +133,11 @@ int main (int argc, char *argv[])
         }
     }
 
-    int total[buffer_frames];
-    for (int j = 0; j < buffer_frames; j++) total[j] = 0;
+    int totaltick[buffer_frames];
+    for (int j = 0; j < buffer_frames; j++) totaltick[j] = 0;
+
+    int totaltock[buffer_frames];
+    for (int j = 0; j < buffer_frames; j++) totaltock[j] = 0;
 
     int in[buffer_frames];
     int der[buffer_frames];
@@ -169,10 +172,16 @@ int main (int argc, char *argv[])
 
         if (xvalue)
         {
+            int *reference = defaultpulse;
+            int *total = (i%2==0||qvalue==0)?totaltick:totaltock;
+            if (i>10*rate/buffer_frames)
+            {
+                reference = (i%2==0||qvalue==0)?totaltick:totaltock;
+            }
             maxpos = fftfit(
                     der,
                     total,
-                    i<10*rate/buffer_frames?defaultpulse:total,
+                    reference,
                     &val,
                     filterFFT,
                     buffer_frames);
@@ -212,7 +221,7 @@ int main (int argc, char *argv[])
         fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
     }
 
-    for (int j = 0; j < buffer_frames; j++) fprintf(fptotal,"%d %d\n",total[j],defaultpulse[j]);
+    for (int j = 0; j < buffer_frames; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
 
     free(buffer);
 

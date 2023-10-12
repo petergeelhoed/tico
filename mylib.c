@@ -179,38 +179,41 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
 
     // rescale if large
-    if (total[buffer_frames/2]>100000000||total[0]>100)
+    if (total)
     {
+        if (total[buffer_frames/2]>100000000||total[0]>100)
+        {
 
-        long int avg = 0;
+            long int avg = 0;
 
+            for (int j=0; j < buffer_frames ; j++)
+            {
+                avg += total[j];
+
+            }
+            avg /= buffer_frames;
+            int avi = (int)avg;
+            if (avi > 100)
+            {
+                for (int j=0; j < buffer_frames ; j++)
+                {
+                    total[j] -= avi;
+                }
+            }
+            else
+            {
+                for (int j=0; j < buffer_frames ; j++)
+                {
+                    total[j] /= 2;
+                }
+            }
+        }
+
+        // weigh with square of correlation
         for (int j=0; j < buffer_frames ; j++)
         {
-            avg += total[j];
-
+            total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
         }
-        avg /= buffer_frames;
-        int avi = (int)avg;
-        if (avi > 100)
-        {
-            for (int j=0; j < buffer_frames ; j++)
-            {
-                total[j] -= avi;
-            }
-        }
-        else
-        {
-            for (int j=0; j < buffer_frames ; j++)
-            {
-                total[j] /= 2;
-            }
-        }
-    }
-
-    // weigh with square of correlation
-    for (int j=0; j < buffer_frames ; j++)
-    {
-        total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
     }
     fftw_free(*in);
     fftw_free(*in2);

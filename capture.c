@@ -193,8 +193,9 @@ int main (int argc, char *argv[])
         maxes[i] = maxpos;
         maxvals[i] = val;
         int n=0;
-        int fitwindow = 60;
-        if (i > fitwindow *(1+qvalue) )
+        int fitwindow = i>60?60:i;
+        //int fitwindow = i/(1+qvalue);
+        if (i >= fitwindow *(1+qvalue) )
         {
             int xarr[fitwindow];
             int yarr[fitwindow];

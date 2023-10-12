@@ -77,9 +77,7 @@ fftw_complex * makeFilter(int evalue, int buffer_frames)
     fftw_plan makefilter = fftw_plan_dft_1d(buffer_frames, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
     // make filter array
-    in2[0][0] =1.0;
-    in2[0][1] =0.0;
-    for (int j=1; j < buffer_frames; j++)
+    for (int j=0; j < buffer_frames; j++)
     {
         in2[j][0] = (evalue==0)?0.0:.398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
                 + exp(-((float)(buffer_frames-j)*(buffer_frames-j))/(float)(evalue*evalue)/2));
@@ -89,8 +87,38 @@ fftw_complex * makeFilter(int evalue, int buffer_frames)
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
     fftw_free(in2);
-    filterFFT[0][0] = 0.0;
     return filterFFT;
+}
+
+
+void convolute(int NN, int *array, const fftw_complex *filterFFT)
+{
+    fftw_complex *in = fftw_alloc_complex(NN);
+    fftw_complex *out = fftw_alloc_complex(NN);
+    fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(NN, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    for (int j=0; j < NN; j++)
+    {
+        in[j][0]= (float)array[j];
+        in[j][1] = 0.0;
+    }
+    fftw_execute(forward);
+
+    for (int j=0; j < NN ; j++)
+    {
+        out[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
+        out[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
+    }
+
+    fftw_execute(reverse);
+    for (int j=0; j < NN ; j++)
+    {
+        array[j] = in[j][0];
+    }
+    fftw_destroy_plan(forward);
+    fftw_destroy_plan(reverse);
+    fftw_free(*in);
+    fftw_free(*out);
 }
 
 
@@ -215,6 +243,10 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
             total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
         }
     }
+    fftw_destroy_plan(corforward);
+    fftw_destroy_plan(correverse);
+    fftw_destroy_plan(forward);
+    fftw_destroy_plan(reverse);
     fftw_free(*in);
     fftw_free(*in2);
     fftw_free(*out);

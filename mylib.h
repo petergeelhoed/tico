@@ -12,3 +12,4 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 
+void convolute(int NN, int *array, const fftw_complex *filter);

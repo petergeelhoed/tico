@@ -6,19 +6,34 @@
 
 #include "mylib.h"
 
+
 int main (int argc, char *argv[])
 {
-    int buffer_frames = 20;
-    int evalue = 4;
+    int NN = 20;
+    int evalue = 2;
     
-   fftw_complex *filterFFT = makeFilter(evalue, buffer_frames);
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
 
-    for (int j = 0; j < buffer_frames; j++) 
+    for (int j = 0; j < NN; j++) 
     {
-        float a = filterFFT[j][0];
-       fprintf(stderr,"%3d %12.4f %12.4f\n",j,a,filterFFT[j][1]);
+//        float a = filterFFT[j][0];
+//       fprintf(stderr,"%3d %12.4f %12.4f\n",j,a,filterFFT[j][1]);
 
     }
- //   filterFFT[0][0] = 0;
+    int blah[NN];
+    int orig[NN];
+    for (int j = 0; j < NN; j++) 
+    {
+        blah[j] = (j==10)*10000;//(int)1000*sin((float)j/2.);
+        orig[j] = blah[j];
+    }
+
+    convolute(NN,blah,filterFFT);
+    
+    for (int j = 0; j < NN; j++) 
+    {
+       printf("%3d %12d %12d\n",j,blah[j],orig[j]);
+    }
+
     exit (0);
 }

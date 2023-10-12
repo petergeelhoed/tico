@@ -187,7 +187,8 @@ int main (int argc, char *argv[])
                     buffer_frames);
         }
 
-        double b=0.0;
+        double b = 0.0;
+        double a = 0.0;
 
         maxes[i] = maxpos;
         maxvals[i] = val;
@@ -197,7 +198,6 @@ int main (int argc, char *argv[])
         {
             int xarr[fitwindow];
             int yarr[fitwindow];
-            double a = 0;
             double s = 0;
             for (int k = 0; k < fitwindow;k+=qvalue+1)
             {
@@ -215,10 +215,20 @@ int main (int argc, char *argv[])
         }
 
         int width = (maxpos%mod)*columns/mod;
+        int widtha = (((int)a+mod)%mod)*columns/mod;
         fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
         memset(spaces, ' ', columns);
-        spaces[width+1] = '\0';
-        fprintf(stderr,"%s%s%X\e[0m\n",spaces,i%2==0?"\e[31m": "\e[32m",val);
+        spaces[widtha] = '|';
+        spaces[width] = '\0';
+        fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",val);
+        memset(spaces, ' ', columns);
+        if (widtha > width)
+        {
+            spaces[widtha-width-1] = '|';
+            spaces[widtha-width-1+1] = '\0';
+            fprintf(stderr,"%s",spaces);
+        }
+        fprintf(stderr,"\n");
     }
 
     for (int j = 0; j < buffer_frames; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);

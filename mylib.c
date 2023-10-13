@@ -153,33 +153,18 @@ fftw_complex* convolute(int NN, int *array, const fftw_complex *filterFFT)
 
 int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN)
 {
-    fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *in2 = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
     fftw_complex *conv = fftw_alloc_complex(NN);
     fftw_complex *tmp = fftw_alloc_complex(NN);
     fftw_complex *corr = fftw_alloc_complex(NN);
+    fftw_complex *in = convolute(NN,mean,filterFFT);
 
     fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_plan reverse = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
     fftw_plan corforward = fftw_plan_dft_1d(NN, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    for (int j=0; j < NN; j++)
-    {
-        in[j][0]= (double)mean[j];
-        in[j][1] = 0.0;
-    }
-
-    fftw_execute(forward);
-
-    for (int j=0; j < NN ; j++)
-    {
-        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
-        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
-    }
-
-    fftw_execute(reverse);
 
     double ix = 0.0;
     double ixx =0.0;

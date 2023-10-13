@@ -166,44 +166,29 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
 
-    double ix = 0.0;
-    double ixx =0.0;
-    double i2x = 0.0;
-    double i2xx =0.0;
     for (int j=0; j < NN ; j++)
     {
-        in[j][0] = (double)(in[j][0]/NN);
-        in[j][1] = 0.0;
-        ix+=in[j][0];
-        in2[j][0] = base[j];
+        in2[j][0] = (double)base[j];
         in2[j][1] = 0.0;
-        i2x+=in2[j][0];
     }
-    double m=ix/NN;
-    double m2=i2x/NN;
 
-    for (int j=0; j < NN ; j++)
-    {
-        in[j][0] = (in[j][0] - m);
-        ixx+=in[j][0]*in[j][0];
-        in2[j][0] = (in2[j][0] - m2);
-        i2xx+=in2[j][0]*in2[j][0];
-    }
-    double s = sqrt(ixx/NN-m/NN*m/NN);
-    double s2 = sqrt(i2xx*NN-m2*m2)/NN;
     // into out
+    normalise(NN,in);
     fftw_execute(forward);
 
     // into tmp
+    normalise(NN, in2);
     fftw_execute(corforward);
-    // calculate cross correlation
+
+    // calculate cross correlation in fouier space
     for (int j=0; j < NN ; j++)
     {
         double tmpbuf= tmp[j][0];
-        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN/s/s2;
-        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN/s/s2;
+        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN;
+        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN;
     }
-    // transform back into corr
+
+    // transform back into real space corr
     fftw_execute(correverse);
 
     double maxcor=-1;
@@ -290,5 +275,5 @@ void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, doub
     
     *a = (y*xx-x*xy)/(NN*xx-x*x);
     *b = (NN*xy-x*y)/(NN*xx-x*x);
-    *s = sqrt(( yy -2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
+    *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
 }

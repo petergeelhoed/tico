@@ -70,17 +70,17 @@ snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 }
 
 
-fftw_complex * makeFilter(int evalue, int buffer_frames)
+fftw_complex * makeFilter(int evalue, int NN)
 {
-    fftw_complex *in2 = fftw_alloc_complex(buffer_frames);
-    fftw_complex *filterFFT = fftw_alloc_complex(buffer_frames);
-    fftw_plan makefilter = fftw_plan_dft_1d(buffer_frames, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
+    fftw_complex *in2 = fftw_alloc_complex(NN);
+    fftw_complex *filterFFT = fftw_alloc_complex(NN);
+    fftw_plan makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
     // make filter array
-    for (int j=0; j < buffer_frames; j++)
+    for (int j=0; j < NN; j++)
     {
         in2[j][0] = (evalue==0)?0.0:.398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
-                + exp(-((float)(buffer_frames-j)*(buffer_frames-j))/(float)(evalue*evalue)/2));
+                + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
         in2[j][1] = 0.0;
     }
 
@@ -122,21 +122,21 @@ void convolute(int NN, int *array, const fftw_complex *filterFFT)
 }
 
 
-int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int buffer_frames)
+int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN)
 {
-    fftw_complex *in = fftw_alloc_complex(buffer_frames);
-    fftw_complex *in2 = fftw_alloc_complex(buffer_frames);
-    fftw_complex *out = fftw_alloc_complex(buffer_frames);
-    fftw_complex *conv = fftw_alloc_complex(buffer_frames);
-    fftw_complex *tmp = fftw_alloc_complex(buffer_frames);
-    fftw_complex *corr = fftw_alloc_complex(buffer_frames);
+    fftw_complex *in = fftw_alloc_complex(NN);
+    fftw_complex *in2 = fftw_alloc_complex(NN);
+    fftw_complex *out = fftw_alloc_complex(NN);
+    fftw_complex *conv = fftw_alloc_complex(NN);
+    fftw_complex *tmp = fftw_alloc_complex(NN);
+    fftw_complex *corr = fftw_alloc_complex(NN);
 
-    fftw_plan forward = fftw_plan_dft_1d(buffer_frames, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse = fftw_plan_dft_1d(buffer_frames, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_plan corforward = fftw_plan_dft_1d(buffer_frames, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan correverse = fftw_plan_dft_1d(buffer_frames, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan corforward = fftw_plan_dft_1d(NN, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    for (int j=0; j < buffer_frames; j++)
+    for (int j=0; j < NN; j++)
     {
         in[j][0]= (float)mean[j];
         in[j][1] = 0.0;
@@ -144,10 +144,10 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
     fftw_execute(forward);
 
-    for (int j=0; j < buffer_frames ; j++)
+    for (int j=0; j < NN ; j++)
     {
-        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/buffer_frames;
-        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/buffer_frames;
+        conv[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
+        conv[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
     }
 
     fftw_execute(reverse);
@@ -156,50 +156,50 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     double ixx =0.0;
     double i2x = 0.0;
     double i2xx =0.0;
-    for (int j=0; j < buffer_frames ; j++)
+    for (int j=0; j < NN ; j++)
     {
-        in[j][0] = (float)(in[j][0]/buffer_frames);
+        in[j][0] = (float)(in[j][0]/NN);
         in[j][1] = 0.0;
         ix+=in[j][0];
         in2[j][0] = base[j];
         in2[j][1] = 0.0;
         i2x+=in2[j][0];
     }
-    float m=ix/buffer_frames;
-    float m2=i2x/buffer_frames;
+    float m=ix/NN;
+    float m2=i2x/NN;
 
-    for (int j=0; j < buffer_frames ; j++)
+    for (int j=0; j < NN ; j++)
     {
         in[j][0] = (in[j][0] - m);
         ixx+=in[j][0]*in[j][0];
         in2[j][0] = (in2[j][0] - m2);
         i2xx+=in2[j][0]*in2[j][0];
     }
-    double s = sqrt(ixx/buffer_frames-m/buffer_frames*m/buffer_frames);
-    double s2 = sqrt(i2xx*buffer_frames-m2*m2)/buffer_frames;
+    double s = sqrt(ixx/NN-m/NN*m/NN);
+    double s2 = sqrt(i2xx*NN-m2*m2)/NN;
     // into out
     fftw_execute(forward);
 
     // into tmp
     fftw_execute(corforward);
     // calculate cross correlation
-    for (int j=0; j < buffer_frames ; j++)
+    for (int j=0; j < NN ; j++)
     {
         float tmpbuf= tmp[j][0];
-        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/buffer_frames/buffer_frames/s/s2;
-        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/buffer_frames/buffer_frames/s/s2;
+        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN/s/s2;
+        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN/s/s2;
     }
     // transform back into corr
     fftw_execute(correverse);
 
     float maxcor=-1;
     int poscor=0;
-    for (int j=0; j < buffer_frames ; j++)
+    for (int j=0; j < NN ; j++)
     {
         if (corr[j][0]>maxcor)
         {
             maxcor =corr[j][0];
-            poscor=(j+buffer_frames/2)%buffer_frames;
+            poscor=(j+NN/2)%NN;
         }
     }
     // for hexadecimal print 
@@ -209,28 +209,28 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     // rescale if large
     if (total)
     {
-        if (total[buffer_frames/2]>100000000||total[0]>100)
+        if (total[NN/2]>100000000||total[0]>100)
         {
 
             long int avg = 0;
 
-            for (int j=0; j < buffer_frames ; j++)
+            for (int j=0; j < NN ; j++)
             {
                 avg += total[j];
 
             }
-            avg /= buffer_frames;
+            avg /= NN;
             int avi = (int)avg;
             if (avi > 100)
             {
-                for (int j=0; j < buffer_frames ; j++)
+                for (int j=0; j < NN ; j++)
                 {
                     total[j] -= avi;
                 }
             }
             else
             {
-                for (int j=0; j < buffer_frames ; j++)
+                for (int j=0; j < NN ; j++)
                 {
                     total[j] /= 2;
                 }
@@ -238,9 +238,9 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
         }
 
         // weigh with square of correlation
-        for (int j=0; j < buffer_frames ; j++)
+        for (int j=0; j < NN ; j++)
         {
-            total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+buffer_frames/2+buffer_frames)%buffer_frames]);
+            total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
         }
     }
     fftw_destroy_plan(corforward);

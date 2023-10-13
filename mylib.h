@@ -6,9 +6,9 @@
 
 snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
 
-fftw_complex * makeFilter(int evalue, int buffer_frames);
+fftw_complex * makeFilter(int evalue, int NN);
 
-int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int buffer_frames);
+int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN);
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 

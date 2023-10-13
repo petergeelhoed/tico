@@ -28,11 +28,11 @@ int main (int argc, char *argv[])
         orig[j] = blah[j];
     }
 
-    convolute(NN,blah,filterFFT);
+    fftw_complex * out = convolute(NN,blah,filterFFT);
     
     for (int j = 0; j < NN; j++) 
     {
-       printf("%3d %12d %12d\n",j,blah[j],orig[j]);
+       printf("%3d %12d %12d %12f %12f\n",j,blah[j],orig[j], out[j][0],out[j][1]);
     }
 
     exit (0);

@@ -4,6 +4,25 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
+void normalise(int NN,fftw_complex *in)
+{
+    double ix = 0.0;
+    double ixx =0.0;
+    for (int j=0; j < NN ; j++)
+    {
+        in[j][0] = in[j][0];
+        ix+=in[j][0];
+        ixx+=in[j][0]*in[j][0];
+    }
+    double m=ix/NN;
+    double s = sqrt(ixx/NN-m*m);
+    for (int j=0; j < NN ; j++)
+    {
+        in[j][0] = (in[j][0]-m)/s;
+    }
+}
+
+
 snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 {
     int err;
@@ -76,13 +95,27 @@ fftw_complex * makeFilter(int evalue, int NN)
     fftw_complex *filterFFT = fftw_alloc_complex(NN);
     fftw_plan makefilter = fftw_plan_dft_1d(NN, in2,  filterFFT, FFTW_FORWARD,  FFTW_ESTIMATE);
 
+    if (evalue != 0)
+    {
     // make filter array
     for (int j=0; j < NN; j++)
     {
-        in2[j][0] = (evalue==0)?0.0:.398942280401/evalue*(exp(-((float)(j*j))/(float)(evalue*evalue)/2) 
-                + exp(-((float)(NN-j)*(NN-j))/(float)(evalue*evalue)/2));
+        in2[j][0] = .398942280401/evalue*(exp(-((double)(j*j))/(double)(evalue*evalue)/2) 
+                + exp(-((double)(NN-j)*(NN-j))/(double)(evalue*evalue)/2));
         in2[j][1] = 0.0;
     }
+    }
+    else
+    {
+        in2[0][0] = 100; 
+        in2[0][1] = 0; 
+        for (int j=1; j < NN; j++)
+        {
+        in2[j][0] = 0; 
+        in2[j][1] = 0; 
+        }
+    }
+    
 
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
@@ -91,7 +124,7 @@ fftw_complex * makeFilter(int evalue, int NN)
 }
 
 
-void convolute(int NN, int *array, const fftw_complex *filterFFT)
+fftw_complex* convolute(int NN, int *array, const fftw_complex *filterFFT)
 {
     fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
@@ -99,7 +132,7 @@ void convolute(int NN, int *array, const fftw_complex *filterFFT)
     fftw_plan reverse = fftw_plan_dft_1d(NN, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
     for (int j=0; j < NN; j++)
     {
-        in[j][0]= (float)array[j];
+        in[j][0]= (double)array[j];
         in[j][1] = 0.0;
     }
     fftw_execute(forward);
@@ -111,14 +144,10 @@ void convolute(int NN, int *array, const fftw_complex *filterFFT)
     }
 
     fftw_execute(reverse);
-    for (int j=0; j < NN ; j++)
-    {
-        array[j] = in[j][0];
-    }
     fftw_destroy_plan(forward);
     fftw_destroy_plan(reverse);
-    fftw_free(*in);
     fftw_free(*out);
+    return in;
 }
 
 
@@ -138,7 +167,7 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
     for (int j=0; j < NN; j++)
     {
-        in[j][0]= (float)mean[j];
+        in[j][0]= (double)mean[j];
         in[j][1] = 0.0;
     }
 
@@ -158,15 +187,15 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     double i2xx =0.0;
     for (int j=0; j < NN ; j++)
     {
-        in[j][0] = (float)(in[j][0]/NN);
+        in[j][0] = (double)(in[j][0]/NN);
         in[j][1] = 0.0;
         ix+=in[j][0];
         in2[j][0] = base[j];
         in2[j][1] = 0.0;
         i2x+=in2[j][0];
     }
-    float m=ix/NN;
-    float m2=i2x/NN;
+    double m=ix/NN;
+    double m2=i2x/NN;
 
     for (int j=0; j < NN ; j++)
     {
@@ -185,14 +214,14 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
     // calculate cross correlation
     for (int j=0; j < NN ; j++)
     {
-        float tmpbuf= tmp[j][0];
+        double tmpbuf= tmp[j][0];
         tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN/s/s2;
         tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN/s/s2;
     }
     // transform back into corr
     fftw_execute(correverse);
 
-    float maxcor=-1;
+    double maxcor=-1;
     int poscor=0;
     for (int j=0; j < NN ; j++)
     {

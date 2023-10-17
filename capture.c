@@ -99,6 +99,9 @@ int main (int argc, char *argv[])
 
     // declarations
     int NN = rate*3600/bph;
+    // should be even
+    NN = (NN+NN%2);
+
     int tps = rate/NN;
     int n = time*tps; 
     int maxpos[n];
@@ -146,8 +149,24 @@ int main (int argc, char *argv[])
     else
     {
         reference = malloc(NN*sizeof(int));
-        reference[NN/2] = 1;
+
+        for (int j=0;j<NN;j++)
+        {
+            reference[j] = 0;
+        }
+
+        int min = (NN-8000)/2;
+        if (min > 0)
+        {
+            memcpy(reference+min,defaultpulse,8000*sizeof(int));
+        }
+        else
+        {
+            memcpy(reference,defaultpulse-min,(8000+2*(min))*sizeof(int));
+        }
+
     }
+
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;

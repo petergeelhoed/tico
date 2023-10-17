@@ -124,7 +124,7 @@ fftw_complex * makeFilter(int evalue, int NN)
 }
 
 
-fftw_complex* convolute(int NN, int *array, const fftw_complex *filterFFT)
+fftw_complex* convolute(int NN, int*array, const fftw_complex *filterFFT)
 {
     fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
@@ -151,7 +151,7 @@ fftw_complex* convolute(int NN, int *array, const fftw_complex *filterFFT)
 }
 
 
-int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN)
+int fftfit(int*mean, int*total, int*base, int*val, const fftw_complex *filterFFT, int NN)
 {
     fftw_complex *in2 = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
@@ -239,7 +239,7 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
         // weigh with square of correlation
         for (int j=0; j < NN ; j++)
         {
-            total[j] = (total[j]+(int)(20*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
+            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
         }
     }
     fftw_destroy_plan(corforward);
@@ -257,7 +257,7 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 }
 
 
-void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative)
+void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int*derivative)
 {
         int in[NN];
         unsigned char lsb;
@@ -297,7 +297,7 @@ void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,
 }
 
 
-void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s)
+void linreg(const int*xarr, const int*yarr, int NN, double *a, double *b, double *s)
 {
     double x = 0;
     double y = 0;
@@ -319,11 +319,21 @@ void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, doub
 }
 
 
-void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,int qvalue, int cvalue)
+void fit10secs(
+        double *a,
+        double *b,
+        double *s,
+        int i,
+        int* maxvals,
+        int*maxes,
+        int qvalue,
+        int cvalue,
+        int npeaks)
 {
     int m=0;
-    int fitwindow = i>60?60:i;
-    if (i >= fitwindow *(1+qvalue) )
+    int fitwindow = i>npeaks*(1+qvalue)?npeaks*(1+qvalue):i;
+
+    if (i >= fitwindow)
     {
         int xarr[fitwindow];
         int yarr[fitwindow];
@@ -344,11 +354,26 @@ void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,in
 }
 
 
-void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN)
+void writefiles(
+        FILE* fptotal,
+        FILE* rawfile,
+        int* totaltick,
+        int* totaltock,
+        int* defaultpulse,
+        int* maxpos,
+        int n,
+        int NN)
 {
     if (fptotal)
     {
-        for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
+        if (NN == 8000)
+        {
+            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
+        }
+        else
+        {
+            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",totaltick[j],totaltock[j]);
+        }
         fclose(fptotal);
     }
     if (rawfile)

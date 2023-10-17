@@ -17,18 +17,22 @@ int main (int argc, char *argv[])
     int time = 30;
     int c;
     int cvalue = 5;
+    int fitN = 60;
     int qvalue = 0;
     char *device = 0;
     double threshold =3.;
     FILE* rawfile = 0;
     FILE* fptotal = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:")) != -1)
     {
         switch (c)
         {
             case 'd':
                 device = optarg;
+                break;
+            case 'f':
+                fitN = atoi(optarg);
                 break;
             case 'c':
                 cvalue = atoi(optarg);
@@ -86,6 +90,7 @@ int main (int argc, char *argv[])
                         " -p <file> write pulse to file"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
+                        " -n 60 number of mpoints to fit in local rate\n"\
                         " -q split local tick/tock rate\n");
                 exit(0);
                 break;
@@ -132,7 +137,17 @@ int main (int argc, char *argv[])
 
     // main loop
     int derivative[NN];
-    int *reference = defaultpulse;
+    int *reference;
+
+    if (NN==8000)
+    {
+        reference = defaultpulse;
+    }
+    else
+    {
+        reference = malloc(NN*sizeof(int));
+        reference[NN/2] = 1;
+    }
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
@@ -155,7 +170,7 @@ int main (int argc, char *argv[])
                 filterFFT,
                 NN);
 
-        fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue);
+        fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
         printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, i);
     }
 
@@ -163,7 +178,7 @@ int main (int argc, char *argv[])
     fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
 
-    writefiles(fptotal, rawfile, totaltick, totaltick, defaultpulse, maxpos, n, NN);
+    writefiles(fptotal, rawfile, totaltick, totaltock, defaultpulse, maxpos, n, NN);
 
     calculateTotal(n, maxpos, NN, threshold);
     exit (0);

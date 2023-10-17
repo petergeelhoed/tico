@@ -257,6 +257,26 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 }
 
 
+void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative)
+{
+        int in[NN];
+        unsigned char lsb;
+        signed char msb;
+        int err;
+        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
+            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
+            exit (1);
+        }
+        for (int j = 0; j < NN*2; j+=2) {
+            msb = *(buffer+j+1);
+            lsb = *(buffer+j);
+            in[j/2] = (msb << 8) | lsb ;
+
+            derivative[j/2] = (j==0)?0:fabs(in[j/2]-in[j/2-1]);
+        }
+}
+
+
 void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i)
 {
     int width = (maxpos%mod)*columns/mod;

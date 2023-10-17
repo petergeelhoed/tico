@@ -7,6 +7,7 @@
 #include "mylib.h"
 #include "defaultpulse.h"
 
+
 int main (int argc, char *argv[])
 {
 
@@ -97,7 +98,6 @@ int main (int argc, char *argv[])
 
     fftw_complex *filterFFT = makeFilter(evalue, NN);
     int i;
-    int err;
     int n = time*tps; // total tics
     int maxes[n];
     int maxvals[n];
@@ -128,33 +128,12 @@ int main (int argc, char *argv[])
     int totaltock[NN];
     for (int j = 0; j < NN; j++) totaltock[j] = 0;
 
-    int in[NN];
-    int der[NN];
-    unsigned char lsb;
-    signed char msb;
 
     for (i = 0; i < n; ++i)
     {
-        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
-            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
-            exit (1);
-        }
-        int max = 0;
-        int maxpos = 0;
-        for (int j = 0; j < NN*2; j+=2) {
-            msb = *(buffer+j+1);
-            lsb = *(buffer+j);
-            in[j/2] = (msb << 8) | lsb ;
 
-            int derivative = (j==0)?0:fabs(in[j/2]-in[j/2-1]);
-            der[j/2] = derivative;
-            if (derivative > max)
-            {
-                max = derivative;
-                maxpos = j/2;
-            }
-        }
-
+        int derivative[NN];
+        readBuffer(capture_handle, NN, buffer,derivative);
         if (i==10*tps) fprintf(stderr,"10 seconds, starting crosscor\n");
 
         int val = 1;
@@ -165,8 +144,8 @@ int main (int argc, char *argv[])
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
-        maxpos = fftfit(
-                der,
+        int maxpos = fftfit(
+                derivative,
                 total,
                 reference,
                 &val,

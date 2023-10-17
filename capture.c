@@ -13,16 +13,14 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
-    int xvalue = 1;
     int mvalue = 10;
     int time = 30;
     int c;
     char *device = 0;
-    char defdev[20] = "default:1";
+    char defdev[200] = "default:1";
     int cvalue = 5;
     int qvalue = 0;
     double threshold =3.;
-    FILE* rawfile = 0;
     FILE* fptotal = fopen("total","w");
     if (fptotal == 0)
     {
@@ -30,7 +28,7 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:xwe:qc:d:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:")) != -1)
     {
         switch (c)
         {
@@ -46,19 +44,8 @@ int main (int argc, char *argv[])
             case 'e':
                 evalue = atoi(optarg);
                 break;
-            case 'x':
-                xvalue = 0;
-                break;
-            case 'w':
-                rawfile = fopen("rawcapture","w");
-                if (rawfile == 0)
-                {
-                    fprintf(stderr,"cannot open rawcapture\n");
-                    return -4;
-                }
-                break;
             case 's':
-                threshold = atoi(optarg);
+                threshold = atof(optarg);
                 break;
             case 't':
                 time = atoi(optarg);
@@ -77,13 +64,12 @@ int main (int argc, char *argv[])
                         "usage:\n"\
                         "capture " 
                         "options:\n"\
-                        " -d <capture device> (default:1)\n"\
+                        " -d <capture device> (default: default:1)\n"\
                         " -z <zoom> (default: 10)\n"\
                         " -b bph of the watch (default: 21600/h) \n"\
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
-                        " -s cutoff standarddeviation (default: 3)\n"\
-                        " -x do not use crosscorrelation instead use peak derivative\n"\
+                        " -s cutoff standarddeviation (default: 3.0)\n"\
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
                         " -q split local tick/tock rate\n");
@@ -170,22 +156,19 @@ int main (int argc, char *argv[])
 
         int val = 1;
 
-        if (xvalue)
+        int *reference = defaultpulse;
+        int *total = (i%2==0||qvalue==0)?totaltick:totaltock;
+        if (i>10*rate/buffer_frames)
         {
-            int *reference = defaultpulse;
-            int *total = (i%2==0||qvalue==0)?totaltick:totaltock;
-            if (i>10*rate/buffer_frames)
-            {
-                reference = (i%2==0||qvalue==0)?totaltick:totaltock;
-            }
-            maxpos = fftfit(
-                    der,
-                    total,
-                    reference,
-                    &val,
-                    filterFFT,
-                    buffer_frames);
+            reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
+        maxpos = fftfit(
+                der,
+                total,
+                reference,
+                &val,
+                filterFFT,
+                buffer_frames);
 
         double b = 0.0;
         double a = 0.0;

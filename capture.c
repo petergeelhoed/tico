@@ -123,14 +123,6 @@ int main (int argc, char *argv[])
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
 
-    for (i=0; i<tps; ++i)
-    {
-        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
-            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
-            exit (1);
-        }
-    }
-
     int totaltick[NN];
     for (int j = 0; j < NN; j++) totaltick[j] = 0;
 

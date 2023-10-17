@@ -15,3 +15,5 @@ void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, doub
 fftw_complex* convolute(int NN, int *array, const fftw_complex *filter);
 
 void normalise(int NN, const fftw_complex *in);
+
+void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i);

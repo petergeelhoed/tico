@@ -257,6 +257,26 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 }
 
 
+void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i)
+{
+    int width = (maxpos%mod)*columns/mod;
+    int widtha = (((int)a+mod)%mod)*columns/mod;
+    fprintf(stderr,"%6.1fs/d",b*86400/NN);
+    memset(spaces, ' ', columns);
+    spaces[widtha] = '|';
+    spaces[width] = '\0';
+    fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",val);
+    memset(spaces, ' ', columns);
+    if (widtha > width)
+    {
+        spaces[widtha-width-1] = '|';
+        spaces[widtha-width-1+1] = '\0';
+        fprintf(stderr,"%s",spaces);
+    }
+    fprintf(stderr,"\n");
+}
+
+
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s)
 {
     double x = 0;

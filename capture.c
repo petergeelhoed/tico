@@ -109,11 +109,10 @@ int main (int argc, char *argv[])
     char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
 
     char out[16];
-    int wdth;
     FILE *fp =popen("/usr/bin/tput cols" , "r");
     fgets(out,16,fp);
     fclose(fp);
-    wdth=atoi(out);
+    int wdth=atoi(out);
     int columns = wdth - 10;
     char spaces[columns+1];
 
@@ -202,21 +201,7 @@ int main (int argc, char *argv[])
             }
         }
 
-        int width = (maxpos%mod)*columns/mod;
-        int widtha = (((int)a+mod)%mod)*columns/mod;
-        fprintf(stderr,"%6.1fs/d",b*86400/NN);
-        memset(spaces, ' ', columns);
-        spaces[widtha] = '|';
-        spaces[width] = '\0';
-        fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",val);
-        memset(spaces, ' ', columns);
-        if (widtha > width)
-        {
-            spaces[widtha-width-1] = '|';
-            spaces[widtha-width-1+1] = '\0';
-            fprintf(stderr,"%s",spaces);
-        }
-        fprintf(stderr,"\n");
+        printspaces(maxpos,val,spaces,mod,columns,a,b,NN,i);
     }
 
     for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);

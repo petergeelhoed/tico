@@ -86,8 +86,8 @@ int main (int argc, char *argv[])
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
                         " -s cutoff standarddeviation (default: 3.0)\n"\
-                        " -w <file> write positions to file"
-                        " -p <file> write pulse to file"
+                        " -w <file> write positions to file\n"
+                        " -p <file> write pulse to file\n"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\

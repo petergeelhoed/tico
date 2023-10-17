@@ -91,20 +91,22 @@ int main (int argc, char *argv[])
                 break;
         }
     }
-    int buffer_frames = rate*3600/bph;
+    int NN = rate*3600/bph;
+    int tps = rate/NN;
     device = device==0?defdev:device;
 
-    fftw_complex *filterFFT = makeFilter(evalue, buffer_frames);
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
     int i;
     int err;
-    int maxes[time * rate/buffer_frames];
-    int maxvals[time * rate/buffer_frames];
-    int mod = buffer_frames/mvalue;
+    int n = time*tps; // total tics
+    int maxes[n];
+    int maxvals[n];
+    int mod = NN/mvalue;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
 
-    char *buffer = malloc(buffer_frames * snd_pcm_format_width(format) / 8);
+    char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
 
     char out[16];
     int wdth;
@@ -121,34 +123,34 @@ int main (int argc, char *argv[])
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
 
-    for (i = 0; i < rate/buffer_frames; ++i)
+    for (i=0; i<tps; ++i)
     {
-        if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
+        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
             exit (1);
         }
     }
 
-    int totaltick[buffer_frames];
-    for (int j = 0; j < buffer_frames; j++) totaltick[j] = 0;
+    int totaltick[NN];
+    for (int j = 0; j < NN; j++) totaltick[j] = 0;
 
-    int totaltock[buffer_frames];
-    for (int j = 0; j < buffer_frames; j++) totaltock[j] = 0;
+    int totaltock[NN];
+    for (int j = 0; j < NN; j++) totaltock[j] = 0;
 
-    int in[buffer_frames];
-    int der[buffer_frames];
+    int in[NN];
+    int der[NN];
     unsigned char lsb;
     signed char msb;
 
-    for (i = 0; i < time * rate/buffer_frames; ++i)
+    for (i = 0; i < n; ++i)
     {
-        if ((err = snd_pcm_readi (capture_handle, buffer, buffer_frames)) != buffer_frames) {
+        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
             exit (1);
         }
         int max = 0;
         int maxpos = 0;
-        for (int j = 0; j < buffer_frames*2; j+=2) {
+        for (int j = 0; j < NN*2; j+=2) {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
             in[j/2] = (msb << 8) | lsb ;
@@ -162,13 +164,13 @@ int main (int argc, char *argv[])
             }
         }
 
-        if (i==10*rate/buffer_frames) fprintf(stderr,"10 seconds, starting crosscor\n");
+        if (i==10*tps) fprintf(stderr,"10 seconds, starting crosscor\n");
 
         int val = 1;
 
         int *reference = defaultpulse;
         int *total = (i%2==0||qvalue==0)?totaltick:totaltock;
-        if (i>10*rate/buffer_frames)
+        if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
@@ -178,7 +180,7 @@ int main (int argc, char *argv[])
                 reference,
                 &val,
                 filterFFT,
-                buffer_frames);
+                NN);
 
         double b = 0.0;
         double a = 0.0;
@@ -210,7 +212,7 @@ int main (int argc, char *argv[])
 
         int width = (maxpos%mod)*columns/mod;
         int widtha = (((int)a+mod)%mod)*columns/mod;
-        fprintf(stderr,"%6.1fs/d",b*86400/buffer_frames);
+        fprintf(stderr,"%6.1fs/d",b*86400/NN);
         memset(spaces, ' ', columns);
         spaces[widtha] = '|';
         spaces[width] = '\0';
@@ -225,12 +227,11 @@ int main (int argc, char *argv[])
         fprintf(stderr,"\n");
     }
 
-    for (int j = 0; j < buffer_frames; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
+    for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
 
     free(buffer);
 
     snd_pcm_close (capture_handle);
-    int n = time*rate/buffer_frames;
 
     double a = 0.0;
     double b = 0.0;
@@ -251,12 +252,12 @@ int main (int argc, char *argv[])
     linreg(xarr,maxes, n, &a, &b, &s);
 
     /*
-       a /= buffer_frames*buffer_frames;
-       b /= buffer_frames;
+       a /= NN*NN;
+       b /= NN;
        s /= rate;
     */
 
-    fprintf(stderr,"raw rate: %f s/d\n",-b*86400/buffer_frames);
+    fprintf(stderr,"raw rate: %f s/d\n",-b*86400/NN);
     int m = 0;
 
     double e;
@@ -273,7 +274,7 @@ int main (int argc, char *argv[])
     }
     linreg(xarr, maxes, m, &a, &b, &s);
 
-    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/buffer_frames);
+    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/NN);
     fftw_free(filterFFT);
     exit (0);
 }

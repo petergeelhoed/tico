@@ -10,7 +10,6 @@
 
 int main (int argc, char *argv[])
 {
-
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
@@ -26,7 +25,7 @@ int main (int argc, char *argv[])
     FILE* fptotal = fopen("total","w");
     if (fptotal == 0)
     {
-        fprintf(stderr,"cannot open total\n");
+        fprintf(stderr,"cannot open file total\n");
         return -4;
     }
 
@@ -99,7 +98,7 @@ int main (int argc, char *argv[])
     fftw_complex *filterFFT = makeFilter(evalue, NN);
     int i;
     int n = time*tps; // total tics
-    int maxes[n];
+    int maxpos[n];
     int maxvals[n];
     int mod = NN/mvalue;
 
@@ -129,108 +128,43 @@ int main (int argc, char *argv[])
     for (int j = 0; j < NN; j++) totaltock[j] = 0;
 
 
+    // main loop
+    int derivative[NN];
+    int *reference = defaultpulse;
+    double b = 0.0;
+    double a = 0.0;
+    double s = 0.0;
+    
     for (i = 0; i < n; ++i)
     {
-
-        int derivative[NN];
         readBuffer(capture_handle, NN, buffer,derivative);
         if (i==10*tps) fprintf(stderr,"10 seconds, starting crosscor\n");
 
-        int val = 1;
-
-        int *reference = defaultpulse;
-        int *total = (i%2==0||qvalue==0)?totaltick:totaltock;
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
-        int maxpos = fftfit(
+
+        maxpos[i] = fftfit(
                 derivative,
-                total,
+                (i%2==0||qvalue==0)?totaltick:totaltock,
                 reference,
-                &val,
+                maxvals+i,
                 filterFFT,
                 NN);
 
-        double b = 0.0;
-        double a = 0.0;
-
-        maxes[i] = maxpos;
-        maxvals[i] = val;
-        int n=0;
-        int fitwindow = i>60?60:i;
-        //int fitwindow = i/(1+qvalue);
-        if (i >= fitwindow *(1+qvalue) )
-        {
-            int xarr[fitwindow];
-            int yarr[fitwindow];
-            double s = 0;
-            for (int k = 0; k < fitwindow;k+=qvalue+1)
-            {
-                if (maxvals[i-k] > cvalue)
-                {
-                    yarr[n]=maxes[i-k];
-                    xarr[n]=k;
-                    n++;
-                }
-            }
-            if (n > 1)
-            {
-                linreg(xarr,yarr, n, &a, &b, &s);
-            }
-        }
-
-        printspaces(maxpos,val,spaces,mod,columns,a,b,NN,i);
+        fit10secs(&a,&b,&s,i,maxvals,maxpos,qvalue, cvalue);
+        printspaces(maxpos[i],maxvals[i],spaces,mod,columns,a,b,NN,i);
     }
-
-    for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
 
     free(buffer);
-
+    fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
 
-    double a = 0.0;
-    double b = 0.0;
-    double s = 0.0;
-    int xarr[n];
-    for (int i = 0; i < n ; ++i)
-    {
-        xarr[i]=i;
-    }
-    if (rawfile)
-    {
-        for (int i = 0; i < n ; ++i)
-        {
-            fprintf(rawfile,"%d %d\n",i,maxes[i]);
-        }
-    }
+    writefiles(fptotal, rawfile, totaltick, totaltick, defaultpulse, maxpos, n, NN);
 
-    linreg(xarr,maxes, n, &a, &b, &s);
 
-    /*
-       a /= NN*NN;
-       b /= NN;
-       s /= rate;
-    */
-
-    fprintf(stderr,"raw rate: %f s/d\n",-b*86400/NN);
-    int m = 0;
-
-    double e;
-
-    for (int i = 0; i < n; ++i)
-    {
-        e = fabs(((double)maxes[i]-(a+xarr[i]*b))/s);
-        if (e < threshold)
-        {
-            maxes[m] = maxes[i];
-            xarr[m] = xarr[i];
-            m++;
-        }
-    }
-    linreg(xarr, maxes, m, &a, &b, &s);
-
-    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/NN);
-    fftw_free(filterFFT);
+    calculateTotal(n, maxpos, NN, threshold);
     exit (0);
 }
+

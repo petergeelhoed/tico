@@ -317,3 +317,85 @@ void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, doub
     *b = (NN*xy-x*y)/(NN*xx-x*x);
     *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
 }
+
+
+void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,int qvalue, int cvalue)
+{
+    int m=0;
+    int fitwindow = i>60?60:i;
+    if (i >= fitwindow *(1+qvalue) )
+    {
+        int xarr[fitwindow];
+        int yarr[fitwindow];
+        for (int k = 0; k < fitwindow;k+=qvalue+1)
+        {
+            if (maxvals[i-k] > cvalue)
+            {
+                yarr[m]=maxes[i-k];
+                xarr[m]=k;
+                m++;
+            }
+        }
+        if (m > 1)
+        {
+            linreg(xarr,yarr, m, a, b, s);
+        }
+    }
+}
+
+
+void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN)
+{
+    if (fptotal)
+    {
+        for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
+        fclose(fptotal);
+    }
+    if (rawfile)
+    {
+        for (int i = 0; i < n ; ++i) fprintf(rawfile,"%d %d\n",i,maxpos[i]);
+        fclose(rawfile);
+    }
+}
+
+
+void calculateTotal(int n, int* maxpos,int NN, double threshold)
+{
+    double b = 0.0;
+    double a = 0.0;
+    double s = 0.0;
+    int xarr[n];
+
+    for (int i = 0; i < n ; ++i)
+    {
+        xarr[i]=i;
+    }
+
+    linreg(xarr,maxpos, n, &a, &b, &s);
+
+    /*
+       a /= NN*NN;
+       b /= NN;
+       s /= rate;
+     */
+
+    fprintf(stderr,"raw rate: %f s/d\n",-b*86400/NN);
+    int m = 0;
+
+    double e;
+
+    for (int i = 0; i < n; ++i)
+    {
+        e = fabs(((double)maxpos[i]-(a+xarr[i]*b))/s);
+        if (e < threshold)
+        {
+            maxpos[m] = maxpos[i];
+            xarr[m] = xarr[i];
+            m++;
+        }
+    }
+    linreg(xarr, maxpos, m, &a, &b, &s);
+
+    fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/NN);
+}
+

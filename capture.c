@@ -13,23 +13,17 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
-    int mvalue = 10;
+    int zoom = 10;
     int time = 30;
     int c;
-    char *device = 0;
-    char defdev[200] = "default:1";
     int cvalue = 5;
     int qvalue = 0;
+    char *device = 0;
     double threshold =3.;
     FILE* rawfile = 0;
-    FILE* fptotal = fopen("total","w");
-    if (fptotal == 0)
-    {
-        fprintf(stderr,"cannot open file total\n");
-        return -4;
-    }
+    FILE* fptotal = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:")) != -1)
     {
         switch (c)
         {
@@ -46,10 +40,18 @@ int main (int argc, char *argv[])
                 evalue = atoi(optarg);
                 break;
             case 'w':
-                rawfile = fopen(optarg,"w");
+                rawfile = fopen(optarg, "w");
                 if (rawfile == 0)
                 {
-                    fprintf(stderr,"cannot open rawcapture\n");
+                    fprintf(stderr, "cannot open rawcapture\n");
+                    return -4;
+                }
+                break;
+            case 'p':
+                fptotal = fopen(optarg, "w");
+                if (fptotal == 0)
+                {
+                    fprintf(stderr, "cannot open file -p <file>\n");
                     return -4;
                 }
                 break;
@@ -63,64 +65,57 @@ int main (int argc, char *argv[])
                 bph = atoi(optarg);
                 break;
             case 'z':
-                mvalue = atoi(optarg);
+                zoom = atoi(optarg);
                 break;
             case 'r':
                 rate = atoi(optarg);
                 break;
             case 'h':
+            default:
                 fprintf (stderr,
-                        "usage:\n"\
-                        "capture " 
+                        "usage: capture \n"\
+                        "capture reads from the microphone and timegraphs your watch\n" 
                         "options:\n"\
-                        " -d <capture device> (default: default:1)\n"\
+                        " -d <capture device> (default: 'default:1')\n"\
                         " -z <zoom> (default: 10)\n"\
                         " -b bph of the watch (default: 21600/h) \n"\
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
                         " -s cutoff standarddeviation (default: 3.0)\n"\
                         " -w <file> write positions to file"
+                        " -p <file> write pulse to file"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
                         " -q split local tick/tock rate\n");
                 exit(0);
-
-            default:
-                fprintf(stderr,"invalid option %c",c);
-                exit(-2);
                 break;
         }
     }
+
+    // declarations
     int NN = rate*3600/bph;
     int tps = rate/NN;
-    device = device==0?defdev:device;
-
-    fftw_complex *filterFFT = makeFilter(evalue, NN);
-    int i;
-    int n = time*tps; // total tics
+    int n = time*tps; 
     int maxpos[n];
     int maxvals[n];
-    int mod = NN/mvalue;
-
-    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t *capture_handle = initAudio(format, device, rate);
-
-    char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
-
+    int mod = NN/zoom;
+    
+    FILE *fp =popen("/usr/bin/tput cols", "r");
     char out[16];
-    FILE *fp =popen("/usr/bin/tput cols" , "r");
-    fgets(out,16,fp);
+    fgets(out, 16, fp);
     fclose(fp);
+
     int wdth=atoi(out);
     int columns = wdth - 10;
     char spaces[columns+1];
 
-    fprintf(stderr,
-            "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
-            wdth - 1,
-            mod*1000./rate,
-            mod*1000000./rate/(wdth-1));
+    device = device==0?"default:1":device;
 
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
+    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+    snd_pcm_t *capture_handle = initAudio(format, device, rate);
+    char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
+    
     int totaltick[NN];
     for (int j = 0; j < NN; j++) totaltick[j] = 0;
 
@@ -128,18 +123,25 @@ int main (int argc, char *argv[])
     for (int j = 0; j < NN; j++) totaltock[j] = 0;
 
 
+
+    fprintf(stderr,
+            "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            wdth - 1,
+            mod*1000./rate,
+            mod*1000000./rate/(wdth-1));
+
     // main loop
     int derivative[NN];
     int *reference = defaultpulse;
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
-    
-    for (i = 0; i < n; ++i)
+    int i = 0;
+    for (; i < n; ++i)
     {
-        readBuffer(capture_handle, NN, buffer,derivative);
-        if (i==10*tps) fprintf(stderr,"10 seconds, starting crosscor\n");
+        readBuffer(capture_handle, NN, buffer, derivative);
 
+        if (i==10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
@@ -153,8 +155,8 @@ int main (int argc, char *argv[])
                 filterFFT,
                 NN);
 
-        fit10secs(&a,&b,&s,i,maxvals,maxpos,qvalue, cvalue);
-        printspaces(maxpos[i],maxvals[i],spaces,mod,columns,a,b,NN,i);
+        fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, i);
     }
 
     free(buffer);
@@ -162,7 +164,6 @@ int main (int argc, char *argv[])
     snd_pcm_close (capture_handle);
 
     writefiles(fptotal, rawfile, totaltick, totaltick, defaultpulse, maxpos, n, NN);
-
 
     calculateTotal(n, maxpos, NN, threshold);
     exit (0);

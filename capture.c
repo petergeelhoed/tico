@@ -21,6 +21,7 @@ int main (int argc, char *argv[])
     int cvalue = 5;
     int qvalue = 0;
     double threshold =3.;
+    FILE* rawfile = 0;
     FILE* fptotal = fopen("total","w");
     if (fptotal == 0)
     {
@@ -28,7 +29,7 @@ int main (int argc, char *argv[])
         return -4;
     }
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:")) != -1)
     {
         switch (c)
         {
@@ -43,6 +44,14 @@ int main (int argc, char *argv[])
                 break;
             case 'e':
                 evalue = atoi(optarg);
+                break;
+            case 'w':
+                rawfile = fopen(optarg,"w");
+                if (rawfile == 0)
+                {
+                    fprintf(stderr,"cannot open rawcapture\n");
+                    return -4;
+                }
                 break;
             case 's':
                 threshold = atof(optarg);
@@ -70,6 +79,7 @@ int main (int argc, char *argv[])
                         " -r sampling rate (default: 48000Hz)\n"\
                         " -t <measurment time> (default: 30s)\n"\
                         " -s cutoff standarddeviation (default: 3.0)\n"\
+                        " -w <file> write positions to file"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
                         " -q split local tick/tock rate\n");
@@ -225,15 +235,25 @@ int main (int argc, char *argv[])
     double a = 0.0;
     double b = 0.0;
     double s = 0.0;
-    int xarr[buffer_frames];
-    for (int i = 0; i < n ; ++i) {xarr[i]=i;}
+    int xarr[n];
+    for (int i = 0; i < n ; ++i)
+    {
+        xarr[i]=i;
+    }
+    if (rawfile)
+    {
+        for (int i = 0; i < n ; ++i)
+        {
+            fprintf(rawfile,"%d %d\n",i,maxes[i]);
+        }
+    }
 
     linreg(xarr,maxes, n, &a, &b, &s);
-    
+
     /*
-    a /= buffer_frames*buffer_frames;
-    b /= buffer_frames;
-    s /= rate;
+       a /= buffer_frames*buffer_frames;
+       b /= buffer_frames;
+       s /= rate;
     */
 
     fprintf(stderr,"raw rate: %f s/d\n",-b*86400/buffer_frames);

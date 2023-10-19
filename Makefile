@@ -1,4 +1,4 @@
-all: teeth capture testfft testlinreg testfilter
+all: teeth capture testfft testlinreg testfilter tico
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
@@ -18,6 +18,7 @@ libmylib.o: mylib.c mylib.h
 
 libmylib.a: mylib.o mylib.h
 	ar -rcs libmylib.a mylib.o
-
+tico:
+	gcc tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
 clean:
 	rm mylib.a mylib.o capture teeth libmylib.[oa] testfft

@@ -5,6 +5,7 @@
 #include <fftw3.h>
 
 snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
+void rescale(int* total, int NN);
 
 fftw_complex * makeFilter(int evalue, int NN);
 

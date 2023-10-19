@@ -151,6 +151,38 @@ fftw_complex* convolute(int NN, int* array, const fftw_complex *filterFFT)
 }
 
 
+void rescale(int* total, int NN)
+{
+    if (total[NN/2]>100000000||total[0]>100)
+    {
+
+        long int avg = 0;
+
+        for (int j=0; j < NN ; j++)
+        {
+            avg += total[j];
+
+        }
+        avg /= NN;
+        int avi = (int)avg;
+        if (avi > 100)
+        {
+            for (int j=0; j < NN ; j++)
+            {
+                total[j] -= avi;
+            }
+        }
+        else
+        {
+            for (int j=0; j < NN ; j++)
+            {
+                total[j] /= 2;
+            }
+        }
+    }
+}
+
+
 int fftfit(
         int* input,
         int* total,
@@ -189,8 +221,8 @@ int fftfit(
     for (int j=0; j < NN ; j++)
     {
         double tmpbuf= tmp[j][0];
-        tmp[j][0] = (Finput[j][0]*tmpbuf + Finput[j][1]*tmp[j][1])/NN/NN;
-        tmp[j][1] = (-Finput[j][0]*tmp[j][1] + Finput[j][1]*tmpbuf)/NN/NN;
+        tmp[j][0] = (Finput[j][0]*tmpbuf + Finput[j][1]*tmp[j][1]);
+        tmp[j][1] = (-Finput[j][0]*tmp[j][1] + Finput[j][1]*tmpbuf);
     }
 
     // transform back into real space corr
@@ -206,6 +238,7 @@ int fftfit(
             poscor=(j+NN/2)%NN;
         }
     }
+    maxcor /= (NN*NN);
     // for hexadecimal print 
     *hexvalue = (int)(maxcor*16);
 
@@ -213,33 +246,7 @@ int fftfit(
     // rescale if large
     if (total)
     {
-        if (total[NN/2]>100000000||total[0]>100)
-        {
-
-            long int avg = 0;
-
-            for (int j=0; j < NN ; j++)
-            {
-                avg += total[j];
-
-            }
-            avg /= NN;
-            int avi = (int)avg;
-            if (avi > 100)
-            {
-                for (int j=0; j < NN ; j++)
-                {
-                    total[j] -= avi;
-                }
-            }
-            else
-            {
-                for (int j=0; j < NN ; j++)
-                {
-                    total[j] /= 2;
-                }
-            }
-        }
+        rescale(total, NN);
 
         // weigh with square of correlation
         for (int j=0; j < NN ; j++)

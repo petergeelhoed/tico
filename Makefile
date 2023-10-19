@@ -21,4 +21,4 @@ libmylib.a: mylib.o mylib.h
 tico:
 	gcc tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
 clean:
-	rm mylib.a mylib.o capture teeth libmylib.[oa] testfft
+	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter

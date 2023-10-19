@@ -111,8 +111,8 @@ fftw_complex * makeFilter(int evalue, int NN)
         in2[0][1] = 0; 
         for (int j=1; j < NN; j++)
         {
-        in2[j][0] = 0; 
-        in2[j][1] = 0; 
+            in2[j][0] = 0; 
+            in2[j][1] = 0; 
         }
     }
     
@@ -124,7 +124,7 @@ fftw_complex * makeFilter(int evalue, int NN)
 }
 
 
-fftw_complex* convolute(int NN, int*array, const fftw_complex *filterFFT)
+fftw_complex* convolute(int NN, int* array, const fftw_complex *filterFFT)
 {
     fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
@@ -151,41 +151,46 @@ fftw_complex* convolute(int NN, int*array, const fftw_complex *filterFFT)
 }
 
 
-int fftfit(int*mean, int*total, int*base, int*val, const fftw_complex *filterFFT, int NN)
+int fftfit(
+        int* input,
+        int* total,
+        int* base,
+        int* hexvalue,
+        const fftw_complex *filterFFT,
+        int NN)
 {
-    fftw_complex *in2 = fftw_alloc_complex(NN);
-    fftw_complex *out = fftw_alloc_complex(NN);
+    fftw_complex *Fbase = fftw_alloc_complex(NN);
+    fftw_complex *Finput = fftw_alloc_complex(NN);
     fftw_complex *conv = fftw_alloc_complex(NN);
     fftw_complex *tmp = fftw_alloc_complex(NN);
     fftw_complex *corr = fftw_alloc_complex(NN);
-    fftw_complex *in = convolute(NN,mean,filterFFT);
+    fftw_complex *filteredinput = convolute(NN,input,filterFFT);
 
-    fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse = fftw_plan_dft_1d(NN, conv, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_plan corforward = fftw_plan_dft_1d(NN, in2, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan filterinput = fftw_plan_dft_1d(NN, filteredinput, Finput, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan corforward = fftw_plan_dft_1d(NN, Fbase, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
 
     for (int j=0; j < NN ; j++)
     {
-        in2[j][0] = (double)base[j];
-        in2[j][1] = 0.0;
+        Fbase[j][0] = (double)base[j];
+        Fbase[j][1] = 0.0;
     }
 
-    // into out
-    normalise(NN,in);
-    fftw_execute(forward);
+    // into Finput
+    normalise(NN,filteredinput);
+    fftw_execute(filterinput);
 
     // into tmp
-    normalise(NN, in2);
+    normalise(NN, Fbase);
     fftw_execute(corforward);
 
-    // calculate cross correlation in fouier space
+    // calculate cross correlation filteredinput fouier space
     for (int j=0; j < NN ; j++)
     {
         double tmpbuf= tmp[j][0];
-        tmp[j][0] = (out[j][0]*tmpbuf + out[j][1]*tmp[j][1])/NN/NN;
-        tmp[j][1] = (-out[j][0]*tmp[j][1] + out[j][1]*tmpbuf)/NN/NN;
+        tmp[j][0] = (Finput[j][0]*tmpbuf + Finput[j][1]*tmp[j][1])/NN/NN;
+        tmp[j][1] = (-Finput[j][0]*tmp[j][1] + Finput[j][1]*tmpbuf)/NN/NN;
     }
 
     // transform back into real space corr
@@ -202,7 +207,7 @@ int fftfit(int*mean, int*total, int*base, int*val, const fftw_complex *filterFFT
         }
     }
     // for hexadecimal print 
-    *val = (int)(maxcor*16);
+    *hexvalue = (int)(maxcor*16);
 
 
     // rescale if large
@@ -239,16 +244,15 @@ int fftfit(int*mean, int*total, int*base, int*val, const fftw_complex *filterFFT
         // weigh with square of correlation
         for (int j=0; j < NN ; j++)
         {
-            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * mean[(j+poscor+NN/2+NN)%NN]);
+            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * input[(j+poscor+NN/2+NN)%NN]);
         }
     }
     fftw_destroy_plan(corforward);
     fftw_destroy_plan(correverse);
-    fftw_destroy_plan(forward);
-    fftw_destroy_plan(reverse);
-    fftw_free(*in);
-    fftw_free(*in2);
-    fftw_free(*out);
+    fftw_destroy_plan(filterinput);
+    fftw_free(*filteredinput);
+    fftw_free(*Fbase);
+    fftw_free(*Finput);
     fftw_free(*conv);
     fftw_free(*tmp);
     fftw_free(*corr);
@@ -257,7 +261,7 @@ int fftfit(int*mean, int*total, int*base, int*val, const fftw_complex *filterFFT
 }
 
 
-void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int*derivative)
+void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
 {
         int in[NN];
         unsigned char lsb;
@@ -277,7 +281,7 @@ void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int*derivative
 }
 
 
-void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i)
+void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, double a,double b,int NN,int i)
 {
     int width = (maxpos%mod)*columns/mod;
     int widtha = (((int)a+mod)%mod)*columns/mod;
@@ -285,7 +289,7 @@ void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,
     memset(spaces, ' ', columns);
     spaces[widtha] = '|';
     spaces[width] = '\0';
-    fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",val);
+    fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",hexvalue);
     memset(spaces, ' ', columns);
     if (widtha > width)
     {
@@ -297,7 +301,7 @@ void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,
 }
 
 
-void linreg(const int*xarr, const int*yarr, int NN, double *a, double *b, double *s)
+void linreg(const int* xarr, const int* yarr, int NN, double *a, double *b, double *s)
 {
     double x = 0;
     double y = 0;
@@ -325,7 +329,7 @@ void fit10secs(
         double *s,
         int i,
         int* maxvals,
-        int*maxes,
+        int* maxes,
         int qvalue,
         int cvalue,
         int npeaks)

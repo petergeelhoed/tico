@@ -8,15 +8,15 @@ void normalise(int NN,fftw_complex *in)
 {
     double ix = 0.0;
     double ixx =0.0;
-    for (int j=0; j < NN ; j++)
+    for (int j = 0; j < NN ; j++)
     {
         in[j][0] = in[j][0];
         ix+=in[j][0];
         ixx+=in[j][0]*in[j][0];
     }
-    double m=ix/NN;
+    double m = ix/NN;
     double s = sqrt(ixx/NN-m*m);
-    for (int j=0; j < NN ; j++)
+    for (int j = 0; j < NN ; j++)
     {
         in[j][0] = (in[j][0]-m)/s;
     }
@@ -98,7 +98,7 @@ fftw_complex * makeFilter(int evalue, int NN)
     if (evalue != 0)
     {
     // make filter array
-    for (int j=0; j < NN; j++)
+    for (int j = 0; j < NN; j++)
     {
         in2[j][0] = .398942280401/evalue*(exp(-((double)(j*j))/(double)(evalue*evalue)/2) 
                 + exp(-((double)(NN-j)*(NN-j))/(double)(evalue*evalue)/2));
@@ -109,7 +109,7 @@ fftw_complex * makeFilter(int evalue, int NN)
     {
         in2[0][0] = 100; 
         in2[0][1] = 0; 
-        for (int j=1; j < NN; j++)
+        for (int j = 1; j < NN; j++)
         {
             in2[j][0] = 0; 
             in2[j][1] = 0; 
@@ -130,14 +130,14 @@ fftw_complex* convolute(int NN, int* array, const fftw_complex *filterFFT)
     fftw_complex *out = fftw_alloc_complex(NN);
     fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_plan reverse = fftw_plan_dft_1d(NN, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
-    for (int j=0; j < NN; j++)
+    for (int j = 0; j < NN; j++)
     {
-        in[j][0]= (double)array[j];
+        in[j][0] = (double)array[j];
         in[j][1] = 0.0;
     }
     fftw_execute(forward);
 
-    for (int j=0; j < NN ; j++)
+    for (int j = 0; j < NN ; j++)
     {
         out[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
         out[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
@@ -158,7 +158,7 @@ void rescale(int* total, int NN)
 
         long int avg = 0;
 
-        for (int j=0; j < NN ; j++)
+        for (int j = 0; j < NN ; j++)
         {
             avg += total[j];
 
@@ -167,14 +167,14 @@ void rescale(int* total, int NN)
         int avi = (int)avg;
         if (avi > 100)
         {
-            for (int j=0; j < NN ; j++)
+            for (int j = 0; j < NN ; j++)
             {
                 total[j] -= avi;
             }
         }
         else
         {
-            for (int j=0; j < NN ; j++)
+            for (int j = 0; j < NN ; j++)
             {
                 total[j] /= 2;
             }
@@ -203,7 +203,7 @@ int fftfit(
     fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
 
-    for (int j=0; j < NN ; j++)
+    for (int j = 0; j < NN ; j++)
     {
         Fbase[j][0] = (double)base[j];
         Fbase[j][1] = 0.0;
@@ -218,9 +218,9 @@ int fftfit(
     fftw_execute(corforward);
 
     // calculate cross correlation filteredinput fouier space
-    for (int j=0; j < NN ; j++)
+    for (int j = 0; j < NN ; j++)
     {
-        double tmpbuf= tmp[j][0];
+        double tmpbuf = tmp[j][0];
         tmp[j][0] = (Finput[j][0]*tmpbuf + Finput[j][1]*tmp[j][1]);
         tmp[j][1] = (-Finput[j][0]*tmp[j][1] + Finput[j][1]*tmpbuf);
     }
@@ -228,14 +228,14 @@ int fftfit(
     // transform back into real space corr
     fftw_execute(correverse);
 
-    double maxcor=-1;
-    int poscor=0;
-    for (int j=0; j < NN ; j++)
+    double maxcor = -1;
+    int poscor = 0;
+    for (int j = 0; j < NN ; j++)
     {
         if (corr[j][0]>maxcor)
         {
             maxcor =corr[j][0];
-            poscor=(j+NN/2)%NN;
+            poscor = (j+NN/2)%NN;
         }
     }
     maxcor /= (NN*NN);
@@ -249,7 +249,7 @@ int fftfit(
         rescale(total, NN);
 
         // weigh with square of correlation
-        for (int j=0; j < NN ; j++)
+        for (int j = 0; j < NN ; j++)
         {
             total[j] = (total[j]+(int)(2000*maxcor*maxcor) * input[(j+poscor+NN/2+NN)%NN]);
         }
@@ -268,17 +268,19 @@ int fftfit(
 }
 
 
-void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
+void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
 {
         int in[NN];
         unsigned char lsb;
         signed char msb;
         int err;
-        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) {
+        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) 
+        {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
             exit (1);
         }
-        for (int j = 0; j < NN*2; j+=2) {
+        for (int j = 0; j < NN*2; j+=2) 
+        {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
             in[j/2] = (msb << 8) | lsb ;
@@ -308,7 +310,7 @@ void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, doub
 }
 
 
-void linreg(const int* xarr, const int* yarr, int NN, double *a, double *b, double *s)
+void linreg(const int* xarr, const int* yarr, int NN, double* a, double* b, double* s)
 {
     double x = 0;
     double y = 0;
@@ -331,9 +333,9 @@ void linreg(const int* xarr, const int* yarr, int NN, double *a, double *b, doub
 
 
 void fit10secs(
-        double *a,
-        double *b,
-        double *s,
+        double* a,
+        double* b,
+        double* s,
         int i,
         int* maxvals,
         int* maxes,
@@ -341,7 +343,7 @@ void fit10secs(
         int cvalue,
         int npeaks)
 {
-    int m=0;
+    int m = 0;
     int fitwindow = i>npeaks*(1+qvalue)?npeaks*(1+qvalue):i;
 
     if (i >= fitwindow)
@@ -352,8 +354,8 @@ void fit10secs(
         {
             if (maxvals[i-k] > cvalue)
             {
-                yarr[m]=maxes[i-k];
-                xarr[m]=k;
+                yarr[m] = maxes[i-k];
+                xarr[m] = k;
                 m++;
             }
         }
@@ -404,7 +406,7 @@ void calculateTotal(int n, int* maxpos,int NN, double threshold)
 
     for (int i = 0; i < n ; ++i)
     {
-        xarr[i]=i;
+        xarr[i] = i;
     }
 
     linreg(xarr,maxpos, n, &a, &b, &s);

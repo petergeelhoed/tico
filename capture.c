@@ -171,23 +171,46 @@ int main (int argc, char *argv[])
     double a = 0.0;
     double s = 0.0;
     int i = 0;
+    int totalshift = 0;
+    int upperBound = NN/2+NN/8;
+    int lowerBound = NN/2-NN/8;
+    int shift = NN/8/10;
     for (; i < n; ++i)
     {
-        readBuffer(capture_handle, NN, buffer, derivative);
+        if (i == 10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
 
-        if (i==10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
+        if (i > 0 && maxpos[i-1] - totalshift < lowerBound)
+        {
+            totalshift -= shift;
+            memcpy(derivative+NN-shift, derivative , shift*sizeof(int));
+            readBuffer(capture_handle, NN-shift, buffer, derivative);
+        }
+        else if (i> 0 && maxpos[i-1] - totalshift > upperBound ) 
+        {
+            totalshift += shift;
+            readBuffer(capture_handle, shift, buffer, derivative);
+            readBuffer(capture_handle, NN, buffer, derivative);
+        }
+        else
+        {
+            readBuffer(capture_handle, NN, buffer, derivative);
+        }
+
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
-
-        maxpos[i] = fftfit(
+        int fitpos = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
                 reference,
                 maxvals+i,
                 filterFFT,
                 NN);
+
+        maxpos[i] = totalshift + fitpos;
+
+
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
         printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, i);

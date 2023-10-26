@@ -54,6 +54,7 @@ int main (int argc, char *argv[])
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
     char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
     int derivative[NN];
+    readBuffer(capture_handle, 8000, buffer, derivative);
     readBuffer(capture_handle, NN, buffer, derivative);
 
     for (int j=0; j <NN ; j++)

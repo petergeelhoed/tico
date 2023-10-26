@@ -7,7 +7,6 @@
 #include "mylib.h"
 #include "defaultpulse.h"
 
-
 int main (int argc, char *argv[])
 {
     unsigned int rate = 48000;
@@ -179,37 +178,18 @@ int main (int argc, char *argv[])
     {
         if (i == 10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
 
-        if (i > 0 && maxpos[i-1] - totalshift < lowerBound)
-        {
-            totalshift -= shift;
-            memcpy(derivative+NN-shift, derivative , shift*sizeof(int));
-            readBuffer(capture_handle, NN-shift, buffer, derivative);
-        }
-        else if (i> 0 && maxpos[i-1] - totalshift > upperBound ) 
-        {
-            totalshift += shift;
-            readBuffer(capture_handle, shift, buffer, derivative);
-            readBuffer(capture_handle, NN, buffer, derivative);
-        }
-        else
-        {
-            readBuffer(capture_handle, NN, buffer, derivative);
-        }
+        readShiftedBuffer(derivative, capture_handle, NN, buffer,
+                maxpos, shift, &totalshift, lowerBound, upperBound, i);
 
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
-        int fitpos = fftfit(
+
+        maxpos[i] = totalshift + fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
-                reference,
-                maxvals+i,
-                filterFFT,
-                NN);
-
-        maxpos[i] = totalshift + fitpos;
-
+                reference, maxvals+i, filterFFT, NN);
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);

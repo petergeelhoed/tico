@@ -24,3 +24,4 @@ void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivativ
 void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,int qvalue, int cvalue, int npeaks);
 void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN);
 void calculateTotal(int n, int* maxpos,int NN, double threshold);
+void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int* maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i);

@@ -290,6 +290,28 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
 }
 
 
+void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int* maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i)
+{
+
+    if (i > 0 && maxpos[i-1] - *totalshift < lowerBound)
+    {
+        *totalshift -= shift;
+        memcpy(derivative+NN-shift, derivative , shift*sizeof(int));
+        readBuffer(capture_handle, NN-shift, buffer, derivative);
+    }
+    else if (i> 0 && maxpos[i-1] - *totalshift > upperBound ) 
+    {
+        *totalshift += shift;
+        readBuffer(capture_handle, shift, buffer, derivative);
+        readBuffer(capture_handle, NN, buffer, derivative);
+    }
+    else
+    {
+        readBuffer(capture_handle, NN, buffer, derivative);
+    }
+}
+
+
 void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, double a,double b,int NN,int i)
 {
     int width = (maxpos%mod)*columns/mod;

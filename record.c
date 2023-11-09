@@ -41,7 +41,7 @@ int main (int argc, char *argv[])
                         " -d <capture device> (default: 'default:1')\n"\
                         " -b bph of the watch (default: 21600/h) \n"\
                         " -r sampling rate (default: 48000Hz)\n"\
-                        " -t <measurment time> (default: 30s)\n");
+                        " -t <number of tics> (default: one tick )\n");
                 exit(0);
                 break;
         }
@@ -59,7 +59,7 @@ int main (int argc, char *argv[])
 
     for (int j=0; j <NN ; j++)
     {
-        printf("%d %d\n",j,derivative[j]);
+        printf("%d\n",derivative[j]);
     }
     exit (0);
 }

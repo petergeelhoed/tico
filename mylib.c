@@ -182,6 +182,15 @@ void rescale(int* total, int NN)
     }
 }
 
+void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out)
+{
+    fftw_complex *filteredinput = convolute(NN,input,filterFFT);
+    for (int j = 0; j < NN ; j++)
+    {
+        out[j]=filteredinput[j][0];
+    }
+}
+
 
 int fftfit(
         int* input,
@@ -265,6 +274,25 @@ int fftfit(
     fftw_free(*corr);
 
     return poscor;
+}
+
+
+void readBufferRaw(snd_pcm_t *capture_handle, int NN, char *buffer, int* in)
+{
+        unsigned char lsb;
+        signed char msb;
+        int err;
+        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) 
+        {
+            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
+            exit (1);
+        }
+        for (int j = 0; j < NN*2; j+=2) 
+        {
+            msb = *(buffer+j+1);
+            lsb = *(buffer+j);
+            in[j/2] = (msb << 8) | lsb ;
+        }
 }
 
 

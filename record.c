@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
+#include <fftw3.h>
 
 #include "mylib.h"
 
@@ -11,14 +12,18 @@ int main (int argc, char *argv[])
     int bph = 21600;
     int time = 30;
     int c;
+    int evalue = 4;
     char *device = 0;
     // declarations
     int NN = rate*3600/bph;
 
-    while ((c = getopt (argc, argv, "b:r:ht:d:w:p:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:ht:d:e:")) != -1)
     {
         switch (c)
         {
+            case 'e':
+                evalue = atoi(optarg);
+                break;
             case 'd':
                 device = optarg;
                 break;
@@ -47,6 +52,7 @@ int main (int argc, char *argv[])
         }
     }
 
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
 
     device = device==0?"default:1":device;
 
@@ -54,13 +60,18 @@ int main (int argc, char *argv[])
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
     char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
     int derivative[NN];
-    readBuffer(capture_handle, 8000, buffer, derivative);
-    readBuffer(capture_handle, NN, buffer, derivative);
+    readBufferRaw(capture_handle, 8000, buffer, derivative);
+    readBufferRaw(capture_handle, 8000, buffer, derivative);
+    readBufferRaw(capture_handle, 8000, buffer, derivative);
+    readBufferRaw(capture_handle, NN, buffer, derivative);
+    double out[NN];
+    applyFilter(derivative,NN,filterFFT,out);
 
     for (int j=0; j <NN ; j++)
     {
-        printf("%d\n",derivative[j]);
+        printf("%d %f %d\n",j,out[j],derivative[j]);
     }
+    fftw_free(filterFFT);
     exit (0);
 }
 

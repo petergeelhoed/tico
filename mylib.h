@@ -13,6 +13,7 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 
+void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
 fftw_complex* convolute(int NN, int *array, const fftw_complex *filter);
 
 void normalise(int NN, const fftw_complex *in);
@@ -20,6 +21,7 @@ void normalise(int NN, const fftw_complex *in);
 void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i);
 
 void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative);
+void readBufferRaw( snd_pcm_t *capture_handle, int NN, char *buffer, int *in);
 
 void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,int qvalue, int cvalue, int npeaks);
 void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN);

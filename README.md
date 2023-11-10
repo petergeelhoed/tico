@@ -10,9 +10,11 @@ Example:
 
 ```
 # make the wav file, use 48000Hz please
-a=122;rm -f out.wav; (ffmpeg  -i Recorder/Voice\ $a.m4a out.wav) 2>/dev/null ; 
+a=122;rm -f out.wav; (ffmpeg  -i Recorder/Voice\ $a.m4a out.wav) 2>/dev/null ;
+
 #help
 tico -h
+
 # use -t to get only the top of the sound
 -r cuts off the last 10 seconds
 -l cuts off the first 20 seconds

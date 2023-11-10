@@ -1,9 +1,14 @@
 # tico
 mechanical watch analysis  on a Wav file
 requires gnuplot and fftw3
-$ sudo apt-get fftw3-dev gnuplot
 
-Example.
+```
+$ sudo apt-get install fftw3-dev gnuplot
+```
+
+Example:
+
+```
 # make the wav file, use 48000Hz please
 a=122;rm -f out.wav; (ffmpeg  -i Recorder/Voice\ $a.m4a out.wav) 2>/dev/null ; 
 #help
@@ -21,3 +26,4 @@ tico -h
 ~/tico/tico/tico -l 4 -r 5 -s -e4 -d 50 < out.wav 
 
 teeth -e4 -c 0.8 -l 4 -r 4 < out.wav
+```

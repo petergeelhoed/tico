@@ -12,6 +12,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
+    int kvalue = 0;
     int zoom = 10;
     int time = 30;
     int c;
@@ -23,7 +24,7 @@ int main (int argc, char *argv[])
     FILE* rawfile = 0;
     FILE* fptotal = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:k")) != -1)
     {
         switch (c)
         {
@@ -38,6 +39,9 @@ int main (int argc, char *argv[])
                 break;
             case 'q':
                 qvalue = 1;
+                break;
+            case 'k':
+                kvalue = 1;
                 break;
             case 'e':
                 evalue = atoi(optarg);
@@ -89,6 +93,7 @@ int main (int argc, char *argv[])
                         " -p <file> write pulse to file\n"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
+                        " -k use strange 805 defaultpulse\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
                         " -q split local tick/tock rate\n");
                 exit(0);
@@ -140,10 +145,14 @@ int main (int argc, char *argv[])
     // main loop
     int derivative[NN];
     int *reference;
+    int *referenceTick;
+    int *referenceTock;
 
     if (NN==8000)
     {
         reference = defaultpulse;
+        referenceTick = defaultpulse805normal;
+        referenceTock = defaultpulse805raar;
     }
     else
     {
@@ -178,18 +187,34 @@ int main (int argc, char *argv[])
     {
         if (i == 10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
 
-        readShiftedBuffer(derivative, capture_handle, NN, buffer,
-                maxpos, shift, &totalshift, lowerBound, upperBound, i);
+        if (i%2==0)
+        {    
+            readShiftedBuffer(derivative, capture_handle, NN, buffer,
+                    maxpos, shift, &totalshift, lowerBound, upperBound, i);
+        }
+        else
+        {    
+            // no shift
+            //readShiftedBuffer(derivative, capture_handle, NN, buffer,
+            //        maxpos, shift, &totalshift, 0, NN, i);
+            readBuffer(capture_handle, NN, buffer, derivative);
+        }
+
 
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
+        else if (kvalue)
+        {
+            reference= (i%2==0||qvalue==0)?referenceTick:referenceTock;
+        }
 
-        maxpos[i] = totalshift + fftfit(
+        int maxp = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
                 reference, maxvals+i, filterFFT, NN);
+        maxpos[i] = totalshift + maxp;
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);

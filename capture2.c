@@ -190,7 +190,7 @@ int main (int argc, char *argv[])
             reference = totaltick;
         }
 
-        maxp = fftfit(
+        maxp = fftfit2(
                 derivative,
                 totaltick,
                 reference, maxvals+i, filterFFT, NN, (i==62));

@@ -264,11 +264,11 @@ int fftfit2(
         if (verbose) printf("%d %f %d %f %f\n",j,Fbase[j][0],input[j],filteredinput[j][0],corr[j][0]);
         if (j<(NN*3/4)&&j>(NN/4))
         {
-        if (corr[j][0]>maxcor)
-        {
-            maxcor =corr[j][0];
-            poscor = j;
-        }
+            if (corr[j][0]>maxcor)
+            {
+                maxcor =corr[j][0];
+                poscor = j;
+            }
         }
     }
 
@@ -320,8 +320,7 @@ int fftfit(
     int poscor = 0;
     for (int j = 0; j < NN ; j++)
     {
-        if (verbose) printf("%d %f %d %f %f\n",j,Fbase[j][0],input[j],filteredinput[j][0],corr[j][0]);
-        if (j<(NN*3/4)&&j>(NN/4))
+        if (corr[j][0]>maxcor)
         {
             maxcor =corr[j][0];
             poscor = j;

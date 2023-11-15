@@ -93,7 +93,7 @@ int main (int argc, char *argv[])
                         " -p <file> write pulse to file\n"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
-                        " -k use strange 805 defaultpulse\n"\
+                        " -k correlate tick and tock together\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
                         " -q split local tick/tock rate\n");
                 exit(0);
@@ -101,8 +101,15 @@ int main (int argc, char *argv[])
         }
     }
 
+    if (qvalue && kvalue)
+    {
+        fprintf (stderr,"cannot ue -q and -k together\n");
+        exit (-3);
+
+    }
+
     // declarations
-    int NN = rate*3600/bph;
+    int NN = rate*3600/bph*(kvalue+1);
     // should be even
     NN = (NN+NN%2);
 
@@ -145,35 +152,27 @@ int main (int argc, char *argv[])
     // main loop
     int derivative[NN];
     int *reference;
-    int *referenceTick;
-    int *referenceTock;
+    int *referenceBase;
 
     if (NN==8000)
     {
         reference = defaultpulse;
-        referenceTick = defaultpulse805normal;
-        referenceTock = defaultpulse805raar;
+        referenceBase = defaultpulse;
+    }
+    else if (NN==16000)
+    {
+        reference = malloc(NN*sizeof(int));
+        memcpy(reference,defaultpulse,8000*sizeof(int));
+        memcpy(reference+8000,defaultpulse,8000*sizeof(int));
+        referenceBase = malloc(NN*sizeof(int));
+        memcpy(referenceBase,reference,16000*sizeof(int));
     }
     else
     {
-        reference = malloc(NN*sizeof(int));
-
-        for (int j=0;j<NN;j++)
-        {
-            reference[j] = 0;
-        }
-
-        int min = (NN-8000)/2;
-        if (min > 0)
-        {
-            memcpy(reference+min,defaultpulse,8000*sizeof(int));
-        }
-        else
-        {
-            memcpy(reference,defaultpulse-min,(8000+2*(min))*sizeof(int));
-        }
-
+        fprintf(stderr,"unknown size\n");
+        exit(-3);
     }
+
     // read emptyparts 
     readBuffer(capture_handle, NN, buffer, derivative);
     readBuffer(capture_handle, NN, buffer, derivative);
@@ -183,31 +182,39 @@ int main (int argc, char *argv[])
     double s = 0.0;
     int i = 0;
     int totalshift = 0;
-    int upperBound = NN/2+NN/8;
-    int lowerBound = NN/2-NN/8;
-    int shift = NN/8/10;
+    int bound = 16;
+    int upperBound = +NN/bound;
+    int lowerBound = -NN/bound;
+    int shift = NN/bound/10;
     int maxp = 0;
     for (; i < n; ++i)
     {
-        if (i == 10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
 
-        readShiftedBuffer(derivative, capture_handle, NN, buffer,
-                maxp, shift, &totalshift, lowerBound, upperBound, i);
+        readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound, i);
 
-
+        if (i == 10*tps)
+        {
+            fprintf(stderr, "10 seconds, starting crosscor\n");
+        }
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
-        else if (kvalue)
-        {
-            reference= (i%2==0||qvalue==0)?referenceTick:referenceTock;
-        }
 
+        if (kvalue)
+        {
+        maxp = fftfit2(
+                derivative,
+                (i%2==0||qvalue==0)?totaltick:totaltock,
+                reference, maxvals+i, filterFFT, NN,0);
+        }
+        else
+        {
         maxp = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
                 reference, maxvals+i, filterFFT, NN);
+        }
         maxpos[i] = totalshift + maxp;
 
 
@@ -219,7 +226,7 @@ int main (int argc, char *argv[])
     fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
 
-    writefiles(fptotal, rawfile, totaltick, totaltock, defaultpulse, maxpos, n, NN);
+    writefiles(fptotal, rawfile, totaltick, totaltock, referenceBase, maxpos, n, NN);
 
     calculateTotal(n, maxpos, NN, threshold);
     exit (0);

@@ -1,4 +1,4 @@
-all: teeth capture testfft testlinreg testfilter tico record capture2
+all: teeth capture testfft testlinreg testfilter tico record 
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
@@ -14,9 +14,6 @@ testfft: testfft.c libmylib.a
 record: record.c libmylib.a 
 	gcc -o record record.c -lasound -lm -lfftw3   -Wall -L. -lmylib
     
-capture2: capture2.c defaultpulse.h libmylib.a 
-	gcc -o capture2 capture2.c -lasound -lm -lfftw3   -Wall -L. -lmylib
-
 capture: capture.c defaultpulse.h libmylib.a 
 	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib
     
@@ -27,4 +24,4 @@ libmylib.a: mylib.o mylib.h
 tico:
 	gcc tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
 clean:
-	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter capture2 
+	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter 

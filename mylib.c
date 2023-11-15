@@ -86,6 +86,7 @@ snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
                 snd_strerror (err));
         exit (1);
     }
+    
     return capture_handle;
 }
 
@@ -319,7 +320,8 @@ int fftfit(
     int poscor = 0;
     for (int j = 0; j < NN ; j++)
     {
-        if (corr[j][0]>maxcor)
+        if (verbose) printf("%d %f %d %f %f\n",j,Fbase[j][0],input[j],filteredinput[j][0],corr[j][0]);
+        if (j<(NN*3/4)&&j>(NN/4))
         {
             maxcor =corr[j][0];
             poscor = j;

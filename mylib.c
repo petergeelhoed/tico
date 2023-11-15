@@ -283,7 +283,7 @@ int fftfit(
         // weigh with square of correlation
         for (int j = 0; j < NN ; j++)
         {
-            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * input[(j+poscor+NN/2+NN)%NN]);
+            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * filteredinput[(j+poscor+NN/2+NN)%NN][0]);
         }
     }
     fftw_free(*filteredinput);

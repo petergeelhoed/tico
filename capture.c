@@ -173,8 +173,22 @@ int main (int argc, char *argv[])
     }
     else
     {
-        fprintf(stderr,"unknown size\n");
-        exit(-3);
+        reference = malloc(NN*sizeof(int));
+
+        for (int j=0;j<NN;j++)
+        {
+            reference[j] = 0;
+        }
+
+        int min = (NN-8000)/2;
+        if (min > 0)
+        {
+            memcpy(reference+min,defaultpulse,8000*sizeof(int));
+        }
+        else
+        {
+            memcpy(reference,defaultpulse-min,(8000+2*(min))*sizeof(int));
+        }
     }
 
     // read emptyparts 
@@ -223,7 +237,7 @@ int main (int argc, char *argv[])
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, i);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i);
     }
 
     free(buffer);

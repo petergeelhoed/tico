@@ -4,6 +4,7 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
+
 void normalise(int NN,fftw_complex *in)
 {
     double ix = 0.0;
@@ -182,6 +183,48 @@ void rescale(int* total, int NN)
     }
 }
 
+
+fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref) 
+{
+    normalise(NN, array);
+    normalise(NN, ref);
+    fftw_complex *tmparr = fftw_alloc_complex(NN);
+    fftw_complex *tmpref = fftw_alloc_complex(NN);
+    fftw_complex *tmp = fftw_alloc_complex(NN);
+    fftw_complex *corr = fftw_alloc_complex(NN);
+
+    fftw_plan arrFour = fftw_plan_dft_1d(NN, array, tmparr, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan refFour= fftw_plan_dft_1d(NN, ref, tmpref, FFTW_FORWARD, FFTW_ESTIMATE);
+
+    fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    fftw_execute(arrFour);
+    fftw_execute(refFour);
+
+    for (int j = 0; j < NN ; j++)
+    {
+        tmp[j][0] = (tmparr[j][0]*tmpref[j][0] + tmparr[j][1]*tmpref[j][1]);
+        tmp[j][1] = (-tmparr[j][0]*tmpref[j][1] + tmparr[j][1]*tmpref[j][0]);
+    }
+    fftw_execute(correverse);
+
+    double scale = 1./NN/NN;
+    for (int j = 0; j < NN ; j++)
+    {
+        corr[j][0] *= scale;
+    }
+
+    fftw_destroy_plan(correverse);
+    fftw_destroy_plan(arrFour);
+    fftw_destroy_plan(refFour);
+
+    fftw_free(*tmparr);
+    fftw_free(*tmpref);
+    fftw_free(*tmp);
+    return corr;
+}
+
+
 void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out)
 {
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
@@ -201,15 +244,7 @@ int fftfit(
         int NN)
 {
     fftw_complex *Fbase = fftw_alloc_complex(NN);
-    fftw_complex *Finput = fftw_alloc_complex(NN);
-    fftw_complex *conv = fftw_alloc_complex(NN);
-    fftw_complex *tmp = fftw_alloc_complex(NN);
-    fftw_complex *corr = fftw_alloc_complex(NN);
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
-
-    fftw_plan filterinput = fftw_plan_dft_1d(NN, filteredinput, Finput, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan corforward = fftw_plan_dft_1d(NN, Fbase, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan correverse = fftw_plan_dft_1d(NN, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
 
     for (int j = 0; j < NN ; j++)
@@ -218,24 +253,7 @@ int fftfit(
         Fbase[j][1] = 0.0;
     }
 
-    // into Finput
-    normalise(NN,filteredinput);
-    fftw_execute(filterinput);
-
-    // into tmp
-    normalise(NN, Fbase);
-    fftw_execute(corforward);
-
-    // calculate cross correlation filteredinput fouier space
-    for (int j = 0; j < NN ; j++)
-    {
-        double tmpbuf = tmp[j][0];
-        tmp[j][0] = (Finput[j][0]*tmpbuf + Finput[j][1]*tmp[j][1]);
-        tmp[j][1] = (-Finput[j][0]*tmp[j][1] + Finput[j][1]*tmpbuf);
-    }
-
-    // transform back into real space corr
-    fftw_execute(correverse);
+    fftw_complex* corr = crosscor(NN,filteredinput,Fbase);
 
     double maxcor = -1;
     int poscor = 0;
@@ -244,10 +262,11 @@ int fftfit(
         if (corr[j][0]>maxcor)
         {
             maxcor =corr[j][0];
-            poscor = (j+NN/2)%NN;
+            poscor = j;
         }
     }
-    maxcor /= (NN*NN);
+
+    poscor -= NN/2;
     // for hexadecimal print 
     *hexvalue = (int)(maxcor*16);
 
@@ -263,14 +282,8 @@ int fftfit(
             total[j] = (total[j]+(int)(2000*maxcor*maxcor) * input[(j+poscor+NN/2+NN)%NN]);
         }
     }
-    fftw_destroy_plan(corforward);
-    fftw_destroy_plan(correverse);
-    fftw_destroy_plan(filterinput);
     fftw_free(*filteredinput);
     fftw_free(*Fbase);
-    fftw_free(*Finput);
-    fftw_free(*conv);
-    fftw_free(*tmp);
     fftw_free(*corr);
 
     return poscor;

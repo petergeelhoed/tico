@@ -27,3 +27,4 @@ void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,in
 void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN);
 void calculateTotal(int n, int* maxpos,int NN, double threshold);
 void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int* maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i);
+fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);

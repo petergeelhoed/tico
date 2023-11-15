@@ -13,6 +13,7 @@ int main (int argc, char *argv[])
     int ipeak[NN];
     
     fftw_complex *peak = fftw_alloc_complex(NN);
+    fftw_complex *peak2 = fftw_alloc_complex(NN);
     fftw_complex *corr = fftw_alloc_complex(NN);
     fftw_complex *tmp = fftw_alloc_complex(NN);
     fftw_complex *filter = fftw_alloc_complex(NN);
@@ -28,11 +29,17 @@ int main (int argc, char *argv[])
 
     for (int j = 0; j < NN; j++)
     { 
+        peak2[(j+1)%NN][0] = ((j==4)+(j==7));
+        peak2[j][1] = 0;
         peak[j][0] = ((j==4)+(j==7));
         peak[j][1] = 0;
         ipeak[j] = peak[j][0];
     }
 
+    fftw_complex *cor = crosscor(NN,peak,peak2);
+    fprintf(stderr,"========croscor ===\n");
+    for (int j = 0; j < NN; j++) fprintf(stderr,"%6d %f\n",j,cor[j][0]);
+exit(0);
     fprintf(stderr,"========filter ===\n");
     for (int j = 0; j < NN; j++) fprintf(stderr,"%6d %f\n",j,filter[j][0]);
     fprintf(stderr,"=======filter norm====\n");

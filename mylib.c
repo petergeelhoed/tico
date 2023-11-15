@@ -236,73 +236,14 @@ void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out)
 }
 
 
-int fftfit2(
-        int* input,
-        int* total,
-        int* base,
-        int* hexvalue,
-        const fftw_complex *filterFFT,
-        int NN,
-        int verbose)
-{
-    fftw_complex *Fbase = fftw_alloc_complex(NN);
-    fftw_complex *filteredinput = convolute(NN,input,filterFFT);
-
-
-    for (int j = 0; j < NN ; j++)
-    {
-        Fbase[j][0] = (double)base[j];
-        Fbase[j][1] = 0.0;
-    }
-
-    fftw_complex* corr = crosscor(NN,filteredinput,Fbase);
-
-    double maxcor = -1;
-    int poscor = 0;
-    for (int j = 0; j < NN ; j++)
-    {
-        if (verbose) printf("%d %f %d %f %f\n",j,Fbase[j][0],input[j],filteredinput[j][0],corr[j][0]);
-        if (j<(NN*3/4)&&j>(NN/4))
-        {
-            if (corr[j][0]>maxcor)
-            {
-                maxcor =corr[j][0];
-                poscor = j;
-            }
-        }
-    }
-
-    poscor -= NN/2;
-    // for hexadecimal print 
-    *hexvalue = (int)(maxcor*16);
-
-
-    // rescale if large
-    if (total)
-    {
-        rescale(total, NN);
-
-        // weigh with square of correlation
-        for (int j = 0; j < NN ; j++)
-        {
-            total[j] = (total[j]+(int)(2000*maxcor*maxcor) * input[(j+poscor+NN/2+NN)%NN]);
-        }
-    }
-    fftw_free(*filteredinput);
-    fftw_free(*Fbase);
-    fftw_free(*corr);
-
-    return poscor;
-}
-
-
 int fftfit(
         int* input,
         int* total,
         int* base,
         int* hexvalue,
         const fftw_complex *filterFFT,
-        int NN)
+        int NN,
+        int halfsearch)
 {
     fftw_complex *Fbase = fftw_alloc_complex(NN);
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
@@ -318,7 +259,9 @@ int fftfit(
 
     double maxcor = -1;
     int poscor = 0;
-    for (int j = 0; j < NN ; j++)
+    int startsearch = halfsearch?(NN/4):0;
+    int stopsearch = halfsearch?(NN*3/4):NN;
+    for (int j = startsearch; j < stopsearch ; j++)
     {
         if (corr[j][0]>maxcor)
         {
@@ -327,10 +270,10 @@ int fftfit(
         }
     }
 
-    poscor -= NN/2;
     // for hexadecimal print 
     *hexvalue = (int)(maxcor*16);
 
+    poscor -= NN/2;
 
     // rescale if large
     if (total)
@@ -392,16 +335,16 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
 }
 
 
-void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i)
+void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound)
 {
 
-    if (i > 0 && maxpos < lowerBound)
+    if (maxpos < lowerBound)
     {
         *totalshift -= shift;
         memcpy(derivative+NN-shift, derivative , shift*sizeof(int));
         readBuffer(capture_handle, NN-shift, buffer, derivative);
     }
-    else if (i> 0 && maxpos > upperBound ) 
+    else if (maxpos > upperBound ) 
     {
         *totalshift += shift;
         readBuffer(capture_handle, shift, buffer, derivative);

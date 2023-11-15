@@ -193,7 +193,7 @@ int main (int argc, char *argv[])
 
     // read emptyparts 
     readBuffer(capture_handle, NN, buffer, derivative);
-    readBuffer(capture_handle, NN, buffer, derivative);
+    readBuffer(capture_handle, NN/2, buffer, derivative);
 
     double b = 0.0;
     double a = 0.0;
@@ -208,7 +208,7 @@ int main (int argc, char *argv[])
     for (; i < n; ++i)
     {
 
-        readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound, i);
+        readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
 
         if (i == 10*tps)
         {
@@ -219,20 +219,11 @@ int main (int argc, char *argv[])
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
 
-        if (kvalue)
-        {
-        maxp = fftfit2(
-                derivative,
-                (i%2==0||qvalue==0)?totaltick:totaltock,
-                reference, maxvals+i, filterFFT, NN,0);
-        }
-        else
-        {
         maxp = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
-                reference, maxvals+i, filterFFT, NN);
-        }
+                reference, maxvals+i, filterFFT, NN, kvalue);
+
         maxpos[i] = totalshift + maxp;
 
 

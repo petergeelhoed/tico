@@ -157,15 +157,19 @@ int main (int argc, char *argv[])
     if (NN==8000)
     {
         reference = defaultpulse;
-        referenceBase = defaultpulse;
+        referenceBase = reference;
     }
-    else if (NN==16000)
+    else if (NN==16000 && kvalue == 1)
     {
-        reference = malloc(NN*sizeof(int));
+        reference = defaultpulsedouble;
+        referenceBase = reference;
+
+ /*       reference = malloc(NN*sizeof(int));
         memcpy(reference,defaultpulse,8000*sizeof(int));
         memcpy(reference+8000,defaultpulse,8000*sizeof(int));
         referenceBase = malloc(NN*sizeof(int));
         memcpy(referenceBase,reference,16000*sizeof(int));
+        */
     }
     else
     {

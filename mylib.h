@@ -9,6 +9,7 @@ void rescale(int* total, int NN);
 
 fftw_complex * makeFilter(int evalue, int NN);
 
+int fftfit2(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN, int verbose);
 int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN);
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
@@ -26,5 +27,5 @@ void readBufferRaw( snd_pcm_t *capture_handle, int NN, char *buffer, int *in);
 void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes,int qvalue, int cvalue, int npeaks);
 void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int* totaltock, int* defaultpulse, int *maxpos, int n, int NN);
 void calculateTotal(int n, int* maxpos,int NN, double threshold);
-void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int* maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i);
+void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound, int i);
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);

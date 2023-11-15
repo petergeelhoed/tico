@@ -174,6 +174,9 @@ int main (int argc, char *argv[])
         }
 
     }
+    // read emptyparts 
+    readBuffer(capture_handle, NN, buffer, derivative);
+    readBuffer(capture_handle, NN, buffer, derivative);
 
     double b = 0.0;
     double a = 0.0;
@@ -183,22 +186,13 @@ int main (int argc, char *argv[])
     int upperBound = NN/2+NN/8;
     int lowerBound = NN/2-NN/8;
     int shift = NN/8/10;
+    int maxp = 0;
     for (; i < n; ++i)
     {
         if (i == 10*tps) fprintf(stderr, "10 seconds, starting crosscor\n");
 
-        if (i%2==0)
-        {    
-            readShiftedBuffer(derivative, capture_handle, NN, buffer,
-                    maxpos, shift, &totalshift, lowerBound, upperBound, i);
-        }
-        else
-        {    
-            // no shift
-            //readShiftedBuffer(derivative, capture_handle, NN, buffer,
-            //        maxpos, shift, &totalshift, 0, NN, i);
-            readBuffer(capture_handle, NN, buffer, derivative);
-        }
+        readShiftedBuffer(derivative, capture_handle, NN, buffer,
+                maxp, shift, &totalshift, lowerBound, upperBound, i);
 
 
         if (i>10*tps)
@@ -210,7 +204,7 @@ int main (int argc, char *argv[])
             reference= (i%2==0||qvalue==0)?referenceTick:referenceTock;
         }
 
-        int maxp = fftfit(
+        maxp = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
                 reference, maxvals+i, filterFFT, NN);

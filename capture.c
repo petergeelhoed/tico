@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
     fclose(fp);
 
     int wdth=atoi(out);
-    int columns = wdth - 10;
+    int columns = wdth - 16;
     char spaces[columns+1];
 
     device = device==0?"default:1":device;
@@ -210,33 +210,9 @@ int main (int argc, char *argv[])
 
         readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
 
-        if (i%(10*tps) == 0)
-        {
-            int maxtick = -1;
-            int postick = 0;
-            for (int j = 0; j < NN/2; j++)
-            {
-              if ( totaltick[j] > maxtick )
-              {
-                  maxtick = totaltick[j];
-                  postick = j; 
-              }
-            }
-            int maxtock = -1;
-            int postock = NN/2;
-            for (int j = NN/2 ; j< NN ; j++)
-            {
-              if ( totaltick[j] > maxtock )
-              {
-                  maxtock = totaltick[j];
-                  postock = j; 
-              }
-            }
-            //fprintf(stderr, "10 seconds, starting crosscor\ntick = %d @%d ; tock = %d @%d\nBeaterror: %.1fms",postick,maxtick,postock,maxtock, (float)(postock-postick-8000)/48.);
-            fprintf(stderr, "Beaterror: %.1fms\n", (float)(postock-postick-8000)/48.);
-        }
         if (i>10*tps)
         {
+            fprintf(stderr, "%3.1fms ", (float)(getBeatError(totaltick, NN))/48.);
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
 

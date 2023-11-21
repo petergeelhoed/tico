@@ -23,8 +23,9 @@ int main (int argc, char *argv[])
     double threshold =3.;
     FILE* rawfile = 0;
     FILE* fptotal = 0;
+    FILE* fpDefPeak = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:k")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:kD:")) != -1)
     {
         switch (c)
         {
@@ -51,6 +52,14 @@ int main (int argc, char *argv[])
                 if (rawfile == 0)
                 {
                     fprintf(stderr, "cannot open rawcapture\n");
+                    return -4;
+                }
+                break;
+            case 'D':
+                fpDefPeak = fopen(optarg, "r");
+                if (fpDefPeak == 0)
+                {
+                    fprintf(stderr, "cannot open file -D <file>\n");
                     return -4;
                 }
                 break;
@@ -91,6 +100,7 @@ int main (int argc, char *argv[])
                         " -s cutoff standarddeviation (default: 3.0)\n"\
                         " -w <file> write positions to file\n"
                         " -p <file> write pulse to file\n"
+                        " -D <file> read pulse from file\n"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
                         " -k correlate tick and tock together\n"\
@@ -154,7 +164,24 @@ int main (int argc, char *argv[])
     int *reference;
     int *referenceBase;
 
-    if (NN==8000)
+    if (fpDefPeak != 0)
+    {
+        reference = malloc(NN*sizeof(int));
+        for (int j = 0; j < NN; j++) 
+        {
+
+            if (fscanf(fpDefPeak,"%d",reference+j) != 1)
+            {
+                fprintf(stderr, "not enough values in -D <default peak file>\n");
+                
+                exit(-5);
+            }
+
+        }
+
+        referenceBase = reference;
+    }
+    else if (NN==8000)
     {
         reference = defaultpulse;
         referenceBase = reference;
@@ -234,6 +261,10 @@ int main (int argc, char *argv[])
     writefiles(fptotal, rawfile, totaltick, totaltock, referenceBase, maxpos, n, NN);
 
     calculateTotal(n, maxpos, NN, threshold);
+    fprintf(stderr,
+            "width = %.3fms  /  %.1fμs/character\n",
+            mod*1000./rate,
+            mod*1000000./rate/(wdth-1));
     exit (0);
 }
 

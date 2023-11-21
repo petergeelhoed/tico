@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
     fclose(fp);
 
     int wdth=atoi(out);
-    int columns = wdth - 16;
+    int columns = wdth - 17;
     char spaces[columns+1];
 
     device = device==0?"default:1":device;
@@ -212,7 +212,6 @@ int main (int argc, char *argv[])
 
         if (i>10*tps)
         {
-            fprintf(stderr, "%3.1fms ", (float)(getBeatError(totaltick, NN))/48.);
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;
         }
 
@@ -225,7 +224,7 @@ int main (int argc, char *argv[])
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i, (float)(getBeatError(totaltick, NN))/rate*1000);
     }
 
     free(buffer);

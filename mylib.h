@@ -18,7 +18,7 @@ fftw_complex* convolute(int NN, int *array, const fftw_complex *filter);
 
 void normalise(int NN, const fftw_complex *in);
 
-void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i);
+void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i, float beatError);
 
 void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative);
 void readBufferRaw( snd_pcm_t *capture_handle, int NN, char *buffer, int *in);

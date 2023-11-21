@@ -237,6 +237,38 @@ int main (int argc, char *argv[])
 
         readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
 
+        if (i==4*tps)
+        {
+            int cross[NN];
+            crosscorint(NN, totaltick, reference,cross);
+            int maxpos = 0;
+            int maxval = -NN*NN;
+            for (int j = 0; j < NN; j++)
+            {
+                if (maxval < cross[j])
+                {
+                    maxpos= j;
+                    maxval = cross[j];
+                }
+            }
+            if (abs(maxpos) < NN/4)
+            {
+                fprintf(stderr,"FLIPPING peaks pos %d val %d\n",maxpos,maxval);
+
+                int tmp =0;
+                for (int j = 0; j < NN/2; j++)
+                {
+                    tmp = totaltick[j+NN/2];
+                    totaltick[j+NN/2] = totaltick[j];
+                    totaltick[j] = tmp;
+                }
+
+            }
+
+
+        }
+        
+
         if (i>10*tps)
         {
             reference = (i%2==0||qvalue==0)?totaltick:totaltock;

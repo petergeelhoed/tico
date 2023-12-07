@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
-    int kvalue = 0;
+    int kvalue = 1;
     int zoom = 10;
     int time = 30;
     int c;
@@ -42,7 +42,7 @@ int main (int argc, char *argv[])
                 qvalue = 1;
                 break;
             case 'k':
-                kvalue = 1;
+                kvalue = 0;
                 break;
             case 'e':
                 evalue = atoi(optarg);
@@ -103,7 +103,7 @@ int main (int argc, char *argv[])
                         " -D <file> read pulse from file\n"
                         " -c 8 threshold for local rate\n"\
                         " -e 4 Gauss smooth\n"\
-                        " -k correlate tick and tock together\n"\
+                        " -k do not correlate tick and tock together\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
                         " -q split local tick/tock rate\n");
                 exit(0);

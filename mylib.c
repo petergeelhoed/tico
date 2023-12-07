@@ -99,13 +99,23 @@ fftw_complex * makeFilter(int evalue, int NN)
 
     if (evalue != 0)
     {
-    // make filter array
-    for (int j = 0; j < NN; j++)
-    {
-        in2[j][0] = .398942280401/evalue*(exp(-((double)(j*j))/(double)(evalue*evalue)/2) 
-                + exp(-((double)(NN-j)*(NN-j))/(double)(evalue*evalue)/2));
-        in2[j][1] = 0.0;
-    }
+        // make filter array
+        for (int j = 0; j < evalue*5; j++)
+        {
+            in2[j][0] = .398942280401/evalue*( exp(-((double)(j*j))/(double)(evalue*evalue)/2) );
+            in2[j][1] = 0.0;
+        }
+        for (int j = evalue*5 ; j < NN-evalue*5; j++)
+        {
+            in2[j][0] = 0.0;
+            in2[j][1] = 0.0;
+        }
+
+        for (int j = NN- evalue*5 ; j < NN; j++)
+        {
+            in2[j][0] = .398942280401/evalue*( exp(-((double)(NN-j)*(NN-j))/(double)(evalue*evalue)/2));
+            in2[j][1] = 0.0;
+        }
     }
     else
     {
@@ -233,6 +243,7 @@ void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out)
     {
         out[j]=filteredinput[j][0];
     }
+    fftw_free(filteredinput);
 }
 
 

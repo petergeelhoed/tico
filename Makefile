@@ -1,4 +1,4 @@
-all: teeth capture testfft testlinreg testfilter tico record 
+all: teeth capture testfft testlinreg testfilter tico record  recali
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
@@ -13,6 +13,9 @@ testfft: testfft.c libmylib.a
 
 record: record.c libmylib.a 
 	gcc -o record record.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+
+recali: recali.c libmylib.a 
+	gcc -o recali recali.c -lasound -lm -lfftw3   -Wall -L. -lmylib
     
 capture: capture.c defaultpulse.h libmylib.a 
 	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib

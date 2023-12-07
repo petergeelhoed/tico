@@ -12,7 +12,7 @@ int main (int argc, char *argv[])
     int evalue = 4;
     char *device = 0;
     // declarations
-    int NN = 48000;
+    int NN = 48000*2;
 
     fftw_complex *filterFFT = makeFilter(evalue, NN);
 
@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
     readBufferRaw(capture_handle, 8000, buffer, rawin);
     readBufferRaw(capture_handle, NN, buffer, rawin);
     double out[NN];
-    applyFilter(rawin,NN,filterFFT,out);
+    applyFilter50(rawin,NN,filterFFT,out);
 
     for (int j=0; j <NN ; j++)
     {

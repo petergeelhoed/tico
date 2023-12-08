@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
-#include <fftw3.h>
 
 #include "mylib.h"
 
@@ -12,9 +11,7 @@ int main (int argc, char *argv[])
     int evalue = 4;
     char *device = 0;
     // declarations
-    int NN = 48000*2;
-
-    fftw_complex *filterFFT = makeFilter(evalue, NN);
+    int NN = 48000*1;
 
     device = device==0?"default:1":device;
 
@@ -26,13 +23,16 @@ int main (int argc, char *argv[])
     readBufferRaw(capture_handle, 8000, buffer, rawin);
     readBufferRaw(capture_handle, NN, buffer, rawin);
     double out[NN];
-    applyFilter50(rawin,NN,filterFFT,out);
+    for (int j=0; j <NN ; j++)
+    {
+        out[j] = rawin[j];
+    }
+    remove50hz(NN,rawin,rate);
 
     for (int j=0; j <NN ; j++)
     {
         printf("%d %f %d\n",j,out[j],rawin[j]);
     }
-    fftw_free(filterFFT);
     exit (0);
 }
 

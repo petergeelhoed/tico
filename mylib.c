@@ -136,8 +136,12 @@ fftw_complex * makeFilter(int evalue, int NN)
 }
 
 
-fftw_complex* convolute50(int NN, int* array, const fftw_complex *filterFFT)
+void remove50hz(int NN, int* array, int rate)
 {
+    int freq = 50; 
+    int ofj = NN*freq/rate;
+    if (ofj > 0)
+    {
     fftw_complex *in = fftw_alloc_complex(NN);
     fftw_complex *out = fftw_alloc_complex(NN);
     fftw_plan forward = fftw_plan_dft_1d(NN, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -151,22 +155,32 @@ fftw_complex* convolute50(int NN, int* array, const fftw_complex *filterFFT)
 
     for (int j = 0; j < NN ; j++)
     {
-        out[j][0] = (out[j][0]*filterFFT[j][0] - out[j][1]*filterFFT[j][1])/NN;
-        out[j][1] = (out[j][0]*filterFFT[j][1] + out[j][1]*filterFFT[j][0])/NN;
+        out[j][0]=out[j][0]/NN;
+        out[j][1]=out[j][1]/NN;
     }
-    
 
-//    out[NN*100/48000][0] = 0;
-//    out[NN*100/48000][1] = 0;
-//    out[NN*50/48000][0] = 0;
-//    out[NN*50/48000][1] = 0;
+    out[ofj+1][1] = 0.0;
+    out[ofj-1][0] = 0.0;
+    out[ofj+1][1] = 0.0;
+    out[ofj-1][0] = 0.0;
 
-    for (int j = 0; j < NN ; j++) fprintf(stderr,"%d %lf %lf\n",j, out[j][0], out[j][1]);
+
+    for (int j=ofj ; j < NN  ; j+=ofj)
+    {
+        out[j][0] = 0.0;
+        out[j][1] = 0.0;
+    }
+
     fftw_execute(reverse);
     fftw_destroy_plan(forward);
     fftw_destroy_plan(reverse);
+    for (int j = 0; j < NN; j++)
+    {
+        array[j] = (int)(in[j][0]);
+    }
+    fftw_free(*in);
     fftw_free(*out);
-    return in;
+    }
 }
 
 fftw_complex* convolute(int NN, int* array, const fftw_complex *filterFFT)
@@ -266,17 +280,6 @@ fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref)
     fftw_free(*tmpref);
     fftw_free(*tmp);
     return corr;
-}
-
-
-void applyFilter50(int* input, int NN, fftw_complex* filterFFT, double* out)
-{
-    fftw_complex *filteredinput = convolute50(NN,input,filterFFT);
-    for (int j = 0; j < NN ; j++)
-    {
-        out[j]=filteredinput[j][0];
-    }
-    fftw_free(filteredinput);
 }
 
 
@@ -384,8 +387,13 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
             in[j/2] = (msb << 8) | lsb ;
+        }
+ //       remove50hz(NN,in,48000);
 
-            derivative[j/2] = (j==0)?0:fabs(in[j/2]-in[j/2-1]);
+        derivative[0] = 0;
+        for (int j = 2; j < NN*2; j+=2) 
+        {
+            derivative[j/2] = fabs(in[j/2]-in[j/2-1]);
         }
 }
 

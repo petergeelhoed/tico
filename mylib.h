@@ -13,10 +13,10 @@ int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filte
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 
-void applyFilter50(int* input, int NN, fftw_complex* filterFFT, double* out);
+void applyFilter50(int* input, int NN, double* out);
 void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
 fftw_complex* convolute(int NN, int *array, const fftw_complex *filter);
-fftw_complex* convolute50(int NN, int *array, const fftw_complex *filter);
+void remove50hz(int NN, int *array, int rate);
 
 void normalise(int NN, const fftw_complex *in);
 

@@ -9,7 +9,7 @@ void rescale(int* total, int NN);
 
 fftw_complex * makeFilter(int evalue, int NN);
 
-int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN, int halfsearch);
+int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN, int halfsearch,int verb);
 
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 
@@ -18,7 +18,7 @@ void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
 fftw_complex* convolute(int NN, int *array, const fftw_complex *filter);
 void remove50hz(int NN, int *array, int rate);
 
-void normalise(int NN, const fftw_complex *in);
+void normalise(int NN, fftw_complex *in);
 
 void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i, float beatError);
 
@@ -32,3 +32,6 @@ void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char*
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN);
 void crosscorint(int NN, int* array, int* ref, int* cross);
+void writearray(int* arr, int NN, const char* file);
+void writearraydouble(double* arr, int NN, const char* file);
+void writefftw(fftw_complex * arr, int NN, const char* file);

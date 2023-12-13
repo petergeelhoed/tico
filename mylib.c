@@ -4,8 +4,9 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
+#include "mylib.h"
 
-void normalise(int NN,fftw_complex *in)
+void normalise(int NN, fftw_complex *in)
 {
     double ix = 0.0;
     double ixx =0.0;
@@ -301,11 +302,14 @@ int fftfit(
         int* hexvalue,
         const fftw_complex *filterFFT,
         int NN,
-        int halfsearch)
+        int halfsearch,
+        int verb)
 {
     fftw_complex *Fbase = fftw_alloc_complex(NN);
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
 
+    if (verb) writearray(input,NN,"input");
+    if (verb) writefftw(filteredinput,NN,"filteredinput");
 
     for (int j = 0; j < NN ; j++)
     {
@@ -314,6 +318,8 @@ int fftfit(
     }
 
     fftw_complex* corr = crosscor(NN,filteredinput,Fbase);
+    if (verb) writefftw(Fbase,NN,"Fbase");
+    if (verb) writefftw(corr,NN,"crosscor");
 
     double maxcor = -1;
     int poscor = 0;
@@ -614,5 +620,32 @@ void crosscorint(int NN, int* array, int* ref, int* cross )
     {
         cross[j] = (int)(coor[j][0]*NN);
     }
+}
 
+void writearraydouble(double* arr, int NN, const char* file)
+{
+    FILE* fp = fopen(file, "w");
+    for (int j = 0; j < NN ; j++)
+    {
+        fprintf(fp,"%d %f\n",j,arr[j]);
+    }
+    fclose(fp);
+}
+void writefftw(fftw_complex * arr, int NN, const char* file)
+{
+    FILE* fp = fopen(file, "w");
+    for (int j = 0; j < NN ; j++)
+    {
+        fprintf(fp,"%d %f %f\n",j,arr[j][0],arr[j][1]);
+    }
+    fclose(fp);
+}
+void writearray(int* arr, int NN, const char* file)
+{
+    FILE* fp = fopen(file, "w");
+    for (int j = 0; j < NN ; j++)
+    {
+        fprintf(fp,"%d %d\n",j,arr[j]);
+    }
+    fclose(fp);
 }

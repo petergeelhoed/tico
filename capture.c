@@ -17,6 +17,7 @@ int main (int argc, char *argv[])
     int time = 30;
     int c;
     int cvalue = 5;
+    int vvalue = -1;
     int fitN = 60;
     int qvalue = 0;
     char *device = 0;
@@ -25,7 +26,7 @@ int main (int argc, char *argv[])
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:kD:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:kD:v:")) != -1)
     {
         switch (c)
         {
@@ -37,6 +38,9 @@ int main (int argc, char *argv[])
                 break;
             case 'c':
                 cvalue = atoi(optarg);
+                break;
+            case 'v':
+                vvalue = 1;
                 break;
             case 'q':
                 qvalue = 1;
@@ -105,6 +109,7 @@ int main (int argc, char *argv[])
                         " -e 4 Gauss smooth\n"\
                         " -k do not correlate tick and tock together\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
+                        " -v <peak> write files for this peak \n"\
                         " -q split local tick/tock rate\n");
                 exit(0);
                 break;
@@ -227,7 +232,7 @@ int main (int argc, char *argv[])
     double s = 0.0;
     int i = 0;
     int totalshift = 0;
-    int bound = 16;
+    int bound = 32;
     int upperBound = +NN/bound;
     int lowerBound = -NN/bound;
     int shift = NN/bound/10;
@@ -277,7 +282,8 @@ int main (int argc, char *argv[])
         maxp = fftfit(
                 derivative,
                 (i%2==0||qvalue==0)?totaltick:totaltock,
-                reference, maxvals+i, filterFFT, NN, kvalue);
+                reference, maxvals+i, filterFFT, NN, kvalue,
+                i==vvalue);
 
         maxpos[i] = totalshift + maxp;
 

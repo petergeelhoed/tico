@@ -308,6 +308,7 @@ int fftfit(
     fftw_complex *Fbase = fftw_alloc_complex(NN);
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
 
+    if (verb) writearray(total,NN,"total");
     if (verb) writearray(input,NN,"input");
     if (verb) writefftw(filteredinput,NN,"filteredinput");
 

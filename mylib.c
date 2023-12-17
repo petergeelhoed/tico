@@ -577,29 +577,28 @@ void calculateTotal(int n, int* maxpos,int NN, double threshold)
     fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/NN);
 }
 
-int getBeatError(int* totaltick, int NN)
+int getBeatError(int* totaltick, int NN, int verbose)
 {
+
+    int cross[NN/2];
+    crosscorint(NN/2,totaltick,totaltick+NN/2,cross);
+
+    if (verbose)  writearray(cross,NN/2,"beaterror");
+    if (verbose)  writearray(totaltick,NN/2,"t1");
+    if (verbose)  writearray(totaltick+NN/2,NN/2,"t2");
+
     int maxtick = -1;
     int postick = 0;
     for (int j = 0; j < NN/2; j++)
     {
-        if ( totaltick[j] > maxtick )
+        if ( cross[j] > maxtick  )
         {
-            maxtick = totaltick[j];
+            maxtick = cross[j];
             postick = j; 
         }
     }
-    int maxtock = -1;
-    int postock = NN/2;
-    for (int j = NN/2 ; j< NN ; j++)
-    {
-        if ( totaltick[j] > maxtock )
-        {
-            maxtock = totaltick[j];
-            postock = j; 
-        }
-    }
-    return postock-postick-NN/2;
+
+    return (postick+NN/4)%(NN/2)-NN/4;
 
 }
 

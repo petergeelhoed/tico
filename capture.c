@@ -289,7 +289,7 @@ int main (int argc, char *argv[])
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i, (float)(getBeatError(totaltick, NN))/rate*1000);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
     }
 
     free(buffer);

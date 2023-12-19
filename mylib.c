@@ -425,7 +425,7 @@ void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char*
 }
 
 
-void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, double a,double b,int NN,int i,float beatError)
+void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, double a,double b,int NN,int cvalue,float beatError)
 {
     while (maxpos < mod) maxpos+=mod;
     while (a < mod) a+=(double)mod;
@@ -436,7 +436,7 @@ void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, doub
     memset(spaces, ' ', columns);
     spaces[widtha] = '|';
     spaces[width] = '\0';
-    fprintf(stderr,"%s%s%X\e[0m",spaces,i%2==0?"\e[31m": "\e[32m",hexvalue);
+    fprintf(stderr,"%s%s%X\e[0m",spaces,hexvalue<cvalue?"\e[31m": "\e[32m",hexvalue);
     memset(spaces, ' ', columns);
     if (widtha > width)
     {

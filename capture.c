@@ -15,7 +15,7 @@ int main (int argc, char *argv[])
     int zoom = 10;
     int time = 30;
     int c;
-    int cvalue = 5;
+    int cvalue = 8;
     int vvalue = -1;
     int fitN = 60;
     char *device = 0;
@@ -246,7 +246,7 @@ int main (int argc, char *argv[])
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, 0, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, cvalue, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
     }
 
     free(buffer);

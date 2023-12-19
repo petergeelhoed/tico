@@ -20,7 +20,7 @@ void remove50hz(int NN, int *array, int rate);
 
 void normalise(int NN, fftw_complex *in);
 
-void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN,int i, float beatError);
+void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN, int cvalue, float beatError);
 
 void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative);
 void readBufferRaw( snd_pcm_t *capture_handle, int NN, char *buffer, int *in);

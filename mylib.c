@@ -380,7 +380,6 @@ void readBufferRaw(snd_pcm_t *capture_handle, int NN, char *buffer, int* in)
 
 void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
 {
-        int* in = malloc(NN*sizeof(int));
         unsigned char lsb;
         signed char msb;
         int err;
@@ -393,16 +392,15 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
         {
             msb = *(buffer+j+1);
             lsb = *(buffer+j);
-            in[j/2] = (msb << 8) | lsb ;
+            derivative[j/2] = (msb << 8) | lsb ;
         }
  //       remove50hz(NN,in,48000);
 
-        derivative[0] = 0;
-        for (int j = 1; j < NN; j++) 
+        for (int j = 0; j < NN-1; j++) 
         {
-            derivative[j] = fabs(in[j]-in[j-1]);
+            derivative[j] = fabs(derivative[j]-derivative[j+1]);
         }
-        free(in);
+        derivative[NN] = 0;
 }
 
 

@@ -302,7 +302,6 @@ int fftfit(
         int* hexvalue,
         const fftw_complex *filterFFT,
         int NN,
-        int halfsearch,
         int verb)
 {
     fftw_complex *Fbase = fftw_alloc_complex(NN);
@@ -324,8 +323,8 @@ int fftfit(
 
     double maxcor = -1;
     int poscor = 0;
-    int startsearch = halfsearch?(NN/4):0;
-    int stopsearch = halfsearch?(NN*3/4):NN;
+    int startsearch = NN/4;
+    int stopsearch = NN*3/4;
     for (int j = startsearch; j < stopsearch ; j++)
     {
         if (corr[j][0]>maxcor)
@@ -478,18 +477,17 @@ void fit10secs(
         int i,
         int* maxvals,
         int* maxes,
-        int qvalue,
         int cvalue,
         int npeaks)
 {
     int m = 0;
-    int fitwindow = i>npeaks*(1+qvalue)?npeaks*(1+qvalue):i;
+    int fitwindow = i>npeaks?npeaks:i;
 
     if (i >= fitwindow)
     {
         int xarr[fitwindow];
         int yarr[fitwindow];
-        for (int k = 0; k < fitwindow;k+=qvalue+1)
+        for (int k = 0; k < fitwindow;k++)
         {
             if (maxvals[i-k] > cvalue)
             {
@@ -510,7 +508,6 @@ void writefiles(
         FILE* fptotal,
         FILE* rawfile,
         int* totaltick,
-        int* totaltock,
         int* defaultpulse,
         int* maxpos,
         int n,
@@ -520,11 +517,11 @@ void writefiles(
     {
         if (NN == 8000 || NN== 16000)
         {
-            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d %d\n",totaltick[j],totaltock[j],defaultpulse[j]);
+            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",totaltick[j],defaultpulse[j]);
         }
         else
         {
-            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",totaltick[j],totaltock[j]);
+            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d\n",totaltick[j]);
         }
         fclose(fptotal);
     }

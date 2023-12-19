@@ -12,21 +12,19 @@ int main (int argc, char *argv[])
     unsigned int rate = 48000;
     int bph = 21600;
     int evalue = 4;
-    int kvalue = 1;
     int zoom = 10;
     int time = 30;
     int c;
     int cvalue = 5;
     int vvalue = -1;
     int fitN = 60;
-    int qvalue = 0;
     char *device = 0;
     double threshold =3.;
     FILE* rawfile = 0;
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
 
-    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:qc:d:w:p:f:kD:v:")) != -1)
+    while ((c = getopt (argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:")) != -1)
     {
         switch (c)
         {
@@ -38,15 +36,11 @@ int main (int argc, char *argv[])
                 break;
             case 'c':
                 cvalue = atoi(optarg);
+                cvalue = cvalue>15?15:cvalue;
+                cvalue = cvalue<0?0:cvalue;
                 break;
             case 'v':
                 vvalue = 1;
-                break;
-            case 'q':
-                qvalue = 1;
-                break;
-            case 'k':
-                kvalue = 0;
                 break;
             case 'e':
                 evalue = atoi(optarg);
@@ -106,25 +100,17 @@ int main (int argc, char *argv[])
                         " -p <file> write pulse to file\n"
                         " -D <file> read pulse from file\n"
                         " -c 8 threshold for local rate\n"\
+                        " -f 60 fit n points for local rate\n"\
                         " -e 4 Gauss smooth\n"\
-                        " -k do not correlate tick and tock together\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
-                        " -v <peak> write files for this peak \n"\
-                        " -q split local tick/tock rate\n");
+                        " -v <peak> write files for this peak \n");
                 exit(0);
                 break;
         }
     }
 
-    if (qvalue && kvalue)
-    {
-        fprintf (stderr,"cannot ue -q and -k together\n");
-        exit (-3);
-
-    }
-
     // declarations
-    int NN = rate*3600/bph*(kvalue+1);
+    int NN = rate*7200/bph;
     // should be even
     NN = (NN+NN%2);
 
@@ -152,11 +138,6 @@ int main (int argc, char *argv[])
     
     int* totaltick = malloc(NN*sizeof(int));
     for (int j = 0; j < NN; j++) totaltick[j] = 0;
-
-    int* totaltock = malloc(NN*sizeof(int));
-    for (int j = 0; j < NN; j++) totaltock[j] = 0;
-
-
 
     fprintf(stderr,
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
@@ -191,17 +172,11 @@ int main (int argc, char *argv[])
         reference = defaultpulse;
         referenceBase = reference;
     }
-    else if (NN==16000 && kvalue == 1)
+    else if (NN==16000)
     {
         reference = defaultpulsedouble;
         referenceBase = reference;
 
- /*       reference = malloc(NN*sizeof(int));
-        memcpy(reference,defaultpulse,8000*sizeof(int));
-        memcpy(reference+8000,defaultpulse,8000*sizeof(int));
-        referenceBase = malloc(NN*sizeof(int));
-        memcpy(referenceBase,reference,16000*sizeof(int));
-        */
     }
     else
     {
@@ -275,29 +250,29 @@ int main (int argc, char *argv[])
         }
         
 
-        if (i>6*tps)
+        if (i==6*tps)
         {
-            reference = (i%2==0||qvalue==0)?totaltick:totaltock;
+            reference = totaltick;
         }
 
         maxp = fftfit(
                 derivative,
-                (i%2==0||qvalue==0)?totaltick:totaltock,
-                reference, maxvals+i, filterFFT, NN, kvalue,
+                totaltick,
+                reference, maxvals+i, filterFFT, NN,
                 i==vvalue);
 
         maxpos[i] = totalshift + maxp;
 
 
-        fit10secs(&a, &b, &s, i, maxvals, maxpos, qvalue, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, kvalue?0:i, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
+        fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, 0, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
     }
 
     free(buffer);
     fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
 
-    writefiles(fptotal, rawfile, totaltick, totaltock, referenceBase, maxpos, n, NN);
+    writefiles(fptotal, rawfile, totaltick, referenceBase, maxpos, n, NN);
 
     calculateTotal(n, maxpos, NN, threshold);
     fprintf(stderr,
@@ -306,7 +281,6 @@ int main (int argc, char *argv[])
             mod*1000000./rate/(wdth-1));
     free(derivative);
     free(totaltick);
-    free(totaltock);
     free(reference);
     exit (0);
 }

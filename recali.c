@@ -8,7 +8,6 @@
 int main (int argc, char *argv[])
 {
     unsigned int rate = 48000;
-    int evalue = 4;
     char *device = 0;
     // declarations
     int NN = 48000*1;

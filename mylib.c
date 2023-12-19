@@ -398,9 +398,9 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
  //       remove50hz(NN,in,48000);
 
         derivative[0] = 0;
-        for (int j = 2; j < NN*2; j+=2) 
+        for (int j = 1; j < NN; j++) 
         {
-            derivative[j/2] = fabs(in[j/2]-in[j/2-1]);
+            derivative[j] = fabs(in[j]-in[j-1]);
         }
         free(in);
 }

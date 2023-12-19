@@ -150,10 +150,10 @@ int main (int argc, char *argv[])
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
     char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
     
-    int totaltick[NN];
+    int* totaltick = malloc(NN*sizeof(int));
     for (int j = 0; j < NN; j++) totaltick[j] = 0;
 
-    int totaltock[NN];
+    int* totaltock = malloc(NN*sizeof(int));
     for (int j = 0; j < NN; j++) totaltock[j] = 0;
 
 
@@ -165,7 +165,7 @@ int main (int argc, char *argv[])
             mod*1000000./rate/(wdth-1));
 
     // main loop
-    int derivative[NN];
+    int *derivative = malloc(NN*sizeof(int));
     int *reference;
     int *referenceBase;
 
@@ -244,7 +244,7 @@ int main (int argc, char *argv[])
 
         if (i==3*tps)
         {
-            int cross[NN];
+            int* cross = malloc(NN*sizeof(int));
             crosscorint(NN, totaltick, reference,cross);
             int maxp = 0;
             int maxval = -NN*NN;
@@ -270,6 +270,7 @@ int main (int argc, char *argv[])
 
             }
 
+            free(cross);
 
         }
         
@@ -303,6 +304,10 @@ int main (int argc, char *argv[])
             "width = %.3fms  /  %.1fμs/character\n",
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
+    free(derivative);
+    free(totaltick);
+    free(totaltock);
+    free(reference);
     exit (0);
 }
 

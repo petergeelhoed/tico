@@ -380,7 +380,7 @@ void readBufferRaw(snd_pcm_t *capture_handle, int NN, char *buffer, int* in)
 
 void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
 {
-        int in[NN];
+        int* in = malloc(NN*sizeof(int));
         unsigned char lsb;
         signed char msb;
         int err;
@@ -402,6 +402,7 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
         {
             derivative[j/2] = fabs(in[j/2]-in[j/2-1]);
         }
+        free(in);
 }
 
 
@@ -434,7 +435,7 @@ void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, doub
 
     int width = (maxpos%mod)*columns/mod;
     int widtha = (((int)a)%mod)*columns/mod;
-    fprintf(stderr,"%4.1fms %6.1fs/d",beatError,b*86400/NN);
+    fprintf(stderr,"%5.1fms%6.1fs/d",beatError,b*86400/NN);
     memset(spaces, ' ', columns);
     spaces[widtha] = '|';
     spaces[width] = '\0';

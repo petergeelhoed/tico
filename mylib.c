@@ -1,4 +1,5 @@
 #include <math.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
@@ -525,6 +526,22 @@ void writefiles(
 }
 
 
+int getmaxpos(int * array, int NN)
+{
+    int maxtick = -INT_MAX;
+    int postick = 0;
+    for (int j = 0; j < NN; j++)
+    {
+        if ( array[j] > maxtick )
+        {
+            maxtick = array[j];
+            postick = j; 
+        }
+    }
+    return postick;
+}
+
+
 void calculateTotal(int n, int* maxpos,int NN, double threshold)
 {
     double b = 0.0;
@@ -565,6 +582,7 @@ void calculateTotal(int n, int* maxpos,int NN, double threshold)
     fprintf(stderr,"after %.1fσ removal: %.2f s/d\n",threshold,-b*86400/NN);
 }
 
+
 int getBeatError(int* totaltick, int NN, int verbose)
 {
 
@@ -575,17 +593,7 @@ int getBeatError(int* totaltick, int NN, int verbose)
     if (verbose)  writearray(totaltick,NN/2,"t1");
     if (verbose)  writearray(totaltick+NN/2,NN/2,"t2");
 
-    int maxtick = -1;
-    int postick = 0;
-    for (int j = 0; j < NN/2; j++)
-    {
-        if ( cross[j] > maxtick  )
-        {
-            maxtick = cross[j];
-            postick = j; 
-        }
-    }
-
+    int postick = getmaxpos(cross,NN/2);
     return (postick+NN/4)%(NN/2)-NN/4;
 
 }

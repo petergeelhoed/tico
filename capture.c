@@ -130,11 +130,12 @@ int main (int argc, char *argv[])
 
     device = device==0?"default:1":device;
 
-    fftw_complex *filterFFT = makeFilter(evalue, NN);
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t *capture_handle = initAudio(format, device, rate);
     char *buffer = malloc(NN * snd_pcm_format_width(format) / 8);
     
+    fftw_complex *filterFFT = makeFilter(evalue, NN);
+
     int* totaltick = malloc(NN*sizeof(int));
     for (int j = 0; j < NN; j++) totaltick[j] = 0;
 
@@ -165,7 +166,7 @@ int main (int argc, char *argv[])
     }
     else if (NN==16000)
     {
-        reference = memcpy(reference, defaultpulsedouble,16000*sizeof(int));
+        reference = memcpy(reference, defaultpulsedouble, 16000*sizeof(int));
     }
     else
     {
@@ -193,26 +194,17 @@ int main (int argc, char *argv[])
     int maxp = 0;
     for (; i < n; ++i)
     {
-
         readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
 
         if (i==3*tps)
         {
+
             int* cross = malloc(NN*sizeof(int));
             crosscorint(NN, totaltick, reference,cross);
-            int maxp = 0;
-            int maxval = -NN*NN;
-            for (int j = 0; j < NN; j++)
-            {
-                if (maxval < cross[j])
-                {
-                    maxp= j;
-                    maxval = cross[j];
-                }
-            }
+            int maxp = getmaxpos(cross,NN);
             if (maxp > NN/4 && maxp < NN*3/4)
             {
-                fprintf(stderr,"FLIPPING peaks pos %d val %d\n",maxp,maxval);
+                fprintf(stderr,"FLIPPING peaks pos %d\n",maxp);
 
                 int tmp =0;
                 for (int j = 0; j < NN/2; j++)
@@ -225,9 +217,9 @@ int main (int argc, char *argv[])
             }
 
             free(cross);
+            readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
 
         }
-        
 
         if (i==6*tps)
         {

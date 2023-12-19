@@ -113,7 +113,6 @@ int main (int argc, char *argv[])
     int NN = rate*7200/bph;
     // should be even
     NN = (NN+NN%2);
-
     int tps = rate/NN;
     int n = time*tps; 
     int maxpos[n];
@@ -147,12 +146,11 @@ int main (int argc, char *argv[])
 
     // main loop
     int *derivative = malloc(NN*sizeof(int));
-    int *reference;
-    int *referenceBase;
+    int *reference = malloc(NN*sizeof(int));
+    int *defref = reference;
 
     if (fpDefPeak != 0)
     {
-        reference = malloc(NN*sizeof(int));
         for (int j = 0; j < NN; j++) 
         {
 
@@ -164,38 +162,19 @@ int main (int argc, char *argv[])
             }
 
         }
-
-        referenceBase = reference;
-    }
-    else if (NN==8000)
-    {
-        reference = defaultpulse;
-        referenceBase = reference;
     }
     else if (NN==16000)
     {
-        reference = defaultpulsedouble;
-        referenceBase = reference;
-
+        reference = memcpy(reference, defaultpulsedouble,16000*sizeof(int));
     }
     else
     {
-        reference = malloc(NN*sizeof(int));
-
         for (int j=0;j<NN;j++)
         {
             reference[j] = 0;
         }
-
-        int min = (NN-8000)/2;
-        if (min > 0)
-        {
-            memcpy(reference+min,defaultpulse,8000*sizeof(int));
-        }
-        else
-        {
-            memcpy(reference,defaultpulse-min,(8000+2*(min))*sizeof(int));
-        }
+        reference[NN/4] = 1;
+        reference[3*NN/4] = 1;
     }
 
     // read emptyparts 
@@ -252,6 +231,8 @@ int main (int argc, char *argv[])
 
         if (i==6*tps)
         {
+            free(reference);
+            defref = 0;
             reference = totaltick;
         }
 
@@ -272,7 +253,7 @@ int main (int argc, char *argv[])
     fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
 
-    writefiles(fptotal, rawfile, totaltick, referenceBase, maxpos, n, NN);
+    writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
 
     calculateTotal(n, maxpos, NN, threshold);
     fprintf(stderr,
@@ -281,7 +262,7 @@ int main (int argc, char *argv[])
             mod*1000000./rate/(wdth-1));
     free(derivative);
     free(totaltick);
-    free(reference);
+    free(defref);
     exit (0);
 }
 

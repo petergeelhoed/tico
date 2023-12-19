@@ -508,21 +508,13 @@ void writefiles(
         FILE* fptotal,
         FILE* rawfile,
         int* totaltick,
-        int* defaultpulse,
         int* maxpos,
         int n,
         int NN)
 {
     if (fptotal)
     {
-        if (NN == 8000 || NN== 16000)
-        {
-            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d %d\n",totaltick[j],defaultpulse[j]);
-        }
-        else
-        {
-            for (int j = 0; j < NN; j++) fprintf(fptotal,"%d\n",totaltick[j]);
-        }
+        for (int j = 0; j < NN; j++) fprintf(fptotal,"%d\n",totaltick[j]);
         fclose(fptotal);
     }
     if (rawfile)

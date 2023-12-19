@@ -101,7 +101,7 @@ int main (int argc, char *argv[])
                         " -D <file> read pulse from file\n"
                         " -c 8 threshold for local rate\n"\
                         " -f 60 fit n points for local rate\n"\
-                        " -e 4 Gauss smooth\n"\
+                        " -e 4 Gaussan convolution over input\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
                         " -v <peak> write files for this peak \n");
                 exit(0);
@@ -115,8 +115,8 @@ int main (int argc, char *argv[])
     NN = (NN+NN%2);
     int tps = rate/NN;
     int n = time*tps; 
-    int maxpos[n];
-    int maxvals[n];
+    int* maxpos = malloc(n*sizeof(int));
+    int* maxvals = malloc(n*sizeof(int));
     int mod = NN/zoom;
     
     FILE *fp =popen("/usr/bin/tput cols", "r");
@@ -249,6 +249,7 @@ int main (int argc, char *argv[])
         printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, cvalue, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
     }
 
+    free(maxvals);
     free(buffer);
     fftw_free(filterFFT);
     snd_pcm_close (capture_handle);
@@ -260,6 +261,7 @@ int main (int argc, char *argv[])
             "width = %.3fms  /  %.1fμs/character\n",
             mod*1000./rate,
             mod*1000000./rate/(wdth-1));
+    free(maxpos);
     free(derivative);
     free(totaltick);
     free(defref);

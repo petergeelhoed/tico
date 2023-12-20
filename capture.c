@@ -17,7 +17,7 @@ int main (int argc, char *argv[])
     int c;
     int cvalue = 8;
     int vvalue = -1;
-    int fitN = 60;
+    int fitN = 30;
     char *device = 0;
     double threshold =3.;
     FILE* rawfile = 0;
@@ -40,7 +40,7 @@ int main (int argc, char *argv[])
                 cvalue = cvalue<0?0:cvalue;
                 break;
             case 'v':
-                vvalue = 1;
+                vvalue = atoi(optarg);
                 break;
             case 'e':
                 evalue = atoi(optarg);
@@ -100,7 +100,7 @@ int main (int argc, char *argv[])
                         " -p <file> write pulse to file\n"
                         " -D <file> read pulse from file\n"
                         " -c 8 threshold for local rate\n"\
-                        " -f 60 fit n points for local rate\n"\
+                        " -f 30 fit n points for local rate\n"\
                         " -e 4 Gaussan convolution over input\n"\
                         " -n 60 number of mpoints to fit in local rate\n"\
                         " -v <peak> write files for this peak \n");

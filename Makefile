@@ -1,30 +1,34 @@
-all: teeth capture testfft testlinreg testfilter tico record  recali
+CFLAGS = -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
+CC= cc -c $(CFLAGS)
+
+all: teeth capture testfft testlinreg testfilter tico record  recali 
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
 testlinreg: testlinreg.c libmylib.a 
-	gcc -o testlinreg testlinreg.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	$(CC) -o testlinreg testlinreg.c 
 
 testfilter: testfilter.c libmylib.a 
-	gcc -o testfilter testfilter.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	$(CC) -o testfilter testfilter.c 
 
 testfft: testfft.c libmylib.a 
-	gcc -o testfft testfft.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	$(CC) -o testfft testfft.c 
 
 record: record.c libmylib.a 
-	gcc -o record record.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	$(CC) -o record record.c 
 
 recali: recali.c libmylib.a 
-	gcc -o recali recali.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	$(CC) -o recali recali.c 
     
 capture: capture.c defaultpulse.h libmylib.a 
 	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
     
 libmylib.o: mylib.c mylib.h
+	$(CC) -c -o mylib.o mylib.c 
 
 libmylib.a: mylib.o mylib.h
 	ar -rcs libmylib.a mylib.o
 tico:
-	gcc tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
+	$(CC) tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
 clean:
-	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter 
+	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter  

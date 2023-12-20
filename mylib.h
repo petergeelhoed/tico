@@ -36,7 +36,7 @@ void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char*
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN,int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);
-void *warray(void* arr);
+void *threadWrite(void* arr);
 void writearray(int* arr, int NN, const char* file);
 void writearraydouble(double* arr, int NN, const char* file);
 void writefftw(fftw_complex * arr, int NN, const char* file);

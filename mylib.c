@@ -678,12 +678,12 @@ void syncwrite(int *input, int NN, char *file)
     info->NN = NN;
 
     pthread_t tid;
-    pthread_create(&tid,NULL,warray,info);
+    pthread_create(&tid, NULL, threadWrite, info);
     pthread_detach(tid);
 }
 
 
-void *warray(void* inStruct)
+void *threadWrite(void* inStruct)
 {
     struct mystruct
     {
@@ -699,14 +699,7 @@ void *warray(void* inStruct)
     free(arrptr);
     free(inStruct);
 
-    FILE* fp = fopen(mine.file, "w");
-    if (mine.array != 0)
-    {
-        for (int j = 0; j < mine.NN ; j++)
-        {
-            fprintf(fp,"%d %d\n",j,mine.array[j]);
-        }
-    }
+    writearray(mine.array, mine.NN, mine.file);
 
     pthread_exit(NULL);
 }

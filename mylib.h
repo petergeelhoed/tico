@@ -20,6 +20,7 @@ void remove50hz(int NN, int *array, int rate);
 
 void normalise(int NN, fftw_complex *in);
 
+int getmaxfftw(fftw_complex* array, int NN);
 int getmaxpos(int * array, int NN);
 void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN, int cvalue, float beatError);
 

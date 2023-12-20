@@ -322,20 +322,10 @@ int fftfit(
     if (verb) writefftw(Fbase,NN,"Fbase");
     if (verb) writefftw(corr,NN,"crosscor");
 
-    double maxcor = -1;
-    int poscor = 0;
-    int startsearch = NN/4;
-    int stopsearch = NN*3/4;
-    for (int j = startsearch; j < stopsearch ; j++)
-    {
-        if (corr[j][0]>maxcor)
-        {
-            maxcor =corr[j][0];
-            poscor = j;
-        }
-    }
+    int poscor = getmaxfftw(corr,NN);
 
     // for hexadecimal print 
+    double maxcor = corr[poscor][0];
     *hexvalue = (int)(maxcor*16);
 
     poscor -= NN/2;
@@ -525,6 +515,21 @@ void writefiles(
     }
 }
 
+
+int getmaxfftw(fftw_complex* array, int NN)
+{
+    double maxtick = -INT_MAX;
+    int postick = 0;
+    for (int j = NN/4; j < 3*NN/4; j++)
+    {
+        if ( array[j][0] > maxtick )
+        {
+            maxtick = array[j][0];
+            postick = j; 
+        }
+    }
+    return postick;
+}
 
 int getmaxpos(int * array, int NN)
 {

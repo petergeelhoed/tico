@@ -628,6 +628,9 @@ void crosscorint(int NN, int* array, int* ref, int* cross )
     {
         cross[j] = (int)(coor[j][0]*NN);
     }
+    fftw_free(tmpref);
+    fftw_free(tmparr);
+    fftw_free(coor);
 }
 
 void writearraydouble(double* arr, int NN, const char* file)

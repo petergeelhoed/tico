@@ -1,4 +1,5 @@
 #include <math.h>
+#include <pthread.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +7,7 @@
 #include <fftw3.h>
 
 #include "mylib.h"
+
 
 void normalise(int NN, fftw_complex *in)
 {
@@ -308,9 +310,6 @@ int fftfit(
     fftw_complex *Fbase = fftw_alloc_complex(NN);
     fftw_complex *filteredinput = convolute(NN,input,filterFFT);
 
-    if (verb) writearray(total,NN,"total");
-    if (verb) writearray(input,NN,"input");
-    if (verb) writefftw(filteredinput,NN,"filteredinput");
 
     for (int j = 0; j < NN ; j++)
     {
@@ -319,8 +318,15 @@ int fftfit(
     }
 
     fftw_complex* corr = crosscor(NN,filteredinput,Fbase);
-    if (verb) writefftw(Fbase,NN,"Fbase");
-    if (verb) writefftw(corr,NN,"crosscor");
+    if (verb)
+    { 
+        syncwrite(total,NN,"total");
+        syncwrite(input,NN,"input");
+    }
+
+//    if (verb) writefftw(filteredinput,NN,"filteredinput");
+//    if (verb) writefftw(Fbase,NN,"Fbase");
+//    if (verb) writefftw(corr,NN,"crosscor");
 
     int poscor = getmaxfftw(corr,NN);
 
@@ -593,11 +599,12 @@ int getBeatError(int* totaltick, int NN, int verbose)
 
     int cross[NN/2];
     crosscorint(NN/2,totaltick,totaltick+NN/2,cross);
-
-    if (verbose)  writearray(cross,NN/2,"beaterror");
-    if (verbose)  writearray(totaltick,NN/2,"t1");
-    if (verbose)  writearray(totaltick+NN/2,NN/2,"t2");
-
+    if (verbose)  
+    {
+        syncwrite(cross,NN/2,"beaterror");
+        syncwrite(totaltick,NN/2,"t1");
+        syncwrite(totaltick+NN/2,NN/2,"t2");
+    }
     int postick = getmaxpos(cross,NN/2);
     return (postick+NN/4)%(NN/2)-NN/4;
 
@@ -641,6 +648,7 @@ void writefftw(fftw_complex * arr, int NN, const char* file)
     }
     fclose(fp);
 }
+
 void writearray(int* arr, int NN, const char* file)
 {
     FILE* fp = fopen(file, "w");
@@ -649,4 +657,56 @@ void writearray(int* arr, int NN, const char* file)
         fprintf(fp,"%d %d\n",j,arr[j]);
     }
     fclose(fp);
+}
+
+
+void syncwrite(int *input, int NN, char *file)
+{
+    struct mystruct
+    {
+        int* array;
+        char file[20];
+        int NN;
+    };
+
+    struct mystruct *info = malloc(sizeof *info);
+
+    int *copyarr = malloc(NN*sizeof(int));
+    memcpy(copyarr, input, NN*sizeof(int));
+    info->array = copyarr;
+    strcpy(info->file,file);
+    info->NN = NN;
+
+    pthread_t tid;
+    pthread_create(&tid,NULL,warray,info);
+    pthread_detach(tid);
+}
+
+
+void *warray(void* inStruct)
+{
+    struct mystruct
+    {
+        int* array;
+        char file[20];
+        int NN;
+    } mine = *(struct mystruct *)inStruct;
+
+    int *arrptr = mine.array;
+    int *copyarr = malloc(mine.NN*sizeof(int));
+    memcpy(copyarr, arrptr, mine.NN*sizeof(int));
+    mine.array = copyarr;
+    free(arrptr);
+    free(inStruct);
+
+    FILE* fp = fopen(mine.file, "w");
+    if (mine.array != 0)
+    {
+        for (int j = 0; j < mine.NN ; j++)
+        {
+            fprintf(fp,"%d %d\n",j,mine.array[j]);
+        }
+    }
+
+    pthread_exit(NULL);
 }

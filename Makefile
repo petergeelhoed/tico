@@ -18,7 +18,7 @@ recali: recali.c libmylib.a
 	gcc -o recali recali.c -lasound -lm -lfftw3   -Wall -L. -lmylib
     
 capture: capture.c defaultpulse.h libmylib.a 
-	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib
+	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
     
 libmylib.o: mylib.c mylib.h
 

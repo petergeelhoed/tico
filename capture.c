@@ -163,6 +163,7 @@ int main (int argc, char *argv[])
             }
 
         }
+        fclose(fpDefPeak);
     }
     else if (NN==16000)
     {

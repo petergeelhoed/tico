@@ -6,6 +6,7 @@
 
 
 void syncwrite(int * input, int NN, char *file);
+void syncappend(int * input, int NN, FILE* file);
 snd_pcm_t * initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
 void rescale(int* total, int NN);
 
@@ -37,6 +38,7 @@ fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN,int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);
 void *threadWrite(void* arr);
+void *threadAppend(void* arr);
 void writearray(int* arr, int NN, const char* file);
 void writearraydouble(double* arr, int NN, const char* file);
 void writefftw(fftw_complex * arr, int NN, const char* file);

@@ -663,6 +663,55 @@ void writearray(int* arr, int NN, const char* file)
 }
 
 
+void syncappend(int *input, int NN, FILE *file)
+{
+    struct mystruct
+    {
+        int* array;
+        FILE* file;
+        int NN;
+    };
+
+    struct mystruct *info = malloc(sizeof *info);
+
+    int *copyarr = malloc(NN*sizeof(int));
+    memcpy(copyarr, input, NN*sizeof(int));
+    info->array = copyarr;
+    info->file = file;
+    info->NN = NN;
+
+    pthread_t tid;
+    pthread_create(&tid, NULL, threadAppend, info);
+    pthread_detach(tid);
+}
+
+void *threadAppend(void* inStruct)
+{
+    struct mystruct
+    {
+        int* array;
+        FILE* file;
+        int NN;
+    } mine = *(struct mystruct *)inStruct;
+
+    int *arrptr = mine.array;
+    FILE* file = mine.file;
+    int *copyarr = malloc(mine.NN*sizeof(int));
+    memcpy(copyarr, arrptr, mine.NN*sizeof(int));
+    mine.array = copyarr;
+    free(arrptr);
+    free(inStruct);
+
+    for (int j = 0; j < mine.NN ; j++)
+    {
+        fprintf(file,"%d\n",mine.array[j]);
+    }
+    fflush(file);
+
+    pthread_exit(NULL);
+}
+
+
 void syncwrite(int *input, int NN, char *file)
 {
     struct mystruct

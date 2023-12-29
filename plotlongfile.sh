@@ -1,0 +1,1 @@
+head -n $((444874)) longfile | awk '{w=$1-q;t=t-((w*w)>8000^2)*w;print $1+t,((w*w)>8000^2),$1;q=$1}' | cat -n | plot 'u ($1/3/3600):(-$2/48000):($3) pal; set xtics 1 ; set xlabel "time (hours)"; set ylabel "deviation (s)"'

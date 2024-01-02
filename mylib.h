@@ -27,13 +27,13 @@ int getmaxfftw(fftw_complex* array, int NN);
 int getmaxpos(int * array, int NN);
 void printspaces(int maxpos,int val, char* spaces,int mod,int columns, double a,double b,int NN, int cvalue, float beatError);
 
-void readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative);
+int readBuffer( snd_pcm_t *capture_handle, int NN, char *buffer, int *derivative);
 void readBufferRaw( snd_pcm_t *capture_handle, int NN, char *buffer, int *in);
 
 void fit10secs(double *a, double *b, double *s, int i,int* maxvals,int *maxes, int cvalue, int npeaks);
 void writefiles(FILE* fptotal, FILE* rawfile, int* totaltick, int *maxpos, int n, int NN);
 void calculateTotal(int n, int* maxpos,int NN, double threshold);
-void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound);
+int readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound);
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN,int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);

@@ -202,10 +202,21 @@ int main (int argc, char *argv[])
     int maxp = 0;
     for (; i < n; ++i)
     {
-        readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
+        int err = -32;
+        while (err == -32)
+        {
+            err = readShiftedBuffer(derivative, capture_handle, NN, buffer, maxp, shift, &totalshift, lowerBound, upperBound);
+            if (err == -32)
+            {
+                snd_pcm_close (capture_handle);
+                capture_handle = initAudio(format, device, rate);
+                err = readBuffer(capture_handle, NN, buffer, derivative);
+            }
+        }
 
         if (i==3*tps)
         {
+            usleep(500000);
 
             int* cross = malloc(NN*sizeof(int));
             crosscorint(NN, totaltick, reference,cross);

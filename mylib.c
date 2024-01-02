@@ -374,7 +374,7 @@ void readBufferRaw(snd_pcm_t *capture_handle, int NN, char *buffer, int* in)
 }
 
 
-void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
+int readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative)
 {
         unsigned char lsb;
         signed char msb;
@@ -382,7 +382,7 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
         if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) 
         {
             fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
-            exit (1);
+            return err;
         }
         for (int j = 0; j < NN*2; j+=2) 
         {
@@ -397,28 +397,33 @@ void readBuffer(snd_pcm_t *capture_handle, int NN, char *buffer, int* derivative
             derivative[j] = fabs(derivative[j]-derivative[j+1]);
         }
         derivative[NN] = 0;
+        return err;
 }
 
 
-void readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound)
+int readShiftedBuffer(int* derivative, snd_pcm_t *capture_handle, int NN, char* buffer, int maxpos, int shift, int* totalshift, int lowerBound, int upperBound)
 {
-
+    int ret;
     if (maxpos < lowerBound)
     {
         *totalshift -= shift;
         memcpy(derivative+NN-shift, derivative , shift*sizeof(int));
-        readBuffer(capture_handle, NN-shift, buffer, derivative);
+        ret = readBuffer(capture_handle, NN-shift, buffer, derivative);
     }
     else if (maxpos > upperBound ) 
     {
         *totalshift += shift;
-        readBuffer(capture_handle, shift, buffer, derivative);
-        readBuffer(capture_handle, NN, buffer, derivative);
+        ret = readBuffer(capture_handle, shift, buffer, derivative);
+        if (ret != -32) 
+        {
+        ret = readBuffer(capture_handle, NN, buffer, derivative);
+        }
     }
     else
     {
-        readBuffer(capture_handle, NN, buffer, derivative);
+        ret = readBuffer(capture_handle, NN, buffer, derivative);
     }
+    return ret;
 }
 
 

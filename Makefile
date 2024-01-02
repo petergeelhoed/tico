@@ -20,6 +20,9 @@ record: record.c libmylib.a
 recali: recali.c libmylib.a 
 	$(CC) -o recali recali.c 
     
+derivative: derivative.c
+	gcc -o derivative derivative.c -lm -Wall 
+    
 long: long.c defaultpulse.h libmylib.a 
 	gcc -o long long.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
     

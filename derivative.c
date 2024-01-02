@@ -3,36 +3,46 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void linreg(double* xarr, double* yarr, int NN, double* a, double* b, double* s)
+void linreg(double* yarr, int NN, double* a, double* b, double* s , double *sa,double *sb)
 {
     double x = 0;
     double y = 0;
     double xx = 0;
     double xy = 0;
     double yy = 0;
-    for (int j = 0; j < NN; ++j)
+    for (int j = -NN+1; j <= 0; ++j)
     {
         y  += yarr[j];
-        xx += xarr[j]*xarr[j];
-        x  += xarr[j];
-        xy += xarr[j]*yarr[j];
+        xx += j*j;
+        x  += j;
+        xy += j*yarr[j];
         yy += yarr[j]*yarr[j];
     }
     
-    *a = (y*xx-x*xy)/(NN*xx-x*x);
     *b = (NN*xy-x*y)/(NN*xx-x*x);
-    *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
+//    *a = (y*xx-x*xy)/(NN*xx-x*x);
+    *a = (y/NN)-((*b)*x/NN);
+//    *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
+    *s = sqrt( 1./NN/(NN-2)*( NN*yy-y*y-(*b)*(*b)*(NN*xx-x*x)));
+    *sb = sqrt(NN*(*s)/(NN*xx-x*x)) ;
+    *sa = sqrt((*sb)*(*sb)/NN*xx);
 }
 
 int main (int argc, char *argv[])
 {
     int bhp = 10;
+    int pr = 1;
     int c;
-    while ((c = getopt (argc, argv, "b:")) != -1)
+    while ((c = getopt (argc, argv, "b:p:v")) != -1)
     {
-        printf("%d %s %s\n", __LINE__,__func__,(__FILE__));
         switch (c)
         {
+            case 'v':
+                fprintf (stderr,"x y a b s sa sb\n");
+                break;
+            case 'p':
+                pr = atoi(optarg);
+                break;
             case 'b':
                 bhp = atoi(optarg);
                 break;
@@ -51,32 +61,33 @@ int main (int argc, char *argv[])
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
+    double sa = 0.0;
+    double sb = 0.0;
     int iN = 40;
     double *yarr = (double *)malloc(iN*sizeof(double));
-    double *xarr = (double *)malloc(iN*sizeof(double));
     double d;
     int i =0; 
     int len = bhp;
     while(scanf("%lf", &d) != EOF)
     {
         yarr[i] = d;
-        xarr[i] = (double)i;
         bhp = (len > i) ? i : len;
-        if (i>1)
-            linreg(xarr+i-bhp,yarr+i-bhp,bhp,&a, &b, &s);
-        printf("%lf %lf %lf %lf %lf\n",xarr[i],yarr[i],a,b,s);
+        if (i%pr==0)
+        {
+            if (i>3)
+                linreg(yarr+i,bhp,&a, &b, &s,&sa,&sb);
+            printf("%d %lf %lf %lf %lf %lf %lf\n",i,yarr[i],a,b,s,sa,sb);
+        }
         i=i+1;
         if (i == iN) 
         {
             iN *= 2;
-            xarr = (double *)realloc(xarr,iN*sizeof(double));
             yarr = (double *)realloc(yarr,iN*sizeof(double));
         }
 
     }
 
     free(yarr);
-    free(xarr);
     exit (0);
 }
 

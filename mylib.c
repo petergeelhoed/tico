@@ -357,20 +357,20 @@ int fftfit(
 
 void readBufferRaw(snd_pcm_t *capture_handle, int NN, char *buffer, int* in)
 {
-        unsigned char lsb;
-        signed char msb;
-        int err;
-        if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) 
-        {
-            fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
-            exit (1);
-        }
-        for (int j = 0; j < NN*2; j+=2) 
-        {
-            msb = *(buffer+j+1);
-            lsb = *(buffer+j);
-            in[j/2] = (msb << 8) | lsb ;
-        }
+    unsigned char lsb;
+    signed char msb;
+    int err;
+    if ((err = snd_pcm_readi (capture_handle, buffer, NN)) != NN) 
+    {
+        fprintf (stderr, "read from audio interface failed %d (%s)\n", err, snd_strerror (err));
+        exit (-1);
+    }
+    for (int j = 0; j < NN*2; j+=2) 
+    {
+        msb = *(buffer+j+1);
+        lsb = *(buffer+j);
+        in[j/2] = (msb << 8) | lsb ;
+    }
 }
 
 
@@ -449,6 +449,26 @@ void printspaces(int maxpos,int hexvalue, char* spaces,int mod,int columns, doub
     fprintf(stderr,"\n");
 }
 
+void linregd(const float* xarr, const float* yarr, int NN, double* a, double* b, double* s)
+{
+    double x = 0;
+    double y = 0;
+    double xx = 0;
+    double xy = 0;
+    double yy = 0;
+    for (int i = 0; i < NN; ++i)
+    {
+        y  += yarr[i];
+        xx += xarr[i]*xarr[i];
+        x  += xarr[i];
+        xy += xarr[i]*yarr[i];
+        yy += yarr[i]*yarr[i];
+    }
+    
+    *a = (y*xx-x*xy)/(NN*xx-x*x);
+    *b = (NN*xy-x*y)/(NN*xx-x*x);
+    *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
+}
 
 void linreg(const int* xarr, const int* yarr, int NN, double* a, double* b, double* s)
 {

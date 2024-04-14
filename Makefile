@@ -1,12 +1,15 @@
 CFLAGS = -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
 CC= cc -c $(CFLAGS)
 
-all: teeth capture testfft testlinreg testfilter tico record  recali 
+all: teeth capture testfft testlinreg testfilter tico record  recali derivative fft
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
 testlinreg: testlinreg.c libmylib.a 
-	$(CC) -o testlinreg testlinreg.c 
+	$(CC) -o testlinreg testlinreg.c
+
+fft: fft.c
+	cc $(CFLAGS) -o fft fft.c -lmylib
 
 testfilter: testfilter.c libmylib.a 
 	$(CC) -o testfilter testfilter.c 
@@ -37,4 +40,4 @@ libmylib.a: mylib.o mylib.h
 tico:
 	$(CC) tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
 clean:
-	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter  
+	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter fft

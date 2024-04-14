@@ -18,12 +18,11 @@ void linreg(double* yarr, int NN, double* a, double* b, double* s , double *sa,d
         xy += j*yarr[j];
         yy += yarr[j]*yarr[j];
     }
-    
+
     *b = (NN*xy-x*y)/(NN*xx-x*x);
-//    *a = (y*xx-x*xy)/(NN*xx-x*x);
     *a = (y/NN)-((*b)*x/NN);
-//    *s = sqrt((yy-2*(*a)*y-2*(*b)*xy+2*(*a)*(*b)*x+(*a)*(*a)*NN+(*b)*(*b)*xx)/NN);
-    *s = sqrt( 1./NN/(NN-2)*( NN*yy-y*y-(*b)*(*b)*(NN*xx-x*x)));
+    *s = sqrt(fabs( 1./NN/(NN-2)*( NN*yy-y*y-(*b)*(*b)*(NN*xx-x*x))));
+    
     *sb = sqrt(NN*(*s)/(NN*xx-x*x)) ;
     *sa = sqrt((*sb)*(*sb)/NN*xx);
 }
@@ -74,7 +73,12 @@ int main (int argc, char *argv[])
         bhp = (len > i) ? i : len;
         if (i%pr==0)
         {
-            if (i>3)
+            if (i<3) 
+            {
+                a=yarr[0];
+                b=d-a;
+            }
+            else
                 linreg(yarr+i,bhp,&a, &b, &s,&sa,&sb);
             printf("%d %lf %lf %lf %lf %lf %lf\n",i,yarr[i],a,b,s,sa,sb);
         }

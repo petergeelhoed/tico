@@ -14,6 +14,7 @@ fftw_complex * makeFilter(int evalue, int NN);
 
 int fftfit(int *mean, int *total, int *base, int *val, const fftw_complex *filterFFT, int NN,int verb);
 
+void linregd(const float *xarr, const float *yarr, int NN, double *a, double *b, double *s);
 void linreg(const int *xarr, const int *yarr, int NN, double *a, double *b, double *s);
 
 void applyFilter50(int* input, int NN, double* out);

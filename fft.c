@@ -106,12 +106,14 @@ int main (int argc, char **argv)
                         out[i][1]/(z*N)*out[i][1]/(z*N))
                   ); 
         }
-        printf("%f %g \n",
+        if (!lval )
+        {printf("%f %g \n",
                 0.0,
                 z*sqrt(
                     out[0][0]/(N*z)*out[0][0]/(N*z)+
                     out[0][1]/(z*N)*out[0][1]/(z*N))
               ); 
+        }
 
 
     }else{

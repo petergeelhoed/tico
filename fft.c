@@ -106,34 +106,27 @@ int main (int argc, char **argv)
     {
         for (i = 1; i < (N+2)/2; i++) 
         {
-            printf("%f %g \n",
-                    (float)(N)/i,
-                    2*z*sqrt(
+            printf("%f %g \n", (float)(N)/i, 2*z*sqrt(
                         out[i][0]/(N*z)*out[i][0]/(N*z)+
-                        out[i][1]/(z*N)*out[i][1]/(z*N))
-                  ); 
+                        out[i][1]/(z*N)*out[i][1]/(z*N))); 
         }
         if (!lval )
-        {printf("%f %g \n",
-                0.0,
-                z*sqrt(
+        {
+            printf("%f %g \n", 0.0, z*sqrt(
                     out[0][0]/(N*z)*out[0][0]/(N*z)+
-                    out[0][1]/(z*N)*out[0][1]/(z*N))
-               ); 
+                    out[0][1]/(z*N)*out[0][1]/(z*N))); 
         }
-
-
-    }else{
+    }
+    else
+    {
         for (i = 0; i < N*z; i++) 
         {
-            printf("%3d ", i);
-            printf("%g %g ", out[i][0]/(N*z), out[i][1]/(z*N) ); 
-            printf("\n");
+            printf("%d %g %g\n", i, out[i][0]/(N*z), out[i][1]/(z*N)); 
         }
     }
     fftw_destroy_plan(p);
-
-
+    fftw_free(in);
+    fftw_free(out);
     fftw_cleanup();
     return 0;
 }

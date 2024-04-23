@@ -3,9 +3,36 @@
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
+#include <sys/ioctl.h>
+#include <signal.h>
 
 #include "mylib.h"
 #include "defaultpulse.h"
+
+int columns = 63;
+void sigint_handler(int signal)
+{
+    if (signal == SIGWINCH)
+    {
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        columns = w.ws_col - 17;
+        fprintf(stderr,"new width %d\n",columns);
+    }
+}
+
+void set_signal_action(void)
+{
+    // Declare the sigaction structure
+    struct sigaction act;
+
+    // Set all of the structure's bits to 0 to avoid errors
+    // relating to uninitialized variables...
+    bzero(&act, sizeof(act));
+    act.sa_handler = &sigint_handler;
+    sigaction(SIGWINCH, &act, NULL);
+}
+
 
 int main (int argc, char *argv[])
 {
@@ -119,14 +146,11 @@ int main (int argc, char *argv[])
     int* maxvals = malloc(n*sizeof(int));
     int mod = NN/zoom;
     
-    FILE *fp =popen("/usr/bin/tput cols", "r");
-    char out[16];
-    fgets(out, 16, fp);
-    fclose(fp);
-
-    int wdth=atoi(out);
-    int columns = wdth - 17;
-    char spaces[columns+1];
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    columns = w.ws_col - 17 ;
+    char spaces[1024];
+    set_signal_action();
 
     device = device==0?"default:1":device;
 
@@ -141,9 +165,9 @@ int main (int argc, char *argv[])
 
     fprintf(stderr,
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
-            wdth - 1,
+            columns,
             mod*1000./rate,
-            mod*1000000./rate/(wdth-1));
+            mod*1000000./rate/(columns));
 
     // main loop
     int *derivative = malloc(NN*sizeof(int));
@@ -263,7 +287,7 @@ int main (int argc, char *argv[])
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod*1000./rate,
-            mod*1000000./rate/(wdth-1));
+            mod*1000000./rate/(columns));
     free(maxpos);
     free(derivative);
     free(totaltick);

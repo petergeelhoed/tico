@@ -38,19 +38,19 @@ int main (int argc, char *argv[])
 {
     unsigned int rate = 48000;
     int bph = 21600;
-    int evalue = 4;
+    int evalue = 4;   // width of gaussian window
     int zoom = 10;
     int time = 30;
-    int c;
-    int cvalue = 8;
-    int vvalue = -1;
-    int fitN = 30;
+    int cvalue = 8;   //cutoff for adding to correlation
+    int verbose = -1; // print for this peak
+    int fitN = 30;    // fit last 30 peaks, 10 seconds
+    double SDthreshold =3.;
     char *device = 0;
-    double threshold =3.;
     FILE* rawfile = 0;
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
 
+    int c;
     while ((c = getopt (argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:")) != -1)
     {
         switch (c)
@@ -67,7 +67,7 @@ int main (int argc, char *argv[])
                 cvalue = cvalue<0?0:cvalue;
                 break;
             case 'v':
-                vvalue = atoi(optarg);
+                verbose = atoi(optarg);
                 break;
             case 'e':
                 evalue = atoi(optarg);
@@ -97,7 +97,7 @@ int main (int argc, char *argv[])
                 }
                 break;
             case 's':
-                threshold = atof(optarg);
+                SDthreshold = atof(optarg);
                 break;
             case 't':
                 time = atoi(optarg);
@@ -267,13 +267,13 @@ int main (int argc, char *argv[])
                 derivative,
                 totaltick,
                 reference, maxvals+i, filterFFT, NN,
-                i==vvalue);
+                i==verbose);
 
         maxpos[i] = totalshift + maxp;
 
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
-        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, cvalue, (float)(getBeatError(totaltick, NN,i==vvalue))/rate*1000);
+        printspaces(maxpos[i], maxvals[i], spaces, mod, columns, a, b, NN, cvalue, (float)(getBeatError(totaltick, NN,i==verbose))/rate*1000);
     }
 
     free(maxvals);
@@ -283,7 +283,7 @@ int main (int argc, char *argv[])
 
     writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
 
-    calculateTotal(n, maxpos, NN, threshold);
+    calculateTotal(n, maxpos, NN, SDthreshold);
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod*1000./rate,

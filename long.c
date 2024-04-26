@@ -216,7 +216,7 @@ int main (int argc, char *argv[])
 
         if (i==3*tps)
         {
-            usleep(500000);
+           // usleep(500000);
 
             int* cross = malloc(NN*sizeof(int));
             crosscorint(NN, totaltick, reference,cross);

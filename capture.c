@@ -12,216 +12,255 @@
 int columns = 63;
 void sigint_handler(int signal)
 {
-  if (signal == SIGWINCH)
-  {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col - 17;
-    fprintf(stderr, "new width %d\n", columns);
-  }
+    if (signal == SIGWINCH)
+    {
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        columns = w.ws_col - 17;
+        fprintf(stderr, "new width %d\n", columns);
+    }
 }
 
 void set_signal_action(void)
 {
-  // Declare the sigaction structure
-  struct sigaction act;
+    // Declare the sigaction structure
+    struct sigaction act;
 
-  // Set all of the structure's bits to 0 to avoid errors
-  // relating to uninitialized variables...
-  bzero(&act, sizeof(act));
-  act.sa_handler = &sigint_handler;
-  sigaction(SIGWINCH, &act, NULL);
+    // Set all of the structure's bits to 0 to avoid errors
+    // relating to uninitialized variables...
+    bzero(&act, sizeof(act));
+    act.sa_handler = &sigint_handler;
+    sigaction(SIGWINCH, &act, NULL);
 }
 
 int main(int argc, char* argv[])
 {
-  unsigned int rate = 48000;
-  int bph = 21600;
-  int evalue = 4; // width of gaussian window
-  int zoom = 10;
-  int time = 30;
-  int cvalue = 8;   // cutoff for adding to correlation
-  int verbose = -1; // print for this peak
-  int fitN = 30;    // fit last 30 peaks, 10 seconds
-  double SDthreshold = 3.;
-  char* device = 0;
-  FILE* rawfile = 0;
-  FILE* fptotal = 0;
-  FILE* fpDefPeak = 0;
+    unsigned int rate = 48000;
+    int bph = 21600;
+    int evalue = 4; // width of gaussian window
+    int zoom = 10;
+    int time = 30;
+    int cvalue = 8;   // cutoff for adding to correlation
+    int verbose = -1; // print for this peak
+    int fitN = 30;    // fit last 30 peaks, 10 seconds
+    double SDthreshold = 3.;
+    char* device = 0;
+    FILE* rawfile = 0;
+    FILE* fptotal = 0;
+    FILE* fpDefPeak = 0;
 
-  int c;
-  while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:")) != -1)
-  {
-    switch (c)
+    int c;
+    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:")) != -1)
     {
-    case 'd':
-      device = optarg;
-      break;
-    case 'f':
-      fitN = atoi(optarg);
-      break;
-    case 'c':
-      cvalue = atoi(optarg);
-      cvalue = cvalue > 15 ? 15 : cvalue;
-      cvalue = cvalue < 0 ? 0 : cvalue;
-      break;
-    case 'v':
-      verbose = atoi(optarg);
-      break;
-    case 'e':
-      evalue = atoi(optarg);
-      break;
-    case 'w':
-      rawfile = fopen(optarg, "w");
-      if (rawfile == 0)
-      {
-        fprintf(stderr, "cannot open rawcapture\n");
-        return -4;
-      }
-      break;
-    case 'D':
-      fpDefPeak = fopen(optarg, "r");
-      if (fpDefPeak == 0)
-      {
-        fprintf(stderr, "cannot open file -D <file>\n");
-        return -4;
-      }
-      break;
-    case 'p':
-      fptotal = fopen(optarg, "w");
-      if (fptotal == 0)
-      {
-        fprintf(stderr, "cannot open file -p <file>\n");
-        return -4;
-      }
-      break;
-    case 's':
-      SDthreshold = atof(optarg);
-      break;
-    case 't':
-      time = atoi(optarg);
-      break;
-    case 'b':
-      bph = atoi(optarg);
-      break;
-    case 'z':
-      zoom = atoi(optarg);
-      break;
-    case 'r':
-      rate = atoi(optarg);
-      break;
-    case 'h':
-    default:
-      fprintf(stderr,
-              "usage: capture \n"
-              "capture reads from the microphone and timegraphs your watch\n"
-              "options:\n"
-              " -d <capture device> (default: 'default:1')\n"
-              " -z <zoom> (default: 10)\n"
-              " -b bph of the watch (default: 21600/h) \n"
-              " -r sampling rate (default: 48000Hz)\n"
-              " -t <measurment time> (default: 30s)\n"
-              " -s cutoff standarddeviation (default: 3.0)\n"
-              " -w <file> write positions to file\n"
-              " -p <file> write pulse to file\n"
-              " -D <file> read pulse from file\n"
-              " -c 8 threshold for local rate\n"
-              " -f 30 fit n points for local rate\n"
-              " -e 4 Gaussan convolution over input\n"
-              " -n 60 number of mpoints to fit in local rate\n"
-              " -v <peak> write files for this peak \n");
-      exit(0);
-      break;
+        switch (c)
+        {
+        case 'd':
+            device = optarg;
+            break;
+        case 'f':
+            fitN = atoi(optarg);
+            break;
+        case 'c':
+            cvalue = atoi(optarg);
+            cvalue = cvalue > 15 ? 15 : cvalue;
+            cvalue = cvalue < 0 ? 0 : cvalue;
+            break;
+        case 'v':
+            verbose = atoi(optarg);
+            break;
+        case 'e':
+            evalue = atoi(optarg);
+            break;
+        case 'w':
+            rawfile = fopen(optarg, "w");
+            if (rawfile == 0)
+            {
+                fprintf(stderr, "cannot open rawcapture\n");
+                return -4;
+            }
+            break;
+        case 'D':
+            fpDefPeak = fopen(optarg, "r");
+            if (fpDefPeak == 0)
+            {
+                fprintf(stderr, "cannot open file -D <file>\n");
+                return -4;
+            }
+            break;
+        case 'p':
+            fptotal = fopen(optarg, "w");
+            if (fptotal == 0)
+            {
+                fprintf(stderr, "cannot open file -p <file>\n");
+                return -4;
+            }
+            break;
+        case 's':
+            SDthreshold = atof(optarg);
+            break;
+        case 't':
+            time = atoi(optarg);
+            break;
+        case 'b':
+            bph = atoi(optarg);
+            break;
+        case 'z':
+            zoom = atoi(optarg);
+            break;
+        case 'r':
+            rate = atoi(optarg);
+            break;
+        case 'h':
+        default:
+            fprintf(
+                stderr,
+                "usage: capture \n"
+                "capture reads from the microphone and timegraphs your watch\n"
+                "options:\n"
+                " -d <capture device> (default: 'default:1')\n"
+                " -z <zoom> (default: 10)\n"
+                " -b bph of the watch (default: 21600/h) \n"
+                " -r sampling rate (default: 48000Hz)\n"
+                " -t <measurment time> (default: 30s)\n"
+                " -s cutoff standarddeviation (default: 3.0)\n"
+                " -w <file> write positions to file\n"
+                " -p <file> write pulse to file\n"
+                " -D <file> read pulse from file\n"
+                " -c 8 threshold for local rate\n"
+                " -f 30 fit n points for local rate\n"
+                " -e 4 Gaussan convolution over input\n"
+                " -n 60 number of mpoints to fit in local rate\n"
+                " -v <peak> write files for this peak \n");
+            exit(0);
+            break;
+        }
     }
-  }
 
-  // declarations
-  int NN = rate * 7200 / bph;
-  // should be even
-  NN = (NN + NN % 2);
-  int tps = rate / NN;
-  int n = time * tps;
-  int* maxpos = malloc(n * sizeof(int));
-  int* maxvals = malloc(n * sizeof(int));
-  int mod = NN / zoom;
+    // declarations
+    int NN = rate * 7200 / bph;
+    // should be even
+    NN = (NN + NN % 2);
+    int tps = rate / NN;
+    int n = time * tps;
+    int* maxpos = malloc(n * sizeof(int));
+    int* maxvals = malloc(n * sizeof(int));
+    int mod = NN / zoom;
 
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  columns = w.ws_col - 17;
-  char spaces[1024];
-  set_signal_action();
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    columns = w.ws_col - 17;
+    char spaces[1024];
+    set_signal_action();
 
-  device = device == 0 ? "default:1" : device;
+    device = device == 0 ? "default:1" : device;
 
-  snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-  snd_pcm_t* capture_handle = initAudio(format, device, rate);
-  char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
+    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+    snd_pcm_t* capture_handle = initAudio(format, device, rate);
+    char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
 
-  fftw_complex* filterFFT = makeFilter(evalue, NN);
+    fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-  int* totaltick = malloc(NN * sizeof(int));
-  for (int j = 0; j < NN; j++)
-    totaltick[j] = 0;
-
-  fprintf(stderr,
-          "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
-          columns,
-          mod * 1000. / rate,
-          mod * 1000000. / rate / (columns));
-
-  // main loop
-  int* derivative = malloc(NN * sizeof(int));
-  int* reference = malloc(NN * sizeof(int));
-  int* defref = reference;
-
-  if (fpDefPeak != 0)
-  {
+    int* totaltick = malloc(NN * sizeof(int));
     for (int j = 0; j < NN; j++)
+        totaltick[j] = 0;
+
+    fprintf(stderr,
+            "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            columns,
+            mod * 1000. / rate,
+            mod * 1000000. / rate / (columns));
+
+    // main loop
+    int* derivative = malloc(NN * sizeof(int));
+    int* reference = malloc(NN * sizeof(int));
+    int* defref = reference;
+
+    if (fpDefPeak != 0)
     {
+        for (int j = 0; j < NN; j++)
+        {
 
-      if (fscanf(fpDefPeak, "%d", reference + j) != 1)
-      {
-        fprintf(stderr, "not enough values in -D <default peak file>\n");
+            if (fscanf(fpDefPeak, "%d", reference + j) != 1)
+            {
+                fprintf(stderr,
+                        "not enough values in -D <default peak file>\n");
 
-        exit(-5);
-      }
+                exit(-5);
+            }
+        }
+        fclose(fpDefPeak);
     }
-    fclose(fpDefPeak);
-  }
-  else if (NN == 16000)
-  {
-    reference = memcpy(reference, defaultpulsedouble, 16000 * sizeof(int));
-  }
-  else
-  {
-    for (int j = 0; j < NN; j++)
+    else if (NN == 16000)
     {
-      reference[j] = 0;
+        reference = memcpy(reference, defaultpulsedouble, 16000 * sizeof(int));
     }
-    reference[NN / 4] = 1;
-    reference[3 * NN / 4] = 1;
-  }
-
-  // read emptyparts
-  readBuffer(capture_handle, NN, buffer, derivative);
-  readBuffer(capture_handle, NN / 2, buffer, derivative);
-
-  double b = 0.0;
-  double a = 0.0;
-  double s = 0.0;
-  int i = 0;
-  int totalshift = 0;
-  int bound = 32;
-  int upperBound = +NN / bound;
-  int lowerBound = -NN / bound;
-  int shift = NN / bound / 10;
-  int maxp = 0;
-  for (; i < n; ++i)
-  {
-    int err = -32;
-    while (err == -32)
+    else
     {
-      err = readShiftedBuffer(derivative,
+        for (int j = 0; j < NN; j++)
+        {
+            reference[j] = 0;
+        }
+        reference[NN / 4] = 1;
+        reference[3 * NN / 4] = 1;
+    }
+
+    // read emptyparts
+    readBuffer(capture_handle, NN, buffer, derivative);
+    readBuffer(capture_handle, NN / 2, buffer, derivative);
+
+    double b = 0.0;
+    double a = 0.0;
+    double s = 0.0;
+    int i = 0;
+    int totalshift = 0;
+    int bound = 32;
+    int upperBound = +NN / bound;
+    int lowerBound = -NN / bound;
+    int shift = NN / bound / 10;
+    int maxp = 0;
+    for (; i < n; ++i)
+    {
+        int err = -32;
+        while (err == -32)
+        {
+            err = readShiftedBuffer(derivative,
+                                    capture_handle,
+                                    NN,
+                                    buffer,
+                                    maxp,
+                                    shift,
+                                    &totalshift,
+                                    lowerBound,
+                                    upperBound);
+            if (err == -32)
+            {
+                snd_pcm_close(capture_handle);
+                capture_handle = initAudio(format, device, rate);
+                err = readBuffer(capture_handle, NN, buffer, derivative);
+            }
+        }
+
+        if (i == 3 * tps)
+        {
+
+            int* cross = malloc(NN * sizeof(int));
+            crosscorint(NN, totaltick, reference, cross);
+            int maxp = getmaxpos(cross, NN);
+            if (maxp > NN / 4 && maxp < NN * 3 / 4)
+            {
+                fprintf(stderr, "FLIPPING peaks pos %d\n", maxp);
+
+                int tmp = 0;
+                for (int j = 0; j < NN / 2; j++)
+                {
+                    tmp = reference[j + NN / 2];
+                    reference[j + NN / 2] = reference[j];
+                    reference[j] = tmp;
+                }
+            }
+
+            free(cross);
+            readShiftedBuffer(derivative,
                               capture_handle,
                               NN,
                               buffer,
@@ -230,91 +269,54 @@ int main(int argc, char* argv[])
                               &totalshift,
                               lowerBound,
                               upperBound);
-      if (err == -32)
-      {
-        snd_pcm_close(capture_handle);
-        capture_handle = initAudio(format, device, rate);
-        err = readBuffer(capture_handle, NN, buffer, derivative);
-      }
-    }
-
-    if (i == 3 * tps)
-    {
-
-      int* cross = malloc(NN * sizeof(int));
-      crosscorint(NN, totaltick, reference, cross);
-      int maxp = getmaxpos(cross, NN);
-      if (maxp > NN / 4 && maxp < NN * 3 / 4)
-      {
-        fprintf(stderr, "FLIPPING peaks pos %d\n", maxp);
-
-        int tmp = 0;
-        for (int j = 0; j < NN / 2; j++)
-        {
-          tmp = reference[j + NN / 2];
-          reference[j + NN / 2] = reference[j];
-          reference[j] = tmp;
         }
-      }
 
-      free(cross);
-      readShiftedBuffer(derivative,
-                        capture_handle,
-                        NN,
-                        buffer,
-                        maxp,
-                        shift,
-                        &totalshift,
-                        lowerBound,
-                        upperBound);
+        if (i == 6 * tps)
+        {
+            free(reference);
+            defref = 0;
+            reference = totaltick;
+        }
+
+        maxp = fftfit(derivative,
+                      totaltick,
+                      reference,
+                      maxvals + i,
+                      filterFFT,
+                      NN,
+                      i == verbose);
+
+        maxpos[i] = totalshift + maxp;
+
+        fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
+        printspaces(maxpos[i],
+                    maxvals[i],
+                    spaces,
+                    mod,
+                    columns,
+                    a,
+                    b,
+                    NN,
+                    cvalue,
+                    (float)(getBeatError(totaltick, NN, i == verbose)) / rate *
+                        1000);
     }
 
-    if (i == 6 * tps)
-    {
-      free(reference);
-      defref = 0;
-      reference = totaltick;
-    }
+    free(maxvals);
+    free(buffer);
+    fftw_free(filterFFT);
+    snd_pcm_close(capture_handle);
 
-    maxp = fftfit(derivative,
-                  totaltick,
-                  reference,
-                  maxvals + i,
-                  filterFFT,
-                  NN,
-                  i == verbose);
+    writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
 
-    maxpos[i] = totalshift + maxp;
-
-    fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
-    printspaces(maxpos[i],
-                maxvals[i],
-                spaces,
-                mod,
-                columns,
-                a,
-                b,
-                NN,
-                cvalue,
-                (float)(getBeatError(totaltick, NN, i == verbose)) / rate *
-                    1000);
-  }
-
-  free(maxvals);
-  free(buffer);
-  fftw_free(filterFFT);
-  snd_pcm_close(capture_handle);
-
-  writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
-
-  calculateTotal(n, maxpos, NN, SDthreshold);
-  fprintf(stderr,
-          "width = %.3fms  /  %.1fμs/character\n",
-          mod * 1000. / rate,
-          mod * 1000000. / rate / (columns));
-  free(maxpos);
-  free(derivative);
-  free(totaltick);
-  free(defref);
-  exit(0);
+    calculateTotal(n, maxpos, NN, SDthreshold);
+    fprintf(stderr,
+            "width = %.3fms  /  %.1fμs/character\n",
+            mod * 1000. / rate,
+            mod * 1000000. / rate / (columns));
+    free(maxpos);
+    free(derivative);
+    free(totaltick);
+    free(defref);
+    exit(0);
 }

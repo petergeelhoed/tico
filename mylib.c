@@ -596,7 +596,8 @@ int getmaxfftw(fftw_complex* array, int NN)
 {
     double maxtick = -INT_MAX;
     int postick = 0;
-    for (int j = NN / 4; j < 3 * NN / 4; j++)
+    // for (int j = NN / 4; j < 3 * NN / 4; j++)
+    for (int j = 0; j < NN; j++)
     {
         if (array[j][0] > maxtick)
         {

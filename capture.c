@@ -246,6 +246,20 @@ int main(int argc, char* argv[])
             int* cross = malloc(NN * sizeof(int));
             crosscorint(NN, totaltick, reference, cross);
             int maxp = getmaxpos(cross, NN);
+            if (verbose)
+            {
+                FILE* fp = fopen("flip", "w");
+                for (int j = 0; j < NN; j++)
+                {
+                    fprintf(fp,
+                            "%d %d %d %d\n",
+                            j,
+                            totaltick[j],
+                            reference[j],
+                            cross[j]);
+                }
+                fclose(fp);
+            }
             if (maxp > NN / 4 && maxp < NN * 3 / 4)
             {
                 fprintf(stderr, "FLIPPING peaks pos %d\n", maxp);

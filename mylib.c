@@ -349,6 +349,7 @@ int fftfit(int* input,
     double maxcor = corr[poscor][0];
     *hexvalue = (int)(maxcor * 16);
 
+    // needed to add to total
     poscor -= NN / 2;
 
     // rescale if large

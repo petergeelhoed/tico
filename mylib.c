@@ -339,9 +339,9 @@ int fftfit(int* input,
         syncwrite(input, NN, "input");
     }
 
-    //    if (verb) writefftw(filteredinput,NN,"filteredinput");
-    //    if (verb) writefftw(Fbase,NN,"Fbase");
-    //    if (verb) writefftw(corr,NN,"crosscor");
+        if (verb) writefftw(filteredinput,NN,"filteredinput");
+        if (verb) writefftw(Fbase,NN,"Fbase");
+        if (verb) writefftw(corr,NN,"crosscor");
 
     int poscor = getmaxfftw(corr, NN);
 

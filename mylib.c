@@ -426,19 +426,19 @@ int readShiftedBuffer(int* derivative,
                       int NN,
                       char* buffer,
                       int maxpos,
-                      int shift,
-                      int* totalshift,
-                      int lowerBound,
-                      int upperBound)
+                      int* totalshift)
 {
     int ret;
-    if (maxpos < lowerBound)
+    int shift = abs(maxpos)/2;
+    if (shift > 50 ) shift /=4;
+    
+    if (maxpos < 0)
     {
         *totalshift -= shift;
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
         ret = readBuffer(capture_handle, NN - shift, buffer, derivative);
     }
-    else if (maxpos > upperBound)
+    else if (maxpos > 0)
     {
         *totalshift += shift;
         ret = readBuffer(capture_handle, shift, buffer, derivative);

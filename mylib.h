@@ -70,10 +70,7 @@ int readShiftedBuffer(int* derivative,
                       int NN,
                       char* buffer,
                       int maxpos,
-                      int shift,
-                      int* totalshift,
-                      int lowerBound,
-                      int upperBound);
+                      int* totalshift);
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN, int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);

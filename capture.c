@@ -170,11 +170,11 @@ int main(int argc, char* argv[])
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns));
 
-    // main loop
     int* derivative = malloc(NN * sizeof(int));
     int* reference = malloc(NN * sizeof(int));
     int* defref = reference;
 
+    // read default peak
     if (fpDefPeak != 0)
     {
         for (int j = 0; j < NN; j++)
@@ -213,10 +213,6 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int i = 0;
     int totalshift = 0;
-    int bound = 32;
-    int upperBound = +NN / bound;
-    int lowerBound = -NN / bound;
-    int shift = NN / bound / 10;
     int maxp = 0;
     for (; i < n; ++i)
     {
@@ -228,10 +224,7 @@ int main(int argc, char* argv[])
                                     NN,
                                     buffer,
                                     maxp,
-                                    shift,
-                                    &totalshift,
-                                    lowerBound,
-                                    upperBound);
+                                    &totalshift);
             if (err == -32)
             {
                 snd_pcm_close(capture_handle);
@@ -279,10 +272,7 @@ int main(int argc, char* argv[])
                               NN,
                               buffer,
                               maxp,
-                              shift,
-                              &totalshift,
-                              lowerBound,
-                              upperBound);
+                              &totalshift);
         }
 
         if (i == 6 * tps)

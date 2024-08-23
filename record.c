@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
     char* device = 0;
     // declarations
     int NN = rate * 3600 / bph * 2 ;
-    int length = time * bph /7200;
 
     while ((c = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
     {
@@ -29,7 +28,6 @@ int main(int argc, char* argv[])
             break;
         case 't':
             time = atoi(optarg);
-            length = time * NN;
             break;
         case 'b':
             bph = atoi(optarg);
@@ -52,6 +50,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
+    int length = time * bph / 7200;
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
@@ -60,22 +59,24 @@ int main(int argc, char* argv[])
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
-    int derivative[NN];
+    int rawread[NN];
     FILE* fp = fopen("recorded", "w");
-    readBufferRaw(capture_handle, 8000, buffer, derivative);
-    readBufferRaw(capture_handle, 8000, buffer, derivative);
-    readBufferRaw(capture_handle, 8000, buffer, derivative);
+    readBufferRaw(capture_handle, 8000, buffer, rawread);
+    readBufferRaw(capture_handle, 8000, buffer, rawread);
+    readBufferRaw(capture_handle, 8000, buffer, rawread);
     while (length)
     {
         length--;
-        readBufferRaw(capture_handle, NN, buffer, derivative);
+        readBufferRaw(capture_handle, NN, buffer, rawread);
 
-        double out[NN];
-        applyFilter(derivative, NN, filterFFT, out);
-        for (int j = 0; j < NN; j++)
+        //double out[NN];
+        //applyFilter(rawread, NN, filterFFT, out);
+ /*       for (int j = 0; j < NN; j++)
         {
-            fprintf(fp, "%d %f %d\n", j, out[j], derivative[j]);
+            fprintf(fp, "%d\n", rawread[j]);
         }
+   */
+        syncappend(rawread, NN , fp);
         printf("%d\n", length);
     }
 

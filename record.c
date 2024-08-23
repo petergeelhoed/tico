@@ -14,7 +14,8 @@ int main(int argc, char* argv[])
     int evalue = 4;
     char* device = 0;
     // declarations
-    int NN = rate * 3600 / bph;
+    int NN = rate * 3600 / bph * 2 ;
+    int length = time * bph /7200;
 
     while ((c = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
     {
@@ -28,7 +29,7 @@ int main(int argc, char* argv[])
             break;
         case 't':
             time = atoi(optarg);
-            NN = time * NN;
+            length = time * NN;
             break;
         case 'b':
             bph = atoi(optarg);
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
                 " -d <capture device> (default: 'default:1')\n"
                 " -b bph of the watch (default: 21600/h) \n"
                 " -r sampling rate (default: 48000Hz)\n"
-                " -t <number of tics> (default: one tick )\n");
+                " -t time to record (default: 30s )\n");
             exit(0);
             break;
         }
@@ -60,17 +61,24 @@ int main(int argc, char* argv[])
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
     int derivative[NN];
+    FILE* fp = fopen("recorded", "w");
     readBufferRaw(capture_handle, 8000, buffer, derivative);
     readBufferRaw(capture_handle, 8000, buffer, derivative);
     readBufferRaw(capture_handle, 8000, buffer, derivative);
-    readBufferRaw(capture_handle, NN, buffer, derivative);
-    double out[NN];
-    applyFilter(derivative, NN, filterFFT, out);
-
-    for (int j = 0; j < NN; j++)
+    while (length)
     {
-        printf("%d %f %d\n", j, out[j], derivative[j]);
+        length--;
+        readBufferRaw(capture_handle, NN, buffer, derivative);
+
+        double out[NN];
+        applyFilter(derivative, NN, filterFFT, out);
+        for (int j = 0; j < NN; j++)
+        {
+            fprintf(fp, "%d %f %d\n", j, out[j], derivative[j]);
+        }
+        printf("%d\n", length);
     }
+
     fftw_free(filterFFT);
     exit(0);
 }

@@ -1,4 +1,4 @@
-CFLAGS = -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
+CFLAGS= -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
 CC= cc -c $(CFLAGS)
 
 all: teeth capture testfft testlinreg testfilter tico record  recali derivative fft wav2raw
@@ -18,7 +18,7 @@ testfft: testfft.c libmylib.a
 	$(CC) -o testfft testfft.c 
 
 record: record.c libmylib.a 
-	$(CC) -o record record.c 
+	gcc -o record record.c  $(CFLAGS)
 
 wav2raw: wav2raw.c 
 	gcc -o wav2raw wav2raw.c 

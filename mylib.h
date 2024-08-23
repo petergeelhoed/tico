@@ -37,6 +37,7 @@ void normalise(int NN, fftw_complex* in);
 
 int getmaxfftw(fftw_complex* array, int NN);
 int getmaxpos(int* array, int NN);
+int getmaxposscaled(int* array, int NN);
 void printspaces(int maxpos,
                  int val,
                  char* spaces,

@@ -301,7 +301,6 @@ int main(int argc, char* argv[])
                       i == verbose);
 
         maxpos[i] = totalshift + maxp;
-
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
         printspaces(maxpos[i],
                     maxvals[i],

@@ -431,8 +431,8 @@ int readShiftedBuffer(int* derivative,
                       FILE* fpInput)
 {
     int ret;
-    int shift = abs(maxpos)/2;
-    if (shift > 50 ) shift /=4;
+    int shift = (int)sqrt(abs(maxpos));
+
     
     if (maxpos < 0)
     {
@@ -664,8 +664,7 @@ int getmaxfftw(fftw_complex* array, int NN)
 {
     double maxtick = -INT_MAX;
     int postick = 0;
-    // for (int j = NN / 4; j < 3 * NN / 4; j++)
-    for (int j = 0; j < NN; j++)
+    for (int j = NN / 3; j < 2 * NN / 3; j++)
     {
         if (array[j][0] > maxtick)
         {

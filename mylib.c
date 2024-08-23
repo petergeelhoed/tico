@@ -427,7 +427,8 @@ int readShiftedBuffer(int* derivative,
                       int NN,
                       char* buffer,
                       int maxpos,
-                      int* totalshift)
+                      int* totalshift,
+                      FILE* fpInput)
 {
     int ret;
     int shift = abs(maxpos)/2;
@@ -437,20 +438,86 @@ int readShiftedBuffer(int* derivative,
     {
         *totalshift -= shift;
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
+        if (fpInput)
+        {
+            ret = 0;
+            for (int j=0 ; j<NN-shift; ++j)
+            {
+                if (fscanf(fpInput,"%d",derivative+j) != 1)
+                {
+                    ret = -32;
+                    break;
+                }
+            }
+    for (int j = 0; j < NN - 1; j++)
+    {
+        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+    }
+        }
+        else
+        {
         ret = readBuffer(capture_handle, NN - shift, buffer, derivative);
+        }
     }
     else if (maxpos > 0)
     {
         *totalshift += shift;
-        ret = readBuffer(capture_handle, shift, buffer, derivative);
-        if (ret != -32)
+        if (fpInput)
         {
-            ret = readBuffer(capture_handle, NN, buffer, derivative);
+            ret = 0;
+            for (int j=0 ; j<shift; ++j)
+            {
+                if (fscanf(fpInput,"%d",derivative+j) != 1)
+                {
+                    ret = -32;
+                    break;
+                }
+            }
+            for (int j=0 ; j<NN; ++j)
+            {
+                if (fscanf(fpInput,"%d",derivative+j) != 1)
+                {
+                    ret = -32;
+                    break;
+                }
+            }
+    for (int j = 0; j < NN - 1; j++)
+    {
+        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+    }
+        }
+        else
+        {
+            ret = readBuffer(capture_handle, shift, buffer, derivative);
+
+            if (ret != -32)
+            {
+                ret = readBuffer(capture_handle, NN, buffer, derivative);
+            }
         }
     }
     else
     {
-        ret = readBuffer(capture_handle, NN, buffer, derivative);
+        if (fpInput)
+        {
+            ret = 0;
+            for (int j=0 ; j<shift; ++j)
+            {
+                if (fscanf(fpInput,"%d",derivative+j) != 1)
+                {
+                    ret = -32;
+                    break;
+                }
+            }
+    for (int j = 0; j < NN - 1; j++)
+    {
+        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+    }
+        }
+        else 
+        {
+            ret = readBuffer(capture_handle, NN, buffer, derivative);
+        }
     }
     return ret;
 }

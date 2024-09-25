@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
                     b,
                     NN,
                     cvalue,
-                    (float)(getBeatError(totaltick, NN, 0)) / rate * 1000);
+                    (getBeatError(totaltick, NN, 0))*1000. / rate);
     }
 
     free(maxvals);

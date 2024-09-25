@@ -1,7 +1,7 @@
 CFLAGS= -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
 CC= cc -c $(CFLAGS)
 
-all: teeth capture testfft testlinreg testfilter tico record  recali derivative fft wav2raw
+all: teeth capture testfft testlinreg testfilter tico record  recali derivative fft wav2raw cap
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
@@ -31,6 +31,9 @@ derivative: derivative.c
     
 long: long.c defaultpulse.h libmylib.a 
 	gcc -o long long.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
+    
+cap: cap.c libmylib.a 
+	gcc -o cap cap.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
     
 capture: capture.c defaultpulse.h libmylib.a 
 	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread

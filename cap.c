@@ -39,8 +39,8 @@ int main(int argc, char* argv[])
     int evalue = 4; // width of gaussian window
     int zoom = 10;
     int time = 30;
-    int cvalue = 8;   // cutoff for adding to correlation
-    int fitN = 30;    // fit last 30 peaks, 10 seconds
+    int cvalue = 8; // cutoff for adding to correlation
+    int fitN = 30;  // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
     char device[] = "default:1";
     FILE* fpInput = 0;
@@ -99,7 +99,6 @@ int main(int argc, char* argv[])
     char spaces[1024];
     set_signal_action();
 
-
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
@@ -113,7 +112,6 @@ int main(int argc, char* argv[])
     }
     totaltick[NN / 4] = 1;
     totaltick[3 * NN / 4] = 1;
-
 
     fprintf(stderr,
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
@@ -132,7 +130,7 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int totalshift = 0;
     int maxp = 0;
-    for (int i=0 ; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
         int err = -32;
         while (err == -32)
@@ -152,13 +150,8 @@ int main(int argc, char* argv[])
             }
         }
 
-        maxp = fftfit(derivative,
-                      totaltick,
-                      totaltick,
-                      maxvals + i,
-                      filterFFT,
-                      NN,
-                      0);
+        maxp = fftfit(
+            derivative, totaltick, totaltick, maxvals + i, filterFFT, NN, 0);
 
         maxpos[i] = totalshift + maxp;
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
@@ -171,8 +164,7 @@ int main(int argc, char* argv[])
                     b,
                     NN,
                     cvalue,
-                    (float)(getBeatError(totaltick, NN, 0)) / rate *
-                        1000);
+                    (float)(getBeatError(totaltick, NN, 0)) / rate * 1000);
     }
 
     free(maxvals);

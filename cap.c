@@ -8,9 +8,14 @@
 
 #include "mylib.h"
 
-int columns = 63;
+static int keepRunning = 1;
+static int columns = 63;
 void sigint_handler(int signal)
 {
+    if (signal == SIGINT)
+    {
+        keepRunning = 0;
+    }
     if (signal == SIGWINCH)
     {
         struct winsize w;
@@ -30,6 +35,7 @@ void set_signal_action(void)
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     sigaction(SIGWINCH, &act, NULL);
+    sigaction(SIGINT, &act, NULL);
 }
 
 int main(int argc, char* argv[])
@@ -38,7 +44,7 @@ int main(int argc, char* argv[])
     int bph = 21600;
     int evalue = 4; // width of gaussian window
     int zoom = 10;
-    int time = 30;
+    int time = 5;
     int cvalue = 8; // cutoff for adding to correlation
     int fitN = 30;  // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
@@ -46,7 +52,7 @@ int main(int argc, char* argv[])
     FILE* fpInput = 0;
 
     int c;
-    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:")) != -1)
+    while ((c = getopt(argc, argv, "e:z:I:h")) != -1)
     {
         switch (c)
         {
@@ -61,9 +67,6 @@ int main(int argc, char* argv[])
                 return -4;
             }
             break;
-        case 't':
-            time = atoi(optarg);
-            break;
         case 'z':
             zoom = atoi(optarg);
             break;
@@ -75,7 +78,6 @@ int main(int argc, char* argv[])
                 "capture reads from the microphone and timegraphs your watch\n"
                 "options:\n"
                 " -z <zoom> (default: 10)\n"
-                " -t <measurment time> (default: 30s)\n"
                 " -I <file> read from file instead of microphone\n"
                 " -e 4 Gaussan convolution over input\n");
             exit(0);
@@ -130,8 +132,15 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int totalshift = 0;
     int maxp = 0;
-    for (int i = 0; i < n; ++i)
+    int i = 0;
+    while (keepRunning)
     {
+        if (i == n)
+        {
+            n *= 1.5;
+            maxpos = realloc(maxpos, n * sizeof(int));
+            maxvals = realloc(maxvals, n * sizeof(int));
+        }
         int err = -32;
         while (err == -32)
         {
@@ -164,7 +173,8 @@ int main(int argc, char* argv[])
                     b,
                     NN,
                     cvalue,
-                    (getBeatError(totaltick, NN, 0))*1000. / rate);
+                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
+        i++;
     }
 
     free(maxvals);
@@ -172,7 +182,7 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     snd_pcm_close(capture_handle);
 
-    calculateTotal(n, maxpos, NN, SDthreshold);
+    calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,

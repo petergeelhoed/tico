@@ -197,10 +197,6 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int i = 0;
     int totalshift = 0;
-    int bound = 32;
-    int upperBound = +NN / bound;
-    int lowerBound = -NN / bound;
-    int shift = NN / bound / 10;
     int maxp = 0;
     for (; i < n; ++i)
     {
@@ -212,10 +208,8 @@ int main(int argc, char* argv[])
                                     NN,
                                     buffer,
                                     maxp,
-                                    shift,
                                     &totalshift,
-                                    lowerBound,
-                                    upperBound);
+                                    0);
             if (err == -32)
             {
                 snd_pcm_close(capture_handle);
@@ -250,10 +244,8 @@ int main(int argc, char* argv[])
                               NN,
                               buffer,
                               maxp,
-                              shift,
                               &totalshift,
-                              lowerBound,
-                              upperBound);
+                              0);
         }
 
         if (i == 6 * tps)

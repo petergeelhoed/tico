@@ -7,6 +7,7 @@ all: \
     derivative\
     fft\
     libmylib.a\
+    long\
     recali\
     record\
     teeth\
@@ -23,6 +24,7 @@ binaries=\
     derivative\
     fft\
     libmylib.a\
+    long\
     recali\
     record\
     teeth\

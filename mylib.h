@@ -15,7 +15,7 @@ int fftfit(int* mean,
            int* total,
            int* base,
            int* val,
-           const fftw_complex* filterFFT,
+           fftw_complex* filterFFT,
            int NN,
            int verb);
 

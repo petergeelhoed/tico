@@ -16,7 +16,7 @@ void sigint_handler(int signal)
     {
         keepRunning = 0;
     }
-    if (signal == SIGWINCH)
+    else if (signal == SIGWINCH)
     {
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);

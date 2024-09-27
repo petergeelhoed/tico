@@ -319,7 +319,7 @@ int fftfit(int* input,
            int* total,
            int* base,
            int* hexvalue,
-           const fftw_complex* filterFFT,
+           fftw_complex* filterFFT,
            int NN,
            int verb)
 {

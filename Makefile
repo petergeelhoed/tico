@@ -27,8 +27,8 @@ clean:
 	rm -f $(targets)
 
 
-teeth: teeth.c libmylib.a
-	$(CC) -o teeth teeth.c $(MYLIBFLAGS) 
+teeth: teeth.c libmylib.a libmysound.a
+	$(CC) -o teeth teeth.c $(MYLIBFLAGS)  -lmysound
 
 testlinreg: testlinreg.c libmylib.a 
 	$(CC) -o testlinreg testlinreg.c $(MYLIBFLAGS) 
@@ -42,26 +42,32 @@ testfilter: testfilter.c libmylib.a
 testfft: testfft.c libmylib.a 
 	$(CC) -o testfft testfft.c  $(MYLIBFLAGS) 
 
-record: record.c libmylib.a 
-	$(CC) -o record record.c $(MYLIBFLAGS) 
+record: record.c libmylib.a  libmysound.a
+	$(CC) -o record record.c $(MYLIBFLAGS)  -lmysound
 
 wav2raw: wav2raw.c 
 	$(CC) -o  wav2raw wav2raw.c 
     
-recali: recali.c libmylib.a 
-	$(CC) -o recali recali.c $(MYLIBFLAGS) 
+recali: recali.c libmylib.a  libmysound.a
+	$(CC) -o recali recali.c $(MYLIBFLAGS)  -lmysound
     
 derivative: derivative.c libmylib.a 
 	$(CC) -o derivative derivative.c  $(MYLIBFLAGS)
     
-long: long.c defaultpulse.h libmylib.a 
-	$(CC) -o long long.c $(MYLIBFLAGS) 
+long: long.c defaultpulse.h libmylib.a  libmysound.a
+	$(CC) -o long long.c $(MYLIBFLAGS)  -lmysound
     
-cap: cap.c libmylib.a 
-	$(CC) -o cap cap.c $(MYLIBFLAGS)
+cap: cap.c libmylib.a libmysound.a
+	$(CC) -o cap cap.c $(MYLIBFLAGS) -lmysound
 
-capture: capture.c defaultpulse.h libmylib.a 
-	$(CC) -o capture capture.c $(MYLIBFLAGS)
+capture: capture.c defaultpulse.h libmylib.a  libmysound.a
+	$(CC) -o capture capture.c $(MYLIBFLAGS) -lmysound
+
+mysound.o: mysound.c mysound.h
+	$(CC) -c  -o mysound.o mysound.c 
+
+libmysound.a: mysound.o mysound.h
+	ar -rcs libmysound.a mysound.o
 
 mylib.o: mylib.c mylib.h
 	$(CC) -c  -o mylib.o mylib.c 

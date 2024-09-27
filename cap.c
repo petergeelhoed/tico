@@ -7,6 +7,7 @@
 #include <sys/ioctl.h>
 
 #include "mylib.h"
+#include "mysound.h"
 
 static int keepRunning = 1;
 static int columns = 63;

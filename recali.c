@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "mylib.h"
+#include "mysound.h"
 
 int main()
 {

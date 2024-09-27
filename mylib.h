@@ -3,7 +3,6 @@
 
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);
-snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
 void rescale(int* total, int NN);
 
 fftw_complex* makeFilter(int evalue, int NN);
@@ -46,12 +45,6 @@ void printspaces(int maxpos,
                  int cvalue,
                  float beatError);
 
-int readBuffer(snd_pcm_t* capture_handle,
-               int NN,
-               char* buffer,
-               int* derivative);
-void readBufferRaw(snd_pcm_t* capture_handle, int NN, char* buffer, int* in);
-
 void fit10secs(double* a,
                double* b,
                double* s,
@@ -63,12 +56,6 @@ void fit10secs(double* a,
 void writefiles(
     FILE* fptotal, FILE* rawfile, int* totaltick, int* maxpos, int n, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
-int readShiftedBuffer(int* derivative,
-                      snd_pcm_t* capture_handle,
-                      int NN,
-                      char* buffer,
-                      int maxpos,
-                      int* totalshift, FILE* fpInput);
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
 int getBeatError(int* totalTick, int NN, int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);

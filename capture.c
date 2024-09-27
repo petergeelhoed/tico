@@ -8,6 +8,7 @@
 
 #include "defaultpulse.h"
 #include "mylib.h"
+#include "mysound.h"
 
 int columns = 63;
 void sigint_handler(int signal)

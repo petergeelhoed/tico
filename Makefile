@@ -1,7 +1,40 @@
-CFLAGS= -pthread -lasound -lm -lfftw3   -Wall -L. -lmylib
+CFLAGS= -pthread -lasound -lm -lfftw3 -Wall -L. -lmylib
 CC= cc -c $(CFLAGS)
 
-all: teeth capture testfft testlinreg testfilter tico record  recali derivative fft wav2raw cap
+all: \
+    cap\
+    capture\
+    derivative\
+    fft\
+    libmylib.a\
+    recali\
+    record\
+    teeth\
+    testfft\
+    testfilter\
+    testlinreg\
+    tico\
+    wav2raw
+
+binaries=\
+    mylib.[ao] \
+    cap\
+    capture\
+    derivative\
+    fft\
+    libmylib.a\
+    recali\
+    record\
+    teeth\
+    testfft\
+    testfilter\
+    testlinreg\
+    tico\
+    wav2raw
+
+clean:
+	rm $(binaries)
+
 teeth: teeth.c
 	gcc teeth.c -o teeth -lfftw3 -lm
 
@@ -30,20 +63,16 @@ derivative: derivative.c
 	gcc -o derivative derivative.c -lm -Wall 
     
 long: long.c defaultpulse.h libmylib.a 
-	gcc -o long long.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
+	gcc -o long long.c $(CFLAGS)
     
 cap: cap.c libmylib.a 
-	gcc -o cap cap.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
+	$(CC) -o cap cap.c -Wpedantic -Wextra 
     
 capture: capture.c defaultpulse.h libmylib.a 
-	gcc -o capture capture.c -lasound -lm -lfftw3   -Wall -L. -lmylib -pthread
+	gcc -o capture capture.c $(CFLAGS) 
     
-libmylib.o: mylib.c mylib.h
+libmylib.a: mylib.c mylib.h
 	$(CC) -c -o mylib.o mylib.c 
-
-libmylib.a: mylib.o mylib.h
 	ar -rcs libmylib.a mylib.o
 tico:
 	$(CC) tico.c  -lm -o tico -lfftw3 -I /usr/local/fftw/include -L /usr/local/fftw/liba
-clean:
-	rm  mylib.o capture teeth libmylib.[oa] testfft testlinreg testfilter fft

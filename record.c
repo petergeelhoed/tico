@@ -5,6 +5,7 @@
 
 #include "mylib.h"
 #include "mysound.h"
+#include "myfft.h"
 
 int main(int argc, char* argv[])
 {

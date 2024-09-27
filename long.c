@@ -6,6 +6,7 @@
 
 #include "defaultpulse.h"
 #include "mylib.h"
+#include "myfft.h"
 #include "mysound.h"
 
 int main(int argc, char* argv[])

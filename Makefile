@@ -24,44 +24,50 @@ targets=\
 all: $(targets)
 
 clean:
-	rm -f $(targets)
+	rm -f $(targets)aa
 
 
 teeth: teeth.c libmylib.a libmysound.a
 	$(CC) -o teeth teeth.c $(MYLIBFLAGS)  -lmysound
 
-testlinreg: testlinreg.c libmylib.a 
-	$(CC) -o testlinreg testlinreg.c $(MYLIBFLAGS) 
+testlinreg: testlinreg.c libmylib.a  libmyfft.a
+	$(CC) -o testlinreg testlinreg.c $(MYLIBFLAGS) -lmyfft
 
-fft: fft.c libmylib.a
-	$(CC) -o fft fft.c $(MYLIBFLAGS) 
+fft: fft.c libmylib.a libmyfft.a
+	$(CC) -o fft fft.c $(MYLIBFLAGS) -lmyfft
 
-testfilter: testfilter.c libmylib.a 
-	$(CC) -o testfilter testfilter.c  $(MYLIBFLAGS) 
+testfilter: testfilter.c libmylib.a  libmyfft.a
+	$(CC) -o testfilter testfilter.c  $(MYLIBFLAGS)  -lmyfft -lmylib
 
-testfft: testfft.c libmylib.a 
-	$(CC) -o testfft testfft.c  $(MYLIBFLAGS) 
+testfft: testfft.c libmylib.a libmyfft.a
+	$(CC) -o testfft testfft.c  $(MYLIBFLAGS) -lmyfft -lmylib
 
-record: record.c libmylib.a  libmysound.a
-	$(CC) -o record record.c $(MYLIBFLAGS)  -lmysound
+record: record.c libmylib.a  libmysound.a libmyfft.a
+	$(CC) -o record record.c $(MYLIBFLAGS)  -lmysound -lmyfft
 
 wav2raw: wav2raw.c 
 	$(CC) -o  wav2raw wav2raw.c 
     
-recali: recali.c libmylib.a  libmysound.a
-	$(CC) -o recali recali.c $(MYLIBFLAGS)  -lmysound
+recali: recali.c libmylib.a  libmysound.a libmyfft.a
+	$(CC) -o recali recali.c $(MYLIBFLAGS)  -lmysound -lmyfft -lmylib
     
 derivative: derivative.c libmylib.a 
 	$(CC) -o derivative derivative.c  $(MYLIBFLAGS)
     
-long: long.c defaultpulse.h libmylib.a  libmysound.a
-	$(CC) -o long long.c $(MYLIBFLAGS)  -lmysound
+long: long.c defaultpulse.h libmylib.a libmysound.a libmyfft.a
+	$(CC) -o long long.c $(MYLIBFLAGS)  -lmysound -lmyfft
     
-cap: cap.c libmylib.a libmysound.a
-	$(CC) -o cap cap.c $(MYLIBFLAGS) -lmysound
+cap: cap.c libmylib.a libmysound.a libmyfft.a
+	$(CC) -o cap cap.c $(MYLIBFLAGS) -lmysound -lmyfft
 
-capture: capture.c defaultpulse.h libmylib.a  libmysound.a
-	$(CC) -o capture capture.c $(MYLIBFLAGS) -lmysound
+capture: capture.c defaultpulse.h libmylib.a  libmysound.a libmyfft.a
+	$(CC) -o capture capture.c $(MYLIBFLAGS) -lmysound -lmyfft
+
+myfft.o: myfft.c myfft.h mylib.o
+	$(CC) -c  -o myfft.o myfft.c -lmylib 
+
+libmyfft.a: myfft.o myfft.h
+	ar -rcs libmyfft.a myfft.o
 
 mysound.o: mysound.c mysound.h
 	$(CC) -c  -o mysound.o mysound.c 

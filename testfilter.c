@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "mylib.h"
+#include "myfft.h"
 
 int main()
 {

@@ -1,27 +1,10 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
+
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);
 void rescale(int* total, int NN);
-
-fftw_complex* makeFilter(int evalue, int NN);
-
-int fftfit(int* mean,
-           int* total,
-           int* base,
-           int* val,
-           fftw_complex* filterFFT,
-           int NN,
-           int verb);
-void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
-fftw_complex* convolute(int NN, int* array, fftw_complex* filter);
-void normalise(int NN, fftw_complex* in);
-
-int getmaxfftw(fftw_complex* array, int NN);
-fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
-void writefftw(fftw_complex* arr, int NN, const char* file);
-
 
 void linregd(const float* xarr,
              const float* yarr,
@@ -32,8 +15,6 @@ void linregd(const float* xarr,
 void linreg(
     const int* xarr, const int* yarr, int NN, double* a, double* b, double* s);
 
-void applyFilter50(int* input, int NN, double* out);
-void remove50hz(int NN, int* array, int rate);
 
 int getmaxpos(int* array, int NN);
 int getmaxposscaled(int* array, int NN);

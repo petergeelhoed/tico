@@ -378,21 +378,3 @@ void writearraydouble(double* arr, int NN, const char* file)
     }
     fclose(fp);
 }
-void normalise(int NN, fftw_complex* in)
-{
-    double ix = 0.0;
-    double ixx = 0.0;
-    for (int j = 0; j < NN; j++)
-    {
-        in[j][0] = in[j][0];
-        ix += in[j][0];
-        ixx += in[j][0] * in[j][0];
-    }
-    double m = ix / NN;
-    double s = sqrt(ixx / NN - m * m);
-    for (int j = 0; j < NN; j++)
-    {
-        in[j][0] = (in[j][0] - m) / s;
-    }
-}
-

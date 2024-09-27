@@ -28,13 +28,13 @@ clean:
 
 
 teeth: teeth.c libmylib.a
-	$(CC) $(FFTFLAGS) teeth.c -o teeth 
+	$(CC) teeth.c -o teeth 
 
 testlinreg: testlinreg.c libmylib.a 
 	$(CC) -o testlinreg testlinreg.c
 
 fft: fft.c libmylib.a
-	$(CC) $(CFLAGS) $(FFTFLAGS) $(MYLIBFLAGS) -o fft fft.c  -pthread
+	$(CC) -o fft fft.c 
 
 testfilter: testfilter.c libmylib.a 
 	$(CC) -o testfilter testfilter.c 
@@ -43,7 +43,7 @@ testfft: testfft.c libmylib.a
 	$(CC) -o testfft testfft.c 
 
 record: record.c libmylib.a 
-	$(CC) -o record record.c -pthread
+	$(CC) -o record record.c
 
 wav2raw: wav2raw.c 
 	$(CC) -o  wav2raw wav2raw.c 
@@ -55,18 +55,18 @@ derivative: derivative.c
 	$(CC) -o derivative derivative.c 
     
 long: long.c defaultpulse.h libmylib.a 
-	$(CC) -o long long.c -pthread
+	$(CC) -o long long.c
     
 cap: cap.c libmylib.a 
 	$(CC) -o cap cap.c -Wpedantic -Wextra 
     
 capture: capture.c defaultpulse.h libmylib.a 
-	$(CC) -o capture capture.c -pthread
+	$(CC) -o capture capture.c
     
 mylib.o: mylib.c mylib.h
-	$(CC) -c -o mylib.o mylib.c
+	$(CC) -o mylib.o mylib.c
 
 libmylib.a: mylib.o mylib.h
 	ar -rcs libmylib.a mylib.o
 tico:
-	$(CC) tico.c  -lm -o tico -lfftw3 
+	$(CC) -o tico tico.c 

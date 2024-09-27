@@ -6,7 +6,7 @@
 
 #include "mylib.h"
 
-int main(int argc, char* argv[])
+int main()
 {
     int fitwindow = 14;
     int xarr[fitwindow];

@@ -54,7 +54,7 @@ int openfiles(FILE** tickfile,
               int svalue,
               int NN);
 
-int main(int argc, char** argv)
+int main()
 {
     int rvalue = 0;
     int qvalue = 4000;

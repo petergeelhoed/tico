@@ -4,7 +4,7 @@
 
 #include "mylib.h"
 
-int main(int argc, char* argv[])
+int main()
 {
     unsigned int rate = 48000;
     char* device = 0;

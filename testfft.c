@@ -6,7 +6,7 @@
 
 #include "mylib.h"
 
-int main(int argc, char* argv[])
+int main()
 {
     int NN = 20;
     int evalue = 1;

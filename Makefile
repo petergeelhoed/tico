@@ -1,8 +1,8 @@
 FFTFLAGS= -lfftw3
 SOUNDFLAGS= -lasound
-CFLAGS= -lm -Wall 
-MYLIBFLAGS= -L. -lmylib
-CC= cc -c $(CFLAGS)
+MYLIBFLAGS= -L. -lmylib $(FFTFLAGS) $(SOUNDFLAGS) -pthread
+CFLAGS= -lm -Wall
+CC= cc $(CFLAGS)
 
 targets=\
     mylib.o \
@@ -28,45 +28,46 @@ clean:
 
 
 teeth: teeth.c libmylib.a
-	$(CC) teeth.c -o teeth 
+	$(CC) -o teeth teeth.c $(MYLIBFLAGS)
 
 testlinreg: testlinreg.c libmylib.a 
-	$(CC) -o testlinreg testlinreg.c
+	$(CC) -o testlinreg testlinreg.c $(MYLIBFLAGS)
 
 fft: fft.c libmylib.a
-	$(CC) -o fft fft.c 
+	$(CC) -o fft fft.c $(MYLIBFLAGS)
 
 testfilter: testfilter.c libmylib.a 
-	$(CC) -o testfilter testfilter.c 
+	$(CC) -o testfilter testfilter.c  $(MYLIBFLAGS)
 
 testfft: testfft.c libmylib.a 
-	$(CC) -o testfft testfft.c 
+	$(CC) -o testfft testfft.c  $(MYLIBFLAGS)
 
 record: record.c libmylib.a 
-	$(CC) -o record record.c
+	$(CC) -o record record.c $(MYLIBFLAGS)
 
 wav2raw: wav2raw.c 
 	$(CC) -o  wav2raw wav2raw.c 
     
 recali: recali.c libmylib.a 
-	$(CC) -o recali recali.c 
+	$(CC) -o recali recali.c $(MYLIBFLAGS)
     
-derivative: derivative.c
-	$(CC) -o derivative derivative.c 
+derivative: derivative.c libmylib.a 
+	$(CC) -o derivative derivative.c  -Wpedantic -Wextra $(MYLIBFLAGS)
     
 long: long.c defaultpulse.h libmylib.a 
-	$(CC) -o long long.c
+	$(CC) -o long long.c $(MYLIBFLAGS)
     
 cap: cap.c libmylib.a 
-	$(CC) -o cap cap.c -Wpedantic -Wextra 
-    
+	$(CC) -o cap cap.c -Wpedantic -Wextra $(MYLIBFLAGS)
+
 capture: capture.c defaultpulse.h libmylib.a 
-	$(CC) -o capture capture.c
-    
+	$(CC) -o capture capture.c -Wpedantic -Wextra $(MYLIBFLAGS)
+
 mylib.o: mylib.c mylib.h
-	$(CC) -o mylib.o mylib.c
+	$(CC) -c  -o mylib.o mylib.c -Wpedantic -Wextra 
 
 libmylib.a: mylib.o mylib.h
 	ar -rcs libmylib.a mylib.o
+
 tico:
-	$(CC) -o tico tico.c 
+	$(CC) -o tico tico.c  $(FFTFLAGS) $(SOUNDFLAGS) -pthread

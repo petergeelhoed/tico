@@ -27,7 +27,7 @@ void linreg(
 
 void applyFilter50(int* input, int NN, double* out);
 void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
-fftw_complex* convolute(int NN, int* array, const fftw_complex* filter);
+fftw_complex* convolute(int NN, int* array, fftw_complex* filter);
 void remove50hz(int NN, int* array, int rate);
 
 void normalise(int NN, fftw_complex* in);

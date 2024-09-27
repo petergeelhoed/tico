@@ -199,7 +199,7 @@ void remove50hz(int NN, int* array, int rate)
     }
 }
 
-fftw_complex* convolute(int NN, int* array, const fftw_complex* filterFFT)
+fftw_complex* convolute(int NN, int* array, fftw_complex* filterFFT)
 {
     fftw_complex* in = fftw_alloc_complex(NN);
     fftw_complex* out = fftw_alloc_complex(NN);
@@ -543,9 +543,9 @@ void printspaces(int maxpos,
     spaces[widtha] = '|';
     spaces[width] = '\0';
     fprintf(stderr,
-            "%s%s%X\e[0m",
+            "%s%s%X\\e[0m",
             spaces,
-            hexvalue < cvalue ? "\e[31m" : "\e[32m",
+            hexvalue < cvalue ? "\\e[31m" : "\\e[32m",
             hexvalue);
     memset(spaces, ' ', columns);
     if (widtha > width)

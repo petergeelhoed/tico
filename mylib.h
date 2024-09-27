@@ -1,8 +1,5 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);

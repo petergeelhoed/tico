@@ -151,36 +151,6 @@ fftw_complex* convolute(int NN, int* array, fftw_complex* filterFFT)
     return in;
 }
 
-void rescale(int* total, int NN)
-{
-    if (total[NN / 2] > 100000000 || total[0] > 100)
-    {
-
-        long int avg = 0;
-
-        for (int j = 0; j < NN; j++)
-        {
-            avg += total[j];
-        }
-        avg /= NN;
-        int avi = (int)avg;
-        if (avi > 100)
-        {
-            for (int j = 0; j < NN; j++)
-            {
-                total[j] -= avi;
-            }
-        }
-        else
-        {
-            for (int j = 0; j < NN; j++)
-            {
-                total[j] /= 2;
-            }
-        }
-    }
-}
-
 fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref)
 {
     normalise(NN, array);
@@ -291,6 +261,55 @@ int fftfit(int* input,
 
     return poscor;
 }
+
+int getmaxfftw(fftw_complex* array, int NN)
+{
+    double maxtick = -INT_MAX;
+    int postick = 0;
+    for (int j = NN / 3; j < 2 * NN / 3; j++)
+    {
+        if (array[j][0] > maxtick)
+        {
+            maxtick = array[j][0];
+            postick = j;
+        }
+    }
+    return postick;
+}
+
+void crosscorint(int NN, int* array, int* ref, int* cross)
+{
+
+    fftw_complex* tmparr = fftw_alloc_complex(NN);
+    fftw_complex* tmpref = fftw_alloc_complex(NN);
+    for (int j = 0; j < NN; j++)
+    {
+        tmparr[j][0] = array[j];
+        tmparr[j][1] = 0.0;
+        tmpref[j][0] = ref[j];
+        tmpref[j][1] = 0.0;
+    }
+    fftw_complex* coor = crosscor(NN, tmparr, tmpref);
+
+    for (int j = 0; j < NN; j++)
+    {
+        cross[j] = (int)(coor[j][0] * NN);
+    }
+    fftw_free(tmpref);
+    fftw_free(tmparr);
+    fftw_free(coor);
+}
+
+void writefftw(fftw_complex* arr, int NN, const char* file)
+{
+    FILE* fp = fopen(file, "w");
+    for (int j = 0; j < NN; j++)
+    {
+        fprintf(fp, "%d %f %f\n", j, arr[j][0], arr[j][1]);
+    }
+    fclose(fp);
+}
+
 
 void printspaces(int maxpos,
                  int hexvalue,
@@ -430,21 +449,6 @@ void writefiles(
     }
 }
 
-int getmaxfftw(fftw_complex* array, int NN)
-{
-    double maxtick = -INT_MAX;
-    int postick = 0;
-    for (int j = NN / 3; j < 2 * NN / 3; j++)
-    {
-        if (array[j][0] > maxtick)
-        {
-            maxtick = array[j][0];
-            postick = j;
-        }
-    }
-    return postick;
-}
-
 int getmaxposscaled(int* array, int NN)
 {
     int maxtick = -INT_MAX;
@@ -535,48 +539,6 @@ int getBeatError(int* totaltick, int NN, int verbose)
     int postick = getmaxpos(cross, NN / 2);
     //int postick = getmaxposscaled(cross, NN / 2);
     return (postick + NN / 4) % (NN / 2) - NN / 4;
-}
-
-void crosscorint(int NN, int* array, int* ref, int* cross)
-{
-
-    fftw_complex* tmparr = fftw_alloc_complex(NN);
-    fftw_complex* tmpref = fftw_alloc_complex(NN);
-    for (int j = 0; j < NN; j++)
-    {
-        tmparr[j][0] = array[j];
-        tmparr[j][1] = 0.0;
-        tmpref[j][0] = ref[j];
-        tmpref[j][1] = 0.0;
-    }
-    fftw_complex* coor = crosscor(NN, tmparr, tmpref);
-
-    for (int j = 0; j < NN; j++)
-    {
-        cross[j] = (int)(coor[j][0] * NN);
-    }
-    fftw_free(tmpref);
-    fftw_free(tmparr);
-    fftw_free(coor);
-}
-
-void writearraydouble(double* arr, int NN, const char* file)
-{
-    FILE* fp = fopen(file, "w");
-    for (int j = 0; j < NN; j++)
-    {
-        fprintf(fp, "%d %f\n", j, arr[j]);
-    }
-    fclose(fp);
-}
-void writefftw(fftw_complex* arr, int NN, const char* file)
-{
-    FILE* fp = fopen(file, "w");
-    for (int j = 0; j < NN; j++)
-    {
-        fprintf(fp, "%d %f %f\n", j, arr[j][0], arr[j][1]);
-    }
-    fclose(fp);
 }
 
 void writearray(int* arr, int NN, const char* file)
@@ -679,4 +641,44 @@ void* threadWrite(void* inStruct)
     writearray(mine.array, mine.NN, mine.file);
 
     pthread_exit(NULL);
+}
+
+void rescale(int* total, int NN)
+{
+    if (total[NN / 2] > 100000000 || total[0] > 100)
+    {
+
+        long int avg = 0;
+
+        for (int j = 0; j < NN; j++)
+        {
+            avg += total[j];
+        }
+        avg /= NN;
+        int avi = (int)avg;
+        if (avi > 100)
+        {
+            for (int j = 0; j < NN; j++)
+            {
+                total[j] -= avi;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NN; j++)
+            {
+                total[j] /= 2;
+            }
+        }
+    }
+}
+
+void writearraydouble(double* arr, int NN, const char* file)
+{
+    FILE* fp = fopen(file, "w");
+    for (int j = 0; j < NN; j++)
+    {
+        fprintf(fp, "%d %f\n", j, arr[j]);
+    }
+    fclose(fp);
 }

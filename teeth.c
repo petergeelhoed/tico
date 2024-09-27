@@ -78,7 +78,6 @@ int main(int argc, char** argv)
     int yvalue = 0;
     int svalue = 0;
     int bvalue = 0;
-    int uvalue = 0;
     int qvalue = 4000;
     int tvalue = 0;
     int kvalue = 0;
@@ -309,7 +308,6 @@ int main(int argc, char** argv)
         }
         fftw_destroy_plan(makefilter);
 
-        int val = 0;
         int Npeak = 0;
         int shift = NN;
         int startshift = NN;
@@ -406,10 +404,6 @@ int main(int argc, char** argv)
                 fftw_execute(reverse);
             }
 
-            float tot = 0;
-            float mom = 0;
-            int j = 0;
-            int n = 0;
             if (Npeak >= lvalue)
             {
 
@@ -588,13 +582,11 @@ int main(int argc, char** argv)
         fftw_cleanup();
         // before outputting tockfile move it to the maxpos
         float maxtock = -1.;
-        int postock = 0;
         for (int j = 0; j < NN; j++)
         {
             if (avgtock[j] > maxtock)
             {
                 maxtock = avgtock[j];
-                postock = j;
             }
         }
         for (int j = 0; j < NN; j++)
@@ -661,7 +653,7 @@ set title sprintf(\"beaterror: %%.2fms\",1000*(a-a1));\
     if (vvalue && zvalue)
         fprintf(stderr,
                 "cat teethshape  | plot 'u "
-                "($2-4000)/48:(int($1)%2==1?$3:-$3)*f($2):1 pal w l  ; set "
+                "($2-4000)/48:(int($1)%%2==1?$3:-$3)*f($2):1 pal w l  ; set "
                 "xrange [-15:3]; set x2tics ( \"200\" -14.058654,\"210\" "
                 "-13.389194,\"220 \" -12.780594,\"230\" -12.224916,\"240\" "
                 "-11.715545,\"250\" -11.246923,\"260\" -10.814349,\"270\" "
@@ -788,6 +780,8 @@ struct HEADER readheader()
     if (DEBUG != 0)
         printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
 
+    if (read)
+        read = 0;
     header.data_size = buffer4[0] | (buffer4[1] << 8) | (buffer4[2] << 16) |
                        (buffer4[3] << 24);
     if (DEBUG != 0)
@@ -2064,10 +2058,11 @@ int openfiles(FILE** tickfile,
             -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,
             -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,  -4,
             -4,  -4,  -4,  -4,  -4};
-        fprintf(stderr, "No pulsefile called 'pulseshape' found; using default "
-                        "8000 shape\nConsider after running with -e 16 : cp "
-                        "shape pulseshape\n or \n makepulseshape.sh\n then you "
-                        "can use -s to use different tick tock shapes.\n");
+        fprintf(stderr,
+                "No pulsefile called 'pulseshape' found; using default "
+                "8000 shape\nConsider after running with -e 16 : cp "
+                "shape pulseshape\n or \n makepulseshape.sh\n then you "
+                "can use -s to use different tick tock shapes.\n");
 
         //                 PEAK=10; eval `cat shape | awk '{print
         //                 $1,$2/(1+($1>4150)*(($1-4000)/150)^2)/(1+($1<3900)*((-$1+3900)/100)^2),$3/(1+($1>4150)*(($1-4000)/150)^2)/(1+($1<3900)*((-$1+3900)/100)^2)}'

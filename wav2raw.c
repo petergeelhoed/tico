@@ -56,44 +56,10 @@ int openfiles(FILE** tickfile,
 
 int main(int argc, char** argv)
 {
-    FILE* tickavg = stdout;
-    FILE* tickfile = stdout;
-    FILE* tockfile = stdout;
-    FILE* corfile = stdout;
-    FILE* rawfile = stdout;
-    FILE* pulsefile = 0;
-    FILE* teethfile = 0;
-    int dvalue = 4000;
-    int c;
-    int evalue = 0;
-    float cvalue = 0;
-    int ovalue = 0;
-    int xvalue = -1;
-    int pvalue = 15 * 2;
-    int fvalue = 48000;
-    int hvalue = 21600;
-    int lvalue = 0;
     int rvalue = 0;
-    int yvalue = 0;
-    int svalue = 0;
-    int bvalue = 0;
-    int uvalue = 0;
     int qvalue = 4000;
-    int tvalue = 0;
-    int kvalue = 0;
-    int zvalue = 0;
-    int wvalue = 0;
-    int vvalue = 0;
-    int jvalue = 0;
     int NN = 8000;
-    int Ntick = 0;
-    int Ntock = 0;
     opterr = 0;
-    double* ps;
-    double* pst;
-    double* avgtick;
-    double* avgtock;
-    double* zavg;
     int read = 0;
     opterr = 0;
 
@@ -104,13 +70,6 @@ int main(int argc, char** argv)
         long i = 0;
         unsigned char lsb[1];
         signed char msb[1];
-        int globalshift = 0;
-        float mean[NN];
-        mean[0] = 1.;
-        for (int j = 1; j < NN; j++)
-        {
-            mean[j] = 0.;
-        }
 
         for (i = 44; i <= 100; i++)
         {
@@ -255,6 +214,7 @@ struct HEADER readheader()
     read = fread(buffer4, sizeof(buffer4), 1, stdin);
     if (DEBUG != 0)
         printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
+    if (read) read =0;
 
     header.data_size = buffer4[0] | (buffer4[1] << 8) | (buffer4[2] << 16) |
                        (buffer4[3] << 24);

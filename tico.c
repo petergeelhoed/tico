@@ -427,7 +427,7 @@ int main(int argc, char** argv)
                         {
                             if (ovalue == 0)
                             {
-                                printf("%d %d %d\n",
+                                printf("%ld %d %d\n",
                                        i + j - NN,
                                        mean[j],
                                        peaks[(int)(i - 1) / NN]);
@@ -463,7 +463,7 @@ int main(int argc, char** argv)
                               mvalue == 0)))
                         {
                             fprintf(
-                                outfile, "%d %d %d\n", (i - 1) / NN, k, max);
+                                outfile, "%ld %d %d\n", (i - 1) / NN, k, max);
                         }
                     }
                     else if (tot > 0)
@@ -477,7 +477,7 @@ int main(int argc, char** argv)
                                  mvalue == 0))
                             {
                                 fprintf(outfile,
-                                        "%d %d %d\n",
+                                        "%ld %d %d\n",
                                         (i - 1) / NN,
                                         j,
                                         mean[j]);
@@ -489,7 +489,7 @@ int main(int argc, char** argv)
             else
             {
                 printf("Error reading file. %d bytes\n", read);
-                exit - 1;
+                exit(-1);
             }
         }
         fftw_destroy_plan(p);

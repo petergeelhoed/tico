@@ -4,8 +4,9 @@ t[io]ck
 pulseshape
 teeth
 capture
-libmylib.a
-mylib.o
+*.a
+*.o
+.gitignore
 testfft
 testfilter
 testlinreg

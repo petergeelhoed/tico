@@ -2,6 +2,7 @@ SOUNDFLAGS= -L. -lasound -lmysound
 MYLIBFLAGS= -L. -lmylib 
 FFTFLAGS= -L. -lfftw3 -lmyfft
 CFLAGS= -lm -Wall -pthread -Wpedantic -Wextra 
+SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer 
 CC= cc $(CFLAGS)
 
 targets=\
@@ -49,9 +50,6 @@ testfft: testfft.c libmylib.a libmyfft.a
 record: record.c libmylib.a  libmysound.a libmyfft.a
 	$(CC) -o record record.c $(MYLIBFLAGS)  $(SOUNDFLAGS) $(FFTFLAGS)
 
-wav2raw: wav2raw.c 
-	$(CC) -o  wav2raw wav2raw.c 
-    
 recali: recali.c libmylib.a  libmysound.a libmyfft.a
 	$(CC) -o recali recali.c  $(FFTFLAGS) $(MYLIBFLAGS)  $(SOUNDFLAGS)
     
@@ -91,3 +89,6 @@ tico: tico.c
 teeth: teeth.c libmylib.a libmysound.a
 	$(CC) -o teeth teeth.c $(MYLIBFLAGS)  -lmysound -lfftw3
 
+wav2raw: wav2raw.c 
+	$(CC) -o  wav2raw wav2raw.c 
+    

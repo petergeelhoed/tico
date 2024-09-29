@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     int pvalue = 0;
     int fvalue = 48000;
     int hvalue = 21600;
-    int lvalue = 0;
+    unsigned int lvalue = 0;
     int rvalue = 0;
     int qvalue = 2000;
     int mvalue = 0;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
             break;
         case 'l':
             // trim left
-            lvalue = atoi(optarg);
+            lvalue = atol(optarg);
             break;
         case 'q':
             // move up
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
     // read each sample from data chunk if PCM
     if (header.format_type == 1)
     { // PCM
-        long i = 0;
+        unsigned long i = 0;
         unsigned char lsb[1];
         signed char msb[1];
 
@@ -515,7 +515,7 @@ int main(int argc, char** argv)
         float y = 0;
         float yy = 0;
         int n = 0;
-        for (int j = 0; j < (i - 1) / NN; j++)
+        for (unsigned int j = 0; j < (i - 1) / NN; j++)
         {
             if (peaks[j] > 0)
             {
@@ -551,7 +551,7 @@ int main(int argc, char** argv)
             "($1/h):($2/f):(int($1)%%2) pal ps 3 pt  5 t sprintf(\"%%.1f s/d "
             "%%.1f s/d\",b*86400,b1*86400) , f(x) lc 7 t "
             "sprintf(\"%%.2fms\",c*1000), g(x) lc 5 t sprintf(\"%%.2fms "
-            "beaterror: \%%.3fms\",c1*1000,1000*(a-a1)) ; print \"beaterror: "
+            "beaterror: %%.3fms\",c1*1000,1000*(a-a1)) ; print \"beaterror: "
             "\",1000*(a-a1), \"ms\";'  | gnuplot -persist ",
             fvalue,
             hvalue,

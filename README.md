@@ -1,3 +1,6 @@
+# cap
+captures from microphobe and scrolls a timegraph over your terminal.
+
 # tico
 mechanical watch analysis  on a Wav file
 requires gnuplot and fftw3

@@ -30,9 +30,9 @@ void printspaces(int maxpos,
     spaces[widtha] = '|';
     spaces[width] = '\0';
     fprintf(stderr,
-            "%s%s%X\\e[0m",
+            "%s%s%X\033[0m",
             spaces,
-            hexvalue < cvalue ? "\\e[31m" : "\\e[32m",
+            hexvalue < cvalue ? "\033[31m" : "\033[32m",
             hexvalue);
     memset(spaces, ' ', columns);
     if (widtha > width)

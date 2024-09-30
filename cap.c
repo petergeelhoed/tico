@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col - 17;
+    columns = w.ws_col - 14;
     char spaces[1024];
     set_signal_action();
 

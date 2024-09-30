@@ -25,7 +25,15 @@ void printspaces(int maxpos,
 
     int width = (maxpos % mod) * columns / mod;
     int widtha = (((int)a) % mod) * columns / mod;
-    fprintf(stderr, "%5.2fms%6.1fs/d", beatError, b * 86400 / NN);
+    char line[14+1];
+    memset(line, ' ', 14);
+    line[14] = '\0';
+    snprintf(line, 5 , "%4.2f", beatError);
+    snprintf(line+4, 8, "ms%5.1f", b * 86400 / NN);
+    sprintf(line+11, "s/d");
+    line[14] = '\0';
+    fprintf(stderr,"%s",line);
+
     memset(spaces, ' ', columns);
     spaces[widtha] = '|';
     spaces[width] = '\0';

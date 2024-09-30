@@ -7,46 +7,48 @@
 #include "mylib.h"
 
 
+void printheader(
+                 double b,
+                 int NN,
+                 float beatError)
+{
+    char line[14+1];
+    snprintf(line, 5 , "%4.2f", beatError);
+    snprintf(line+4, 8, "ms%5.1f", b * 86400 / NN);
+    sprintf(line+11, "s/d");
+    fprintf(stderr,"%s",line);
+}
+
 void printspaces(int maxpos,
                  int hexvalue,
                  char* spaces,
                  int mod,
                  int columns,
-                 double a,
-                 double b,
-                 int NN,
-                 int cvalue,
-                 float beatError)
+                 double avg_pos,
+                 int cvalue)
 {
     while (maxpos < mod)
         maxpos += mod;
-    while (a < mod)
-        a += (double)mod;
-
+    while (avg_pos < mod)
+        avg_pos += (double)mod;
     int width = (maxpos % mod) * columns / mod;
-    int widtha = (((int)a) % mod) * columns / mod;
-    char line[14+1];
-    memset(line, ' ', 14);
-    line[14] = '\0';
-    snprintf(line, 5 , "%4.2f", beatError);
-    snprintf(line+4, 8, "ms%5.1f", b * 86400 / NN);
-    sprintf(line+11, "s/d");
-    line[14] = '\0';
-    fprintf(stderr,"%s",line);
+    int widtha = (((int)avg_pos) % mod) * columns / mod;
 
-    memset(spaces, ' ', columns);
-    spaces[widtha] = '|';
+    memset(spaces, ' ', width);
     spaces[width] = '\0';
+    if (widtha < width) spaces[widtha] = '|';
+
     fprintf(stderr,
             "%s%s%X\033[0m",
             spaces,
             hexvalue < cvalue ? "\033[31m" : "\033[32m",
             hexvalue);
-    memset(spaces, ' ', columns);
+
+    memset(spaces, ' ', width);
     if (widtha > width)
     {
         spaces[widtha - width - 1] = '|';
-        spaces[widtha - width - 1 + 1] = '\0';
+        spaces[widtha - width] = '\0';
         fprintf(stderr, "%s", spaces);
     }
     fprintf(stderr, "\n");

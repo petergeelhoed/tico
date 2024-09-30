@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     int wdth = atoi(out);
-    int columns = wdth - 17;
+    int columns = wdth;
     char spaces[columns + 1];
 
     device = device == 0 ? "default:1" : device;
@@ -273,17 +273,15 @@ int main(int argc, char* argv[])
         }
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
+        printheader(b,NN,
+                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
         printspaces(maxpos[i],
                     maxvals[i],
                     spaces,
                     mod,
-                    columns,
+                    columns-14,
                     a,
-                    b,
-                    NN,
-                    cvalue,
-                    (float)(getBeatError(totaltick, NN, i == vvalue)) / rate *
-                        1000);
+                    cvalue);
     }
 
     free(maxvals);

@@ -11,7 +11,7 @@
 #include "myfft.h"
 
 static int keepRunning = 1;
-static int columns = 63;
+static int columns = 80;
 void sigint_handler(int signal)
 {
     if (signal == SIGINT)
@@ -22,7 +22,7 @@ void sigint_handler(int signal)
     {
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-        columns = w.ws_col - 17;
+        columns = w.ws_col;
         fprintf(stderr, "new width %d\n", columns);
     }
 }
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col - 14;
+    columns = w.ws_col;
     char spaces[1024];
     set_signal_action();
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             columns,
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns));
+            mod * 1000000. / rate / (columns-14));
 
     int* derivative = malloc(NN * sizeof(int));
 
@@ -166,16 +166,15 @@ int main(int argc, char* argv[])
 
         maxpos[i] = totalshift + maxp;
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
+        printheader(b,NN,
+                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
         printspaces(maxpos[i],
                     maxvals[i],
                     spaces,
                     mod,
-                    columns,
+                    columns-14,
                     a,
-                    b,
-                    NN,
-                    cvalue,
-                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
+                    cvalue);
         i++;
     }
 
@@ -188,7 +187,7 @@ int main(int argc, char* argv[])
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns));
+            mod * 1000000. / rate / (columns-14));
     free(maxpos);
     free(derivative);
     free(totaltick);

@@ -18,16 +18,18 @@ void linreg(
 
 int getmaxpos(int* array, int NN);
 int getmaxposscaled(int* array, int NN);
+
+void printheader(double b,
+                 int NN,
+                 float beatError);
+
 void printspaces(int maxpos,
                  int val,
                  char* spaces,
                  int mod,
                  int columns,
                  double a,
-                 double b,
-                 int NN,
-                 int cvalue,
-                 float beatError);
+                 int cvalue);
 
 void fit10secs(double* a,
                double* b,

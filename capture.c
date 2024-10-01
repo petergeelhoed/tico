@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
         totaltick[j] = 0;
 
     fprintf(stderr,
-            "\033[2J\nFound COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             columns,
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));

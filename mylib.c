@@ -14,7 +14,7 @@ void printheader(
 {
     char line[14+1];
     snprintf(line, 5 , "%4.2f", beatError);
-    snprintf(line+4, 8, "ms%5.1f", b * 86400 / NN);
+    snprintf(line+4, 8, "ms%+5.1f", b * 86400 / NN);
     sprintf(line+11, "s/d");
     fprintf(stderr,"%s",line);
 }

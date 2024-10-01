@@ -11,10 +11,15 @@
 #include "mysound.h"
 #include "myfft.h"
 
+static int keepRunning = 1;
 int columns = 80;
 void sigint_handler(int signal)
 {
-    if (signal == SIGWINCH)
+    if (signal == SIGINT)
+    {
+        keepRunning = 0;
+    }
+    else if (signal == SIGWINCH)
     {
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -33,6 +38,7 @@ void set_signal_action(void)
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     sigaction(SIGWINCH, &act, NULL);
+    sigaction(SIGINT, &act, NULL);
 }
 
 int main(int argc, char* argv[])
@@ -223,11 +229,17 @@ int main(int argc, char* argv[])
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
-    int i = 0;
     int totalshift = 0;
     int maxp = 0;
-    for (; i < n; ++i)
+    int i = 0;
+    while (keepRunning)
     {
+        if (i == n)
+        {
+            n *= 1.5;
+            maxpos = realloc(maxpos, n * sizeof(int));
+            maxvals = realloc(maxvals, n * sizeof(int));
+        }
         int err = -32;
         while (err == -32)
         {
@@ -313,6 +325,7 @@ int main(int argc, char* argv[])
                     columns-14,
                     a,
                     cvalue);
+        i++;
     }
 
     free(maxvals);
@@ -322,7 +335,7 @@ int main(int argc, char* argv[])
 
     writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
 
-    calculateTotal(n, maxpos, NN, SDthreshold);
+    calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,

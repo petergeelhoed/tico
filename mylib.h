@@ -1,6 +1,3 @@
-#include <alsa/asoundlib.h>
-#include <fftw3.h>
-
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);
 void rescale(int* total, int NN);

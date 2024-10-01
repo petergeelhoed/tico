@@ -253,7 +253,6 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-        printf("%d %d %d\n",i,maxtime,n);
             n += 60*tps;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
@@ -333,7 +332,7 @@ int main(int argc, char* argv[])
                       NN,
                       i == verbose);
 
-        if (i>0 && i % len == 0)
+        if (rawfile && i>0 && i % len == 0)
         {
             syncappend(maxpos + i - len , len, rawfile);
         }
@@ -351,8 +350,8 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     snd_pcm_close(capture_handle);
 
-    
-    syncappend(maxpos + i - i%len , i%len, rawfile);
+    if (rawfile) syncappend(maxpos + i - i%len , i%len, rawfile);
+
     writefiles(fptotal, totaltick, NN);
 
     calculateTotal(i, maxpos, NN, SDthreshold);

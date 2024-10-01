@@ -4,8 +4,8 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "defaultpulse.h"
 #include "myfft.h"
@@ -95,13 +95,13 @@ int main(int argc, char* argv[])
             }
             break;
         case 'w':
-            if (!access(optarg, F_OK)) 
+            if (!access(optarg, F_OK))
             {
-                fprintf(stderr, " existrawfile %s\n",optarg);
+                fprintf(stderr, " existrawfile %s\n", optarg);
                 if (remove(optarg))
                 {
-                fprintf(stderr, "cannot delete rawfile\n");
-                return -4;
+                    fprintf(stderr, "cannot delete rawfile\n");
+                    return -4;
                 }
             }
             rawfile = fopen(optarg, "a");
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
     // should be even
     NN = (NN + NN % 2);
     int tps = rate / NN;
-    int n = time?time*tps:30 * tps;
+    int n = time ? time * tps : 30 * tps;
     int maxtime = n;
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
@@ -200,7 +200,8 @@ int main(int argc, char* argv[])
         totaltick[j] = 0;
 
     fprintf(stderr,
-            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  "
+            "%.1fμs/character\n",
             columns,
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
@@ -249,11 +250,11 @@ int main(int argc, char* argv[])
     int totalshift = 0;
     int maxp = 0;
     int i = 0;
-    while (keepRunning && !(i > maxtime && time ))
+    while (keepRunning && !(i > maxtime && time))
     {
         if (i == n)
         {
-            n += 60*tps;
+            n += 60 * tps;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
         }
@@ -332,9 +333,9 @@ int main(int argc, char* argv[])
                       NN,
                       i == verbose);
 
-        if (rawfile && i>0 && i % len == 0)
+        if (rawfile && i > 0 && i % len == 0)
         {
-            syncappend(maxpos + i - len , len, rawfile);
+            syncappend(maxpos + i - len, len, rawfile);
         }
         maxpos[i] = totalshift + maxp;
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
@@ -350,9 +351,11 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     snd_pcm_close(capture_handle);
 
-    if (rawfile) syncappend(maxpos + i - i%len , i%len, rawfile);
+    if (rawfile)
+        syncappend(maxpos + i - i % len, i % len, rawfile);
 
-    writefiles(fptotal, totaltick, NN);
+    writefile(fptotal, totaltick, NN);
+    fclose(fptotal);
 
     calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,

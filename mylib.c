@@ -6,6 +6,7 @@
 
 #include "mylib.h"
 
+/*Prints header on line or at the top */
 void printheader(double b, int NN, int l, float beatError)
 {
     char line[14 + 1];
@@ -142,14 +143,12 @@ void fit10secs(double* a,
     }
 }
 
-void writefiles(
-    FILE* fptotal, int* totaltick, int NN)
+void writefile(FILE* fp, int* array, int NN)
 {
-    if (fptotal)
+    if (fp)
     {
         for (int j = 0; j < NN; j++)
-            fprintf(fptotal, "%d\n", totaltick[j]);
-        fclose(fptotal);
+            fprintf(fp, "%d\n", array[j]);
     }
 }
 

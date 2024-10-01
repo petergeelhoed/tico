@@ -1,7 +1,6 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
-
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);
 void rescale(int* total, int NN);
@@ -15,14 +14,10 @@ void linregd(const float* xarr,
 void linreg(
     const int* xarr, const int* yarr, int NN, double* a, double* b, double* s);
 
-
 int getmaxpos(int* array, int NN);
 int getmaxposscaled(int* array, int NN);
 
-void printheader(double b,
-                 int NN,
-                 int l,
-                 float beatError);
+void printheader(double b, int NN, int l, float beatError);
 
 void printspaces(int maxpos,
                  int val,
@@ -40,8 +35,7 @@ void fit10secs(double* a,
                int* maxes,
                int cvalue,
                int npeaks);
-void writefiles(
-    FILE* fptotal, int* totaltick, int NN);
+void writefile(FILE* fp, int* array, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
 int getBeatError(int* totalTick, int NN, int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);

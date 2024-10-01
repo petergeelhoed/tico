@@ -357,13 +357,3 @@ void rescale(int* total, int NN)
         }
     }
 }
-
-void writearraydouble(double* arr, int NN, const char* file)
-{
-    FILE* fp = fopen(file, "w");
-    for (int j = 0; j < NN; j++)
-    {
-        fprintf(fp, "%d %f\n", j, arr[j]);
-    }
-    fclose(fp);
-}

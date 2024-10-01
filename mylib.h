@@ -41,4 +41,3 @@ void crosscorint(int NN, int* array, int* ref, int* cross);
 void* threadWrite(void* arr);
 void* threadAppend(void* arr);
 void writearray(int* arr, int NN, const char* file);
-void writearraydouble(double* arr, int NN, const char* file);

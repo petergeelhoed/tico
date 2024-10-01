@@ -10,7 +10,6 @@ targets=\
     capture\
     derivative\
     fft\
-    long\
     recali\
     record\
     teeth\
@@ -55,9 +54,6 @@ recali: recali.c libmylib.a  libmysound.a libmyfft.a
     
 derivative: derivative.c libmylib.a 
 	$(CC) -o derivative derivative.c  $(MYLIBFLAGS)
-    
-long: long.c defaultpulse.h libmylib.a libmysound.a libmyfft.a
-	$(CC) -o long long.c $(MYLIBFLAGS)  $(SOUNDFLAGS) $(FFTFLAGS)
     
 cap: cap.c libmylib.a libmysound.a libmyfft.a
 	$(CC) -o cap cap.c $(MYLIBFLAGS) $(SOUNDFLAGS) $(FFTFLAGS)

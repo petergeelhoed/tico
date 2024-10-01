@@ -41,7 +41,7 @@ void fit10secs(double* a,
                int cvalue,
                int npeaks);
 void writefiles(
-    FILE* fptotal, FILE* rawfile, int* totaltick, int* maxpos, int n, int NN);
+    FILE* fptotal, int* totaltick, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
 int getBeatError(int* totalTick, int NN, int verbose);
 void crosscorint(int NN, int* array, int* ref, int* cross);

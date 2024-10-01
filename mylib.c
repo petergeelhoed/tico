@@ -143,19 +143,13 @@ void fit10secs(double* a,
 }
 
 void writefiles(
-    FILE* fptotal, FILE* rawfile, int* totaltick, int* maxpos, int n, int NN)
+    FILE* fptotal, int* totaltick, int NN)
 {
     if (fptotal)
     {
         for (int j = 0; j < NN; j++)
             fprintf(fptotal, "%d\n", totaltick[j]);
         fclose(fptotal);
-    }
-    if (rawfile)
-    {
-        for (int i = 0; i < n; ++i)
-            fprintf(rawfile, "%d %d\n", i, maxpos[i]);
-        fclose(rawfile);
     }
 }
 

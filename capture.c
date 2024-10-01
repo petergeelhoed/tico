@@ -7,9 +7,9 @@
 #include <sys/ioctl.h>
 
 #include "defaultpulse.h"
+#include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
-#include "myfft.h"
 
 static int keepRunning = 1;
 int columns = 80;
@@ -48,6 +48,8 @@ int main(int argc, char* argv[])
     int evalue = 4; // width of gaussian window
     int zoom = 10;
     int time = 30;
+    int everyline = 0;
+    int len = 8;     //  syncwrite every len tics
     int cvalue = 8;   // cutoff for adding to correlation
     int verbose = -1; // print for this peak
     int fitN = 30;    // fit last 30 peaks, 10 seconds
@@ -58,8 +60,17 @@ int main(int argc, char* argv[])
     FILE* fpDefPeak = 0;
     FILE* fpInput = 0;
 
+    remove("longfile2");
+
+    FILE* longfile = fopen("longfile2", "a");
+    if (longfile == 0)
+    {
+        fprintf(stderr, "cannot open long file\n");
+        return -4;
+    }
+
     int c;
-    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:")) != -1)
+    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:l")) != -1)
     {
         switch (c)
         {
@@ -73,6 +84,9 @@ int main(int argc, char* argv[])
             cvalue = atoi(optarg);
             cvalue = cvalue > 15 ? 15 : cvalue;
             cvalue = cvalue < 0 ? 0 : cvalue;
+            break;
+        case 'l':
+            everyline = 14;
             break;
         case 'v':
             verbose = atoi(optarg);
@@ -148,6 +162,7 @@ int main(int argc, char* argv[])
                 " -f 30 fit n points for local rate\n"
                 " -e 4 Gaussan convolution over input\n"
                 " -n 60 number of mpoints to fit in local rate\n"
+                " -l print beaterror and rate on each line\n"
                 " -v <peak> write files for this peak \n");
             exit(0);
             break;
@@ -183,10 +198,10 @@ int main(int argc, char* argv[])
         totaltick[j] = 0;
 
     fprintf(stderr,
-            "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
+            "\033[2J\nFound COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             columns,
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns-14));
+            mod * 1000000. / rate / (columns - everyline));
 
     int* derivative = malloc(NN * sizeof(int));
     int* reference = malloc(NN * sizeof(int));
@@ -232,7 +247,7 @@ int main(int argc, char* argv[])
     int totalshift = 0;
     int maxp = 0;
     int i = 0;
-    while (keepRunning)
+    while (keepRunning && i < n)
     {
         if (i == n)
         {
@@ -296,7 +311,8 @@ int main(int argc, char* argv[])
                               NN,
                               buffer,
                               maxp,
-                              &totalshift, fpInput);
+                              &totalshift,
+                              fpInput);
         }
 
         if (i == 6 * tps)
@@ -314,17 +330,16 @@ int main(int argc, char* argv[])
                       NN,
                       i == verbose);
 
+        if (i>0 && i % len == 0)
+        {
+            syncappend(maxpos + i - len , len, longfile);
+        }
         maxpos[i] = totalshift + maxp;
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
-        printheader(b,NN,
-                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
-        printspaces(maxpos[i],
-                    maxvals[i],
-                    spaces,
-                    mod,
-                    columns-14,
-                    a,
-                    cvalue);
+        printheader(
+            b, NN, everyline, (getBeatError(totaltick, NN, 0)) * 1000. / rate);
+        printspaces(
+            maxpos[i], maxvals[i], spaces, mod, columns - everyline, a, cvalue);
         i++;
     }
 
@@ -333,13 +348,15 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     snd_pcm_close(capture_handle);
 
+    
+    syncappend(maxpos + i - i%len , i%len, longfile);
     writefiles(fptotal, rawfile, totaltick, maxpos, n, NN);
 
     calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns-14));
+            mod * 1000000. / rate / (columns - everyline));
     free(maxpos);
     free(derivative);
     free(totaltick);

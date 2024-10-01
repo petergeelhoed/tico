@@ -1,22 +1,25 @@
 #include <limits.h>
-#include <pthread.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mylib.h"
 
-
-void printheader(
-                 double b,
-                 int NN,
-                 float beatError)
+void printheader(double b, int NN, int l, float beatError)
 {
-    char line[14+1];
-    snprintf(line, 5 , "%4.2f", beatError);
-    snprintf(line+4, 8, "ms%+5.1f", b * 86400 / NN);
-    sprintf(line+11, "s/d");
-    fprintf(stderr,"%s",line);
+    char line[14 + 1];
+    snprintf(line, 5, "%4.2f", beatError);
+    snprintf(line + 4, 8, "ms%+5.1f", b * 86400 / NN);
+    sprintf(line + 11, "s/d");
+    if (l)
+    {
+        fprintf(stderr, "%s", line);
+    }
+    else
+    {
+        fprintf(stderr, "\033[s\033[2;0H\033[K%s\033[u", line);
+    }
 }
 
 void printspaces(int maxpos,
@@ -36,7 +39,8 @@ void printspaces(int maxpos,
 
     memset(spaces, ' ', width);
     spaces[width] = '\0';
-    if (widtha < width) spaces[widtha] = '|';
+    if (widtha < width)
+        spaces[widtha] = '|';
 
     fprintf(stderr,
             "%s%s%X\033[0m",
@@ -159,13 +163,13 @@ int getmaxposscaled(int* array, int NN)
 {
     int maxtick = -INT_MAX;
     int postick = 0;
-    int half = NN/2;
+    int half = NN / 2;
 
     for (int j = 0; j < NN; j++)
     {
-        int scaled = (j<half)?j:NN-j;
+        int scaled = (j < half) ? j : NN - j;
 
-        if (array[j] * (half - scaled) > maxtick * half )
+        if (array[j] * (half - scaled) > maxtick * half)
 
         {
             maxtick = array[j];
@@ -243,7 +247,7 @@ int getBeatError(int* totaltick, int NN, int verbose)
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
     int postick = getmaxpos(cross, NN / 2);
-    //int postick = getmaxposscaled(cross, NN / 2);
+    // int postick = getmaxposscaled(cross, NN / 2);
     return (postick + NN / 4) % (NN / 2) - NN / 4;
 }
 

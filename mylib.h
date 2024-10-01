@@ -21,6 +21,7 @@ int getmaxposscaled(int* array, int NN);
 
 void printheader(double b,
                  int NN,
+                 int l,
                  float beatError);
 
 void printspaces(int maxpos,

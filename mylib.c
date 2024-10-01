@@ -9,17 +9,20 @@
 /*Prints header on line or at the top */
 void printheader(double b, int NN, int l, float beatError)
 {
-    char line[14 + 1];
-    snprintf(line, 5, "%4.2f", beatError);
-    snprintf(line + 4, 8, "ms%+5.1f", b * 86400 / NN);
-    sprintf(line + 11, "s/d");
     if (l)
     {
+        char line[14 + 1];
+        snprintf(line, 5, "%4.2f", beatError);
+        snprintf(line + 4, 8, "ms%+5.1f", b * 86400 / NN);
+        sprintf(line + 11, "s/d");
         fprintf(stderr, "%s", line);
     }
     else
     {
-        fprintf(stderr, "\033[s\033[2;0H\033[K%s\033[u", line);
+        fprintf(stderr,
+                "\033[s\033[2;0H\033[K%+8.2fms   %+7.1fs/d\033[u",
+                beatError,
+                b * 86400 / NN);
     }
 }
 
@@ -151,7 +154,6 @@ void writefile(FILE* fp, int* array, int NN)
             fprintf(fp, "%d\n", array[j]);
     }
 }
-
 
 int getmaxpos(int* array, int NN)
 {

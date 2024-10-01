@@ -15,7 +15,6 @@ void linreg(
     const int* xarr, const int* yarr, int NN, double* a, double* b, double* s);
 
 int getmaxpos(int* array, int NN);
-int getmaxposscaled(int* array, int NN);
 
 void printheader(double b, int NN, int l, float beatError);
 

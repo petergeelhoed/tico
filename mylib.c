@@ -152,25 +152,6 @@ void writefile(FILE* fp, int* array, int NN)
     }
 }
 
-int getmaxposscaled(int* array, int NN)
-{
-    int maxtick = -INT_MAX;
-    int postick = 0;
-    int half = NN / 2;
-
-    for (int j = 0; j < NN; j++)
-    {
-        int scaled = (j < half) ? j : NN - j;
-
-        if (array[j] * (half - scaled) > maxtick * half)
-
-        {
-            maxtick = array[j];
-            postick = j;
-        }
-    }
-    return postick;
-}
 
 int getmaxpos(int* array, int NN)
 {
@@ -240,7 +221,6 @@ int getBeatError(int* totaltick, int NN, int verbose)
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
     int postick = getmaxpos(cross, NN / 2);
-    // int postick = getmaxposscaled(cross, NN / 2);
     return (postick + NN / 4) % (NN / 2) - NN / 4;
 }
 

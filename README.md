@@ -1,5 +1,5 @@
-# cap
-captures from microphobe and scrolls a timegraph over your terminal.
+# capture
+captures from microphone and scrolls a timegraph over your terminal.
 
 # tico
 mechanical watch analysis  on a Wav file

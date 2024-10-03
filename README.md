@@ -1,10 +1,7 @@
 # capture
 captures from microphone and scrolls a timegraph over your terminal.
 
-# tico
-mechanical watch analysis  on a Wav file
 requires gnuplot and fftw3
-$ sudo apt-get fftw3-dev gnuplot
 
 Example.
 # make the wav file, use 48000Hz please

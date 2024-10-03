@@ -1,12 +1,4 @@
-out.wav
-tico
-t[io]ck
-pulseshape
-teeth
-capture
 *.a
 *.o
 .gitignore
-testfft
-testfilter
-testlinreg
+rommel

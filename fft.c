@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "mylib.h"
+#include "myfft.h"
 
 int main(int argc, char** argv)
 {

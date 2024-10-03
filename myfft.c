@@ -208,8 +208,8 @@ int fftfit(int* input,
     fftw_complex* corr = crosscor(NN, filteredinput, Fbase);
     if (verb)
     {
- //       syncwrite(total, NN, "total");
- //       syncwrite(input, NN, "input");
+        syncwrite(total, NN, "total");
+        syncwrite(input, NN, "input");
     }
 
         if (verb) writefftw(filteredinput,NN,"filteredinput");

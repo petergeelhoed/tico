@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "mylib.h"
+#include "myfft.h"
 
 /*Prints header on line or at the top */
 void printheader(double b, int NN, int l, float beatError)

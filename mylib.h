@@ -1,6 +1,5 @@
 void syncwrite(int* input, int NN, char* file);
 void syncappend(int* input, int NN, FILE* file);
-void rescale(int* total, int NN);
 
 void linregd(const float* xarr,
              const float* yarr,

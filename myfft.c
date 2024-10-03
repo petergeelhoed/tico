@@ -208,8 +208,8 @@ int fftfit(int* input,
     fftw_complex* corr = crosscor(NN, filteredinput, Fbase);
     if (verb)
     {
-        syncwrite(total, NN, "total");
-        syncwrite(input, NN, "input");
+ //       syncwrite(total, NN, "total");
+ //       syncwrite(input, NN, "input");
     }
 
         if (verb) writefftw(filteredinput,NN,"filteredinput");
@@ -243,6 +243,36 @@ int fftfit(int* input,
     fftw_free(*corr);
 
     return poscor;
+}
+
+void rescale(int* total, int NN)
+{
+    if (total[NN / 2] > 100000000 || total[0] > 100)
+    {
+
+        long int avg = 0;
+
+        for (int j = 0; j < NN; j++)
+        {
+            avg += total[j];
+        }
+        avg /= NN;
+        int avi = (int)avg;
+        if (avi > 100)
+        {
+            for (int j = 0; j < NN; j++)
+            {
+                total[j] -= avi;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NN; j++)
+            {
+                total[j] /= 2;
+            }
+        }
+    }
 }
 
 int getmaxfftw(fftw_complex* array, int NN)

@@ -329,32 +329,3 @@ void* threadWrite(void* inStruct)
     pthread_exit(NULL);
 }
 
-void rescale(int* total, int NN)
-{
-    if (total[NN / 2] > 100000000 || total[0] > 100)
-    {
-
-        long int avg = 0;
-
-        for (int j = 0; j < NN; j++)
-        {
-            avg += total[j];
-        }
-        avg /= NN;
-        int avi = (int)avg;
-        if (avi > 100)
-        {
-            for (int j = 0; j < NN; j++)
-            {
-                total[j] -= avi;
-            }
-        }
-        else
-        {
-            for (int j = 0; j < NN; j++)
-            {
-                total[j] /= 2;
-            }
-        }
-    }
-}

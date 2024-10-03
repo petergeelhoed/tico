@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-            n += 60 * tps;
+            n *= 1.5;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
         }

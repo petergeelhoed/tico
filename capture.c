@@ -11,6 +11,7 @@
 #include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
+#include "mysync.h"
 
 static int keepRunning = 1;
 int columns = 80;

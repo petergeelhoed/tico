@@ -1,6 +1,3 @@
-void syncwrite(int* input, int NN, char* file);
-void syncappend(int* input, int NN, FILE* file);
-
 void linregd(const float* xarr,
              const float* yarr,
              int NN,
@@ -33,7 +30,3 @@ void fit10secs(double* a,
 void writefile(FILE* fp, int* array, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
 int getBeatError(int* totalTick, int NN, int verbose);
-void crosscorint(int NN, int* array, int* ref, int* cross);
-void* threadWrite(void* arr);
-void* threadAppend(void* arr);
-void writearray(int* arr, int NN, const char* file);

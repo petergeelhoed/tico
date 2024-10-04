@@ -3,6 +3,7 @@ OBJ= ../obj
 LIB= ../lib
 SOUNDFLAGS= -lasound -lmysound 
 MYLIBFLAGS= -lmylib 
+MYSYNCFLAGS= -lmysync 
 FFTFLAGS= -lfftw3 -lmyfft 
 CFLAGS= -lm -Wall -pthread -Wpedantic -Wextra 
 SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer 
@@ -29,29 +30,36 @@ install: $(targets)
 libs= \
       $(LIB)/libmylib.a\
       $(LIB)/libmysound.a\
+      $(LIB)/libmysync.a\
       $(LIB)/libmyfft.a 
 
 clean:
 	rm -f $(LIB)/* $(OBJ)/* $(targets)
 
 $(OBJ)/%.o: %.c %.h 
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $< 
+
+$(OBJ)/mylib.o: mylib.c mylib.h myfft.c myfft.h
+	$(CC) $(CFLAGS) -c -o $@ $< -L$(LIB) -lmysync
+
+$(LIB)/libmylib.a: $(OBJ)/mylib.o  $(LIB)/libmyfft.a $(LIB)/libmysync.a
+	ar -rcs $@ $<
 
 $(LIB)/lib%.a: $(OBJ)/%.o
 	ar -rcs $@ $<
 
-capture: capture.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o capture capture.c $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS)
+capture: capture.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a
+	$(CC) -L$(LIB) -o capture capture.c $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS) $(MYSYNCFLAGS)
 
 %: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS)
+	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS) $(MYSYNCFLAGS)
 
 #circular?
-testlinreg: testlinreg.c $(LIB)/libmylib.a  $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o testlinreg testlinreg.c $(MYLIBFLAGS) $(FFTFLAGS)
+testlinreg: testlinreg.c $(LIB)/libmylib.a  $(LIB)/libmyfft.a 
+	$(CC) -L$(LIB) -o testlinreg testlinreg.c $(MYLIBFLAGS) $(FFTFLAGS)  $(MYSYNCFLAGS)
 
 fft: fft.c $(LIB)/libmylib.a $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o fft fft.c $(MYLIBFLAGS) $(FFTFLAGS)
+	$(CC) -L$(LIB) -o fft fft.c $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS)
 
 tico: tico.c 
 	$(CC) -o tico tico.c  -lfftw3 -lasound -pthread 

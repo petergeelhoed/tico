@@ -6,6 +6,7 @@
 #include "mylib.h"
 #include "mysound.h"
 #include "myfft.h"
+#include "mysync.h"
 
 int main(int argc, char* argv[])
 {

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "myfft.h"
-#include "mylib.h"
+#include "mysync.h"
 
 
 fftw_complex* makeFilter(int evalue, int NN)

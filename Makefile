@@ -21,12 +21,18 @@ targets=\
     tico\
     wav2raw
 
-all: $(targets)
+all:  $(libs) $(targets)
 
-libs: $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a
+install: $(targets)
+	mv $(targets) $(BIN)
+
+libs= \
+      $(LIB)/libmylib.a\
+      $(LIB)/libmysound.a\
+      $(LIB)/libmyfft.a 
 
 clean:
-	rm -f $(LIB)/* $(OBJ)/* $(BIN)/*
+	rm -f $(LIB)/* $(OBJ)/* $(targets)
 
 $(OBJ)/%.o: %.c %.h 
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -34,25 +40,28 @@ $(OBJ)/%.o: %.c %.h
 $(LIB)/lib%.a: $(OBJ)/%.o
 	ar -rcs $@ $<
 
-%: %.c libs
-	$(CC) -L$(LIB) -o $(BIN)/$@ $< $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS)
+capture: capture.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a
+	$(CC) -L$(LIB) -o capture capture.c $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS)
+
+%: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a
+	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(FFTFLAGS) $(MYLIBFLAGS)
 
 #circular?
 testlinreg: testlinreg.c $(LIB)/libmylib.a  $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o $(BIN)/testlinreg testlinreg.c $(MYLIBFLAGS) $(FFTFLAGS)
+	$(CC) -L$(LIB) -o testlinreg testlinreg.c $(MYLIBFLAGS) $(FFTFLAGS)
 
 fft: fft.c $(LIB)/libmylib.a $(LIB)/libmyfft.a
-	$(CC) -L$(LIB) -o $(BIN)/fft fft.c $(MYLIBFLAGS) $(FFTFLAGS)
+	$(CC) -L$(LIB) -o fft fft.c $(MYLIBFLAGS) $(FFTFLAGS)
 
 tico: tico.c 
-	$(CC) -o $(BIN)/tico tico.c  -lfftw3 -lasound -pthread 
+	$(CC) -o tico tico.c  -lfftw3 -lasound -pthread 
 
 teeth: teeth.c
-	$(CC) -o $(BIN)/teeth teeth.c -lfftw3
+	$(CC) -o teeth teeth.c -lfftw3
 
 wav2raw: wav2raw.c 
-	$(CC)  -o $(BIN)/wav2raw wav2raw.c 
+	$(CC)  -o wav2raw wav2raw.c 
     
 derivative: derivative.c 
-	$(CC) -o $(BIN)/derivative derivative.c
+	$(CC) -o derivative derivative.c
     

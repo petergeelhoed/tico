@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "mylib.h"
+#include "myfft.h"
 #include "mysync.h"
 
 int main()

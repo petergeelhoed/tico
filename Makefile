@@ -40,6 +40,9 @@ clean:
 $(OBJ)/%.o: %.c %.h 
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
+$(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o
+	ar -rcs $@ $< $(OBJ)/crosscorint.o
+
 $(LIB)/lib%.a: $(OBJ)/%.o
 	ar -rcs $@ $<
 

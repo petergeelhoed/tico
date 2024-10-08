@@ -1,3 +1,5 @@
+#include "crosscorint.h"
+
 void linregd(const float* xarr,
              const float* yarr,
              int NN,

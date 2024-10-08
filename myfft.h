@@ -20,4 +20,3 @@ void writefftw(fftw_complex* arr, int NN, const char* file);
 void remove50hz(int NN, int* array, int rate);
 void normalise(int NN, fftw_complex* in);
 void rescale(int* total, int NN);
-void crosscorint(int NN, int* array, int* ref, int* cross);

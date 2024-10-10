@@ -196,6 +196,8 @@ int fftfit(int* input,
            int NN,
            int verb)
 {
+    // base is NN/2 offset to input
+    // so maximum aut correlation  is at NN/2
     fftw_complex* Fbase = fftw_alloc_complex(NN);
     fftw_complex* filteredinput = convolute(NN, input, filterFFT);
 
@@ -206,6 +208,7 @@ int fftfit(int* input,
     }
 
     fftw_complex* corr = crosscor(NN, filteredinput, Fbase);
+
     if (verb)
     {
         syncwrite(total, NN, "total");

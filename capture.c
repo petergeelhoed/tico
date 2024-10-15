@@ -72,22 +72,48 @@ int main(int argc, char* argv[])
             break;
         case 'f':
             fitN = atoi(optarg);
+            if (fitN == 0)
+            {
+                printf("invalid integer argument for -f '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'c':
             cvalue = atoi(optarg);
+            if (cvalue == 0)
+            {
+                printf("invalid integer argument for -c '%s'\n", optarg);
+                return -1;
+            }
             cvalue = cvalue > 15 ? 15 : cvalue;
             cvalue = cvalue < 0 ? 0 : cvalue;
             break;
         case 'l':
+            // number of characters to reserve for beaterror and rate
             everyline = 14;
             break;
         case 'v':
             verbose = atoi(optarg);
+            if (verbose == 0)
+            {
+                printf("invalid integer argument for -v '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'e':
             evalue = atoi(optarg);
+            if (evalue == 0)
+            {
+                printf("invalid integer argument for -e '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'I':
+            if (*optarg == '-')
+            {
+                fprintf(stderr, "expecting -I <file>\n got -I %s\n",optarg);
+                return -1;
+            }
             fpInput = fopen(optarg, "r");
             if (fpInput == 0)
             {
@@ -96,6 +122,11 @@ int main(int argc, char* argv[])
             }
             break;
         case 'w':
+            if (*optarg == '-')
+            {
+                fprintf(stderr, "expecting -w <file>\n got -w %s\n",optarg);
+                return -1;
+            }
             if (!access(optarg, F_OK))
             {
                 fprintf(stderr, " existrawfile %s\n", optarg);
@@ -113,6 +144,11 @@ int main(int argc, char* argv[])
             }
             break;
         case 'D':
+            if (*optarg == '-')
+            {
+                fprintf(stderr, "expecting -D <file>\n got -D %s\n",optarg);
+                return -1;
+            }
             fpDefPeak = fopen(optarg, "r");
             if (fpDefPeak == 0)
             {
@@ -121,6 +157,12 @@ int main(int argc, char* argv[])
             }
             break;
         case 'p':
+            if (*optarg == '-')
+            {
+                fprintf(stderr, "expecting -p <file>\n got -p %s\n",optarg);
+                return -1;
+            }
+
             fptotal = fopen(optarg, "w");
             if (fptotal == 0)
             {
@@ -130,18 +172,43 @@ int main(int argc, char* argv[])
             break;
         case 's':
             SDthreshold = atof(optarg);
+            if (SDthreshold == 0)
+            {
+                printf("invalid integer argument for -s '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 't':
             time = atoi(optarg);
+            if (time == 0)
+            {
+                printf("invalid integer argument for -t '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'b':
             bph = atoi(optarg);
+            if (bph == 0)
+            {
+                printf("invalid integer argument for -b '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'z':
             zoom = atoi(optarg);
+            if (zoom == 0)
+            {
+                printf("invalid integer argument for -z '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'r':
             rate = atoi(optarg);
+            if (rate == 0)
+            {
+                printf("invalid integer argument for -r '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'h':
         default:
@@ -176,7 +243,7 @@ int main(int argc, char* argv[])
     // should be even
     NN = (NN + NN % 2);
     int tps = rate / NN;
-    int n = time ? time * tps : 30 * tps;
+    int n = time ? time * tps : 3 * tps;
     int maxtime = n;
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
@@ -285,16 +352,19 @@ int main(int argc, char* argv[])
             if (verbose)
             {
                 FILE* fp = fopen("flip", "w");
-                for (int j = 0; j < NN; j++)
+                if (fp)
                 {
-                    fprintf(fp,
-                            "%d %d %d %d\n",
-                            j,
-                            totaltick[j],
-                            reference[j],
-                            cross[j]);
+                    for (int j = 0; j < NN; j++)
+                    {
+                        fprintf(fp,
+                                "%d %d %d %d\n",
+                                j,
+                                totaltick[j],
+                                reference[j],
+                                cross[j]);
+                    }
+                    fclose(fp);
                 }
-                fclose(fp);
             }
             if (maxp > NN / 4 && maxp < NN * 3 / 4)
             {
@@ -356,7 +426,10 @@ int main(int argc, char* argv[])
         syncappend(maxpos + i - i % len, i % len, rawfile);
 
     writefile(fptotal, totaltick, NN);
-    fclose(fptotal);
+    if (fptotal)
+    {
+        fclose(fptotal);
+    }
 
     calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,

@@ -13,17 +13,6 @@
 #include "mysound.h"
 #include "mysync.h"
 
-int checkIntArg(const char* name, unsigned int* value, char* optarg)
-{
-    *value = 0;
-    *value = (unsigned int)atoi(optarg);
-    if (*value == 0)
-    {
-        printf("invalid integer argument for %s: '%s'\n", name , optarg);
-        return -1;
-    }
-    return 0;
-}
 
 static int keepRunning = 1;
 int columns = 80;
@@ -217,7 +206,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'r':
-            retVal = checkIntArg("-r", &rate, optarg);
+            retVal = checkUIntArg("-r", &rate, optarg);
             break;
         case 'h':
         default:

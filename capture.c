@@ -47,10 +47,10 @@ void set_signal_action(void)
 int main(int argc, char* argv[])
 {
     unsigned int rate = 48;
-    int bph = 21600;
+    unsigned int bph = 21600;
     int evalue = 4; // width of gaussian window
-    int zoom = 10;
-    int time = 0;
+    unsigned int zoom = 10;
+    unsigned int time = 0;
     int everyline = 0;
     int len = 30;     //  syncwrite every len tics
     int cvalue = 8;   // cutoff for adding to correlation
@@ -182,31 +182,16 @@ int main(int argc, char* argv[])
             }
             break;
         case 't':
-            time = atoi(optarg);
-            if (time == 0)
-            {
-                printf("invalid integer argument for -t '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkUIntArg(c, &time, optarg);
             break;
         case 'b':
-            bph = atoi(optarg);
-            if (bph == 0)
-            {
-                printf("invalid integer argument for -b '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkUIntArg(c, &bph, optarg);
             break;
         case 'z':
-            zoom = atoi(optarg);
-            if (zoom == 0)
-            {
-                printf("invalid integer argument for -z '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkUIntArg(c, &zoom, optarg);
             break;
         case 'r':
-            retVal = checkUIntArg("-r", &rate, optarg);
+            retVal = checkUIntArg(c, &rate, optarg);
             break;
         case 'h':
         default:
@@ -244,9 +229,9 @@ int main(int argc, char* argv[])
     int NN = rate * 7200 / bph;
     // should be even
     NN = (NN + NN % 2);
-    int tps = rate / NN;
-    int n = time ? time * tps : 30 * tps;
-    int maxtime = n;
+    unsigned int tps = rate / NN;
+    unsigned int n = time ? time * tps : 30 * tps;
+    unsigned int maxtime = n;
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
     int mod = NN / zoom;
@@ -319,7 +304,7 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int totalshift = 0;
     int maxp = 0;
-    int i = 0;
+    unsigned int i = 0;
     while (keepRunning && !(i > maxtime && time))
     {
         if (i == n)
@@ -404,7 +389,7 @@ int main(int argc, char* argv[])
                       maxvals + i,
                       filterFFT,
                       NN,
-                      i == verbose);
+                      (int)i == verbose);
 
         if (rawfile && i > 0 && i % len == 0)
         {

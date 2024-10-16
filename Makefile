@@ -5,7 +5,7 @@ SOUNDFLAGS= -lasound -lmysound
 MYLIBFLAGS= -lmylib 
 MYSYNCFLAGS= -lmysync 
 FFTFLAGS= -lfftw3 -lmyfft 
-CFLAGS= -lm -Wall -pthread -Wpedantic -Wextra 
+CFLAGS= -g -lm -Wall -pthread -Wpedantic -Wextra 
 SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer 
 CC= cc $(CFLAGS)
 

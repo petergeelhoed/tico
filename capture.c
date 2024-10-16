@@ -13,6 +13,18 @@
 #include "mysound.h"
 #include "mysync.h"
 
+int checkIntArg(const char* name, unsigned int* value, char* optarg)
+{
+    *value = 0;
+    *value = (unsigned int)atoi(optarg);
+    if (*value == 0)
+    {
+        printf("invalid integer argument for %s: '%s'\n", name , optarg);
+        return -1;
+    }
+    return 0;
+}
+
 static int keepRunning = 1;
 int columns = 80;
 void sigint_handler(int signal)
@@ -45,7 +57,7 @@ void set_signal_action(void)
 
 int main(int argc, char* argv[])
 {
-    unsigned int rate = 48000;
+    unsigned int rate = 48;
     int bph = 21600;
     int evalue = 4; // width of gaussian window
     int zoom = 10;
@@ -63,6 +75,7 @@ int main(int argc, char* argv[])
     FILE* fpInput = 0;
 
     int c;
+    int retVal = 0;
     while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:l")) != -1)
     {
         switch (c)
@@ -171,10 +184,11 @@ int main(int argc, char* argv[])
             }
             break;
         case 's':
+            SDthreshold = 0.0;
             SDthreshold = atof(optarg);
-            if (SDthreshold == 0)
+            if (SDthreshold == 0.0)
             {
-                printf("invalid integer argument for -s '%s'\n", optarg);
+                printf("invalid float argument for -s '%s'\n", optarg);
                 return -1;
             }
             break;
@@ -203,12 +217,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'r':
-            rate = atoi(optarg);
-            if (rate == 0)
-            {
-                printf("invalid integer argument for -r '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkIntArg("-r", &rate, optarg);
             break;
         case 'h':
         default:
@@ -237,13 +246,17 @@ int main(int argc, char* argv[])
             break;
         }
     }
+    if (retVal != 0)
+    {
+        return retVal;
+    }
 
     // declarations
     int NN = rate * 7200 / bph;
     // should be even
     NN = (NN + NN % 2);
     int tps = rate / NN;
-    int n = time ? time * tps : 3 * tps;
+    int n = time ? time * tps : 30 * tps;
     int maxtime = n;
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));

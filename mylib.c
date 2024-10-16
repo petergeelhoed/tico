@@ -229,3 +229,15 @@ int getBeatError(int* totaltick, int NN, int verbose)
     return (postick + NN / 4) % (NN / 2) - NN / 4;
 }
 
+int checkUIntArg(const char* name, unsigned int* value, char* optarg)
+{
+    *value = 0;
+    *value = (unsigned int)atoi(optarg);
+    if (*value == 0)
+    {
+        printf("invalid integer argument for %s: '%s'\n", name , optarg);
+        return -1;
+    }
+    return 0;
+}
+

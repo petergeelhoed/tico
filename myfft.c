@@ -18,6 +18,7 @@ fftw_complex* makeFilter(int evalue, int NN)
     if (evalue != 0)
     {
         // make filter array
+        // unsafe, could go over array limit
         for (int j = 0; j < evalue * 5; j++)
         {
             in2[j][0] =

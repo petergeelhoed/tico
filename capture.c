@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
     int evalue = 4; // width of gaussian window
     unsigned int zoom = 10;
     unsigned int time = 0;
-    int everyline = 0;
-    int len = 30;     //  syncwrite every len tics
-    int cvalue = 8;   // cutoff for adding to correlation
+    unsigned int everyline = 0;
+    unsigned int len = 30;     //  syncwrite every len tics
+    unsigned int cvalue = 8;   // cutoff for adding to correlation
     int verbose = -1; // print for this peak
     int fitN = 30;    // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
@@ -87,7 +87,6 @@ int main(int argc, char* argv[])
                 return -1;
             }
             cvalue = cvalue > 15 ? 15 : cvalue;
-            cvalue = cvalue < 0 ? 0 : cvalue;
             break;
         case 'l':
             // number of characters to reserve for beaterror and rate

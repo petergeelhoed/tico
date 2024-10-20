@@ -13,7 +13,6 @@
 #include "mysound.h"
 #include "mysync.h"
 
-
 static int keepRunning = 1;
 int columns = 80;
 void sigint_handler(int signal)
@@ -113,7 +112,7 @@ int main(int argc, char* argv[])
         case 'I':
             if (*optarg == '-')
             {
-                fprintf(stderr, "expecting -I <file>\n got -I %s\n",optarg);
+                fprintf(stderr, "expecting -I <file>\n got -I %s\n", optarg);
                 return -1;
             }
             fpInput = fopen(optarg, "r");
@@ -126,7 +125,7 @@ int main(int argc, char* argv[])
         case 'w':
             if (*optarg == '-')
             {
-                fprintf(stderr, "expecting -w <file>\n got -w %s\n",optarg);
+                fprintf(stderr, "expecting -w <file>\n got -w %s\n", optarg);
                 return -1;
             }
             if (!access(optarg, F_OK))
@@ -148,7 +147,7 @@ int main(int argc, char* argv[])
         case 'D':
             if (*optarg == '-')
             {
-                fprintf(stderr, "expecting -D <file>\n got -D %s\n",optarg);
+                fprintf(stderr, "expecting -D <file>\n got -D %s\n", optarg);
                 return -1;
             }
             fpDefPeak = fopen(optarg, "r");
@@ -161,7 +160,7 @@ int main(int argc, char* argv[])
         case 'p':
             if (*optarg == '-')
             {
-                fprintf(stderr, "expecting -p <file>\n got -p %s\n",optarg);
+                fprintf(stderr, "expecting -p <file>\n got -p %s\n", optarg);
                 return -1;
             }
 
@@ -186,6 +185,11 @@ int main(int argc, char* argv[])
             break;
         case 'b':
             retVal = checkUIntArg(c, &bph, optarg);
+            if (retVal == 0 && bph < 4800)
+            {
+                printf("refusing bph <4800 %d %d\n", bph, retVal);
+                return -1;
+            }
             break;
         case 'z':
             retVal = checkUIntArg(c, &zoom, optarg);

@@ -32,4 +32,4 @@ void fit10secs(double* a,
 void writefile(FILE* fp, int* array, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
 int getBeatError(int* totalTick, int NN, int verbose);
-int checkUIntArg(const char name, unsigned int* value, char* optarg);
+int checkUIntArg(int name, unsigned int* value, char* optarg);

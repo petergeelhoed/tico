@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "defaultpulse.h"
 #include "myfft.h"
@@ -122,39 +123,10 @@ int main(int argc, char* argv[])
             }
             break;
         case 'w':
-            if (*optarg == '-')
-            {
-                fprintf(stderr, "expecting -w <file>\n got -w %s\n", optarg);
-                return -1;
-            }
-            if (!access(optarg, F_OK))
-            {
-                fprintf(stderr, " existrawfile %s\n", optarg);
-                if (remove(optarg))
-                {
-                    fprintf(stderr, "cannot delete rawfile\n");
-                    return -4;
-                }
-            }
-            rawfile = fopen(optarg, "a");
-            if (rawfile == 0)
-            {
-                fprintf(stderr, "cannot open raw file for appending\n");
-                return -4;
-            }
+            retVal = checkFileArg(c, rawfile, optarg, "a");
             break;
         case 'D':
-            if (*optarg == '-')
-            {
-                fprintf(stderr, "expecting -D <file>\n got -D %s\n", optarg);
-                return -1;
-            }
-            fpDefPeak = fopen(optarg, "r");
-            if (fpDefPeak == 0)
-            {
-                fprintf(stderr, "cannot open file -D <file>\n");
-                return -4;
-            }
+            retVal = checkFileArg(c, fpDefPeak, optarg, "r");
             break;
         case 'p':
             if (*optarg == '-')
@@ -222,10 +194,10 @@ int main(int argc, char* argv[])
             exit(0);
             break;
         }
-    }
     if (retVal != 0)
     {
         return retVal;
+    }
     }
 
     // declarations

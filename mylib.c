@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "mylib.h"
 #include "myfft.h"
@@ -237,6 +238,31 @@ int checkUIntArg(int name, unsigned int* value, char* optarg)
     {
         printf("invalid integer argument for -%c: '%s'\n", (char)name , optarg);
         return -1;
+    }
+    return 0;
+}
+
+int checkFileArg(int name, FILE*fp,  char* optarg, char* mode)
+{
+    if (*optarg == '-')
+    {
+        fprintf(stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
+        return -1;
+    }
+    if (!access(optarg, F_OK))
+    {
+        fprintf(stderr, " existing file -%c %s\n",(char)name,  optarg);
+        if (remove(optarg))
+        {
+            fprintf(stderr, "cannot delete file %s\n", optarg);
+            return -4;
+        }
+    }
+    fp = fopen(optarg, mode);
+    if (fp == 0)
+    {
+        fprintf(stderr, "cannot open file -%c '%s' for mode %s\n",(char)name , optarg,mode);
+        return -4;
     }
     return 0;
 }

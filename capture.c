@@ -46,7 +46,7 @@ void set_signal_action(void)
 
 int main(int argc, char* argv[])
 {
-    unsigned int rate = 48;
+    unsigned int rate = 48000;
     unsigned int bph = 21600;
     int evalue = 4; // width of gaussian window
     unsigned int zoom = 10;

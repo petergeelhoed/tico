@@ -89,8 +89,8 @@ void readBufferRaw(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int
 {
     unsigned char lsb;
     signed char msb;
-    int err;
-    if ((err = snd_pcm_readi(capture_handle, buffer, (int)NN)) != (int)NN)
+    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
+    if (err != (int)NN)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
@@ -100,7 +100,7 @@ void readBufferRaw(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int
     }
     for (unsigned int j = 0; j < NN * 2; j += 2)
     {
-        msb = *(buffer + j + 1);
+        msb = (signed char)buffer[j+1];
         lsb = *(buffer + j);
         in[j / 2] = (msb << 8) | lsb;
     }
@@ -110,8 +110,8 @@ int readBuffer(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* de
 {
     unsigned char lsb;
     signed char msb;
-    int err;
-    if ((err = snd_pcm_readi(capture_handle, buffer, NN)) != (int)NN)
+    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
+    if (err != (int)NN)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
@@ -121,7 +121,7 @@ int readBuffer(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* de
     }
     for (unsigned int j = 0; j < NN * 2; j += 2)
     {
-        msb = *(buffer + j + 1);
+        msb = (signed char)buffer[j+1];
         lsb = *(buffer + j);
         derivative[j / 2] = (msb << 8) | lsb;
     }
@@ -129,7 +129,7 @@ int readBuffer(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* de
 
     for (unsigned int j = 0; j < NN - 1; j++)
     {
-        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+        derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
     derivative[NN] = 0;
     return err;
@@ -144,12 +144,11 @@ int readShiftedBuffer(int* derivative,
                       FILE* fpInput)
 {
     int ret;
-    int shift = (int)sqrt(abs(maxpos));
-
+    unsigned shift = (unsigned int)sqrt(abs(maxpos));
     
     if (maxpos < 0)
     {
-        *totalshift -= shift;
+        *totalshift -= (int)shift;
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
         if (fpInput)
         {
@@ -164,7 +163,7 @@ int readShiftedBuffer(int* derivative,
             }
     for (unsigned int j = 0; j < NN - 1; j++)
     {
-        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+        derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
         }
         else
@@ -174,11 +173,11 @@ int readShiftedBuffer(int* derivative,
     }
     else if (maxpos > 0)
     {
-        *totalshift += shift;
+        *totalshift += (int)shift;
         if (fpInput)
         {
             ret = 0;
-            for (int j=0 ; j<shift; ++j)
+            for (unsigned int j=0 ; j<shift; ++j)
             {
                 if (fscanf(fpInput,"%d",derivative+j) != 1)
                 {
@@ -196,7 +195,7 @@ int readShiftedBuffer(int* derivative,
             }
     for (unsigned int j = 0; j < NN - 1; j++)
     {
-        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+        derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
         }
         else
@@ -214,7 +213,7 @@ int readShiftedBuffer(int* derivative,
         if (fpInput)
         {
             ret = 0;
-            for (int j=0 ; j<shift; ++j)
+            for (unsigned int j=0 ; j<shift; ++j)
             {
                 if (fscanf(fpInput,"%d",derivative+j) != 1)
                 {
@@ -224,7 +223,7 @@ int readShiftedBuffer(int* derivative,
             }
     for (unsigned int j = 0; j < NN - 1; j++)
     {
-        derivative[j] = fabs(derivative[j] - derivative[j + 1]);
+        derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
         }
         else 

@@ -6,23 +6,23 @@
 
 #include "mysync.h"
 
-void writearray(int* arr, int NN, const char* file)
+void writearray(int* arr, unsigned int NN, const char* file)
 {
     FILE* fp = fopen(file, "w");
-    for (int j = 0; j < NN; j++)
+    for (unsigned int j = 0; j < NN; j++)
     {
         fprintf(fp, "%d %d\n", j, arr[j]);
     }
     fclose(fp);
 }
 
-void syncappend(int* input, int NN, FILE* file)
+void syncappend(int* input, unsigned int NN, FILE* file)
 {
     struct mystruct
     {
         int* array;
         FILE* file;
-        int NN;
+        unsigned int NN;
     };
 
     struct mystruct* info = malloc(sizeof *info);
@@ -44,7 +44,7 @@ void* threadAppend(void* inStruct)
     {
         int* array;
         FILE* file;
-        int NN;
+        unsigned int NN;
     } mine = *(struct mystruct*)inStruct;
 
     int* arrptr = mine.array;
@@ -55,7 +55,7 @@ void* threadAppend(void* inStruct)
     free(arrptr);
     free(inStruct);
 
-    for (int j = 0; j < mine.NN; j++)
+    for (unsigned int j = 0; j < mine.NN; j++)
     {
         fprintf(file, "%d\n", mine.array[j]);
     }
@@ -65,13 +65,13 @@ void* threadAppend(void* inStruct)
     pthread_exit(NULL);
 }
 
-void syncwrite(int* input, int NN, char* file)
+void syncwrite(int* input, unsigned int NN, char* file)
 {
     struct mystruct
     {
         int* array;
         char file[20];
-        int NN;
+        unsigned int NN;
     };
 
     struct mystruct* info = malloc(sizeof *info);
@@ -93,7 +93,7 @@ void* threadWrite(void* inStruct)
     {
         int* array;
         char file[20];
-        int NN;
+        unsigned int NN;
     } mine = *(struct mystruct*)inStruct;
 
     int* arrptr = mine.array;

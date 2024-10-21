@@ -45,7 +45,7 @@ void printspaces(int maxpos,
     int width = (maxpos % mod) * columns / mod;
     int widtha = (((int)avg_pos) % mod) * columns / mod;
 
-    memset(spaces, ' ', width);
+    memset(spaces, ' ', (size_t)width);
     spaces[width] = '\0';
     if (widtha < width)
         spaces[widtha] = '|';
@@ -56,7 +56,7 @@ void printspaces(int maxpos,
             hexvalue < cvalue ? "\033[31m" : "\033[32m",
             hexvalue);
 
-    memset(spaces, ' ', width);
+    memset(spaces, ' ', (size_t)width);
     if (widtha > width)
     {
         spaces[widtha - width - 1] = '|';

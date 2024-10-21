@@ -85,12 +85,12 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
     return capture_handle;
 }
 
-void readBufferRaw(snd_pcm_t* capture_handle, int NN, char* buffer, int* in)
+void readBufferRaw(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* in)
 {
     unsigned char lsb;
     signed char msb;
     int err;
-    if ((err = snd_pcm_readi(capture_handle, buffer, NN)) != NN)
+    if ((err = snd_pcm_readi(capture_handle, buffer, (int)NN)) != (int)NN)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
@@ -98,7 +98,7 @@ void readBufferRaw(snd_pcm_t* capture_handle, int NN, char* buffer, int* in)
                 snd_strerror(err));
         exit(-1);
     }
-    for (int j = 0; j < NN * 2; j += 2)
+    for (unsigned int j = 0; j < NN * 2; j += 2)
     {
         msb = *(buffer + j + 1);
         lsb = *(buffer + j);
@@ -106,12 +106,12 @@ void readBufferRaw(snd_pcm_t* capture_handle, int NN, char* buffer, int* in)
     }
 }
 
-int readBuffer(snd_pcm_t* capture_handle, int NN, char* buffer, int* derivative)
+int readBuffer(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* derivative)
 {
     unsigned char lsb;
     signed char msb;
     int err;
-    if ((err = snd_pcm_readi(capture_handle, buffer, NN)) != NN)
+    if ((err = snd_pcm_readi(capture_handle, buffer, NN)) != (int)NN)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
@@ -119,7 +119,7 @@ int readBuffer(snd_pcm_t* capture_handle, int NN, char* buffer, int* derivative)
                 snd_strerror(err));
         return err;
     }
-    for (int j = 0; j < NN * 2; j += 2)
+    for (unsigned int j = 0; j < NN * 2; j += 2)
     {
         msb = *(buffer + j + 1);
         lsb = *(buffer + j);
@@ -127,7 +127,7 @@ int readBuffer(snd_pcm_t* capture_handle, int NN, char* buffer, int* derivative)
     }
     //       remove50hz(NN,in,48000);
 
-    for (int j = 0; j < NN - 1; j++)
+    for (unsigned int j = 0; j < NN - 1; j++)
     {
         derivative[j] = fabs(derivative[j] - derivative[j + 1]);
     }
@@ -137,7 +137,7 @@ int readBuffer(snd_pcm_t* capture_handle, int NN, char* buffer, int* derivative)
 
 int readShiftedBuffer(int* derivative,
                       snd_pcm_t* capture_handle,
-                      int NN,
+                      unsigned int NN,
                       char* buffer,
                       int maxpos,
                       int* totalshift,
@@ -154,7 +154,7 @@ int readShiftedBuffer(int* derivative,
         if (fpInput)
         {
             ret = 0;
-            for (int j=0 ; j<NN-shift; ++j)
+            for (unsigned int j=0 ; j<NN-shift; ++j)
             {
                 if (fscanf(fpInput,"%d",derivative+j) != 1)
                 {
@@ -162,7 +162,7 @@ int readShiftedBuffer(int* derivative,
                     break;
                 }
             }
-    for (int j = 0; j < NN - 1; j++)
+    for (unsigned int j = 0; j < NN - 1; j++)
     {
         derivative[j] = fabs(derivative[j] - derivative[j + 1]);
     }
@@ -186,7 +186,7 @@ int readShiftedBuffer(int* derivative,
                     break;
                 }
             }
-            for (int j=0 ; j<NN; ++j)
+            for (unsigned int j=0 ; j<NN; ++j)
             {
                 if (fscanf(fpInput,"%d",derivative+j) != 1)
                 {
@@ -194,7 +194,7 @@ int readShiftedBuffer(int* derivative,
                     break;
                 }
             }
-    for (int j = 0; j < NN - 1; j++)
+    for (unsigned int j = 0; j < NN - 1; j++)
     {
         derivative[j] = fabs(derivative[j] - derivative[j + 1]);
     }
@@ -222,7 +222,7 @@ int readShiftedBuffer(int* derivative,
                     break;
                 }
             }
-    for (int j = 0; j < NN - 1; j++)
+    for (unsigned int j = 0; j < NN - 1; j++)
     {
         derivative[j] = fabs(derivative[j] - derivative[j + 1]);
     }

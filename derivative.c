@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 void linreg(double* yarr,
-            int NN,
+            unsigned int NN,
             double* a,
             double* b,
             double* s,
@@ -16,7 +16,7 @@ void linreg(double* yarr,
     double xx = 0;
     double xy = 0;
     double yy = 0;
-    for (int j = -NN + 1; j <= 0; ++j)
+    for (int j = -(int)NN + 1; j <= 0; ++j)
     {
         y += yarr[j];
         xx += j * j;
@@ -36,8 +36,8 @@ void linreg(double* yarr,
 
 int main(int argc, char* argv[])
 {
-    int bhp = 10;
-    int pr = 1;
+    unsigned int bhp = 10;
+    unsigned int pr = 1;
     int c;
     while ((c = getopt(argc, argv, "b:p:v")) != -1)
     {
@@ -47,10 +47,10 @@ int main(int argc, char* argv[])
             fprintf(stderr, "x y a b s sa sb\n");
             break;
         case 'p':
-            pr = atoi(optarg);
+            pr = (unsigned int)atoi(optarg);
             break;
         case 'b':
-            bhp = atoi(optarg);
+            bhp = (unsigned int)atoi(optarg);
             break;
         case 'h':
         default:
@@ -68,11 +68,11 @@ int main(int argc, char* argv[])
     double s = 0.0;
     double sa = 0.0;
     double sb = 0.0;
-    int iN = 40;
+    unsigned int iN = 40;
     double* yarr = (double*)malloc(iN * sizeof(double));
     double d;
-    int i = 0;
-    int len = bhp;
+    unsigned int i = 0;
+    unsigned int len = bhp;
     while (scanf("%lf", &d) != EOF)
     {
         yarr[i] = d;

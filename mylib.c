@@ -159,11 +159,11 @@ void writefile(FILE* fp, int* array, int NN)
     }
 }
 
-int getmaxpos(int* array, int NN)
+unsigned int getmaxpos(int* array, unsigned int NN)
 {
     int maxtick = -INT_MAX;
-    int postick = 0;
-    for (int j = 0; j < NN; j++)
+    unsigned int postick = 0;
+    for (unsigned int j = 0; j < NN; j++)
     {
         if (array[j] > maxtick)
         {
@@ -215,7 +215,7 @@ void calculateTotal(int n, int* maxpos, int NN, double threshold)
         stderr, "after %.1fσ removal: %.2f s/d\n", threshold, -b * 86400 / NN);
 }
 
-int getBeatError(int* totaltick, int NN, int verbose)
+unsigned int getBeatError(int* totaltick, unsigned int NN, int verbose)
 {
 
     int cross[NN / 2];
@@ -226,7 +226,7 @@ int getBeatError(int* totaltick, int NN, int verbose)
         syncwrite(totaltick, NN / 2, "t1");
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
-    int postick = getmaxpos(cross, NN / 2);
+    unsigned int postick = getmaxpos(cross, NN / 2);
     return (postick + NN / 4) % (NN / 2) - NN / 4;
 }
 

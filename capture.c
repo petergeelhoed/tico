@@ -15,7 +15,7 @@
 #include "mysync.h"
 
 static int keepRunning = 1;
-int columns = 80;
+unsigned int columns = 80;
 void sigint_handler(int signal)
 {
     if (signal == SIGINT)
@@ -26,7 +26,7 @@ void sigint_handler(int signal)
     {
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-        columns = w.ws_col;
+        columns = (unsigned int)w.ws_col;
         fprintf(stderr, "new width %d\n", columns);
     }
 }
@@ -48,14 +48,14 @@ int main(int argc, char* argv[])
 {
     unsigned int rate = 48000;
     unsigned int bph = 21600;
-    int evalue = 4; // width of gaussian window
+    unsigned int evalue = 4; // width of gaussian window
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
     unsigned int len = 30;     //  syncwrite every len tics
     unsigned int cvalue = 8;   // cutoff for adding to correlation
     int verbose = -1; // print for this peak
-    int fitN = 30;    // fit last 30 peaks, 10 seconds
+    unsigned int fitN = 30;    // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
     char* device = 0;
     FILE* rawfile = 0;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
             device = optarg;
             break;
         case 'f':
-            fitN = atoi(optarg);
+            retVal = checkUIntArg(c, &fitN , optarg);
             if (fitN == 0)
             {
                 printf("invalid integer argument for -f '%s'\n", optarg);
@@ -81,12 +81,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'c':
-            cvalue = atoi(optarg);
-            if (cvalue == 0)
-            {
-                printf("invalid integer argument for -c '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkUIntArg(c, &cvalue , optarg);
             cvalue = cvalue > 15 ? 15 : cvalue;
             break;
         case 'l':
@@ -102,7 +97,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'e':
-            evalue = atoi(optarg);
+            retVal = checkUIntArg(c, &evalue , optarg);
             if (evalue == 0)
             {
                 printf("invalid integer argument for -e '%s'\n", optarg);
@@ -201,7 +196,7 @@ int main(int argc, char* argv[])
     }
 
     // declarations
-    int NN = rate * 7200 / bph;
+    unsigned int NN = rate * 7200 / bph;
     // should be even
     NN = (NN + NN % 2);
     unsigned int tps = rate / NN;
@@ -209,7 +204,7 @@ int main(int argc, char* argv[])
     unsigned int maxtime = n;
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
-    int mod = NN / zoom;
+    unsigned int mod = NN / zoom;
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -221,13 +216,15 @@ int main(int argc, char* argv[])
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
-    char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
+    char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
     int* totaltick = malloc(NN * sizeof(int));
-    for (int j = 0; j < NN; j++)
+    for (unsigned int j = 0; j < NN; j++)
+    {
         totaltick[j] = 0;
+    }
 
     fprintf(stderr,
             "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  "
@@ -243,7 +240,7 @@ int main(int argc, char* argv[])
     // read default peak
     if (fpDefPeak != 0)
     {
-        for (int j = 0; j < NN; j++)
+        for (unsigned int j = 0; j < NN; j++)
         {
 
             if (fscanf(fpDefPeak, "%d", reference + j) != 1)
@@ -262,7 +259,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        for (int j = 0; j < NN; j++)
+        for (unsigned int j = 0; j < NN; j++)
         {
             reference[j] = 0;
         }
@@ -278,13 +275,13 @@ int main(int argc, char* argv[])
     double a = 0.0;
     double s = 0.0;
     int totalshift = 0;
-    int maxp = 0;
+    unsigned int maxp = 0;
     unsigned int i = 0;
     while (keepRunning && !(i > maxtime && time))
     {
         if (i == n)
         {
-            n *= 1.5;
+            n = n*3/2;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
         }
@@ -310,13 +307,13 @@ int main(int argc, char* argv[])
         {
             int* cross = malloc(NN * sizeof(int));
             crosscorint(NN, totaltick, reference, cross);
-            int maxp = getmaxpos(cross, NN);
+            unsigned int maxp = getmaxpos(cross, NN);
             if (verbose)
             {
                 FILE* fp = fopen("flip", "w");
                 if (fp)
                 {
-                    for (int j = 0; j < NN; j++)
+                    for (unsigned int j = 0; j < NN; j++)
                     {
                         fprintf(fp,
                                 "%d %d %d %d\n",
@@ -333,7 +330,7 @@ int main(int argc, char* argv[])
                 fprintf(stderr, "FLIPPING peaks pos %d\n", maxp);
 
                 int tmp = 0;
-                for (int j = 0; j < NN / 2; j++)
+                for (unsigned int j = 0; j < NN / 2; j++)
                 {
                     tmp = reference[j + NN / 2];
                     reference[j + NN / 2] = reference[j];
@@ -346,7 +343,7 @@ int main(int argc, char* argv[])
                               capture_handle,
                               NN,
                               buffer,
-                              maxp,
+                              (int)maxp,
                               &totalshift,
                               fpInput);
         }
@@ -358,6 +355,8 @@ int main(int argc, char* argv[])
             reference = totaltick;
         }
 
+        // this gives -5 for a shift
+//        Should be 7995? 
         maxp = fftfit(derivative,
                       totaltick,
                       reference,

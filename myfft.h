@@ -1,22 +1,22 @@
 #include <fftw3.h>
 
 
-fftw_complex* makeFilter(int evalue, int NN);
+fftw_complex* makeFilter(unsigned int evalue, unsigned int NN);
 
-int fftfit(int* mean,
+unsigned fftfit(int* mean,
            int* total,
            int* base,
            int* val,
            fftw_complex* filterFFT,
-           int NN,
+           unsigned int NN,
            int verb);
-void applyFilter(int* input, int NN, fftw_complex* filterFFT, double* out);
-fftw_complex* convolute(int NN, int* array, fftw_complex* filter);
+void applyFilter(int* input, unsigned int NN, fftw_complex* filterFFT, double* out);
+fftw_complex* convolute(unsigned int NN, int* array, fftw_complex* filter);
 
-int getmaxfftw(fftw_complex* array, int NN);
-fftw_complex* crosscor(int NN, fftw_complex* array, fftw_complex* ref);
-void writefftw(fftw_complex* arr, int NN, const char* file);
+unsigned int getmaxfftw(fftw_complex* array, unsigned int NN);
+fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref);
+void writefftw(fftw_complex* arr, unsigned int NN, const char* file);
 
-void remove50hz(int NN, int* array, int rate);
-void normalise(int NN, fftw_complex* in);
-void rescale(int* total, int NN);
+void remove50hz(unsigned int NN, int* array, unsigned int rate);
+void normalise(unsigned int NN, fftw_complex* in);
+void rescale(int* total, unsigned int NN);

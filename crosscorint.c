@@ -12,7 +12,7 @@ void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
         tmpref[j][0] = ref[j];
         tmpref[j][1] = 0.0;
     }
-    fftw_complex* coor = crosscor((int)NN, tmparr, tmpref);
+    fftw_complex* coor = crosscor(NN, tmparr, tmpref);
 
     for (unsigned int j = 0; j < NN; j++)
     {

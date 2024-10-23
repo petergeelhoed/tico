@@ -68,7 +68,7 @@ void printspaces(int maxpos,
 
 void linregd(const float* xarr,
              const float* yarr,
-             int NN,
+             unsigned int NN,
              double* a,
              double* b,
              double* s)
@@ -78,7 +78,7 @@ void linregd(const float* xarr,
     double xx = 0;
     double xy = 0;
     double yy = 0;
-    for (int i = 0; i < NN; ++i)
+    for (unsigned int i = 0; i < NN; ++i)
     {
         y += yarr[i];
         xx += xarr[i] * xarr[i];

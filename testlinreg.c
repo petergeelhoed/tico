@@ -10,14 +10,14 @@
 
 int main()
 {
-    int fitwindow = 14;
+    unsigned int fitwindow = 14;
     int xarr[fitwindow];
     int yarr[fitwindow];
     double a = 0;
     double b = 0;
     double s = 0;
-    int n = 0;
-    for (int k = 0; k < fitwindow; k++)
+    unsigned int n = 0;
+    for (int k = 0; k < (int)fitwindow; k++)
     {
         n++;
         xarr[k] = k;

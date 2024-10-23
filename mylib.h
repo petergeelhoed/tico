@@ -2,7 +2,7 @@
 
 void linregd(const float* xarr,
              const float* yarr,
-             int NN,
+             unsigned int NN,
              double* a,
              double* b,
              double* s);

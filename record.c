@@ -11,32 +11,38 @@
 int main(int argc, char* argv[])
 {
     unsigned int rate = 48000;
-    int bph = 21600;
-    int time = 30;
+    unsigned int bph = 21600;
+    unsigned int time = 30;
     int c;
-    int evalue = 4;
+    unsigned int evalue = 4;
     char* device = 0;
     // declarations
-    int NN = rate * 3600 / bph * 2 ;
+    unsigned int NN = rate * 3600 * 2 / bph ;
 
     while ((c = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
     {
+        int retVal = 0;
         switch (c)
         {
         case 'e':
-            evalue = atoi(optarg);
+            retVal = checkUIntArg(c, &evalue , optarg);
+            if (evalue == 0)
+            {
+                printf("invalid integer argument for -e '%s'\n", optarg);
+                return -1;
+            }
             break;
         case 'd':
             device = optarg;
             break;
         case 't':
-            time = atoi(optarg);
+            retVal = checkUIntArg(c, &time, optarg);
             break;
         case 'b':
-            bph = atoi(optarg);
+            retVal = checkUIntArg(c, &bph, optarg);
             break;
         case 'r':
-            rate = atoi(optarg);
+            retVal = checkUIntArg(c, &rate, optarg);
             break;
         case 'h':
         default:
@@ -52,8 +58,12 @@ int main(int argc, char* argv[])
             exit(0);
             break;
         }
+        if (retVal != 0)
+        {
+            return retVal;
+        }
     }
-    int length = time * bph / 7200;
+    unsigned int length = time * bph / 7200;
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
@@ -61,7 +71,7 @@ int main(int argc, char* argv[])
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
-    char* buffer = malloc(NN * snd_pcm_format_width(format) / 8);
+    char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
     int rawread[NN];
     FILE* fp = fopen("recorded", "w");
     readBufferRaw(capture_handle, 8000, buffer, rawread);

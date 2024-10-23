@@ -9,11 +9,11 @@
 
 int main(int argc, char** argv)
 {
-    int iN = 4000;
-    int i = 0;
+    unsigned int iN = 4000;
+    unsigned int i = 0;
 
     int c;
-    int z = 1;
+    unsigned int z = 1;
     int pval = 0;
     int lval = 0;
 
@@ -50,12 +50,13 @@ int main(int argc, char** argv)
     while (scanf("%f ", &d) != EOF)
     {
         tmpy[i] = d;
-        tmpx[i] = i;
+        tmpx[i] = (float)i;
 
         i++;
         if (i == iN)
         {
-            iN *= 1.8;
+            iN *= 3;
+            iN /= 2;
             float* tmp2 = realloc(tmpy, iN * sizeof(float));
             if (tmp2)
             {
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
         }
     }
 
-    int N = i;
+    unsigned int N = i;
     double a = 0, b = 0, s = 0;
     if (lval)
     {
@@ -105,7 +106,7 @@ int main(int argc, char** argv)
     fftw_complex* out = fftw_alloc_complex(N * z);
 
     /* forward Fourier transform, save the result in 'out' */
-    fftw_plan p = fftw_plan_dft_1d(N * z, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan p = fftw_plan_dft_1d((int)(N * z), in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(p);
 
     if (pval)
@@ -120,7 +121,7 @@ int main(int argc, char** argv)
         for (i = 1; i < (N + 2) / 2; i++)
         {
             printf("%f %g \n",
-                   (float)(i) / N,
+                   (float)(i) / (float)N,
                    2 * z * sqrt(out[i][0] / (N * z) * out[i][0] / (N * z) +
                                 out[i][1] / (z * N) * out[i][1] / (z * N)));
         }

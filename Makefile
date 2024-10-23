@@ -49,4 +49,12 @@ $(LIB)/lib%.a: $(OBJ)/%.o
 %: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a
 	$(CC) -L$(LIB) -o $@ $<  $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS)
 
-#exectables
+#exectables no conversion warnings.
+tico: tico.c $(LIB)/libmyfft.a
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o tico tico.c   -lfftw3 -lmyfft
+
+wav2raw: wav2raw.c $(LIB)/libmyfft.a
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o wav2raw wav2raw.c   -lfftw3 -lmyfft
+
+teeth: teeth.c $(LIB)/libmyfft.a
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o teeth teeth.c   -lfftw3 -lmyfft

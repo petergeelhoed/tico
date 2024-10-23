@@ -6,8 +6,12 @@ void linregd(const float* xarr,
              double* a,
              double* b,
              double* s);
-void linreg(
-    const int* xarr, const int* yarr, unsigned int NN, double* a, double* b, double* s);
+void linreg(const int* xarr,
+            const int* yarr,
+            unsigned int NN,
+            double* a,
+            double* b,
+            double* s);
 
 unsigned int getmaxpos(int* array, unsigned int NN);
 
@@ -30,7 +34,10 @@ void fit10secs(double* a,
                int cvalue,
                unsigned int npeaks);
 void writefile(FILE* fp, int* array, unsigned int NN);
-void calculateTotal(unsigned int n, int* maxpos, unsigned int NN, double threshold);
+void calculateTotal(unsigned int n,
+                    int* maxpos,
+                    unsigned int NN,
+                    double threshold);
 unsigned int getBeatError(int* totalTick, unsigned int NN, int verbose);
 int checkUIntArg(int name, unsigned int* value, char* optarg);
-int checkFileArg(int name, FILE**fp,  char* optarg, char* mode);
+int checkFileArg(int name, FILE** fp, char* optarg, char* mode);

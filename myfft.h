@@ -1,16 +1,18 @@
 #include <fftw3.h>
 
-
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN);
 
 unsigned fftfit(int* mean,
-           int* total,
-           int* base,
-           int* val,
-           fftw_complex* filterFFT,
-           unsigned int NN,
-           int verb);
-void applyFilter(int* input, unsigned int NN, fftw_complex* filterFFT, double* out);
+                int* total,
+                int* base,
+                int* val,
+                fftw_complex* filterFFT,
+                unsigned int NN,
+                int verb);
+void applyFilter(int* input,
+                 unsigned int NN,
+                 fftw_complex* filterFFT,
+                 double* out);
 fftw_complex* convolute(unsigned int NN, int* array, fftw_complex* filter);
 
 unsigned int getmaxfftw(fftw_complex* array, unsigned int NN);

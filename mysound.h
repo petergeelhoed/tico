@@ -6,11 +6,15 @@ int readBuffer(snd_pcm_t* capture_handle,
                unsigned int NN,
                char* buffer,
                int* derivative);
-void readBufferRaw(snd_pcm_t* capture_handle, unsigned int NN, char* buffer, int* in);
+void readBufferRaw(snd_pcm_t* capture_handle,
+                   unsigned int NN,
+                   char* buffer,
+                   int* in);
 
 int readShiftedBuffer(int* derivative,
                       snd_pcm_t* capture_handle,
                       unsigned int NN,
                       char* buffer,
                       int maxpos,
-                      int* totalshift, FILE* fpInput);
+                      int* totalshift,
+                      FILE* fpInput);

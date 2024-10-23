@@ -73,11 +73,6 @@ int main(int argc, char* argv[])
             break;
         case 'f':
             retVal = checkUIntArg(c, &fitN, optarg);
-            if (fitN == 0)
-            {
-                printf("invalid integer argument for -f '%s'\n", optarg);
-                return -1;
-            }
             break;
         case 'c':
             retVal = checkUIntArg(c, &cvalue, optarg);

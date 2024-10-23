@@ -51,10 +51,10 @@ int main(int argc, char* argv[])
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
-    unsigned int len = 30;   //  syncwrite every len tics
-    unsigned int cvalue = 8; // cutoff for adding to correlation
-    unsigned int verbose = 0;        // print for this peak
-    unsigned int fitN = 30;  // fit last 30 peaks, 10 seconds
+    unsigned int len = 30;    //  syncwrite every len tics
+    unsigned int cvalue = 8;  // cutoff for adding to correlation
+    unsigned int verbose = 0; // print for this peak
+    unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
     char* device = 0;
     FILE* rawfile = 0;
@@ -198,33 +198,8 @@ int main(int argc, char* argv[])
 
     int* derivative = malloc(NN * sizeof(int));
     int* reference = malloc(NN * sizeof(int));
-    int* defref = reference;
 
-    // read default peak
-    if (fpDefPeak != 0)
-    {
-        for (unsigned int j = 0; j < NN; j++)
-        {
-
-            if (fscanf(fpDefPeak, "%d", reference + j) != 1)
-            {
-                fprintf(stderr,
-                        "not enough values in -D <default peak file>\n");
-
-                exit(-5);
-            }
-        }
-        fclose(fpDefPeak);
-    }
-    else
-    {
-        for (unsigned int j = 0; j < NN; j++)
-        {
-            reference[j] = 0;
-        }
-        reference[NN / 4] = 1;
-        reference[3 * NN / 4] = 1;
-    }
+    fillReference(fpDefPeak, reference, NN);
 
     // read emptyparts
     readBuffer(capture_handle, NN, buffer, derivative);
@@ -264,56 +239,12 @@ int main(int argc, char* argv[])
 
         if (i == 3 * tps)
         {
-            int* cross = malloc(NN * sizeof(int));
-            crosscorint(NN, totaltick, reference, cross);
-            unsigned int flipmaxp = getmaxpos(cross, NN);
-            if (verbose)
-            {
-                FILE* fp = fopen("flip", "w");
-                if (fp)
-                {
-                    for (unsigned int j = 0; j < NN; j++)
-                    {
-                        fprintf(fp,
-                                "%d %d %d %d\n",
-                                j,
-                                totaltick[j],
-                                reference[j],
-                                cross[j]);
-                    }
-                    fclose(fp);
-                }
-            }
-
-            if (flipmaxp > NN / 4 && flipmaxp < NN * 3 / 4)
-            {
-                fprintf(stderr, "FLIPPING peaks pos %d\n", flipmaxp);
-
-                int tmp = 0;
-                for (unsigned int j = 0; j < NN / 2; j++)
-                {
-                    tmp = reference[j + NN / 2];
-                    reference[j + NN / 2] = reference[j];
-                    reference[j] = tmp;
-                }
-            }
-
-            free(cross);
-            /*
-            readShiftedBuffer(derivative,
-                              capture_handle,
-                              NN,
-                              buffer,
-                              (int)flipmaxp,
-                              &totalshift,
-                              fpInput);
-                              */
+            checkAndFlip(totaltick, reference, NN, verbose);
         }
 
         if (i == 6 * tps)
         {
             free(reference);
-            defref = 0;
             reference = totaltick;
         }
 
@@ -366,6 +297,5 @@ int main(int argc, char* argv[])
     free(maxpos);
     free(derivative);
     free(totaltick);
-    free(defref);
     exit(0);
 }

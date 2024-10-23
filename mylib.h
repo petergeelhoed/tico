@@ -33,11 +33,23 @@ void fit10secs(double* a,
                int* maxes,
                int cvalue,
                unsigned int npeaks);
+
 void writefile(FILE* fp, int* array, unsigned int NN);
+
 void calculateTotal(unsigned int n,
                     int* maxpos,
                     unsigned int NN,
                     double threshold);
+
 unsigned int getBeatError(int* totalTick, unsigned int NN, int verbose);
+
 int checkUIntArg(int name, unsigned int* value, char* optarg);
+
 int checkFileArg(int name, FILE** fp, char* optarg, char* mode);
+
+void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN);
+
+void checkAndFlip(int* totaltick,
+                  int* reference,
+                  unsigned int NN,
+                  unsigned int verbose);

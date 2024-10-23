@@ -278,3 +278,74 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
     }
     return 0;
 }
+
+void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN)
+{
+    // read default peak
+    if (fpDefPeak != 0)
+    {
+        for (unsigned int j = 0; j < NN; j++)
+        {
+
+            if (fscanf(fpDefPeak, "%d", reference + j) != 1)
+            {
+                fprintf(stderr,
+                        "not enough values in -D <default peak file>\n");
+
+                exit(-5);
+            }
+        }
+        fclose(fpDefPeak);
+    }
+    else
+    {
+        for (unsigned int j = 0; j < NN; j++)
+        {
+            reference[j] = 0;
+        }
+        reference[NN / 4] = 1;
+        reference[3 * NN / 4] = 1;
+    }
+}
+
+void checkAndFlip(int* totaltick,
+                  int* reference,
+                  unsigned int NN,
+                  unsigned int verbose)
+{
+    int* cross = malloc(NN * sizeof(int));
+    crosscorint(NN, totaltick, reference, cross);
+    unsigned int flipmaxp = getmaxpos(cross, NN);
+    if (verbose)
+    {
+        FILE* fp = fopen("flip", "w");
+        if (fp)
+        {
+            for (unsigned int j = 0; j < NN; j++)
+            {
+                fprintf(fp,
+                        "%d %d %d %d\n",
+                        j,
+                        totaltick[j],
+                        reference[j],
+                        cross[j]);
+            }
+            fclose(fp);
+        }
+    }
+
+    if (flipmaxp > NN / 4 && flipmaxp < NN * 3 / 4)
+    {
+        fprintf(stderr, "FLIPPING peaks pos %d\n", flipmaxp);
+
+        int tmp = 0;
+        for (unsigned int j = 0; j < NN / 2; j++)
+        {
+            tmp = reference[j + NN / 2];
+            reference[j + NN / 2] = reference[j];
+            reference[j] = tmp;
+        }
+    }
+
+    free(cross);
+}

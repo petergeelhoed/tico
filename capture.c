@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "defaultpulse.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
@@ -231,10 +230,6 @@ int main(int argc, char* argv[])
             }
         }
         fclose(fpDefPeak);
-    }
-    else if (NN == 16000)
-    {
-        reference = memcpy(reference, defaultpulsedouble, 16000 * sizeof(int));
     }
     else
     {

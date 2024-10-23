@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mylib.h"
 #include "myfft.h"
+#include "mylib.h"
 
 int main()
 {
@@ -22,7 +22,7 @@ int main()
     crosscorint(NN, peak, peak2, cross);
     for (int i = 0; i < NN; i++)
     {
-        printf("%d %d %d %d\n",i,peak[i],peak2[i],cross[i]);
+        printf("%d %d %d %d\n", i, peak[i], peak2[i], cross[i]);
     }
 
     exit(0);

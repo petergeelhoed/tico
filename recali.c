@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
-#include "myfft.h"
 #include "mysync.h"
 
 int main()

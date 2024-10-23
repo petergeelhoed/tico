@@ -1,12 +1,12 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
+#include <limits.h>
 #include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <limits.h>
 
 #include "myfft.h"
 #include "mylib.h"
@@ -51,10 +51,10 @@ int main(int argc, char* argv[])
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
-    unsigned int len = 30;     //  syncwrite every len tics
-    unsigned int cvalue = 8;   // cutoff for adding to correlation
-    int verbose = -1; // print for this peak
-    unsigned int fitN = 30;    // fit last 30 peaks, 10 seconds
+    unsigned int len = 30;   //  syncwrite every len tics
+    unsigned int cvalue = 8; // cutoff for adding to correlation
+    int verbose = -1;        // print for this peak
+    unsigned int fitN = 30;  // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
     char* device = 0;
     FILE* rawfile = 0;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
             device = optarg;
             break;
         case 'f':
-            retVal = checkUIntArg(c, &fitN , optarg);
+            retVal = checkUIntArg(c, &fitN, optarg);
             if (fitN == 0)
             {
                 printf("invalid integer argument for -f '%s'\n", optarg);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'c':
-            retVal = checkUIntArg(c, &cvalue , optarg);
+            retVal = checkUIntArg(c, &cvalue, optarg);
             cvalue = cvalue > 15 ? 15 : cvalue;
             break;
         case 'l':
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'e':
-            retVal = checkUIntArg(c, &evalue , optarg);
+            retVal = checkUIntArg(c, &evalue, optarg);
             if (evalue == 0)
             {
                 printf("invalid integer argument for -e '%s'\n", optarg);
@@ -167,10 +167,10 @@ int main(int argc, char* argv[])
             exit(0);
             break;
         }
-    if (retVal != 0)
-    {
-        return retVal;
-    }
+        if (retVal != 0)
+        {
+            return retVal;
+        }
     }
 
     // declarations
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-            n = n*3/2;
+            n = n * 3 / 2;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
         }
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
                                     capture_handle,
                                     NN,
                                     buffer,
-                                    (int)maxp-(int)NN/2,
+                                    (int)maxp - (int)NN / 2,
                                     &totalshift,
                                     fpInput);
             if (err == -32)
@@ -345,12 +345,17 @@ int main(int argc, char* argv[])
         {
             syncappend(maxpos + i - len, len, rawfile);
         }
-        maxpos[i] = totalshift + ((int)maxp-(int)NN/2);
+        maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
         printheader(
             b, NN, everyline, getBeatError(totaltick, NN, 0) * 1000. / rate);
-        printspaces(
-            maxpos[i], maxvals[i], spaces, (int)mod, columns - everyline, a, (int)cvalue);
+        printspaces(maxpos[i],
+                    maxvals[i],
+                    spaces,
+                    (int)mod,
+                    columns - everyline,
+                    a,
+                    (int)cvalue);
         i++;
     }
 

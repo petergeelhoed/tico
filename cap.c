@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 
+#include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
-#include "myfft.h"
 
 static int keepRunning = 1;
 static int columns = 80;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
             "Found COLUMNS=%d, width = %.3fms  /  %.1fμs/character\n",
             columns,
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns-14));
+            mod * 1000000. / rate / (columns - 14));
 
     int* derivative = malloc(NN * sizeof(int));
 
@@ -166,15 +166,9 @@ int main(int argc, char* argv[])
 
         maxpos[i] = totalshift + maxp;
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
-        printheader(b,NN,0,
-                    (getBeatError(totaltick, NN, 0)) * 1000. / rate);
-        printspaces(maxpos[i],
-                    maxvals[i],
-                    spaces,
-                    mod,
-                    columns-14,
-                    a,
-                    cvalue);
+        printheader(b, NN, 0, (getBeatError(totaltick, NN, 0)) * 1000. / rate);
+        printspaces(
+            maxpos[i], maxvals[i], spaces, mod, columns - 14, a, cvalue);
         i++;
     }
 
@@ -187,7 +181,7 @@ int main(int argc, char* argv[])
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,
-            mod * 1000000. / rate / (columns-14));
+            mod * 1000000. / rate / (columns - 14));
     free(maxpos);
     free(derivative);
     free(totaltick);

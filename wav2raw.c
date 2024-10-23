@@ -214,7 +214,8 @@ struct HEADER readheader()
     read = fread(buffer4, sizeof(buffer4), 1, stdin);
     if (DEBUG != 0)
         printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
-    if (read) read =0;
+    if (read)
+        read = 0;
 
     header.data_size = buffer4[0] | (buffer4[1] << 8) | (buffer4[2] << 16) |
                        (buffer4[3] << 24);

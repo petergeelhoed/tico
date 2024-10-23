@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "mylib.h"
 #include "myfft.h"
+#include "mylib.h"
 
 int main(int argc, char** argv)
 {
@@ -106,7 +106,8 @@ int main(int argc, char** argv)
     fftw_complex* out = fftw_alloc_complex(N * z);
 
     /* forward Fourier transform, save the result in 'out' */
-    fftw_plan p = fftw_plan_dft_1d((int)(N * z), in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan p =
+        fftw_plan_dft_1d((int)(N * z), in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(p);
 
     if (pval)

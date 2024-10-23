@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mylib.h"
 #include "myfft.h"
+#include "mylib.h"
 
 int main()
 {
@@ -20,8 +20,8 @@ int main()
     fftw_complex* filter = fftw_alloc_complex(NN);
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-    fftw_plan reversefilter =
-        fftw_plan_dft_1d((int)NN, filterFFT, filter, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan reversefilter = fftw_plan_dft_1d(
+        (int)NN, filterFFT, filter, FFTW_BACKWARD, FFTW_ESTIMATE);
     fftw_plan forwardpeak =
         fftw_plan_dft_1d((int)NN, peak, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_plan reversecorr =

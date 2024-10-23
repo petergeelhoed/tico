@@ -19,8 +19,19 @@ targets=\
     testfft\
     testfilter\
     testlinreg\
+    testcrosscorint\
     tico\
     wav2raw
+
+outputs=\
+        Fbase\
+        capture\
+        crosscor\
+        filteredinput\
+        flip\
+        input\
+        total
+
 
 libs= \
       $(LIB)/libmylib.a\
@@ -35,7 +46,7 @@ install: $(targets)
 	mv $(targets) $(BIN)
 
 clean:
-	rm -f $(LIB)/* $(OBJ)/* $(targets)
+	rm -f $(LIB)/* $(OBJ)/* $(targets) $(outputs)
 
 $(OBJ)/%.o: %.c %.h 
 	$(CC) $(CFLAGS) -c -o $@ $< 

@@ -1,8 +1,8 @@
 #include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mysync.h"
 
@@ -107,4 +107,3 @@ void* threadWrite(void* inStruct)
 
     pthread_exit(NULL);
 }
-

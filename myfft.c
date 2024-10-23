@@ -1,12 +1,11 @@
 #include <limits.h>
-#include <pthread.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "myfft.h"
 #include "mysync.h"
-
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 {
@@ -176,7 +175,10 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     return corr;
 }
 
-void applyFilter(int* input, unsigned int NN, fftw_complex* filterFFT, double* out)
+void applyFilter(int* input,
+                 unsigned int NN,
+                 fftw_complex* filterFFT,
+                 double* out)
 {
     fftw_complex* filteredinput = convolute(NN, input, filterFFT);
     for (unsigned int j = 0; j < NN; j++)
@@ -187,12 +189,12 @@ void applyFilter(int* input, unsigned int NN, fftw_complex* filterFFT, double* o
 }
 
 unsigned int fftfit(int* input,
-           int* total,
-           int* base,
-           int* hexvalue,
-           fftw_complex* filterFFT,
-          unsigned  int NN,
-           int verb)
+                    int* total,
+                    int* base,
+                    int* hexvalue,
+                    fftw_complex* filterFFT,
+                    unsigned int NN,
+                    int verb)
 {
     // base is NN/2 offset to input
     // after 6tps base = total
@@ -216,9 +218,12 @@ unsigned int fftfit(int* input,
         syncwrite(input, NN, "input");
     }
 
-        if (verb) writefftw(filteredinput,NN,"filteredinput");
-        if (verb) writefftw(Fbase,NN,"Fbase");
-        if (verb) writefftw(corr,NN,"crosscor");
+    if (verb)
+        writefftw(filteredinput, NN, "filteredinput");
+    if (verb)
+        writefftw(Fbase, NN, "Fbase");
+    if (verb)
+        writefftw(corr, NN, "crosscor");
 
     unsigned int poscor = getmaxfftw(corr, NN);
 
@@ -235,8 +240,8 @@ unsigned int fftfit(int* input,
         for (unsigned int j = 0; j < NN; j++)
         {
             total[j] = (int)(total[j] +
-                        (int)(2000 * maxcor * maxcor) *
-                            filteredinput[(j + poscor) % NN][0]);
+                             (int)(2000 * maxcor * maxcor) *
+                                 filteredinput[(j + poscor) % NN][0]);
         }
     }
     fftw_free(*filteredinput);
@@ -291,7 +296,6 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int NN)
     return postick;
 }
 
-
 void writefftw(fftw_complex* arr, unsigned int NN, const char* file)
 {
     FILE* fp = fopen(file, "w");
@@ -301,7 +305,6 @@ void writefftw(fftw_complex* arr, unsigned int NN, const char* file)
     }
     fclose(fp);
 }
-
 
 void normalise(unsigned int NN, fftw_complex* in)
 {
@@ -320,4 +323,3 @@ void normalise(unsigned int NN, fftw_complex* in)
         in[j][0] = (in[j][0] - m) / s;
     }
 }
-

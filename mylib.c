@@ -2,12 +2,12 @@
 #include <math.h>
 #include <pthread.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
-#include "mylib.h"
 #include "myfft.h"
+#include "mylib.h"
 #include "mysync.h"
 
 /*Prints header on line or at the top */
@@ -94,8 +94,12 @@ void linregd(const float* xarr,
               NN);
 }
 
-void linreg(
-    const int* xarr, const int* yarr, unsigned int NN, double* a, double* b, double* s)
+void linreg(const int* xarr,
+            const int* yarr,
+            unsigned int NN,
+            double* a,
+            double* b,
+            double* s)
 {
     double x = 0;
     double y = 0;
@@ -174,7 +178,10 @@ unsigned int getmaxpos(int* array, unsigned int NN)
     return postick;
 }
 
-void calculateTotal(unsigned int n, int* maxpos, unsigned int NN, double threshold)
+void calculateTotal(unsigned int n,
+                    int* maxpos,
+                    unsigned int NN,
+                    double threshold)
 {
     double b = 0.0;
     double a = 0.0;
@@ -236,22 +243,23 @@ int checkUIntArg(int name, unsigned int* value, char* optarg)
     *value = (unsigned int)atoi(optarg);
     if (*value == 0)
     {
-        printf("invalid integer argument for -%c: '%s'\n", (char)name , optarg);
+        printf("invalid integer argument for -%c: '%s'\n", (char)name, optarg);
         return -1;
     }
     return 0;
 }
 
-int checkFileArg(int name, FILE**fp,  char* optarg, char* mode)
+int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
 {
     if (*optarg == '-')
     {
-        fprintf(stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
+        fprintf(
+            stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
         return -1;
     }
-    if (!access(optarg, F_OK) && strcmp(mode,"w") == 0)
+    if (!access(optarg, F_OK) && strcmp(mode, "w") == 0)
     {
-        fprintf(stderr, " existing file -%c %s\n",(char)name,  optarg);
+        fprintf(stderr, " existing file -%c %s\n", (char)name, optarg);
         if (remove(optarg))
         {
             fprintf(stderr, "cannot delete file %s\n", optarg);
@@ -261,9 +269,12 @@ int checkFileArg(int name, FILE**fp,  char* optarg, char* mode)
     *fp = fopen(optarg, mode);
     if (*fp == 0)
     {
-        fprintf(stderr, "cannot open file -%c '%s' for mode %s\n",(char)name , optarg,mode);
+        fprintf(stderr,
+                "cannot open file -%c '%s' for mode %s\n",
+                (char)name,
+                optarg,
+                mode);
         return -4;
     }
     return 0;
 }
-

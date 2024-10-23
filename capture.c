@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
                                     capture_handle,
                                     NN,
                                     buffer,
-                                    maxp,
+                                    maxp-NN/2,
                                     &totalshift,
                                     fpInput);
             if (err == -32)
@@ -370,7 +370,7 @@ int main(int argc, char* argv[])
         {
             syncappend(maxpos + i - len, len, rawfile);
         }
-        maxpos[i] = totalshift + maxp;
+        maxpos[i] = totalshift + (maxp-NN/2);
         fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
         printheader(
             b, NN, everyline, (getBeatError(totaltick, NN, 0)) * 1000. / rate);

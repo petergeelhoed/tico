@@ -198,7 +198,10 @@ int fftfit(int* input,
            int verb)
 {
     // base is NN/2 offset to input
+    // after 6tps base = total
+
     // so maximum aut correlation  is at NN/2
+
     fftw_complex* Fbase = fftw_alloc_complex(NN);
     fftw_complex* filteredinput = convolute(NN, input, filterFFT);
 
@@ -226,9 +229,6 @@ int fftfit(int* input,
     double maxcor = corr[poscor][0];
     *hexvalue = (int)(maxcor * 16);
 
-    // needed to add to total
-    poscor -= NN / 2;
-
     // rescale if large
     if (total)
     {
@@ -239,7 +239,7 @@ int fftfit(int* input,
         {
             total[j] = (total[j] +
                         (int)(2000 * maxcor * maxcor) *
-                            filteredinput[(j + poscor + NN / 2 + NN) % NN][0]);
+                            filteredinput[(j + poscor) % NN][0]);
         }
     }
     fftw_free(*filteredinput);

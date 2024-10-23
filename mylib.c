@@ -242,14 +242,14 @@ int checkUIntArg(int name, unsigned int* value, char* optarg)
     return 0;
 }
 
-int checkFileArg(int name, FILE*fp,  char* optarg, char* mode)
+int checkFileArg(int name, FILE**fp,  char* optarg, char* mode)
 {
     if (*optarg == '-')
     {
         fprintf(stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
         return -1;
     }
-    if (!access(optarg, F_OK))
+    if (!access(optarg, F_OK) && strcmp(mode,"w") == 0)
     {
         fprintf(stderr, " existing file -%c %s\n",(char)name,  optarg);
         if (remove(optarg))
@@ -258,8 +258,8 @@ int checkFileArg(int name, FILE*fp,  char* optarg, char* mode)
             return -4;
         }
     }
-    fp = fopen(optarg, mode);
-    if (fp == 0)
+    *fp = fopen(optarg, mode);
+    if (*fp == 0)
     {
         fprintf(stderr, "cannot open file -%c '%s' for mode %s\n",(char)name , optarg,mode);
         return -4;

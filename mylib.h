@@ -33,4 +33,4 @@ void writefile(FILE* fp, int* array, int NN);
 void calculateTotal(int n, int* maxpos, int NN, double threshold);
 unsigned int getBeatError(int* totalTick, unsigned int NN, int verbose);
 int checkUIntArg(int name, unsigned int* value, char* optarg);
-int checkFileArg(int name, FILE*fp,  char* optarg, char* mode);
+int checkFileArg(int name, FILE**fp,  char* optarg, char* mode);

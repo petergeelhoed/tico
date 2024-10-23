@@ -118,10 +118,10 @@ int main(int argc, char* argv[])
             }
             break;
         case 'w':
-            retVal = checkFileArg(c, rawfile, optarg, "a");
+            retVal = checkFileArg(c, &rawfile, optarg, "a");
             break;
         case 'D':
-            retVal = checkFileArg(c, fpDefPeak, optarg, "r");
+            retVal = checkFileArg(c, &fpDefPeak, optarg, "r");
             break;
         case 'p':
             if (*optarg == '-')

@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
                                     capture_handle,
                                     NN,
                                     buffer,
-                                    maxp-NN/2,
+                                    (int)maxp-(int)NN/2,
                                     &totalshift,
                                     fpInput);
             if (err == -32)
@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
         {
             int* cross = malloc(NN * sizeof(int));
             crosscorint(NN, totaltick, reference, cross);
-            unsigned int maxp = getmaxpos(cross, NN);
+            unsigned int flipmaxp = getmaxpos(cross, NN);
             if (verbose)
             {
                 FILE* fp = fopen("flip", "w");
@@ -325,9 +325,10 @@ int main(int argc, char* argv[])
                     fclose(fp);
                 }
             }
-            if (maxp > NN / 4 && maxp < NN * 3 / 4)
+
+            if (flipmaxp > NN / 4 && flipmaxp < NN * 3 / 4)
             {
-                fprintf(stderr, "FLIPPING peaks pos %d\n", maxp);
+                fprintf(stderr, "FLIPPING peaks pos %d\n", flipmaxp);
 
                 int tmp = 0;
                 for (unsigned int j = 0; j < NN / 2; j++)
@@ -339,13 +340,15 @@ int main(int argc, char* argv[])
             }
 
             free(cross);
+            /*
             readShiftedBuffer(derivative,
                               capture_handle,
                               NN,
                               buffer,
-                              (int)maxp,
+                              (int)flipmaxp,
                               &totalshift,
                               fpInput);
+                              */
         }
 
         if (i == 6 * tps)
@@ -355,8 +358,7 @@ int main(int argc, char* argv[])
             reference = totaltick;
         }
 
-        // this gives -5 for a shift
-//        Should be 7995? 
+        // NN/2 for no shift
         maxp = fftfit(derivative,
                       totaltick,
                       reference,
@@ -369,12 +371,12 @@ int main(int argc, char* argv[])
         {
             syncappend(maxpos + i - len, len, rawfile);
         }
-        maxpos[i] = totalshift + (maxp-NN/2);
-        fit10secs(&a, &b, &s, i, maxvals, maxpos, cvalue, fitN);
+        maxpos[i] = totalshift + ((int)maxp-(int)NN/2);
+        fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
         printheader(
-            b, NN, everyline, (getBeatError(totaltick, NN, 0)) * 1000. / rate);
+            b, NN, everyline, getBeatError(totaltick, NN, 0) * 1000. / rate);
         printspaces(
-            maxpos[i], maxvals[i], spaces, mod, columns - everyline, a, cvalue);
+            maxpos[i], maxvals[i], spaces, (int)mod, columns - everyline, a, (int)cvalue);
         i++;
     }
 

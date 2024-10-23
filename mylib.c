@@ -11,7 +11,7 @@
 #include "mysync.h"
 
 /*Prints header on line or at the top */
-void printheader(double b, int NN, int l, float beatError)
+void printheader(double b, unsigned int NN, unsigned int l, double beatError)
 {
     if (l)
     {
@@ -34,16 +34,16 @@ void printspaces(int maxpos,
                  int hexvalue,
                  char* spaces,
                  int mod,
-                 int columns,
+                 unsigned int columns,
                  double avg_pos,
                  int cvalue)
 {
     while (maxpos < mod)
         maxpos += mod;
-    while (avg_pos < mod)
+    while (avg_pos < (double)mod)
         avg_pos += (double)mod;
-    int width = (maxpos % mod) * columns / mod;
-    int widtha = (((int)avg_pos) % mod) * columns / mod;
+    int width = (maxpos % mod) * (int)columns / mod;
+    int widtha = (((int)avg_pos) % mod) * (int)columns / mod;
 
     memset(spaces, ' ', (size_t)width);
     spaces[width] = '\0';
@@ -95,14 +95,14 @@ void linregd(const float* xarr,
 }
 
 void linreg(
-    const int* xarr, const int* yarr, int NN, double* a, double* b, double* s)
+    const int* xarr, const int* yarr, unsigned int NN, double* a, double* b, double* s)
 {
     double x = 0;
     double y = 0;
     double xx = 0;
     double xy = 0;
     double yy = 0;
-    for (int i = 0; i < NN; ++i)
+    for (unsigned int i = 0; i < NN; ++i)
     {
         y += yarr[i];
         xx += xarr[i] * xarr[i];
@@ -121,25 +121,25 @@ void linreg(
 void fit10secs(double* a,
                double* b,
                double* s,
-               int i,
+               unsigned int i,
                int* maxvals,
                int* maxes,
                int cvalue,
-               int npeaks)
+               unsigned int npeaks)
 {
-    int m = 0;
-    int fitwindow = i > npeaks ? npeaks : i;
+    unsigned int m = 0;
+    unsigned int fitwindow = i > npeaks ? npeaks : i;
 
     if (i >= fitwindow)
     {
         int xarr[fitwindow];
         int yarr[fitwindow];
-        for (int k = 0; k < fitwindow; k++)
+        for (unsigned int k = 0; k < fitwindow; k++)
         {
             if (maxvals[i - k] > cvalue)
             {
                 yarr[m] = maxes[i - k];
-                xarr[m] = k;
+                xarr[m] = (int)k;
                 m++;
             }
         }
@@ -150,11 +150,11 @@ void fit10secs(double* a,
     }
 }
 
-void writefile(FILE* fp, int* array, int NN)
+void writefile(FILE* fp, int* array, unsigned int NN)
 {
     if (fp)
     {
-        for (int j = 0; j < NN; j++)
+        for (unsigned int j = 0; j < NN; j++)
             fprintf(fp, "%d\n", array[j]);
     }
 }
@@ -174,16 +174,16 @@ unsigned int getmaxpos(int* array, unsigned int NN)
     return postick;
 }
 
-void calculateTotal(int n, int* maxpos, int NN, double threshold)
+void calculateTotal(unsigned int n, int* maxpos, unsigned int NN, double threshold)
 {
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
     int xarr[n];
 
-    for (int i = 0; i < n; ++i)
+    for (unsigned int i = 0; i < n; ++i)
     {
-        xarr[i] = i;
+        xarr[i] = (int)i;
     }
 
     linreg(xarr, maxpos, n, &a, &b, &s);
@@ -195,11 +195,11 @@ void calculateTotal(int n, int* maxpos, int NN, double threshold)
      */
 
     fprintf(stderr, "raw rate: %f s/d\n", -b * 86400 / NN);
-    int m = 0;
+    unsigned int m = 0;
 
     double e;
 
-    for (int i = 0; i < n; ++i)
+    for (unsigned int i = 0; i < n; ++i)
     {
         e = fabs(((double)maxpos[i] - (a + xarr[i] * b)) / s);
         if (e < threshold)

@@ -1,0 +1,21 @@
+@out;set multiplot
+set size 1,0.5
+set origin 0,0 
+set nokey
+set grid
+f(x)=a+b*x+c*(2*x**2-1)+d*(4*x**3-3*x)+e*(8*x**4-8*x**2+1)+g*(16*x**5-20*x**3+5*x)+h*(32*x**6-48*x**4+18*x**2-1)
+a=1
+b=0
+c=0
+d=0
+e=0
+g=0
+h=0
+b=1
+fit [-1.00:1.00]f(x) "chebdata" u 1:2:(sqrt(1.01-$1**2)) via a,b
+plot [-1:1][-1:1]"chebdata" u 1:2 pt 13 ps 2 , f(x) lt -1 , a,b*x,c*(2*x**2-1),d*(4*x**3-3*x),e*(8*x**4-8*x**2+1),g*(16*x**5-20*x**3+5*x),h*(32*x**6-48*x**4+18*x**2-1),0 lt -1
+set size 1,0.5
+set origin 0,0.5 
+plot "chebdata" u 1:($2-f($1)) w i lw 3 , 0 lt -1 
+
+set nomultiplot

@@ -1,0 +1,216 @@
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57FU" u ($1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a1-b1*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b1            a1           
+   0 1.5708691802e+10   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 1.0527613920e+06  -3.61e-05  1.27e-03    5.606299e+00  -3.571001e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 1.05276e+06
+rel. change during last iteration : -3.60565e-10
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 35.444
+variance of residuals (reduced chisquare) = WSSR/ndf   : 1256.28
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b1              = 5.6063           +/- 0.01513      (0.2699%)
+a1              = -3571            +/- 2.71         (0.07589%)
+
+correlation matrix of the fit parameters:
+                b1     a1     
+b1              1.000 
+a1              0.892  1.000 
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57FD" u ($1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a2-b2*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b2            a2           
+   0 7.4895502237e+09   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 5.0891891200e+05  -1.93e-05  1.27e-03    7.979484e+00  -1.815555e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 508919
+rel. change during last iteration : -1.92898e-10
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 24.6435
+variance of residuals (reduced chisquare) = WSSR/ndf   : 607.302
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b2              = 7.97948          +/- 0.01052      (0.1318%)
+a2              = -1815.56         +/- 1.884        (0.1038%)
+
+correlation matrix of the fit parameters:
+                b2     a2     
+b2              1.000 
+a2              0.892  1.000 
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57CU" u ($1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a3-b3*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b3            a3           
+   0 4.1597784037e+10   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 3.1541320200e+05  -4.29e-04  1.27e-03   -8.171900e-01   6.746121e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 315413
+rel. change during last iteration : -4.29135e-09
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 19.4007
+variance of residuals (reduced chisquare) = WSSR/ndf   : 376.388
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b3              = -0.81719         +/- 0.008282     (1.013%)
+a3              = 6746.12          +/- 1.483        (0.02199%)
+
+correlation matrix of the fit parameters:
+                b3     a3     
+b3              1.000 
+a3              0.892  1.000 
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57CD" u ($1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a4-b4*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b4            a4           
+   0 1.8859045850e+10   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 8.9901044592e+04  -3.72e-04  1.27e-03   -7.358190e+00   3.354936e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 89901
+rel. change during last iteration : -3.72246e-09
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 10.3576
+variance of residuals (reduced chisquare) = WSSR/ndf   : 107.28
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b4              = -7.35819         +/- 0.004421     (0.06009%)
+a4              = 3354.94          +/- 0.7919       (0.0236%)
+
+correlation matrix of the fit parameters:
+                b4     a4     
+b4              1.000 
+a4              0.892  1.000 
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57CL" u ($1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a5-b5*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b5            a5           
+   0 3.6242400138e+10   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 1.0394142774e+06  -7.70e-05  1.27e-03   -7.433205e+00   5.186073e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 1.03941e+06
+rel. change during last iteration : -7.69502e-10
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 35.2186
+variance of residuals (reduced chisquare) = WSSR/ndf   : 1240.35
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b5              = -7.43321         +/- 0.01503      (0.2023%)
+a5              = 5186.07          +/- 2.693        (0.05192%)
+
+correlation matrix of the fit parameters:
+                b5     a5     
+b5              1.000 
+a5              0.892  1.000 
+
+
+*******************************************************************************
+Wed Aug 21 10:30:01 2024
+
+
+FIT:    data read from "peak57CR" u ($ 1/3):($2/48000)*86400
+        format = x:z
+        x range restricted to [20.0000 : *]
+        #datapoints = 840
+        residuals are weighted equally (unit weight)
+
+function used for fitting: a6-b6*x
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b6            a6           
+   0 4.0872925387e+10   0.00e+00  1.27e+02    1.000000e+00   1.000000e+00
+   5 9.8991752799e+04  -8.96e-04  1.27e-03   -8.223347e+00   5.462387e+03
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 98991.8
+rel. change during last iteration : -8.96387e-09
+
+degrees of freedom    (FIT_NDF)                        : 838
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 10.8687
+variance of residuals (reduced chisquare) = WSSR/ndf   : 118.129
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b6              = -8.22335         +/- 0.004639     (0.05642%)
+a6              = 5462.39          +/- 0.831        (0.01521%)
+
+correlation matrix of the fit parameters:
+                b6     a6     
+b6              1.000 
+a6              0.892  1.000 

@@ -105,17 +105,7 @@ int main(int argc, char* argv[])
             }
             break;
         case 'I':
-            if (*optarg == '-')
-            {
-                fprintf(stderr, "expecting -I <file>\n got -I %s\n", optarg);
-                return -1;
-            }
-            fpInput = fopen(optarg, "r");
-            if (fpInput == 0)
-            {
-                fprintf(stderr, "cannot open input file\n");
-                return -4;
-            }
+            retVal = checkFileArg(c, &fpInput, optarg, "r");
             break;
         case 'w':
             retVal = checkFileArg(c, &rawfile, optarg, "a");
@@ -124,18 +114,7 @@ int main(int argc, char* argv[])
             retVal = checkFileArg(c, &fpDefPeak, optarg, "r");
             break;
         case 'p':
-            if (*optarg == '-')
-            {
-                fprintf(stderr, "expecting -p <file>\n got -p %s\n", optarg);
-                return -1;
-            }
-
-            fptotal = fopen(optarg, "w");
-            if (fptotal == 0)
-            {
-                fprintf(stderr, "cannot open file -p <file>\n");
-                return -4;
-            }
+            retVal = checkFileArg(c, &fptotal, optarg, "w");
             break;
         case 's':
             SDthreshold = 0.0;

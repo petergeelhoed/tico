@@ -215,6 +215,7 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
+            // increase array reservation
             n = n * 3 / 2;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
@@ -237,12 +238,13 @@ int main(int argc, char* argv[])
             }
         }
 
-        if (i == 3 * tps)
+        if (i == 9)
         {
+            // check after 8 ticktocks
             checkAndFlip(totaltick, reference, NN, verbose);
         }
 
-        if (i == 6 * tps)
+        if (i == 12)
         {
             free(reference);
             reference = totaltick;

@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     unsigned int everyline = 0;
     unsigned int len = 30;   //  syncwrite every len tics
     unsigned int cvalue = 8; // cutoff for adding to correlation
-    int verbose = -1;        // print for this peak
+    unsigned int verbose = 0;        // print for this peak
     unsigned int fitN = 30;  // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
     char* device = 0;
@@ -88,20 +88,10 @@ int main(int argc, char* argv[])
             everyline = 14;
             break;
         case 'v':
-            verbose = atoi(optarg);
-            if (verbose == 0)
-            {
-                printf("invalid integer argument for -v '%s'\n", optarg);
-                return -1;
-            }
+            retVal = checkUIntArg(c, &verbose, optarg);
             break;
         case 'e':
             retVal = checkUIntArg(c, &evalue, optarg);
-            if (evalue == 0)
-            {
-                printf("invalid integer argument for -e '%s'\n", optarg);
-                return -1;
-            }
             break;
         case 'I':
             retVal = checkFileArg(c, &fpInput, optarg, "r");
@@ -250,7 +240,7 @@ int main(int argc, char* argv[])
     double s = 0.0;
     int totalshift = 0;
     unsigned int maxp = 0;
-    unsigned int i = 0;
+    unsigned int i = 1;
     while (keepRunning && !(i > maxtime && time))
     {
         if (i == n)
@@ -339,7 +329,7 @@ int main(int argc, char* argv[])
                       maxvals + i,
                       filterFFT,
                       NN,
-                      (int)i == verbose);
+                      i == verbose);
 
         if (rawfile && i > 0 && i % len == 0)
         {

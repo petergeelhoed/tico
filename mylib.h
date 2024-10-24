@@ -19,7 +19,6 @@ void printheader(double b, unsigned int NN, unsigned int l, double beatError);
 
 void printspaces(int maxpos,
                  int val,
-                 char* spaces,
                  int mod,
                  unsigned int columns,
                  double a,

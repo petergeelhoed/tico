@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
     FILE* fpDefPeak = 0;
     FILE* fpInput = 0;
 
-    int c;
     int retVal = 0;
+    int c;
     while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:l")) != -1)
     {
         switch (c)
@@ -172,7 +172,6 @@ int main(int argc, char* argv[])
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     columns = w.ws_col;
-    char spaces[1024];
     set_signal_action();
 
     device = device == 0 ? "default:1" : device;
@@ -275,7 +274,6 @@ int main(int argc, char* argv[])
             b, NN, everyline, getBeatError(totaltick, NN, 0) * 1000. / rate);
         printspaces(maxpos[i],
                     maxvals[i],
-                    spaces,
                     (int)mod,
                     columns - everyline,
                     a,

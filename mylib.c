@@ -32,7 +32,6 @@ void printheader(double b, unsigned int NN, unsigned int l, double beatError)
 
 void printspaces(int maxpos,
                  int hexvalue,
-                 char* spaces,
                  int mod,
                  unsigned int columns,
                  double avg_pos,
@@ -45,6 +44,7 @@ void printspaces(int maxpos,
     int width = (maxpos % mod) * (int)columns / mod;
     int widtha = (((int)avg_pos) % mod) * (int)columns / mod;
 
+    char spaces[1024];
     memset(spaces, ' ', (size_t)width);
     spaces[width] = '\0';
     if (widtha < width)

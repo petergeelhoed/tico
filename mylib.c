@@ -299,10 +299,6 @@ void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN)
     }
     else
     {
-        for (unsigned int j = 0; j < NN; j++)
-        {
-            reference[j] = 0;
-        }
         reference[NN / 4] = 1;
         reference[3 * NN / 4] = 1;
     }

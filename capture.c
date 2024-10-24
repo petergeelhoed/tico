@@ -172,14 +172,24 @@ int main(int argc, char* argv[])
 
     // declarations
     unsigned int NN = rate * 7200 / bph;
+    unsigned int mod = NN / zoom;
     // should be even
     NN = (NN + NN % 2);
     unsigned int tps = rate / NN;
     unsigned int n = time ? time * tps : 30 * tps;
     unsigned int maxtime = n;
+    fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
-    unsigned int mod = NN / zoom;
+    int* derivative = malloc(NN * sizeof(int));
+    int* reference = malloc(NN * sizeof(int));
+    int* totaltick = calloc(NN , sizeof(int));
+    for (unsigned int j = 0; j < NN; j++)
+    {
+ printf("%d\n",totaltick[j]);
+    }
+
+
 
     device = (device == 0) ? "default:1" : device;
 
@@ -187,13 +197,6 @@ int main(int argc, char* argv[])
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
-    fftw_complex* filterFFT = makeFilter(evalue, NN);
-
-    int* totaltick = malloc(NN * sizeof(int));
-    for (unsigned int j = 0; j < NN; j++)
-    {
-        totaltick[j] = 0;
-    }
 
     fprintf(stderr,
             "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  "
@@ -201,9 +204,6 @@ int main(int argc, char* argv[])
             columns,
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
-
-    int* derivative = malloc(NN * sizeof(int));
-    int* reference = malloc(NN * sizeof(int));
 
     fillReference(fpDefPeak, reference, NN);
 

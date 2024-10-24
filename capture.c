@@ -292,6 +292,7 @@ int main(int argc, char* argv[])
 
     free(maxvals);
     free(buffer);
+    free(derivative);
     fftw_free(filterFFT);
     snd_pcm_close(capture_handle);
 
@@ -300,20 +301,19 @@ int main(int argc, char* argv[])
         writefile(rawfile, maxpos + i - i % len, i % len);
         fclose(rawfile);
     }
+    calculateTotal(i, maxpos, NN, SDthreshold);
+    free(maxpos);
 
     if (fptotal)
     {
         writefile(fptotal, totaltick, NN);
         fclose(fptotal);
     }
+    free(totaltick);
 
-    calculateTotal(i, maxpos, NN, SDthreshold);
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
-    free(maxpos);
-    free(derivative);
-    free(totaltick);
     exit(0);
 }

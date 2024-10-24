@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
     FILE* fpInput = 0;
-    
+
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
@@ -72,7 +72,6 @@ int main(int argc, char* argv[])
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     columns = w.ws_col;
     set_signal_action();
-
 
     int retVal = 0;
     int c;
@@ -182,14 +181,8 @@ int main(int argc, char* argv[])
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
     int* derivative = malloc(NN * sizeof(int));
-    int* reference = malloc(NN * sizeof(int));
-    int* totaltick = calloc(NN , sizeof(int));
-    for (unsigned int j = 0; j < NN; j++)
-    {
- printf("%d\n",totaltick[j]);
-    }
-
-
+    int* reference = calloc(NN, sizeof(int));
+    int* totaltick = calloc(NN, sizeof(int));
 
     device = (device == 0) ? "default:1" : device;
 
@@ -197,6 +190,12 @@ int main(int argc, char* argv[])
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
+    if (buffer == 0 || capture_handle == 0 || totaltick == 0 ||
+        reference == 0 || maxvals == 0 || maxpos == 0 || filterFFT == 0)
+    {
+        fprintf(stderr, "Could not allocate memory");
+        return -5;
+    }
 
     fprintf(stderr,
             "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  "
@@ -220,6 +219,11 @@ int main(int argc, char* argv[])
             n = n * 3 / 2;
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
+            if (maxvals == 0 || maxpos == 0)
+            {
+                fprintf(stderr, "Could not increase memory");
+                break;
+            }
         }
 
         int err = -32;

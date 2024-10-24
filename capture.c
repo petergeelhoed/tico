@@ -275,9 +275,12 @@ int main(int argc, char* argv[])
         }
 
         maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
+
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
+
         printheader(
             b, NN, everyline, getBeatError(totaltick, NN, 0) * 1000. / rate);
+
         printspaces(maxpos[i],
                     maxvals[i],
                     (int)mod,

@@ -61,6 +61,18 @@ int main(int argc, char* argv[])
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
     FILE* fpInput = 0;
+    
+    double b = 0.0;
+    double a = 0.0;
+    double s = 0.0;
+    int totalshift = 0;
+    unsigned int maxp = 0;
+
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    columns = w.ws_col;
+    set_signal_action();
+
 
     int retVal = 0;
     int c;
@@ -169,12 +181,7 @@ int main(int argc, char* argv[])
     int* maxvals = malloc(n * sizeof(int));
     unsigned int mod = NN / zoom;
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col;
-    set_signal_action();
-
-    device = device == 0 ? "default:1" : device;
+    device = (device == 0) ? "default:1" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
@@ -204,11 +211,6 @@ int main(int argc, char* argv[])
     readBuffer(capture_handle, NN, buffer, derivative);
     readBuffer(capture_handle, NN / 2, buffer, derivative);
 
-    double b = 0.0;
-    double a = 0.0;
-    double s = 0.0;
-    int totalshift = 0;
-    unsigned int maxp = 0;
     unsigned int i = 1;
     while (keepRunning && !(i > maxtime && time))
     {

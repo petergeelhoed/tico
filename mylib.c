@@ -223,7 +223,7 @@ void calculateTotal(unsigned int n,
         stderr, "after %.1fσ removal: %.2f s/d\n", threshold, -b * 86400 / NN);
 }
 
-int getBeatError(int* totaltick, unsigned int NN, int verbose)
+double getBeatError(int* totaltick, unsigned int NN, unsigned int rate,int verbose)
 {
 
     int cross[NN / 2];
@@ -235,7 +235,7 @@ int getBeatError(int* totaltick, unsigned int NN, int verbose)
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
-    return ((int)((postick + NN / 4) % (NN / 2)) - (int)NN / 4);
+    return ((int)((postick + NN / 4) % (NN / 2)) - (int)NN / 4)*1000/(double)rate;
 }
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)

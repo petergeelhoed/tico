@@ -40,7 +40,7 @@ void calculateTotal(unsigned int n,
                     unsigned int NN,
                     double threshold);
 
-int getBeatError(int* totalTick, unsigned int NN, int verbose);
+double getBeatError(int* totalTick, unsigned int NN, unsigned int rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 

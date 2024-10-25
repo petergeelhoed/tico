@@ -16,6 +16,7 @@ void printheader(double b, unsigned int NN, unsigned int l, double beatError)
     if (l)
     {
         char line[14 + 1];
+        memset(line, ' ', 14);
         snprintf(line, 5, "%4.2f", beatError);
         snprintf(line + 4, 8, "ms%+5.1f", b * 86400 / NN);
         sprintf(line + 11, "s/d");
@@ -24,7 +25,7 @@ void printheader(double b, unsigned int NN, unsigned int l, double beatError)
     else
     {
         fprintf(stderr,
-                "\033[s\033[2;0H\033[K%+8.2fms   %+7.1fs/d\033[u",
+                "\033[s\033[2;0H\033[0K%8.2fms   %7.1fs/d\033[u",
                 beatError,
                 b * 86400 / NN);
     }
@@ -222,7 +223,7 @@ void calculateTotal(unsigned int n,
         stderr, "after %.1fσ removal: %.2f s/d\n", threshold, -b * 86400 / NN);
 }
 
-unsigned int getBeatError(int* totaltick, unsigned int NN, int verbose)
+int getBeatError(int* totaltick, unsigned int NN, int verbose)
 {
 
     int cross[NN / 2];
@@ -234,7 +235,7 @@ unsigned int getBeatError(int* totaltick, unsigned int NN, int verbose)
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
-    return (postick + NN / 4) % (NN / 2) - NN / 4;
+    return ((int)((postick + NN / 4) % (NN / 2)) - (int)NN / 4);
 }
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include "myfft.h"
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
-    unsigned int len = 3;     //  syncwrite every len tics
+    unsigned int len = 30;     //  syncwrite every len tics
     unsigned int cvalue = 8;  // cutoff for adding to correlation
     unsigned int verbose = 0; // print for this peak
     unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
@@ -298,6 +299,10 @@ int main(int argc, char* argv[])
 
     if (rawfile)
     {
+        struct timeval tv;
+        gettimeofday(&tv,NULL);
+
+        fprintf(rawfile, "# %lu\n", tv.tv_sec);
         writefile(rawfile, maxpos + i - i % len, i % len);
         fclose(rawfile);
     }

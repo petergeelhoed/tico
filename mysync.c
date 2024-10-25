@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "mysync.h"
 
@@ -54,7 +55,10 @@ void* threadAppend(void* inStruct)
     mine.array = copyarr;
     free(arrptr);
     free(inStruct);
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
 
+    fprintf(file, "# %lu\n",tv.tv_usec);
     for (unsigned int j = 0; j < mine.NN; j++)
     {
         fprintf(file, "%d\n", mine.array[j]);

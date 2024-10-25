@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     readBuffer(capture_handle, NN, buffer, derivative);
     readBuffer(capture_handle, NN / 2, buffer, derivative);
 
-    unsigned int i = 1;
+    unsigned int i = 0;
     while (keepRunning && !(i > maxtime && time))
     {
         if (i == n)
@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
                       maxvals + i,
                       filterFFT,
                       NN,
-                      i == verbose);
+                      i > 0 && i == verbose);
 
         if (rawfile && i > 0 && i % len == 0)
         {

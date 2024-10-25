@@ -243,8 +243,9 @@ int main(int argc, char* argv[])
                 err = readBuffer(capture_handle, NN, buffer, derivative);
             }
         }
-        if (err != 0)
+        if (err < 0)
         {
+            printf("error %d\n",err);
             break;
         }
 

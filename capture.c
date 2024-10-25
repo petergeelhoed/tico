@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
         }
         if (err < 0)
         {
-            printf("error %d\n",err);
+            printf("error %d\n", err);
             break;
         }
 
@@ -279,8 +279,7 @@ int main(int argc, char* argv[])
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
 
-        printheader(
-            b, NN, everyline, getBeatError(totaltick, NN, rate, 0));
+        printheader(b, NN, everyline, getBeatError(totaltick, NN, rate, 0));
 
         printspaces(maxpos[i],
                     maxvals[i],

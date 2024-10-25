@@ -17,12 +17,8 @@ unsigned int getmaxpos(int* array, unsigned int NN);
 
 void printheader(double b, unsigned int NN, unsigned int l, double beatError);
 
-void printspaces(int maxpos,
-                 int val,
-                 int mod,
-                 unsigned int columns,
-                 double a,
-                 int cvalue);
+void printspaces(
+    int maxpos, int val, int mod, unsigned int columns, double a, int cvalue);
 
 void fit10secs(double* a,
                double* b,
@@ -40,7 +36,8 @@ void calculateTotal(unsigned int n,
                     unsigned int NN,
                     double threshold);
 
-double getBeatError(int* totalTick, unsigned int NN, unsigned int rate, int verbose);
+double
+getBeatError(int* totalTick, unsigned int NN, unsigned int rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 

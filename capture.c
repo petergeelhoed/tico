@@ -188,10 +188,19 @@ int main(int argc, char* argv[])
     device = (device == 0) ? "default:1" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = initAudio(format, device, rate);
+    snd_pcm_t* capture_handle;
+    if (fpInput == 0)
+    {
+        capture_handle = initAudio(format, device, rate);
+    }
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
-    if (buffer == 0 || capture_handle == 0 || totaltick == 0 ||
+    if (fpInput ==0  && capture_handle == 0)
+    {
+        fprintf(stderr, "No inputfile or soundcard");
+        return -6;
+    }
+    if (buffer == 0 || totaltick == 0 ||
         reference == 0 || maxvals == 0 || maxpos == 0 || filterFFT == 0)
     {
         fprintf(stderr, "Could not allocate memory");

@@ -188,14 +188,14 @@ int main(int argc, char* argv[])
     device = (device == 0) ? "default:1" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle;
+    snd_pcm_t* capture_handle = 0;
     if (fpInput == 0)
     {
         capture_handle = initAudio(format, device, rate);
     }
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
-    if (fpInput ==0  && capture_handle == 0)
+    if (fpInput == 0 && capture_handle == 0)
     {
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
@@ -217,8 +217,11 @@ int main(int argc, char* argv[])
     fillReference(fpDefPeak, reference, NN);
 
     // read emptyparts
-    readBuffer(capture_handle, NN, buffer, derivative);
-    readBuffer(capture_handle, NN / 2, buffer, derivative);
+    if (capture_handle)
+    {
+        readBuffer(capture_handle, NN, buffer, derivative);
+        readBuffer(capture_handle, NN / 2, buffer, derivative);
+    }
 
     unsigned int i = 0;
     while (keepRunning && !(i > maxtime && time))
@@ -251,6 +254,11 @@ int main(int argc, char* argv[])
                 snd_pcm_close(capture_handle);
                 capture_handle = initAudio(format, device, rate);
                 err = readBuffer(capture_handle, NN, buffer, derivative);
+            }
+            if (err == -33)
+            {
+                printf("Could not read integer from inputfile\n");
+                return -7;
             }
         }
         if (err < 0)
@@ -304,7 +312,6 @@ int main(int argc, char* argv[])
     free(buffer);
     free(derivative);
     fftw_free(filterFFT);
-    snd_pcm_close(capture_handle);
 
     if (rawfile)
     {
@@ -323,6 +330,12 @@ int main(int argc, char* argv[])
         writefile(fptotal, totaltick, NN);
         fclose(fptotal);
     }
+
+    if(capture_handle != 0)
+    {
+        snd_pcm_close(capture_handle);
+    }
+
     free(totaltick);
 
     fprintf(stderr,

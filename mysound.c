@@ -163,7 +163,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -32;
+                    ret = -33;
                     break;
                 }
             }
@@ -187,7 +187,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -32;
+                    ret = -33;
                     break;
                 }
             }
@@ -195,7 +195,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -32;
+                    ret = -33;
                     break;
                 }
             }
@@ -223,7 +223,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -32;
+                    ret = -33;
                     break;
                 }
             }

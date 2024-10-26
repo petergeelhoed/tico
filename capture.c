@@ -216,13 +216,6 @@ int main(int argc, char* argv[])
 
     fillReference(fpDefPeak, reference, NN);
 
-    // read emptyparts
-    if (capture_handle)
-    {
-        readBuffer(capture_handle, NN, buffer, derivative);
-        readBuffer(capture_handle, NN / 2, buffer, derivative);
-    }
-
     unsigned int i = 0;
     while (keepRunning && !(i > maxtime && time))
     {

@@ -116,7 +116,7 @@ int readBuffer(snd_pcm_t* capture_handle,
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
+    int err =  snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
     if (err != (int)NN)
     {
         fprintf(stderr,
@@ -149,16 +149,15 @@ int readShiftedBuffer(int* derivative,
                       int* totalshift,
                       FILE* fpInput)
 {
-    int ret;
+    int ret = -1;
     unsigned shift = (unsigned int)sqrt(abs(maxpos));
-
     if (maxpos < 0)
     {
         *totalshift -= (int)shift;
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
         if (fpInput)
         {
-            ret = 0;
+            ret = (int)(NN-shift);
             for (unsigned int j = 0; j < NN - shift; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
@@ -182,7 +181,7 @@ int readShiftedBuffer(int* derivative,
         *totalshift += (int)shift;
         if (fpInput)
         {
-            ret = 0;
+            ret = (int)shift;
             for (unsigned int j = 0; j < shift; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
@@ -191,6 +190,7 @@ int readShiftedBuffer(int* derivative,
                     break;
                 }
             }
+            ret += (int)NN;
             for (unsigned int j = 0; j < NN; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
@@ -207,7 +207,7 @@ int readShiftedBuffer(int* derivative,
         else
         {
             ret = readBuffer(capture_handle, shift, buffer, derivative);
-
+            
             if (ret != -32)
             {
                 ret = readBuffer(capture_handle, NN, buffer, derivative);
@@ -218,7 +218,7 @@ int readShiftedBuffer(int* derivative,
     {
         if (fpInput)
         {
-            ret = 0;
+            ret = (int)shift;
             for (unsigned int j = 0; j < shift; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)

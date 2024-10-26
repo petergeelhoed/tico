@@ -244,6 +244,7 @@ int main(int argc, char* argv[])
                                     fpInput);
             if (err == -32)
             {
+                fprintf(stderr,"Reinitializing capture_handle");
                 snd_pcm_close(capture_handle);
                 capture_handle = initAudio(format, device, rate);
                 err = readBuffer(capture_handle, NN, buffer, derivative);
@@ -256,7 +257,7 @@ int main(int argc, char* argv[])
         }
         if (err < 0)
         {
-            printf("error %d\n", err);
+            printf("capture error %d\n", err);
             break;
         }
 

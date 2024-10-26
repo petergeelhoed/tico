@@ -288,12 +288,13 @@ int main(int argc, char* argv[])
                       NN,
                       i > 0 && i == verbose);
 
+        maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
+
         if (rawfile && i > 0 && i % len == 0)
         {
             syncappend(maxpos + i - len, len, rawfile);
         }
 
-        maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
 

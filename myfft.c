@@ -253,32 +253,33 @@ unsigned int fftfit(int* input,
 
 void rescale(int* total, unsigned int NN)
 {
-    if (total[NN / 2] > 100000000 || total[0] > 100)
-    {
-
-        long int avg = 0;
+        double avg = 0.0;
+        int maxval = -INT_MAX;
+        int minval = INT_MAX;
 
         for (unsigned int j = 0; j < NN; j++)
         {
-            avg += total[j];
+            avg += (double)total[j];
+            maxval = total[j] > maxval ? total[j] : maxval;
+            minval = total[j] < minval ? total[j] : minval;
         }
-        avg /= (long int)NN;
+        avg /= NN;
         int avi = (int)avg;
-        if (avi > 100)
-        {
-            for (unsigned int j = 0; j < NN; j++)
-            {
-                total[j] -= avi;
-            }
-        }
-        else
+
+        if (maxval > 100000000 || minval < -100000000)
         {
             for (unsigned int j = 0; j < NN; j++)
             {
                 total[j] /= 2;
             }
         }
-    }
+        else if (abs(avi) > 10)
+        {
+            for (unsigned int j = 0; j < NN; j++)
+            {
+                total[j] -= avi;
+            }
+        }
 }
 
 unsigned int getmaxfftw(fftw_complex* array, unsigned int NN)

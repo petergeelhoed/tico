@@ -222,7 +222,6 @@ int main(int argc, char* argv[])
     unsigned int totalI = 0;
     while (keepRunning && !(totalI > maxtime && time))
     {
-        printf("%d %d %d %d\n", totalI,i,maxtime,time);
         if (i == n)
         {
             memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF);

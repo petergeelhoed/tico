@@ -5,8 +5,10 @@ SOUNDFLAGS= -lasound -lmysound
 MYLIBFLAGS= -lmylib 
 MYSYNCFLAGS= -lmysync 
 FFTFLAGS= -lfftw3 -lmyfft 
-CFLAGS= -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
-SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer 
+CFLAGS= -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
+#CFLAGS= -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
+SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer -static-libasan
+#CC= cc $(CFLAGS) $(SANI_ADDR)
 CC= cc $(CFLAGS)
 
 targets=\

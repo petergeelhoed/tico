@@ -178,7 +178,8 @@ int main(int argc, char* argv[])
     // should be even
     NN = (NN + NN % 2);
     unsigned int n = ARR_BUFF*2;
-    unsigned int maxtime = n;
+    unsigned int tps = rate / NN;
+    unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
@@ -221,6 +222,7 @@ int main(int argc, char* argv[])
     unsigned int totalI = 0;
     while (keepRunning && !(totalI > maxtime && time))
     {
+        printf("%d %d %d %d\n", totalI,i,maxtime,time);
         if (i == n)
         {
             memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF);

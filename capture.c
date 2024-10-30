@@ -223,6 +223,7 @@ int main(int argc, char* argv[])
         {
             // increase array reservation
             n = n * 3 / 2;
+            fprintf(stderr,"reallocating memory, size = %u\n", n);
             maxpos = realloc(maxpos, n * sizeof(int));
             maxvals = realloc(maxvals, n * sizeof(int));
             if (maxvals == 0 || maxpos == 0)
@@ -311,9 +312,21 @@ int main(int argc, char* argv[])
     if (rawfile)
     {
         struct timeval tv;
-        gettimeofday(&tv,NULL);
+        struct timezone tz;
+        gettimeofday(&tv,&tz);
 
-        fprintf(rawfile, "# %lu\n", tv.tv_sec);
+        struct tm *today = localtime(&tv.tv_sec);
+        fprintf(rawfile, "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+                today->tm_year + 1900,
+                today->tm_mon + 1,
+                today->tm_mday,
+                today->tm_hour,
+                today->tm_min,
+                today->tm_sec,
+                tv.tv_usec,
+                tv.tv_sec,
+                tv.tv_usec);
+
         writefile(rawfile, maxpos + i - i % len, i % len);
         fclose(rawfile);
     }

@@ -14,6 +14,8 @@
 #include "mysound.h"
 #include "mysync.h"
 
+#define ARR_BUFF 512
+
 static int keepRunning = 1;
 unsigned int columns = 80;
 void sigint_handler(int signal)
@@ -52,7 +54,7 @@ int main(int argc, char* argv[])
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
-    unsigned int len = 30;     //  syncwrite every len tics
+    unsigned int len = 32;     //  syncwrite every len tics
     unsigned int cvalue = 8;  // cutoff for adding to correlation
     unsigned int verbose = 0; // print for this peak
     unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
@@ -175,8 +177,7 @@ int main(int argc, char* argv[])
     unsigned int mod = NN / zoom;
     // should be even
     NN = (NN + NN % 2);
-    unsigned int tps = rate / NN;
-    unsigned int n = time ? time * tps : 30 * tps;
+    unsigned int n = ARR_BUFF*2;
     unsigned int maxtime = n;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
@@ -217,20 +218,14 @@ int main(int argc, char* argv[])
     fillReference(fpDefPeak, reference, NN);
 
     unsigned int i = 0;
-    while (keepRunning && !(i > maxtime && time))
+    unsigned int totalI = 0;
+    while (keepRunning && !(totalI > maxtime && time))
     {
         if (i == n)
         {
-            // increase array reservation
-            n = n * 3 / 2;
-            fprintf(stderr,"reallocating memory, size = %u\n", n);
-            maxpos = realloc(maxpos, n * sizeof(int));
-            maxvals = realloc(maxvals, n * sizeof(int));
-            if (maxvals == 0 || maxpos == 0)
-            {
-                fprintf(stderr, "Could not increase memory");
-                break;
-            }
+            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF);
+            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF);
+            i -= ARR_BUFF;
         }
 
         int err = -32;
@@ -262,13 +257,13 @@ int main(int argc, char* argv[])
             break;
         }
 
-        if (i == 9)
+        if (totalI == 9)
         {
             // check after 8 ticktocks
             checkAndFlip(totaltick, reference, NN, verbose);
         }
 
-        if (i == 12)
+        if (totalI == 12)
         {
             free(reference);
             reference = totaltick;
@@ -281,7 +276,7 @@ int main(int argc, char* argv[])
                       maxvals + i,
                       filterFFT,
                       NN,
-                      i > 0 && i == verbose);
+                      totalI > 0 && totalI == verbose);
 
         maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
 
@@ -302,6 +297,7 @@ int main(int argc, char* argv[])
                     a,
                     (int)cvalue);
         i++;
+        totalI++;
     }
 
     free(maxvals);
@@ -330,7 +326,6 @@ int main(int argc, char* argv[])
         writefile(rawfile, maxpos + i - i % len, i % len);
         fclose(rawfile);
     }
-    calculateTotal(i, maxpos, NN, SDthreshold);
     free(maxpos);
 
     if (fptotal)

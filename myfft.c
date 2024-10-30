@@ -227,6 +227,7 @@ unsigned int fftfit(int* input,
 
     unsigned int poscor = getmaxfftw(corr, NN);
 
+ //   printf("%d %s %s %d\n", __LINE__,__func__,__FILE__, poscor);
     // for hexadecimal print
     double maxcor = corr[poscor][0];
     *hexvalue = (int)(maxcor * 16);

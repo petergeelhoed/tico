@@ -150,7 +150,7 @@ int readShiftedBuffer(int* derivative,
                       FILE* fpInput)
 {
     int ret = -1;
-    unsigned shift = (unsigned int)sqrt(abs(maxpos));
+    unsigned shift = (unsigned int)sqrt(abs(maxpos)) +(unsigned int)(abs(maxpos)/16);
     if (maxpos < 0)
     {
         *totalshift -= (int)shift;
@@ -218,8 +218,8 @@ int readShiftedBuffer(int* derivative,
     {
         if (fpInput)
         {
-            ret = (int)shift;
-            for (unsigned int j = 0; j < shift; ++j)
+            ret = (int)NN;
+            for (unsigned int j = 0; j < NN; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {

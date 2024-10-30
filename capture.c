@@ -69,7 +69,6 @@ int main(int argc, char* argv[])
     double a = 0.0;
     double s = 0.0;
     int totalshift = 0;
-    unsigned int maxp = 0;
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -175,6 +174,7 @@ int main(int argc, char* argv[])
     // declarations
     unsigned int NN = rate * 7200 / bph;
     unsigned int mod = NN / zoom;
+    unsigned int maxp = NN/2;
     // should be even
     NN = (NN + NN % 2);
     unsigned int n = ARR_BUFF*2;
@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
                                     capture_handle,
                                     NN,
                                     buffer,
-                                    (int)maxp - (int)NN / 2,
+                                    ((int)maxp - (int)NN / 2 ),
                                     &totalshift,
                                     fpInput);
             if (err == -32)

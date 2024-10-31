@@ -238,7 +238,7 @@ unsigned int fftfit(int* input,
         {
             total[j] = (int)(total[j] +
                              (int)(2000 * maxcor * maxcor) *
-                                 filteredinput[(j + poscor + NN/2) % NN][0]);
+                                 filteredinput[(j + poscor + NN / 2) % NN][0]);
         }
     }
     fftw_free(*filteredinput);

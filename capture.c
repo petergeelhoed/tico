@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     unsigned int time = 0;
     unsigned int everyline = 0;
     unsigned int len = 32;    //  syncwrite every len tics
-    unsigned int cvalue = 8;  // cutoff for adding to correlation
+    unsigned int cvalue = 7;  // cutoff for adding to correlation
     unsigned int verbose = 0; // print for this peak
     unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
     double SDthreshold = 3.;
@@ -141,27 +141,27 @@ int main(int argc, char* argv[])
             break;
         case 'h':
         default:
-            fprintf(
-                stderr,
-                "usage: capture \n"
-                "capture reads from the microphone and timegraphs your watch\n"
-                "options:\n"
-                " -d <capture device> (default: 'default:1')\n"
-                " -z <zoom> (default: 10)\n"
-                " -b bph of the watch (default: 21600/h) \n"
-                " -r sampling rate (default: 48000Hz)\n"
-                " -t <measurment time> (default: 30s)\n"
-                " -s cutoff standarddeviation (default: 3.0)\n"
-                " -w <file> write positions to file\n"
-                " -I <file> read from file instead of microphone\n"
-                " -p <file> write pulse to file\n"
-                " -D <file> read pulse from file\n"
-                " -c 8 threshold for local rate\n"
-                " -f 30 fit n points for local rate\n"
-                " -e 4 Gaussan convolution over input\n"
-                " -n 60 number of mpoints to fit in local rate\n"
-                " -l print beaterror and rate on each line\n"
-                " -v <peak> write files for this peak \n");
+            fprintf(stderr,
+                    "usage: capture \n"
+                    "capture reads from the microphone and timegraphs your "
+                    "mechanical watch\n"
+                    "options:\n"
+                    " -d default:1 capture device>\n"
+                    " -z 10 zoom\n"
+                    " -b 21600 bph of the watch\n"
+                    " -r 48000 sampling rate in Hz\n"
+                    " -t 30 measurment time in seconds\n"
+                    " -s 3.0 cutoff standarddeviation\n"
+                    " -w <file> write positions to file\n"
+                    " -I <file> read from file instead of microphone\n"
+                    " -p <file> write pulse to file\n"
+                    " -D <file> read pulse from file\n"
+                    " -c 7 threshold for local rate\n"
+                    " -f 30 fit n points for local rate\n"
+                    " -e 4 Gaussan convolution over input\n"
+                    " -n 60 number of points to fit in local rate\n"
+                    " -l print beaterror and rate on each line\n"
+                    " -v <peak> write files for this peak \n");
             exit(0);
             break;
         }

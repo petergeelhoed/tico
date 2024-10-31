@@ -232,17 +232,24 @@ int main(int argc, char* argv[])
         int err = -32;
         while (err == -32)
         {
-            int preshift =
-                (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2)) / 8;
+            int preshift = 0;
+
             if (i < 12)
-                preshift = 0;
-            err = readShiftedBuffer(derivative,
-                                    capture_handle,
-                                    NN,
-                                    buffer,
-                                    preshift,
-                                    &totalshift,
-                                    fpInput);
+            {
+                preshift =
+                    (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2));
+                if (preshift > 1000)
+                    preshift /= 8;
+                else if (preshift > 100)
+                    preshift /= 4;
+                else if (preshift > 10)
+                    preshift /= 2;
+            }
+
+            totalshift += preshift;
+
+            err = readShiftedBuffer(
+                derivative, capture_handle, NN, buffer, preshift, fpInput);
             if (err == -32)
             {
                 fprintf(stderr, "Reinitializing capture_handle");

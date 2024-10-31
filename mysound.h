@@ -16,5 +16,4 @@ int readShiftedBuffer(int* derivative,
                       unsigned int NN,
                       char* buffer,
                       int maxpos,
-                      int* totalshift,
                       FILE* fpInput);

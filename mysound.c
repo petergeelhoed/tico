@@ -146,14 +146,12 @@ int readShiftedBuffer(int* derivative,
                       unsigned int NN,
                       char* buffer,
                       int maxpos,
-                      int* totalshift,
                       FILE* fpInput)
 {
     int ret = -1;
     unsigned shift = (unsigned int)(abs(maxpos));
     if (maxpos < 0)
     {
-        *totalshift -= (int)shift;
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
         if (fpInput)
         {
@@ -179,7 +177,6 @@ int readShiftedBuffer(int* derivative,
     }
     else if (maxpos > 0)
     {
-        *totalshift += (int)shift;
         if (fpInput)
         {
             ret = (int)shift;

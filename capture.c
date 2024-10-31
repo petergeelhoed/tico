@@ -232,7 +232,10 @@ int main(int argc, char* argv[])
         int err = -32;
         while (err == -32)
         {
-            int preshift = ((int)maxp - (int)NN / 2) / 8 - (int)b;
+            int preshift =
+                (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2)) / 8;
+            if (i < 12)
+                preshift = 0;
             err = readShiftedBuffer(derivative,
                                     capture_handle,
                                     NN,
@@ -279,7 +282,8 @@ int main(int argc, char* argv[])
                       NN,
                       totalI > 0 && totalI == verbose);
 
-        maxpos[i] = totalshift + ((int)maxp - (int)NN / 2);
+        maxpos[i] =
+            totalshift + ((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
 
         if (rawfile && i > 0 && i % len == 0)
         {
@@ -289,7 +293,7 @@ int main(int argc, char* argv[])
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
 
         printheader(
-            b * 86400 / rate, everyline, getBeatError(totaltick, NN, rate, 0));
+            b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));
 
         printspaces(maxpos[i],
                     maxvals[i],

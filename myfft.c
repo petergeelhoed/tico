@@ -238,7 +238,7 @@ unsigned int fftfit(int* input,
         {
             total[j] = (int)(total[j] +
                              (int)(2000 * maxcor * maxcor) *
-                                 filteredinput[(j + poscor + NN / 2) % NN][0]);
+                                 filteredinput[(j + poscor + NN) % NN][0]);
         }
     }
     fftw_free(*filteredinput);
@@ -283,7 +283,15 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int NN)
 {
     double maxtick = -INT_MAX;
     unsigned int postick = 0;
-    for (unsigned int j = NN / 3; j < 2 * NN / 3; j++)
+    for (unsigned int j = 0; j < NN / 3; j++)
+    {
+        if (array[j][0] > maxtick)
+        {
+            maxtick = array[j][0];
+            postick = j;
+        }
+    }
+    for (unsigned int j = NN * 2 / 3; j < NN; j++)
     {
         if (array[j][0] > maxtick)
         {

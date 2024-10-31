@@ -11,14 +11,14 @@
 #include "mysync.h"
 
 /*Prints header on line or at the top */
-void printheader(double b, unsigned int NN, unsigned int l, double beatError)
+void printheader(double b, unsigned int l, double beatError)
 {
     if (l)
     {
         char line[14 + 1];
         memset(line, ' ', 14);
         snprintf(line, 5, "%4.2f", beatError);
-        snprintf(line + 4, 8, "ms%+5.1f", b * 86400 / NN);
+        snprintf(line + 4, 8, "ms%+5.1f", b);
         sprintf(line + 11, "s/d");
         fprintf(stderr, "%s", line);
     }
@@ -27,7 +27,7 @@ void printheader(double b, unsigned int NN, unsigned int l, double beatError)
         fprintf(stderr,
                 "\033[s\033[2;0H\033[0K%8.2fms   %7.1fs/d\033[u",
                 beatError,
-                b * 86400 / NN);
+                b);
     }
 }
 

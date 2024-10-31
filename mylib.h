@@ -15,7 +15,7 @@ void linreg(const int* xarr,
 
 unsigned int getmaxpos(int* array, unsigned int NN);
 
-void printheader(double b, unsigned int NN, unsigned int l, double beatError);
+void printheader(double b, unsigned int l, double beatError);
 
 void printspaces(
     int maxpos, int val, int mod, unsigned int columns, double a, int cvalue);

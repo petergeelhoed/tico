@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
 
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
 
-        printheader(b, NN, everyline, getBeatError(totaltick, NN, rate, 0));
+        printheader(b*86400/rate, everyline, getBeatError(totaltick, NN, rate, 0));
 
         printspaces(maxpos[i],
                     maxvals[i],

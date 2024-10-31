@@ -232,11 +232,12 @@ int main(int argc, char* argv[])
         int err = -32;
         while (err == -32)
         {
+            int preshift = ((int)maxp - (int)NN / 2)/8 - (int)b;
             err = readShiftedBuffer(derivative,
                                     capture_handle,
                                     NN,
                                     buffer,
-                                    ((int)maxp - (int)NN / 2 ),
+                                    preshift,
                                     &totalshift,
                                     fpInput);
             if (err == -32)
@@ -257,7 +258,6 @@ int main(int argc, char* argv[])
             printf("capture error %d\n", err);
             break;
         }
-
         if (totalI == 9)
         {
             // check after 8 ticktocks

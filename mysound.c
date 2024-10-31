@@ -170,6 +170,7 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
+            derivative[NN-1] = 0;
         }
         else
         {
@@ -203,6 +204,7 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
+            derivative[NN-1] = 0;
         }
         else
         {
@@ -231,6 +233,7 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
+            derivative[NN-1] = 0;
         }
         else
         {

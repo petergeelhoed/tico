@@ -116,7 +116,7 @@ int readBuffer(snd_pcm_t* capture_handle,
 {
     unsigned char lsb;
     signed char msb;
-    int err =  snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
+    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
     if (err != (int)NN)
     {
         fprintf(stderr,
@@ -157,7 +157,7 @@ int readShiftedBuffer(int* derivative,
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
         if (fpInput)
         {
-            ret = (int)(NN-shift);
+            ret = (int)(NN - shift);
             for (unsigned int j = 0; j < NN - shift; ++j)
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
@@ -170,7 +170,7 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
-            derivative[NN-1] = 0;
+            derivative[NN - 1] = 0;
         }
         else
         {
@@ -204,12 +204,12 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
-            derivative[NN-1] = 0;
+            derivative[NN - 1] = 0;
         }
         else
         {
             ret = readBuffer(capture_handle, shift, buffer, derivative);
-            
+
             if (ret != -32)
             {
                 ret = readBuffer(capture_handle, NN, buffer, derivative);
@@ -233,7 +233,7 @@ int readShiftedBuffer(int* derivative,
             {
                 derivative[j] = abs(derivative[j] - derivative[j + 1]);
             }
-            derivative[NN-1] = 0;
+            derivative[NN - 1] = 0;
         }
         else
         {

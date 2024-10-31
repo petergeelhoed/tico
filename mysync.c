@@ -58,10 +58,11 @@ void* threadAppend(void* inStruct)
     free(inStruct);
     struct timeval tv;
     struct timezone tz;
-    gettimeofday(&tv,&tz);
+    gettimeofday(&tv, &tz);
 
-    struct tm *today = localtime(&tv.tv_sec);
-    fprintf(file, "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+    struct tm* today = localtime(&tv.tv_sec);
+    fprintf(file,
+            "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
             today->tm_year + 1900,
             today->tm_mon + 1,
             today->tm_mday,

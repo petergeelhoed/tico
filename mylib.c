@@ -42,7 +42,7 @@ void printspaces(int maxpos,
         maxpos += mod;
     while (avg_pos < (double)mod)
         avg_pos += (double)mod;
-    columns = columns>1024?80:columns;
+    columns = columns > 1024 ? 80 : columns;
     int width = (maxpos % mod) * (int)columns / mod;
     int widtha = (((int)avg_pos) % mod) * (int)columns / mod;
 

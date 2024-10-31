@@ -227,7 +227,6 @@ unsigned int fftfit(int* input,
 
     unsigned int poscor = getmaxfftw(corr, NN);
 
- //   printf("%d %s %s %d\n", __LINE__,__func__,__FILE__, poscor);
     // for hexadecimal print
     double maxcor = corr[poscor][0];
     *hexvalue = (int)(maxcor * 16);
@@ -254,33 +253,33 @@ unsigned int fftfit(int* input,
 
 void rescale(int* total, unsigned int NN)
 {
-        double avg = 0.0;
-        int maxval = -INT_MAX;
-        int minval = INT_MAX;
+    double avg = 0.0;
+    int maxval = -INT_MAX;
+    int minval = INT_MAX;
 
+    for (unsigned int j = 0; j < NN; j++)
+    {
+        avg += (double)total[j];
+        maxval = total[j] > maxval ? total[j] : maxval;
+        minval = total[j] < minval ? total[j] : minval;
+    }
+    avg /= NN;
+    int avi = (int)avg;
+
+    if (maxval > 100000000 || minval < -100000000)
+    {
         for (unsigned int j = 0; j < NN; j++)
         {
-            avg += (double)total[j];
-            maxval = total[j] > maxval ? total[j] : maxval;
-            minval = total[j] < minval ? total[j] : minval;
+            total[j] /= 2;
         }
-        avg /= NN;
-        int avi = (int)avg;
-
-        if (maxval > 100000000 || minval < -100000000)
+    }
+    else if (abs(avi) > 10)
+    {
+        for (unsigned int j = 0; j < NN; j++)
         {
-            for (unsigned int j = 0; j < NN; j++)
-            {
-                total[j] /= 2;
-            }
+            total[j] -= avi;
         }
-        else if (abs(avi) > 10)
-        {
-            for (unsigned int j = 0; j < NN; j++)
-            {
-                total[j] -= avi;
-            }
-        }
+    }
 }
 
 unsigned int getmaxfftw(fftw_complex* array, unsigned int NN)

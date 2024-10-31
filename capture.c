@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     unsigned int zoom = 10;
     unsigned int time = 0;
     unsigned int everyline = 0;
-    unsigned int len = 32;     //  syncwrite every len tics
+    unsigned int len = 32;    //  syncwrite every len tics
     unsigned int cvalue = 8;  // cutoff for adding to correlation
     unsigned int verbose = 0; // print for this peak
     unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
@@ -174,10 +174,10 @@ int main(int argc, char* argv[])
     // declarations
     unsigned int NN = rate * 7200 / bph;
     unsigned int mod = NN / zoom;
-    unsigned int maxp = NN/2;
+    unsigned int maxp = NN / 2;
     // should be even
     NN = (NN + NN % 2);
-    unsigned int n = ARR_BUFF*2;
+    unsigned int n = ARR_BUFF * 2;
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
@@ -202,8 +202,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
-    if (buffer == 0 || totaltick == 0 ||
-        reference == 0 || maxvals == 0 || maxpos == 0 || filterFFT == 0)
+    if (buffer == 0 || totaltick == 0 || reference == 0 || maxvals == 0 ||
+        maxpos == 0 || filterFFT == 0)
     {
         fprintf(stderr, "Could not allocate memory");
         return -5;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
         int err = -32;
         while (err == -32)
         {
-            int preshift = ((int)maxp - (int)NN / 2)/8 - (int)b;
+            int preshift = ((int)maxp - (int)NN / 2) / 8 - (int)b;
             err = readShiftedBuffer(derivative,
                                     capture_handle,
                                     NN,
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
                                     fpInput);
             if (err == -32)
             {
-                fprintf(stderr,"Reinitializing capture_handle");
+                fprintf(stderr, "Reinitializing capture_handle");
                 snd_pcm_close(capture_handle);
                 capture_handle = initAudio(format, device, rate);
                 err = readBuffer(capture_handle, NN, buffer, derivative);
@@ -286,10 +286,10 @@ int main(int argc, char* argv[])
             syncappend(maxpos + i - len, len, rawfile);
         }
 
-
         fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
 
-        printheader(b*86400/rate, everyline, getBeatError(totaltick, NN, rate, 0));
+        printheader(
+            b * 86400 / rate, everyline, getBeatError(totaltick, NN, rate, 0));
 
         printspaces(maxpos[i],
                     maxvals[i],
@@ -310,10 +310,11 @@ int main(int argc, char* argv[])
     {
         struct timeval tv;
         struct timezone tz;
-        gettimeofday(&tv,&tz);
+        gettimeofday(&tv, &tz);
 
-        struct tm *today = localtime(&tv.tv_sec);
-        fprintf(rawfile, "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+        struct tm* today = localtime(&tv.tv_sec);
+        fprintf(rawfile,
+                "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
                 today->tm_year + 1900,
                 today->tm_mon + 1,
                 today->tm_mday,
@@ -335,7 +336,7 @@ int main(int argc, char* argv[])
         fclose(fptotal);
     }
 
-    if(capture_handle != 0)
+    if (capture_handle != 0)
     {
         snd_pcm_close(capture_handle);
     }

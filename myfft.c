@@ -283,15 +283,7 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int NN)
 {
     double maxtick = -INT_MAX;
     unsigned int postick = 0;
-    for (unsigned int j = 0; j < NN / 3; j++)
-    {
-        if (array[j][0] > maxtick)
-        {
-            maxtick = array[j][0];
-            postick = j;
-        }
-    }
-    for (unsigned int j = NN * 2 / 3; j < NN; j++)
+    for (unsigned int j = 0; j < NN; j++)
     {
         if (array[j][0] > maxtick)
         {

@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
         {
             int preshift = 0;
 
-            if (i < 12)
+            if (i > 12)
             {
                 preshift =
                     (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2));

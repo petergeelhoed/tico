@@ -224,8 +224,8 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF);
-            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF);
+            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF*sizeof(int));
+            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF*sizeof(int));
             i -= ARR_BUFF;
         }
 

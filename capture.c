@@ -238,11 +238,11 @@ int main(int argc, char* argv[])
             {
                 preshift =
                     (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2));
-                if (preshift > 1000)
+                if (abs(preshift) > 1000)
                     preshift /= 8;
-                else if (preshift > 100)
+                else if (abs(preshift) > 100)
                     preshift /= 4;
-                else if (preshift > 10)
+                else if (abs(preshift) > 10)
                     preshift /= 2;
             }
 

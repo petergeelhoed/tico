@@ -252,6 +252,7 @@ int main(int argc, char* argv[])
                 derivative, capture_handle, NN, buffer, preshift, fpInput);
             if (err == -32)
             {
+                totalshift -= preshift;
                 fprintf(stderr, "Reinitializing capture_handle");
                 if (rawfile)
                 {

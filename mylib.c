@@ -4,9 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/time.h>
-
+#include <unistd.h>
 
 #include "myfft.h"
 #include "mylib.h"
@@ -356,7 +355,7 @@ int shiftHalf(unsigned int value, unsigned int NN)
     return ((int)value + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
 }
 
-void printTOD(FILE *out)
+void printTOD(FILE* out)
 {
     struct timeval tv;
     struct timezone tz;
@@ -374,5 +373,4 @@ void printTOD(FILE *out)
             tv.tv_usec,
             tv.tv_sec,
             tv.tv_usec);
-
 }

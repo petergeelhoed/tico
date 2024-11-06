@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mysync.h"
 #include "mylib.h"
+#include "mysync.h"
 
 void writearray(int* arr, unsigned int NN, const char* file)
 {

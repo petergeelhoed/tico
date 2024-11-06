@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "mysound.h"
+#include "mylib.h"
 
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 {
@@ -238,4 +239,53 @@ int readShiftedBuffer(int* derivative,
         }
     }
     return ret;
+}
+
+
+int getData(unsigned int maxp,
+            int* totalshift,
+            FILE* rawfile,
+            FILE* fpInput,
+            snd_pcm_t* capture_handle,
+            snd_pcm_format_t format,
+            char* device,
+            unsigned int rate,
+            unsigned int NN,
+            char* buffer,
+            int* derivative,
+            unsigned int totalI)
+{
+    int err = -32;
+    while (err == -32)
+    {
+        int preshift = 0;
+
+        if (totalI > 12)
+        {
+            preshift = shiftHalf(maxp, NN);
+
+            if (abs(preshift) > 10)
+                preshift = (int)(3 * preshift / sqrt(abs(preshift)));
+        }
+        *totalshift += preshift;
+        err = readShiftedBuffer(
+            derivative, capture_handle, NN, buffer, preshift, fpInput);
+        if (err == -32)
+        {
+            totalshift -= preshift;
+            fprintf(stderr, "Reinitializing capture_handle");
+            if (rawfile)
+            {
+                fprintf(rawfile, "# Reinitializing capture_handle");
+            }
+            snd_pcm_close(capture_handle);
+            capture_handle = initAudio(format, device, rate);
+            err = readBuffer(capture_handle, NN, buffer, derivative);
+        }
+        if (err == -33)
+        {
+            printf("Could not read integer from inputfile\n");
+        }
+    }
+    return err;
 }

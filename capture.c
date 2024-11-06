@@ -45,6 +45,7 @@ void set_signal_action(void)
     sigaction(SIGINT, &act, NULL);
 }
 
+
 int main(int argc, char* argv[])
 {
     unsigned int rate = 48000;
@@ -228,39 +229,18 @@ int main(int argc, char* argv[])
             i -= ARR_BUFF;
         }
 
-        int err = -32;
-        while (err == -32)
-        {
-            int preshift = 0;
-
-            if (i > 12)
-            {
-                preshift = shiftHalf(maxp, NN);
-
-                if (abs(preshift) > 10)
-                    preshift = (int)(3 * preshift / sqrt(abs(preshift)));
-            }
-            totalshift += preshift;
-            err = readShiftedBuffer(
-                derivative, capture_handle, NN, buffer, preshift, fpInput);
-            if (err == -32)
-            {
-                totalshift -= preshift;
-                fprintf(stderr, "Reinitializing capture_handle");
-                if (rawfile)
-                {
-                    fprintf(rawfile, "# Reinitializing capture_handle");
-                }
-                snd_pcm_close(capture_handle);
-                capture_handle = initAudio(format, device, rate);
-                err = readBuffer(capture_handle, NN, buffer, derivative);
-            }
-            if (err == -33)
-            {
-                printf("Could not read integer from inputfile\n");
-                return -7;
-            }
-        }
+        int err = getData(maxp,
+                          &totalshift,
+                          rawfile,
+                          fpInput,
+                          capture_handle,
+                          format,
+                          device,
+                          rate,
+                          NN,
+                          buffer,
+                          derivative,
+                          totalI);
         if (err < 0)
         {
             printf("capture error %d\n", err);
@@ -333,7 +313,6 @@ int main(int argc, char* argv[])
     {
         snd_pcm_close(capture_handle);
     }
-
 
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",

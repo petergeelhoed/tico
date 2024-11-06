@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
-#include "mylib.h"
 #include "mysync.h"
 
 void writearray(int* arr, unsigned int NN, const char* file)
@@ -108,4 +108,25 @@ void* threadWrite(void* inStruct)
     writearray(mine.array, mine.NN, mine.file);
 
     pthread_exit(NULL);
+}
+
+
+void printTOD(FILE* out)
+{
+    struct timeval tv;
+    struct timezone tz;
+    gettimeofday(&tv, &tz);
+
+    struct tm* today = localtime(&tv.tv_sec);
+    fprintf(out,
+            "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+            today->tm_year + 1900,
+            today->tm_mon + 1,
+            today->tm_mday,
+            today->tm_hour,
+            today->tm_min,
+            today->tm_sec,
+            tv.tv_usec,
+            tv.tv_sec,
+            tv.tv_usec);
 }

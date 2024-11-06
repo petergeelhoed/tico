@@ -49,4 +49,4 @@ void checkAndFlip(int* totaltick,
                   int* reference,
                   unsigned int NN,
                   unsigned int verbose);
-void printTOD(FILE *out);
+int shiftHalf(unsigned int value, unsigned int NN);

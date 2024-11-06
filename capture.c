@@ -327,13 +327,13 @@ int main(int argc, char* argv[])
         writefile(fptotal, totaltick, NN);
         fclose(fptotal);
     }
+    free(totaltick);
 
     if (capture_handle != 0)
     {
         snd_pcm_close(capture_handle);
     }
 
-    free(totaltick);
 
     fprintf(stderr,
             "width = %.3fms  /  %.1fμs/character\n",

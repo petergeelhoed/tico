@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
-#include <sys/time.h>
 #include <unistd.h>
 
 #include "myfft.h"
@@ -317,23 +316,7 @@ int main(int argc, char* argv[])
 
     if (rawfile)
     {
-        struct timeval tv;
-        struct timezone tz;
-        gettimeofday(&tv, &tz);
-
-        struct tm* today = localtime(&tv.tv_sec);
-        fprintf(rawfile,
-                "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
-                today->tm_year + 1900,
-                today->tm_mon + 1,
-                today->tm_mday,
-                today->tm_hour,
-                today->tm_min,
-                today->tm_sec,
-                tv.tv_usec,
-                tv.tv_sec,
-                tv.tv_usec);
-
+        printTOD(rawfile);
         writefile(rawfile, maxpos + i - i % len, i % len);
         fclose(rawfile);
     }

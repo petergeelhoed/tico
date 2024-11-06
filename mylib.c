@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
+
 
 #include "myfft.h"
 #include "mylib.h"
@@ -352,4 +354,25 @@ void checkAndFlip(int* totaltick,
 int shiftHalf(unsigned int value, unsigned int NN)
 {
     return ((int)value + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
+}
+
+void printTOD(FILE *out)
+{
+    struct timeval tv;
+    struct timezone tz;
+    gettimeofday(&tv, &tz);
+
+    struct tm* today = localtime(&tv.tv_sec);
+    fprintf(out,
+            "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+            today->tm_year + 1900,
+            today->tm_mon + 1,
+            today->tm_mday,
+            today->tm_hour,
+            today->tm_min,
+            today->tm_sec,
+            tv.tv_usec,
+            tv.tv_sec,
+            tv.tv_usec);
+
 }

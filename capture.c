@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     // declarations
     unsigned int NN = rate * 7200 / bph;
     unsigned int mod = NN / zoom;
-    unsigned int maxp = NN / 2;
+    unsigned int maxp = 0;
     // should be even
     NN = (NN + NN % 2);
     unsigned int n = ARR_BUFF * 2;
@@ -238,16 +238,12 @@ int main(int argc, char* argv[])
             {
                 preshift =
                     (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2));
-                if (abs(preshift) > 1000)
-                    preshift /= 8;
-                else if (abs(preshift) > 100)
-                    preshift /= 4;
-                else if (abs(preshift) > 10)
-                    preshift /= 2;
+
+
+                if (abs(preshift) > 10)
+                    preshift = (int)(3*preshift/sqrt(abs(preshift)));
             }
-
             totalshift += preshift;
-
             err = readShiftedBuffer(
                 derivative, capture_handle, NN, buffer, preshift, fpInput);
             if (err == -32)

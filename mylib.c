@@ -237,8 +237,7 @@ getBeatError(int* totaltick, unsigned int NN, unsigned int rate, int verbose)
         syncwrite(totaltick + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
-    return ((int)((postick + NN / 4) % (NN / 2)) - (int)NN / 4) * 1000 /
-           (double)rate;
+    return shiftHalf(postick, NN / 2) * 1000 / (double)rate;
 }
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)
@@ -348,4 +347,9 @@ void checkAndFlip(int* totaltick,
     }
 
     free(cross);
+}
+
+int shiftHalf(unsigned int value, unsigned int NN)
+{
+    return ((int)value + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
 }

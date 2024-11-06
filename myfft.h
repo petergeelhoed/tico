@@ -22,3 +22,4 @@ void writefftw(fftw_complex* arr, unsigned int NN, const char* file);
 void remove50hz(unsigned int NN, int* array, unsigned int rate);
 void normalise(unsigned int NN, fftw_complex* in);
 void rescale(int* total, unsigned int NN);
+int shiftHalf(unsigned int value, unsigned int NN);

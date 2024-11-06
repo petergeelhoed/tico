@@ -224,8 +224,8 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF*sizeof(int));
-            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF*sizeof(int));
+            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF * sizeof(int));
+            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF * sizeof(int));
             i -= ARR_BUFF;
         }
 
@@ -236,12 +236,10 @@ int main(int argc, char* argv[])
 
             if (i > 12)
             {
-                preshift =
-                    (((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2));
-
+                preshift = shiftHalf(maxp, NN);
 
                 if (abs(preshift) > 10)
-                    preshift = (int)(3*preshift/sqrt(abs(preshift)));
+                    preshift = (int)(3 * preshift / sqrt(abs(preshift)));
             }
             totalshift += preshift;
             err = readShiftedBuffer(
@@ -290,8 +288,7 @@ int main(int argc, char* argv[])
                       NN,
                       totalI > 0 && totalI == verbose);
 
-        maxpos[i] =
-            totalshift + ((int)maxp + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
+        maxpos[i] = totalshift + shiftHalf(maxp, NN);
 
         if (rawfile && i > 0 && i % len == 0)
         {

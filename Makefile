@@ -21,6 +21,7 @@ targets=\
     testfft\
     testfilter\
     testlinreg\
+    testcalculateall\
     testcrosscorint\
     tico\
     wav2raw

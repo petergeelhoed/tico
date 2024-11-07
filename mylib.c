@@ -103,6 +103,9 @@ void linreg(const int* xarr,
             double* b,
             double* s)
 {
+    // remove the average to pospone overflows
+    double mx = (xarr[NN - 1] + xarr[0]) / 2;
+    double my = (yarr[NN - 1] + yarr[0]) / 2;
     double x = 0;
     double y = 0;
     double xx = 0;
@@ -110,11 +113,11 @@ void linreg(const int* xarr,
     double yy = 0;
     for (unsigned int i = 0; i < NN; ++i)
     {
-        y += yarr[i];
-        xx += xarr[i] * xarr[i];
-        x += xarr[i];
-        xy += xarr[i] * yarr[i];
-        yy += yarr[i] * yarr[i];
+        y += yarr[i] - my;
+        xx += (xarr[i] - mx) * (xarr[i] - mx);
+        x += xarr[i] - mx;
+        xy += (xarr[i] - mx) * (yarr[i] - my);
+        yy += (yarr[i] - my) * (yarr[i] - my);
     }
 
     *a = (y * xx - x * xy) / (NN * xx - x * x);
@@ -122,6 +125,7 @@ void linreg(const int* xarr,
     *s = sqrt((yy - 2 * (*a) * y - 2 * (*b) * xy + 2 * (*a) * (*b) * x +
                (*a) * (*a) * NN + (*b) * (*b) * xx) /
               NN);
+    *a -= *b * mx - my;
 }
 
 void fit10secs(double* a,
@@ -229,7 +233,7 @@ void calculateTotal(unsigned int n,
        s /= rate;
      */
 
-    fprintf(stderr, "raw rate: %f s/d\n", -b * 86400 / NN);
+    fprintf(stderr, "raw rate: %f s/d, %d samples\n", -b * 86400 / NN, n);
     unsigned int m = 0;
 
     double e;
@@ -246,8 +250,11 @@ void calculateTotal(unsigned int n,
     }
     linreg(xarr, maxpos, m, &a, &b, &s);
 
-    fprintf(
-        stderr, "after %.1fσ removal: %.2f s/d\n", threshold, -b * 86400 / NN);
+    fprintf(stderr,
+            "after %.1fσ removal: %.2f s/d, %d samples\n",
+            threshold,
+            -b * 86400 / NN,
+            m);
 }
 
 double

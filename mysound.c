@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "mysound.h"
 #include "mylib.h"
+#include "mysound.h"
 
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 {
@@ -240,7 +240,6 @@ int readShiftedBuffer(int* derivative,
     }
     return ret;
 }
-
 
 int getData(unsigned int maxp,
             int* totalshift,

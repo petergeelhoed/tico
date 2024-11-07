@@ -45,7 +45,6 @@ void set_signal_action(void)
     sigaction(SIGINT, &act, NULL);
 }
 
-
 int main(int argc, char* argv[])
 {
     unsigned int rate = 48000;
@@ -105,7 +104,7 @@ int main(int argc, char* argv[])
             retVal = checkFileArg(c, &fpInput, optarg, "r");
             break;
         case 'w':
-            retVal = checkFileArg(c, &rawfile, optarg, "a");
+            retVal = checkFileArg(c, &rawfile, optarg, "w+");
             break;
         case 'D':
             retVal = checkFileArg(c, &fpDefPeak, optarg, "r");
@@ -298,6 +297,8 @@ int main(int argc, char* argv[])
     {
         printTOD(rawfile);
         writefile(rawfile, maxpos + i - i % len, i % len);
+
+        calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
     free(maxpos);

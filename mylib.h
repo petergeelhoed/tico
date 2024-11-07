@@ -31,6 +31,11 @@ void fit10secs(double* a,
 
 void writefile(FILE* fp, int* array, unsigned int NN);
 
+void calculateTotalFromFile(unsigned int n,
+                            FILE* rawfile,
+                            unsigned int NN,
+                            double threshold);
+
 void calculateTotal(unsigned int n,
                     int* maxpos,
                     unsigned int NN,

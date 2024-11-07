@@ -180,6 +180,32 @@ unsigned int getmaxpos(int* array, unsigned int NN)
     return postick;
 }
 
+void calculateTotalFromFile(unsigned int n,
+                            FILE* rawfile,
+                            unsigned int NN,
+                            double threshold)
+{
+    fseek(rawfile, 0, SEEK_SET);
+    int* all = calloc(n, sizeof(int));
+    unsigned int i = 0;
+    if (all)
+    {
+
+        unsigned int bufsize = 256;
+        char* buf = malloc(bufsize * sizeof(char));
+        while (getline(&buf, &bufsize, rawfile) > 0 && i < n)
+        {
+            if (buf[0] != '#')
+            {
+                all[i] = atoi(buf);
+                i++;
+            }
+        }
+        free(buf);
+        calculateTotal(n, all, NN, threshold);
+    }
+}
+
 void calculateTotal(unsigned int n,
                     int* maxpos,
                     unsigned int NN,

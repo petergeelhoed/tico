@@ -110,7 +110,6 @@ void* threadWrite(void* inStruct)
     pthread_exit(NULL);
 }
 
-
 void printTOD(FILE* out)
 {
     struct timeval tv;

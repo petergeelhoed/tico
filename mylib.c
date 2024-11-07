@@ -127,11 +127,11 @@ void linreg(const int* xarr,
 void fit10secs(double* a,
                double* b,
                double* s,
-               unsigned int i,
-               int* maxvals,
-               int* maxes,
-               int cvalue,
-               unsigned int npeaks)
+               const unsigned int i,
+               const int* maxvals,
+               const int* maxes,
+               const int cvalue,
+               const unsigned int npeaks)
 {
     unsigned int m = 0;
     unsigned int fitwindow = i > npeaks ? npeaks : i;

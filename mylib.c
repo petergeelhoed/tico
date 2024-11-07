@@ -286,15 +286,7 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
             stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
         return -1;
     }
-    if (!access(optarg, F_OK) && strcmp(mode, "w") == 0)
-    {
-        fprintf(stderr, " existing file -%c %s\n", (char)name, optarg);
-        if (remove(optarg))
-        {
-            fprintf(stderr, "cannot delete file %s\n", optarg);
-            return -4;
-        }
-    }
+
     *fp = fopen(optarg, mode);
     if (*fp == 0)
     {

@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "myarr.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
@@ -182,7 +183,9 @@ int main(int argc, char* argv[])
     fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
     int* maxvals = malloc(n * sizeof(int));
-    int* derivative = malloc(NN * sizeof(int));
+    struct myarr derivative; 
+    derivative.arr = malloc(NN * sizeof(int));
+    derivative.NN = NN;
     int* reference = calloc(NN, sizeof(int));
     int* totaltick = calloc(NN, sizeof(int));
 
@@ -290,7 +293,7 @@ int main(int argc, char* argv[])
 
     free(maxvals);
     free(buffer);
-    free(derivative);
+    free(derivative.arr);
     fftw_free(filterFFT);
 
     if (rawfile)

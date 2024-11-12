@@ -54,10 +54,10 @@ clean:
 $(OBJ)/%.o: %.c %.h 
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
-$(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o
+$(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o myarr.h
 	ar -rcs $@ $< $(OBJ)/crosscorint.o
 
-$(LIB)/lib%.a: $(OBJ)/%.o
+$(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<
 
 %: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a

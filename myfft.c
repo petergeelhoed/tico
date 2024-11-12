@@ -188,7 +188,7 @@ void applyFilter(int* input,
     fftw_free(filteredinput);
 }
 
-unsigned int fftfit(int* input,
+unsigned int fftfit(const struct myarr input,
                     int* total,
                     int* base,
                     int* hexvalue,
@@ -199,7 +199,7 @@ unsigned int fftfit(int* input,
     // after 6tps base = total
 
     fftw_complex* Fbase = fftw_alloc_complex(NN);
-    fftw_complex* filteredinput = convolute(NN, input, filterFFT);
+    fftw_complex* filteredinput = convolute(input.NN, input.arr, filterFFT);
 
     for (unsigned int j = 0; j < NN; j++)
     {
@@ -212,7 +212,7 @@ unsigned int fftfit(int* input,
     if (verb)
     {
         syncwrite(total, NN, "total");
-        syncwrite(input, NN, "input");
+        syncwrite(input.arr, input.NN, "input");
     }
 
     if (verb)

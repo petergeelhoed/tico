@@ -251,7 +251,7 @@ int getData(unsigned int maxp,
             unsigned int rate,
             unsigned int NN,
             char* buffer,
-            int* derivative,
+            struct myarr derivative,
             unsigned int totalI)
 {
     int err = -32;
@@ -268,7 +268,7 @@ int getData(unsigned int maxp,
         }
         *totalshift += preshift;
         err = readShiftedBuffer(
-            derivative, capture_handle, NN, buffer, preshift, fpInput);
+            derivative.arr, capture_handle, derivative.NN, buffer, preshift, fpInput);
         if (err == -32)
         {
             totalshift -= preshift;
@@ -279,7 +279,7 @@ int getData(unsigned int maxp,
             }
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, rate);
-            err = readBuffer(capture_handle, NN, buffer, derivative);
+            err = readBuffer(capture_handle, derivative.NN, buffer, derivative.arr);
         }
         if (err == -33)
         {

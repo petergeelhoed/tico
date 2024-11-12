@@ -1,5 +1,6 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
+#include "myarr.h"
 
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
 int readBuffer(snd_pcm_t* capture_handle,
@@ -27,5 +28,5 @@ int getData(unsigned int maxp,
             unsigned int rate,
             unsigned int NN,
             char* buffer,
-            int* derivative,
+            struct myarr derivative,
             unsigned int totalI);

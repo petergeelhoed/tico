@@ -1,8 +1,9 @@
 #include <fftw3.h>
+#include "myarr.h"
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN);
 
-unsigned fftfit(int* mean,
+unsigned fftfit(const struct myarr input,
                 int* total,
                 int* base,
                 int* val,

@@ -129,3 +129,56 @@ void printTOD(FILE* out)
             tv.tv_sec,
             tv.tv_usec);
 }
+
+
+
+void syncappendDouble(double* input, unsigned int NN, FILE* file)
+{
+    struct mystruct
+    {
+        double* array;
+        FILE* file;
+        unsigned int NN;
+    };
+
+    struct mystruct* info = malloc(sizeof *info);
+
+    double* copyarr = malloc(NN * sizeof(double));
+    memcpy(copyarr, input, NN * sizeof(double));
+    info->array = copyarr;
+    info->file = file;
+    info->NN = NN;
+
+    pthread_t tid;
+    pthread_create(&tid, NULL, threadAppendDouble, info);
+    pthread_detach(tid);
+}
+
+void* threadAppendDouble(void* inStruct)
+{
+    struct mystruct
+    {
+        double* array;
+        FILE* file;
+        unsigned int NN;
+    } mine = *(struct mystruct*)inStruct;
+
+    double* arrptr = mine.array;
+    FILE* file = mine.file;
+    double* copyarr = malloc(mine.NN * sizeof(double));
+    memcpy(copyarr, arrptr, mine.NN * sizeof(double));
+    mine.array = copyarr;
+    free(arrptr);
+    free(inStruct);
+
+    printTOD(file);
+    for (unsigned int j = 0; j < mine.NN; j++)
+    {
+        fprintf(file, "%f\n", mine.array[j]);
+    }
+    fflush(file);
+
+    free(copyarr);
+    pthread_exit(NULL);
+}
+

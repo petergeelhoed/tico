@@ -191,7 +191,7 @@ void applyFilter(int* input,
 unsigned int fftfit(const struct myarr input,
                     int* total,
                     int* base,
-                    int* hexvalue,
+                    double* hexvalue,
                     fftw_complex* filterFFT,
                     unsigned int NN,
                     int verb)
@@ -226,7 +226,7 @@ unsigned int fftfit(const struct myarr input,
 
     // for hexadecimal print
     double maxcor = corr[poscor][0];
-    *hexvalue = (int)(maxcor * 16);
+    *hexvalue = maxcor;
 
     // rescale if large
     if (total)

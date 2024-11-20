@@ -4,3 +4,6 @@ void* threadWrite(void* arr);
 void* threadAppend(void* arr);
 void writearray(int* arr, unsigned int NN, const char* file);
 void printTOD(FILE* out);
+
+void syncappendDouble(double* input, unsigned int NN, FILE* file);
+void* threadAppendDouble(void* arr);

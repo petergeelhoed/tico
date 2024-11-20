@@ -6,7 +6,7 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN);
 unsigned fftfit(const struct myarr input,
                 int* total,
                 int* base,
-                int* val,
+                double* val,
                 fftw_complex* filterFFT,
                 unsigned int NN,
                 int verb);

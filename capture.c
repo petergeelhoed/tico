@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
-    int* maxvals = calloc(n , sizeof(int));
+    double* maxvals = calloc(n , sizeof(double));
     struct myarr derivative; 
     derivative.arr = malloc(NN * sizeof(int));
     derivative.NN = NN;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
         if (i == n)
         {
             memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF * sizeof(int));
+            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF * sizeof(double));
             i -= ARR_BUFF;
         }
 
@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
         if (rawfile && i > 0 && i % len == 0)
         {
             syncappend(maxpos + i - len, len, rawfile);
-            syncappend(maxvals + i - len, len, mfile);
+            syncappendDouble(maxvals + i - len, len, mfile);
         }
 
         fitNpeaks(&a, &b, i, maxvals, maxpos, (int)cvalue, fitN);
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
             b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));
 
         printspaces(maxpos[i],
-                    maxvals[i],
+                    (int)(maxvals[i]*16),
                     (int)mod,
                     columns - everyline,
                     a,
@@ -308,7 +308,7 @@ int main(int argc, char* argv[])
         if (mfile)
         {
             printTOD(mfile);
-            writefile(mfile, maxvals + i - i % len, i % len);
+            writefileDouble(mfile, maxvals + i - i % len, i % len);
         }
 
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);

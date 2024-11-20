@@ -169,6 +169,15 @@ void writefile(FILE* fp, int* array, unsigned int NN)
     }
 }
 
+void writefileDouble(FILE* fp, double* array, unsigned int NN)
+{
+    if (fp)
+    {
+        for (unsigned int j = 0; j < NN; j++)
+            fprintf(fp, "%f\n", array[j]);
+    }
+}
+
 unsigned int getmaxpos(int* array, unsigned int NN)
 {
     int maxtick = -INT_MAX;

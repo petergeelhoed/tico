@@ -17,7 +17,7 @@ double* matlinreg(
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
-               const int* maxvals,
+               const double* maxvals,
                const int* maxes,
                const int cvalue,
                const unsigned int npeaks);

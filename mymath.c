@@ -170,7 +170,7 @@ double* matlinreg(double* arr,
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
-               const int* maxvals,
+               const double* maxvals,
                const int* maxes,
                const int cvalue,
                const unsigned int npeaks)
@@ -186,11 +186,11 @@ void fitNpeaks(double* a,
         double* w = calloc(fitwindow, sizeof(double));
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            if (maxvals[i - k] > cvalue)
+            if (maxvals[i - k] > cvalue*16.)
             {
                 y[m] = (double)maxes[i-k];
                 x[m] = (double)k;
-                w[m] = (double)(maxvals[i-k]-cvalue)* (maxvals[i-k]-cvalue) ;
+                w[m] = (maxvals[i-k]-cvalue)*(maxvals[i-k]-cvalue);
                 m++;
             }
         }

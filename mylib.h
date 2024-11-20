@@ -30,6 +30,7 @@ void fit10secs(double* a,
                const unsigned int npeaks);
 
 void writefile(FILE* fp, int* array, unsigned int NN);
+void writefileDouble(FILE* fp, double* array, unsigned int NN);
 
 void calculateTotalFromFile(unsigned int n,
                             FILE* rawfile,

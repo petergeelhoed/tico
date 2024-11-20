@@ -13,6 +13,7 @@
 #include "mylib.h"
 #include "mysound.h"
 #include "mysync.h"
+#include "mymath.h"
 
 #define ARR_BUFF 512
 
@@ -67,7 +68,6 @@ int main(int argc, char* argv[])
 
     double b = 0.0;
     double a = 0.0;
-    double s = 0.0;
     int totalshift = 0;
 
     struct winsize w;
@@ -276,7 +276,7 @@ int main(int argc, char* argv[])
             syncappend(maxpos + i - len, len, rawfile);
         }
 
-        fit10secs(&a, &b, &s, i, maxvals, maxpos, (int)cvalue, fitN);
+        fitNpeaks(&a, &b, i, maxvals, maxpos, (int)cvalue, fitN);
 
         printheader(
             b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));

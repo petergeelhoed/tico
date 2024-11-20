@@ -12,7 +12,7 @@ void printmat(double* arr, unsigned int N, unsigned int M)
     {
         for (unsigned int i = 0; i < M; i++)
         {
-            printf("%8.2f",arr[i+M*j]);
+            printf("%8.2g",arr[i+M*j]);
         }
         printf("\n");
     }
@@ -132,7 +132,7 @@ double* matlinreg(double* arr,
     {
         for (unsigned int i = 0; i < N; i++)
         {
-            xarrT[i+N*j] *= weight[i];
+            xarrT[i+N*j] *= weight[i]*weight[i];
         }
     }
     //printmat(xarrT,M+1,N);
@@ -151,7 +151,7 @@ double* matlinreg(double* arr,
     {
         for (unsigned int i = 0; i < N; i++)
         {
-            pipe[i+N*j] *= weight[i];
+            pipe[i+N*j] *= weight[i]*weight[i];
         }
     }
     //printmat(pipe,M+1,N);
@@ -172,7 +172,6 @@ void fitNpeaks(double* a,
                const unsigned int i,
                const double* maxvals,
                const int* maxes,
-               const int cvalue,
                const unsigned int npeaks)
 {
     unsigned int fitwindow = i > npeaks ? npeaks : i;
@@ -186,11 +185,10 @@ void fitNpeaks(double* a,
         double* w = calloc(fitwindow, sizeof(double));
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            if (maxvals[i - k] > cvalue*16.)
             {
                 y[m] = (double)maxes[i-k];
                 x[m] = (double)k;
-                w[m] = (maxvals[i-k]-cvalue)*(maxvals[i-k]-cvalue);
+                w[m] = (maxvals[i-k]);
                 m++;
             }
         }

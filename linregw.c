@@ -33,7 +33,7 @@ int main()
     double* tmp = matlinreg(xarr,N,M, yvec,wvec);
     for (unsigned int i = 0; i < T+1; i++)
     {
-        printf("%8.3f ", tmp[i]);
+        printf("%10.6g ", tmp[i]);
     }
     printf("\n");
     exit(0);

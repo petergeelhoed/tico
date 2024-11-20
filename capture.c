@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
                     " -I <file> read from file instead of microphone\n"
                     " -p <file> write pulse to file\n"
                     " -D <file> read pulse from file\n"
-                    " -c 7 threshold for local rate\n"
+                    " -c 7 color crosscorrelation\n"
                     " -f 30 fit n points for local rate\n"
                     " -e 4 Gaussan convolution over input\n"
                     " -n 60 number of points to fit in local rate\n"
@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
             syncappendDouble(maxvals + i - len, len, mfile);
         }
 
-        fitNpeaks(&a, &b, i, maxvals, maxpos, (int)cvalue, fitN);
+        fitNpeaks(&a, &b, i, maxvals, maxpos, fitN);
 
         printheader(
             b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));

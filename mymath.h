@@ -19,5 +19,4 @@ void fitNpeaks(double* a,
                const unsigned int i,
                const double* maxvals,
                const int* maxes,
-               const int cvalue,
                const unsigned int npeaks);

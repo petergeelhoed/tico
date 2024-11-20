@@ -23,6 +23,7 @@ targets=\
     testfilter\
     testlinreg\
     testinvert\
+    testmulmat\
     testcalculateall\
     testcrosscorint\
     testtranspone\

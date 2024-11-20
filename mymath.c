@@ -61,3 +61,27 @@ void invert(double* arr, unsigned int N, unsigned int M)
     }
     free(tmp);
 }
+
+double* mulmat(double* arr,
+               unsigned int N,
+               unsigned int M,
+               double* vec,
+               unsigned int S,
+               unsigned int T)
+{
+    if (M != S)
+        exit(-1);
+    double* tmp = calloc(N * T, sizeof(double));
+
+    for (unsigned int j = 0; j < N; j++)
+    {
+        for (unsigned int l = 0; l < T; l++)
+        {
+            for (unsigned int i = 0; i < M; i++)
+            {
+                tmp[l + j * T] += arr[i + M * j] * vec[i * T + l];
+            }
+        }
+    }
+    return tmp;
+}

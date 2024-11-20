@@ -4,6 +4,7 @@ LIB= ../lib
 SOUNDFLAGS= -lasound -lmysound 
 MYLIBFLAGS= -lmylib 
 MYSYNCFLAGS= -lmysync 
+MYMATHFLAGS= -lmymath
 FFTFLAGS= -lfftw3 -lmyfft 
 CFLAGS= -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
 #CFLAGS= -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
@@ -21,8 +22,10 @@ targets=\
     testfft\
     testfilter\
     testlinreg\
+    testinvert\
     testcalculateall\
     testcrosscorint\
+    testtranspone\
     tico\
     wav2raw
 
@@ -40,7 +43,8 @@ libs= \
       $(LIB)/libmylib.a\
       $(LIB)/libmysound.a\
       $(LIB)/libmysync.a\
-      $(LIB)/libmyfft.a 
+      $(LIB)/libmyfft.a\
+      $(LIB)/libmymath.a 
 
 all:  $(libs) $(targets)
 libs: $(libs)
@@ -60,8 +64,8 @@ $(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o myarr.h
 $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<
 
-%: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a
-	$(CC) -L$(LIB) -o $@ $<  $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS)
+%: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a $(LIB)/libmymath.a
+	$(CC) -L$(LIB) -o $@ $<  $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS)
 
 #exectables no conversion warnings.
 tico: tico.c $(LIB)/libmyfft.a

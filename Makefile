@@ -24,6 +24,8 @@ targets=\
     testlinreg\
     testinvert\
     testmulmat\
+    testmatlinreg\
+    testmatlinregquad\
     testcalculateall\
     testcrosscorint\
     testtranspone\

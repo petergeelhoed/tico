@@ -5,6 +5,20 @@
 #include <string.h>
 #include <unistd.h>
 
+void printmat(double* arr, unsigned int N, unsigned int M)
+{
+        printf("\n");
+    for (unsigned int j = 0; j < N; j++)
+    {
+        for (unsigned int i = 0; i < M; i++)
+        {
+            printf("%8.2f",arr[i+M*j]);
+        }
+        printf("\n");
+    }
+        printf("\n");
+}
+
 void transpone(double* arr, unsigned int N, unsigned int M)
 {
     double* tmp = calloc(N * M, sizeof(double));
@@ -84,4 +98,72 @@ double* mulmat(double* arr,
         }
     }
     return tmp;
+}
+
+double* matlinreg(double* arr,
+               unsigned int N,
+               unsigned int M,
+               double* vec,
+               double* weight)
+{
+    double* coeffs = calloc(M+1, sizeof(double));
+    double* xarr = calloc((M+1)*N, sizeof(double));
+    //printmat(arr, N, M);
+    for (unsigned int j = 0; j < N; j++)
+    {
+        xarr[j*(M+1)] = 1.0;
+        for (unsigned int i = 0; i < M; i++)
+        {
+            xarr[i+1+(M+1)*j] = arr[i+j*M];
+        }
+    }
+    //printmat(xarr, N, M+1);
+
+
+    double* xarrT = calloc((M+1)*N, sizeof(double));
+    memcpy(xarrT, xarr,(M+1)*N*sizeof(double));
+    transpone(xarrT,N,M+1);
+    
+    //printmat(xarrT,M+1,N);
+
+
+    // multiply by inverse of weigths
+    for (unsigned int j = 0; j < M+1; j++)
+    {
+        for (unsigned int i = 0; i < N; i++)
+        {
+            xarrT[i+N*j] *= weight[i];
+        }
+    }
+    //printmat(xarrT,M+1,N);
+    //printmat(xarr,N,M+1);
+    double* xtwx =  mulmat(xarrT,M+1,N,xarr, N, M+1);
+    //printmat(xtwx,M+1,M+1);
+    invert (xtwx,M+1,M+1);
+    //printmat(xtwx,M+1,M+1);
+    
+    // this was overwritten
+    memcpy(xarrT, xarr,(M+1)*N*sizeof(double));
+    transpone(xarrT,N,M+1);
+    double *pipe = mulmat(xtwx,M+1,M+1, xarrT,M+1,N);
+    //printmat(pipe,M+1,N);
+    for (unsigned int j = 0; j < M+1; j++)
+    {
+        for (unsigned int i = 0; i < N; i++)
+        {
+            pipe[i+N*j] *= weight[i];
+        }
+    }
+    //printmat(pipe,M+1,N);
+
+    coeffs = mulmat(pipe,M+1,N, vec,N,1);
+
+    free(pipe);
+    free(xtwx);
+    free(xarr);
+    free(xarrT);
+
+    //printmat(coeffs,M+1,1);
+
+    return coeffs;
 }

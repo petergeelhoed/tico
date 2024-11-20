@@ -13,3 +13,11 @@ double* matlinreg(
                unsigned int M,
                double* y,
                double* w);
+
+void fitNpeaks(double* a,
+               double* b,
+               const unsigned int i,
+               const int* maxvals,
+               const int* maxes,
+               const int cvalue,
+               const unsigned int npeaks);

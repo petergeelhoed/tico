@@ -167,3 +167,38 @@ double* matlinreg(double* arr,
 
     return coeffs;
 }
+void fitNpeaks(double* a,
+               double* b,
+               const unsigned int i,
+               const int* maxvals,
+               const int* maxes,
+               const int cvalue,
+               const unsigned int npeaks)
+{
+    unsigned int fitwindow = i > npeaks ? npeaks : i;
+
+    if (i >= fitwindow)
+    {
+        unsigned int m = 0;
+
+        double* x = calloc(fitwindow, sizeof(double));
+        double* y = calloc(fitwindow, sizeof(double));
+        double* w = calloc(fitwindow, sizeof(double));
+        for (unsigned int k = 0; k < fitwindow; k++)
+        {
+            if (maxvals[i - k] > cvalue)
+            {
+                y[m] = (double)maxes[i-k];
+                x[m] = (double)k;
+                w[m] = 1.0;
+                m++;
+            }
+        }
+        if (m > 1)
+        {
+            double *coeffs = matlinreg(x,m,1,y,w);
+            *a = coeffs[0];
+            *b = coeffs[1];
+        }
+    }
+}

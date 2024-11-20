@@ -62,6 +62,7 @@ int main(int argc, char* argv[])
     double SDthreshold = 3.;
     char* device = 0;
     FILE* rawfile = 0;
+    FILE* mfile = 0;
     FILE* fptotal = 0;
     FILE* fpDefPeak = 0;
     FILE* fpInput = 0;
@@ -77,7 +78,7 @@ int main(int argc, char* argv[])
 
     int retVal = 0;
     int c;
-    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:d:w:p:f:D:v:I:l")) != -1)
+    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:l")) != -1)
     {
         switch (c)
         {
@@ -103,6 +104,9 @@ int main(int argc, char* argv[])
             break;
         case 'I':
             retVal = checkFileArg(c, &fpInput, optarg, "r");
+            break;
+        case 'm':
+            retVal = checkFileArg(c, &mfile, optarg, "w+");
             break;
         case 'w':
             retVal = checkFileArg(c, &rawfile, optarg, "w+");
@@ -153,6 +157,7 @@ int main(int argc, char* argv[])
                     " -t 30 measurment time in seconds\n"
                     " -s 3.0 cutoff standarddeviation\n"
                     " -w <file> write positions to file\n"
+                    " -m <file> write correlation to file\n"
                     " -I <file> read from file instead of microphone\n"
                     " -p <file> write pulse to file\n"
                     " -D <file> read pulse from file\n"
@@ -182,7 +187,7 @@ int main(int argc, char* argv[])
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
     int* maxpos = malloc(n * sizeof(int));
-    int* maxvals = malloc(n * sizeof(int));
+    int* maxvals = calloc(n , sizeof(int));
     struct myarr derivative; 
     derivative.arr = malloc(NN * sizeof(int));
     derivative.NN = NN;
@@ -274,6 +279,7 @@ int main(int argc, char* argv[])
         if (rawfile && i > 0 && i % len == 0)
         {
             syncappend(maxpos + i - len, len, rawfile);
+            syncappend(maxvals + i - len, len, mfile);
         }
 
         fitNpeaks(&a, &b, i, maxvals, maxpos, (int)cvalue, fitN);
@@ -291,7 +297,6 @@ int main(int argc, char* argv[])
         totalI++;
     }
 
-    free(maxvals);
     free(buffer);
     free(derivative.arr);
     fftw_free(filterFFT);
@@ -300,10 +305,16 @@ int main(int argc, char* argv[])
     {
         printTOD(rawfile);
         writefile(rawfile, maxpos + i - i % len, i % len);
+        if (mfile)
+        {
+            printTOD(mfile);
+            writefile(mfile, maxvals + i - i % len, i % len);
+        }
 
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
+    free(maxvals);
     free(maxpos);
 
     if (fptotal)

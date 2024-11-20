@@ -190,7 +190,7 @@ void fitNpeaks(double* a,
             {
                 y[m] = (double)maxes[i-k];
                 x[m] = (double)k;
-                w[m] = 1.0;
+                w[m] = (double)(maxvals[i-k]-cvalue)* (maxvals[i-k]-cvalue) ;
                 m++;
             }
         }

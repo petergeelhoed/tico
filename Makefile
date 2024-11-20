@@ -24,6 +24,7 @@ targets=\
     testlinreg\
     testinvert\
     testmulmat\
+    linregw\
     testmatlinreg\
     testmatlinregquad\
     testcalculateall\

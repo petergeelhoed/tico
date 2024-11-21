@@ -298,7 +298,7 @@ int main(int argc, char* argv[])
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
 
         printheader(
-            b * 86400 / NN, everyline, getBeatError(totaltick.arr, NN, rate, 0));
+            b * 86400 / NN, everyline, getBeatError(&totaltick, rate, 0));
 
         printspaces(maxpos.arr[i],
                     (int)(maxvals.arr[i]*16),

@@ -267,16 +267,17 @@ void calculateTotal(unsigned int n,
 }
 
 double
-getBeatError(int* totaltick, unsigned int NN, unsigned int rate, int verbose)
+getBeatError(const struct myarr* totaltick, unsigned int rate, int verbose)
 {
 
+    unsigned int NN = totaltick->NN;
     int cross[NN / 2];
-    crosscorint(NN / 2, totaltick, totaltick + NN / 2, cross);
+    crosscorint(NN / 2, totaltick->arr, totaltick->arr + NN / 2, cross);
     if (verbose)
     {
         syncwrite(cross, NN / 2, "beaterror");
-        syncwrite(totaltick, NN / 2, "t1");
-        syncwrite(totaltick + NN / 2, NN / 2, "t2");
+        syncwrite(totaltick->arr, NN / 2, "t1");
+        syncwrite(totaltick->arr + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
     return shiftHalf(postick, NN / 2) * 1000 / (double)rate;

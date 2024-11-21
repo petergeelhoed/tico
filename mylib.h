@@ -44,7 +44,7 @@ void calculateTotal(unsigned int n,
                     double threshold);
 
 double
-getBeatError(int* totalTick, unsigned int NN, unsigned int rate, int verbose);
+getBeatError(const struct myarr* totalTick, unsigned int rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 

@@ -44,20 +44,20 @@ int main(int argc, char** argv)
         }
     }
 
-    float* tmpy = malloc(iN * sizeof(float));
-    float* tmpx = malloc(iN * sizeof(float));
-    float d;
-    while (scanf("%f ", &d) != EOF)
+    double* tmpy = malloc(iN * sizeof(double));
+    double* tmpx = malloc(iN * sizeof(double));
+    double d;
+    while (scanf("%lf ", &d) != EOF)
     {
         tmpy[i] = d;
-        tmpx[i] = (float)i;
+        tmpx[i] = (double)i;
 
         i++;
         if (i == iN)
         {
             iN *= 3;
             iN /= 2;
-            float* tmp2 = realloc(tmpy, iN * sizeof(float));
+            double* tmp2 = realloc(tmpy, iN * sizeof(double));
             if (tmp2)
             {
                 tmpy = tmp2;
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
                 fprintf(stderr, "Memory allocation failed");
                 return -2;
             }
-            tmp2 = realloc(tmpx, iN * sizeof(float));
+            tmp2 = realloc(tmpx, iN * sizeof(double));
             if (tmp2)
             {
                 tmpx = tmp2;
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
         for (i = 1; i < (N + 2) / 2; i++)
         {
             printf("%f %g \n",
-                   (float)(i) / (float)N,
+                   (double)(i) / (double)N,
                    2 * z * sqrt(out[i][0] / (N * z) * out[i][0] / (N * z) +
                                 out[i][1] / (z * N) * out[i][1] / (z * N)));
         }

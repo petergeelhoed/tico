@@ -1,8 +1,8 @@
 #include "crosscorint.h"
 #include "myarr.h"
 
-void linregd(const float* xarr,
-             const float* yarr,
+void linregd(const double* xarr,
+             const double* yarr,
              unsigned int NN,
              double* a,
              double* b,

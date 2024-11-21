@@ -68,8 +68,8 @@ void printspaces(int maxpos,
     fprintf(stderr, "\n");
 }
 
-void linregd(const float* xarr,
-             const float* yarr,
+void linregd(const double* xarr,
+             const double* yarr,
              unsigned int NN,
              double* a,
              double* b,

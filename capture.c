@@ -189,12 +189,19 @@ int main(int argc, char* argv[])
     struct myarr maxpos; 
     maxpos.arr = malloc(n * sizeof(int));
     maxpos.NN = NN;
-    double* maxvals = calloc(n , sizeof(double));
+    struct myarrd maxvals; 
+    maxvals.arr  = calloc(n , sizeof(double));
+    maxvals.NN = NN;
     struct myarr derivative; 
     derivative.arr = malloc(NN * sizeof(int));
     derivative.NN = NN;
-    int* reference = calloc(NN, sizeof(int));
-    int* totaltick = calloc(NN, sizeof(int));
+    struct myarr reference;
+    reference.arr = calloc(NN, sizeof(int));
+    reference.NN = NN;
+
+    struct myarr totaltick;
+    totaltick.arr = calloc(NN, sizeof(int));
+    totaltick.NN = NN;
 
     device = (device == 0) ? "default:1" : device;
 
@@ -211,7 +218,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
-    if (buffer == 0 || totaltick == 0 || reference == 0 || maxvals == 0 ||
+    if (buffer == 0 || totaltick.arr == 0 || reference.arr == 0 || maxvals.arr == 0 ||
         maxpos.arr == 0 || filterFFT == 0 || derivative.arr == 0)
     {
         fprintf(stderr, "Could not allocate memory");
@@ -225,7 +232,7 @@ int main(int argc, char* argv[])
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
 
-    fillReference(fpDefPeak, reference, NN);
+    fillReference(fpDefPeak, reference.arr, NN);
 
     unsigned int i = 0;
     unsigned int totalI = 0;
@@ -234,7 +241,7 @@ int main(int argc, char* argv[])
         if (i == n)
         {
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF * sizeof(double));
+            memcpy(maxvals.arr, maxvals.arr + ARR_BUFF, ARR_BUFF * sizeof(double));
             i -= ARR_BUFF;
         }
 
@@ -258,20 +265,20 @@ int main(int argc, char* argv[])
         if (totalI == 9)
         {
             // check after 8 ticktocks
-            checkAndFlip(totaltick, reference, NN, verbose);
+            checkAndFlip(totaltick.arr, reference.arr, NN, verbose);
         }
 
         if (totalI == 12)
         {
-            free(reference);
-            reference = totaltick;
+            free(reference.arr);
+            reference.arr = totaltick.arr;
         }
 
         // NN/2 for no shift
         maxp = fftfit(derivative,
-                      totaltick,
-                      reference,
-                      maxvals + i,
+                      totaltick.arr,
+                      reference.arr,
+                      maxvals.arr + i,
                       filterFFT,
                       NN,
                       totalI > 0 && totalI == verbose);
@@ -281,16 +288,16 @@ int main(int argc, char* argv[])
         if (rawfile && i > 0 && i % len == 0)
         {
             syncappend(maxpos.arr + i - len, len, rawfile);
-            syncappendDouble(maxvals + i - len, len, mfile);
+            syncappendDouble(maxvals.arr + i - len, len, mfile);
         }
 
-        fitNpeaks(&a, &b, i, maxvals, maxpos.arr, fitN);
+        fitNpeaks(&a, &b, i, maxvals.arr, maxpos.arr, fitN);
 
         printheader(
-            b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));
+            b * 86400 / NN, everyline, getBeatError(totaltick.arr, NN, rate, 0));
 
         printspaces(maxpos.arr[i],
-                    (int)(maxvals[i]*16),
+                    (int)(maxvals.arr[i]*16),
                     (int)mod,
                     columns - everyline,
                     a,
@@ -310,21 +317,21 @@ int main(int argc, char* argv[])
         if (mfile)
         {
             printTOD(mfile);
-            writefileDouble(mfile, maxvals + i - i % len, i % len);
+            writefileDouble(mfile, maxvals.arr + i - i % len, i % len);
         }
 
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
-    free(maxvals);
+    free(maxvals.arr);
     free(maxpos.arr);
 
     if (fptotal)
     {
-        writefile(fptotal, totaltick, NN);
+        writefile(fptotal, totaltick.arr, NN);
         fclose(fptotal);
     }
-    free(totaltick);
+    free(totaltick.arr);
 
     if (capture_handle != 0)
     {

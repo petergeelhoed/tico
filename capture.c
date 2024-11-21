@@ -186,7 +186,9 @@ int main(int argc, char* argv[])
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
-    int* maxpos = malloc(n * sizeof(int));
+    struct myarr maxpos; 
+    maxpos.arr = malloc(n * sizeof(int));
+    maxpos.NN = NN;
     double* maxvals = calloc(n , sizeof(double));
     struct myarr derivative; 
     derivative.arr = malloc(NN * sizeof(int));
@@ -210,7 +212,7 @@ int main(int argc, char* argv[])
         return -6;
     }
     if (buffer == 0 || totaltick == 0 || reference == 0 || maxvals == 0 ||
-        maxpos == 0 || filterFFT == 0)
+        maxpos.arr == 0 || filterFFT == 0 || derivative.arr == 0)
     {
         fprintf(stderr, "Could not allocate memory");
         return -5;
@@ -231,7 +233,7 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
-            memcpy(maxpos, maxpos + ARR_BUFF, ARR_BUFF * sizeof(int));
+            memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals, maxvals + ARR_BUFF, ARR_BUFF * sizeof(double));
             i -= ARR_BUFF;
         }
@@ -274,20 +276,20 @@ int main(int argc, char* argv[])
                       NN,
                       totalI > 0 && totalI == verbose);
 
-        maxpos[i] = totalshift + shiftHalf(maxp, NN);
+        maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
 
         if (rawfile && i > 0 && i % len == 0)
         {
-            syncappend(maxpos + i - len, len, rawfile);
+            syncappend(maxpos.arr + i - len, len, rawfile);
             syncappendDouble(maxvals + i - len, len, mfile);
         }
 
-        fitNpeaks(&a, &b, i, maxvals, maxpos, fitN);
+        fitNpeaks(&a, &b, i, maxvals, maxpos.arr, fitN);
 
         printheader(
             b * 86400 / NN, everyline, getBeatError(totaltick, NN, rate, 0));
 
-        printspaces(maxpos[i],
+        printspaces(maxpos.arr[i],
                     (int)(maxvals[i]*16),
                     (int)mod,
                     columns - everyline,
@@ -304,7 +306,7 @@ int main(int argc, char* argv[])
     if (rawfile)
     {
         printTOD(rawfile);
-        writefile(rawfile, maxpos + i - i % len, i % len);
+        writefile(rawfile, maxpos.arr + i - i % len, i % len);
         if (mfile)
         {
             printTOD(mfile);
@@ -315,7 +317,7 @@ int main(int argc, char* argv[])
         fclose(rawfile);
     }
     free(maxvals);
-    free(maxpos);
+    free(maxpos.arr);
 
     if (fptotal)
     {

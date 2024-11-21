@@ -2,7 +2,7 @@
 #define MYARR
 struct myarr
 {
-    int* arr ;
+    int* arr;
     unsigned int NN;
 };
 #endif

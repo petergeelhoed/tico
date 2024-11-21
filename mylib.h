@@ -51,8 +51,7 @@ int checkUIntArg(int name, unsigned int* value, char* optarg);
 int checkFileArg(int name, FILE** fp, char* optarg, char* mode);
 void fillReference(FILE* fpDefPeak, struct myarr* reference);
 
-void checkAndFlip(int* totaltick,
-                  int* reference,
-                  unsigned int NN,
+void checkAndFlip(struct myarr* totaltick,
+                  struct myarr* reference,
                   unsigned int verbose);
 int shiftHalf(unsigned int value, unsigned int NN);

@@ -341,13 +341,13 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference)
     }
 }
 
-void checkAndFlip(int* totaltick,
-                  int* reference,
-                  unsigned int NN,
+void checkAndFlip(struct myarr* totaltick,
+                  struct myarr* reference,
                   unsigned int verbose)
 {
+    unsigned int NN = totaltick->NN;
     int* cross = malloc(NN * sizeof(int));
-    crosscorint(NN, totaltick, reference, cross);
+    crosscorint(NN, totaltick->arr, reference->arr, cross);
     unsigned int flipmaxp = getmaxpos(cross, NN);
     if (verbose)
     {
@@ -359,8 +359,8 @@ void checkAndFlip(int* totaltick,
                 fprintf(fp,
                         "%d %d %d %d\n",
                         j,
-                        totaltick[j],
-                        reference[j],
+                        totaltick->arr[j],
+                        reference->arr[j],
                         cross[j]);
             }
             fclose(fp);
@@ -374,9 +374,9 @@ void checkAndFlip(int* totaltick,
         int tmp = 0;
         for (unsigned int j = 0; j < NN / 2; j++)
         {
-            tmp = reference[j + NN / 2];
-            reference[j + NN / 2] = reference[j];
-            reference[j] = tmp;
+            tmp = reference->arr[j + NN / 2];
+            reference->arr[j + NN / 2] = reference->arr[j];
+            reference->arr[j] = tmp;
         }
     }
 

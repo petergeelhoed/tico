@@ -269,7 +269,7 @@ int main(int argc, char* argv[])
         if (totalI == 9)
         {
             // check after 8 ticktocks
-            checkAndFlip(totaltick.arr, reference.arr, NN, verbose);
+            checkAndFlip(&totaltick, &reference, verbose);
         }
 
         if (totalI == 12)

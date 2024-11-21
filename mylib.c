@@ -316,15 +316,15 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
     return 0;
 }
 
-void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN)
+void fillReference(FILE* fpDefPeak, struct myarr* reference)
 {
     // read default peak
     if (fpDefPeak != 0)
     {
-        for (unsigned int j = 0; j < NN; j++)
+        for (unsigned int j = 0; j < reference->NN; j++)
         {
 
-            if (fscanf(fpDefPeak, "%d", reference + j) != 1)
+            if (fscanf(fpDefPeak, "%d", reference->arr + j) != 1)
             {
                 fprintf(stderr,
                         "not enough values in -D <default peak file>\n");
@@ -336,8 +336,8 @@ void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN)
     }
     else
     {
-        reference[NN / 4] = 100000;
-        reference[3 * NN / 4] = 100000;
+        reference->arr[reference->NN / 4] = 100000;
+        reference->arr[3 * reference->NN / 4] = 100000;
     }
 }
 

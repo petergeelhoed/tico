@@ -1,4 +1,5 @@
 #include "crosscorint.h"
+#include "myarr.h"
 
 void linregd(const float* xarr,
              const float* yarr,
@@ -48,8 +49,7 @@ getBeatError(int* totalTick, unsigned int NN, unsigned int rate, int verbose);
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 
 int checkFileArg(int name, FILE** fp, char* optarg, char* mode);
-
-void fillReference(FILE* fpDefPeak, int* reference, unsigned int NN);
+void fillReference(FILE* fpDefPeak, struct myarr* reference);
 
 void checkAndFlip(int* totaltick,
                   int* reference,

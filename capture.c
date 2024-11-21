@@ -186,15 +186,19 @@ int main(int argc, char* argv[])
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
+
     struct myarr maxpos; 
     maxpos.arr = malloc(n * sizeof(int));
     maxpos.NN = NN;
+
     struct myarrd maxvals; 
     maxvals.arr  = calloc(n , sizeof(double));
     maxvals.NN = NN;
+
     struct myarr derivative; 
     derivative.arr = malloc(NN * sizeof(int));
     derivative.NN = NN;
+
     struct myarr reference;
     reference.arr = calloc(NN, sizeof(int));
     reference.NN = NN;
@@ -232,7 +236,7 @@ int main(int argc, char* argv[])
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
 
-    fillReference(fpDefPeak, reference.arr, NN);
+    fillReference(fpDefPeak, &reference);
 
     unsigned int i = 0;
     unsigned int totalI = 0;

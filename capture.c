@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
             syncappendDouble(maxvals.arr + i - len, len, mfile);
         }
 
-        fitNpeaks(&a, &b, i, maxvals.arr, maxpos.arr, fitN);
+        fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
 
         printheader(
             b * 86400 / NN, everyline, getBeatError(totaltick.arr, NN, rate, 0));

@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "mymath.h"
+
 void printmat(double* arr, unsigned int N, unsigned int M)
 {
         printf("\n");
@@ -170,8 +172,8 @@ double* matlinreg(double* arr,
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
-               const double* maxvals,
-               const int* maxes,
+               const struct myarrd* maxvals,
+               const struct myarr* maxes,
                const unsigned int npeaks)
 {
     unsigned int fitwindow = i > npeaks ? npeaks : i;
@@ -186,9 +188,9 @@ void fitNpeaks(double* a,
         for (unsigned int k = 0; k < fitwindow; k++)
         {
             {
-                y[m] = (double)maxes[i-k];
+                y[m] = (double)maxes->arr[i-k];
                 x[m] = (double)k;
-                w[m] = (maxvals[i-k]);
+                w[m] = (maxvals->arr[i-k]);
                 m++;
             }
         }

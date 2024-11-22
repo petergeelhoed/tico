@@ -187,25 +187,12 @@ int main(int argc, char* argv[])
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-    struct myarr maxpos; 
-    maxpos.arr = malloc(n * sizeof(int));
-    maxpos.NN = NN;
+    struct myarr maxpos = { malloc(n * sizeof(int)), 0 ,n};
+    struct myarr maxvals = {0, calloc(n , sizeof(double)), n};
 
-    struct myarrd maxvals; 
-    maxvals.arr  = calloc(n , sizeof(double));
-    maxvals.NN = NN;
-
-    struct myarr derivative; 
-    derivative.arr = malloc(NN * sizeof(int));
-    derivative.NN = NN;
-
-    struct myarr reference;
-    reference.arr = calloc(NN, sizeof(int));
-    reference.NN = NN;
-
-    struct myarr totaltick;
-    totaltick.arr = calloc(NN, sizeof(int));
-    totaltick.NN = NN;
+    struct myarr derivative = {malloc(NN * sizeof(int)), 0 ,NN}; 
+    struct myarr reference = {malloc(NN * sizeof(int)), 0 ,NN};
+    struct myarr totaltick = {malloc(NN * sizeof(int)), 0 ,NN};
 
     device = (device == 0) ? "default:1" : device;
 
@@ -222,7 +209,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
-    if (buffer == 0 || totaltick.arr == 0 || reference.arr == 0 || maxvals.arr == 0 ||
+    if (buffer == 0 || totaltick.arr == 0 || reference.arr == 0 || maxvals.arrd == 0 ||
         maxpos.arr == 0 || filterFFT == 0 || derivative.arr == 0)
     {
         fprintf(stderr, "Could not allocate memory");
@@ -245,7 +232,7 @@ int main(int argc, char* argv[])
         if (i == n)
         {
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals.arr, maxvals.arr + ARR_BUFF, ARR_BUFF * sizeof(double));
+            memcpy(maxvals.arrd, maxvals.arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
             i -= ARR_BUFF;
         }
 
@@ -282,7 +269,7 @@ int main(int argc, char* argv[])
         maxp = fftfit(derivative,
                       totaltick.arr,
                       reference.arr,
-                      maxvals.arr + i,
+                      maxvals.arrd + i,
                       filterFFT,
                       NN,
                       totalI > 0 && totalI == verbose);
@@ -292,7 +279,7 @@ int main(int argc, char* argv[])
         if (rawfile && i > 0 && i % len == 0)
         {
             syncappend(maxpos.arr + i - len, len, rawfile);
-            syncappendDouble(maxvals.arr + i - len, len, mfile);
+            syncappendDouble(maxvals.arrd + i - len, len, mfile);
         }
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
@@ -301,7 +288,7 @@ int main(int argc, char* argv[])
             b * 86400 / NN, everyline, getBeatError(&totaltick, rate, 0));
 
         printspaces(maxpos.arr[i],
-                    (int)(maxvals.arr[i]*16),
+                    (int)(maxvals.arrd[i]*16),
                     (int)mod,
                     columns - everyline,
                     a,
@@ -321,13 +308,13 @@ int main(int argc, char* argv[])
         if (mfile)
         {
             printTOD(mfile);
-            writefileDouble(mfile, maxvals.arr + i - i % len, i % len);
+            writefileDouble(mfile, maxvals.arrd + i - i % len, i % len);
         }
 
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
-    free(maxvals.arr);
+    free(maxvals.arrd);
     free(maxpos.arr);
 
     if (fptotal)

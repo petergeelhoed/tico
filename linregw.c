@@ -5,7 +5,7 @@
 
 int main()
 {
-    unsigned int n = 1000;
+    unsigned int n = 100000000;
     double* xarr = calloc(n, sizeof(int));
     double* yvec = calloc(n, sizeof(int));
     double* wvec = calloc(n, sizeof(int));

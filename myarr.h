@@ -1,13 +1,9 @@
 #ifndef MYARR
 #define MYARR
-struct myarrd
-{
-    double* arr;
-    unsigned int NN;
-};
 struct myarr
 {
     int* arr;
+    double* arrd;
     unsigned int NN;
 };
 #endif

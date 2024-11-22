@@ -6,10 +6,16 @@
 #include <unistd.h>
 
 #include "mymath.h"
+struct mymat
+{
+    double* mat;
+    unsigned int M;
+    unsigned int N;
+};
 
 void printmat(double* arr, unsigned int N, unsigned int M)
 {
-        printf("\n");
+    printf("\n");
     for (unsigned int j = 0; j < N; j++)
     {
         for (unsigned int i = 0; i < M; i++)
@@ -18,7 +24,7 @@ void printmat(double* arr, unsigned int N, unsigned int M)
         }
         printf("\n");
     }
-        printf("\n");
+    printf("\n");
 }
 
 void transpone(double* arr, unsigned int N, unsigned int M)
@@ -172,7 +178,7 @@ double* matlinreg(double* arr,
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
-               const struct myarrd* maxvals,
+               const struct myarr* maxvals,
                const struct myarr* maxes,
                const unsigned int npeaks)
 {
@@ -190,7 +196,7 @@ void fitNpeaks(double* a,
             {
                 y[m] = (double)maxes->arr[i-k];
                 x[m] = (double)k;
-                w[m] = (maxvals->arr[i-k]);
+                w[m] = (maxvals->arrd[i-k]);
                 m++;
             }
         }

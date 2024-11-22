@@ -18,6 +18,6 @@ double* matlinreg(
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
-               const struct myarrd* maxvals,
+               const struct myarr* maxvals,
                const struct myarr* maxes,
                const unsigned int npeaks);

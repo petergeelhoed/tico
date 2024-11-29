@@ -249,11 +249,11 @@ int getData(unsigned int maxp,
             snd_pcm_format_t format,
             char* device,
             unsigned int rate,
-            unsigned int NN,
             char* buffer,
             struct myarr derivative,
             unsigned int totalI)
 {
+    unsigned int NN = derivative.NN;
     int err = -32;
     while (err == -32)
     {

@@ -112,6 +112,7 @@ void* threadWrite(void* inStruct)
 
 void printTOD(FILE* out)
 {
+    if (out == 0) return;
     struct timeval tv;
     struct timezone tz;
     gettimeofday(&tv, &tz);
@@ -134,6 +135,7 @@ void printTOD(FILE* out)
 
 void syncappendDouble(double* input, unsigned int NN, FILE* file)
 {
+    if (file == 0) return;
     struct mystruct
     {
         double* array;

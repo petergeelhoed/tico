@@ -244,7 +244,6 @@ int main(int argc, char* argv[])
                           format,
                           device,
                           rate,
-                          NN,
                           buffer,
                           derivative,
                           totalI);

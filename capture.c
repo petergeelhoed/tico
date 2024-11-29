@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
 
     if (fptotal)
     {
-        writefile(fptotal, totaltick.arr, NN);
+        writefile(fptotal, totaltick.arr, totaltick.NN);
         fclose(fptotal);
     }
     free(totaltick.arr);

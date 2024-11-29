@@ -27,7 +27,8 @@ int main()
         orig[j] = blah[j];
     }
 
-    fftw_complex* out = convolute(NN, blah, filterFFT);
+    struct myarr input = {blah,0,NN};
+    fftw_complex* out = convolute(input, filterFFT);
 
     for (unsigned int j = 0; j < NN; j++)
     {

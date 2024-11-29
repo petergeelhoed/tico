@@ -9,11 +9,10 @@ unsigned fftfit(const struct myarr input,
                 double* val,
                 fftw_complex* filterFFT,
                 int verb);
-void applyFilter(int* input,
-                 unsigned int NN,
+void applyFilter(const struct myarr input,
                  fftw_complex* filterFFT,
                  double* out);
-fftw_complex* convolute(unsigned int NN, int* array, fftw_complex* filter);
+fftw_complex* convolute(const struct myarr array, fftw_complex* filter);
 
 unsigned int getmaxfftw(fftw_complex* array, unsigned int NN);
 fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref);

@@ -101,8 +101,9 @@ void remove50hz(unsigned int NN, int* array, unsigned int rate)
     fftw_free(*out);
 }
 
-fftw_complex* convolute(unsigned int NN, int* array, fftw_complex* filterFFT)
+fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
 {
+    unsigned int NN = array.NN;
     fftw_complex* in = fftw_alloc_complex(NN);
     fftw_complex* out = fftw_alloc_complex(NN);
     fftw_plan forward =
@@ -111,7 +112,7 @@ fftw_complex* convolute(unsigned int NN, int* array, fftw_complex* filterFFT)
         fftw_plan_dft_1d((int)NN, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
     for (unsigned int j = 0; j < NN; j++)
     {
-        in[j][0] = (double)array[j];
+        in[j][0] = (double)array.arr[j];
         in[j][1] = 0.0;
     }
     fftw_execute(forward);
@@ -175,13 +176,12 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     return corr;
 }
 
-void applyFilter(int* input,
-                 unsigned int NN,
+void applyFilter(const struct myarr input,
                  fftw_complex* filterFFT,
                  double* out)
 {
-    fftw_complex* filteredinput = convolute(NN, input, filterFFT);
-    for (unsigned int j = 0; j < NN; j++)
+    fftw_complex* filteredinput = convolute(input, filterFFT);
+    for (unsigned int j = 0; j < input.NN; j++)
     {
         out[j] = filteredinput[j][0];
     }
@@ -199,7 +199,7 @@ unsigned int fftfit(const struct myarr input,
     unsigned int NN = input.NN;
 
     fftw_complex* Fbase = fftw_alloc_complex(NN);
-    fftw_complex* filteredinput = convolute(input.NN, input.arr, filterFFT);
+    fftw_complex* filteredinput = convolute(input, filterFFT);
 
     for (unsigned int j = 0; j < NN; j++)
     {

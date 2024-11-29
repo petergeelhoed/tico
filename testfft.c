@@ -74,7 +74,8 @@ int main()
         fprintf(stderr, "%6d %f == %f \n", j, corr[j][0], peak[j][0]);
     }
 
-    fftw_complex* conv = convolute(NN, ipeak, filterFFT);
+    struct myarr input = {ipeak,0,NN};
+    fftw_complex* conv = convolute(input, filterFFT);
     fprintf(stderr, "====convolution== filter == ipeak =====\n");
     for (unsigned int j = 0; j < NN; j++)
     {

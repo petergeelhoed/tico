@@ -8,7 +8,6 @@ unsigned fftfit(const struct myarr input,
                 int* base,
                 double* val,
                 fftw_complex* filterFFT,
-                unsigned int NN,
                 int verb);
 void applyFilter(int* input,
                  unsigned int NN,

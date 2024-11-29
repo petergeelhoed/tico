@@ -193,10 +193,10 @@ unsigned int fftfit(const struct myarr input,
                     int* base,
                     double* hexvalue,
                     fftw_complex* filterFFT,
-                    unsigned int NN,
                     int verb)
 {
     // after 6tps base = total
+    unsigned int NN = input.NN;
 
     fftw_complex* Fbase = fftw_alloc_complex(NN);
     fftw_complex* filteredinput = convolute(input.NN, input.arr, filterFFT);

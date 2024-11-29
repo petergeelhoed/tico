@@ -270,7 +270,6 @@ int main(int argc, char* argv[])
                       reference.arr,
                       maxvals.arrd + i,
                       filterFFT,
-                      NN,
                       totalI > 0 && totalI == verbose);
 
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);

@@ -1,66 +1,74 @@
-BIN= ../bin
-OBJ= ../obj
-LIB= ../lib
-SOUNDFLAGS= -lasound -lmysound 
-MYLIBFLAGS= -lmylib 
-MYSYNCFLAGS= -lmysync 
-MYMATHFLAGS= -lmymath
-FFTFLAGS= -lfftw3 -lmyfft 
-CFLAGS= -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
-#CFLAGS= -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion 
-SANI_ADDR= -fsanitize=address -fno-omit-frame-pointer -static-libasan
+# Directories
+BIN = ../bin
+OBJ = ../obj
+LIB = ../lib
+
+# Flags
+CFLAGS = -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
+# Uncomment the following line for optimized builds
+# CFLAGS = -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
+SANI_ADDR = -fsanitize=address -fno-omit-frame-pointer -static-libasan
 #CC= cc $(CFLAGS) $(SANI_ADDR)
-CC= cc $(CFLAGS)
+CC = cc $(CFLAGS)
 
-targets=\
-    derivative\
-    capture\
-    fft\
-    recali\
-    record\
-    teeth\
-    testfft\
-    testfilter\
-    testlinreg\
-    testinvert\
-    testmulmat\
-    linregw\
-    testmatlinreg\
-    testmatlinregquad\
-    testcalculateall\
-    testcrosscorint\
-    testtranspone\
-    tico\
-    wav2raw
+# Libraries
+SOUNDFLAGS = -lasound -lmysound
+MYLIBFLAGS = -lmylib
+MYSYNCFLAGS = -lmysync
+MYMATHFLAGS = -lmymath
+FFTFLAGS = -lfftw3 -lmyfft
 
-outputs=\
-        Fbase\
-        capture\
-        crosscor\
-        filteredinput\
-        flip\
-        input\
-        total
+# Targets
+TARGETS = \
+	derivative \
+	capture \
+	fft \
+	recali \
+	record \
+	teeth \
+	testfft \
+	testfilter \
+	testlinreg \
+	testinvert \
+	testmulmat \
+	linregw \
+	testmatlinreg \
+	testmatlinregquad \
+	testcalculateall \
+	testcrosscorint \
+	testtranspone \
+	tico \
+	wav2raw
 
+# Outputs
+OUTPUTS = \
+	Fbase \
+	capture \
+	crosscor \
+	filteredinput \
+	flip \
+	input \
+	total
 
-libs= \
-      $(LIB)/libmylib.a\
-      $(LIB)/libmysound.a\
-      $(LIB)/libmysync.a\
-      $(LIB)/libmyfft.a\
-      $(LIB)/libmymath.a 
+LIBS = \
+	$(LIB)/libmylib.a \
+	$(LIB)/libmysound.a \
+	$(LIB)/libmysync.a \
+	$(LIB)/libmyfft.a \
+	$(LIB)/libmymath.a
 
-all:  $(libs) $(targets)
-libs: $(libs)
+all: $(LIBS) $(TARGETS)
 
-install: $(targets)
-	mv $(targets) $(BIN)
+libs: $(LIBS)
+
+install: $(TARGETS)
+	mv $(TARGETS) $(BIN)
 
 clean:
-	rm -f $(LIB)/* $(OBJ)/* $(targets) $(outputs)
+	rm -f $(LIB)/* $(OBJ)/* $(TARGETS) $(OUTPUTS)
 
-$(OBJ)/%.o: %.c %.h 
-	$(CC) $(CFLAGS) -c -o $@ $< 
+$(OBJ)/%.o: %.c %.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o myarr.h
 	ar -rcs $@ $< $(OBJ)/crosscorint.o
@@ -68,15 +76,15 @@ $(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o myarr.h
 $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<
 
-%: %.c $(LIB)/libmylib.a $(LIB)/libmysound.a $(LIB)/libmyfft.a $(LIB)/libmysync.a $(LIB)/libmymath.a
-	$(CC) -L$(LIB) -o $@ $<  $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS)
+%: %.c $(LIBS)
+	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS)
 
-#exectables no conversion warnings.
+# Specific executables without conversion warnings
 tico: tico.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o tico tico.c   -lfftw3 -lmyfft
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o tico tico.c -lfftw3 -lmyfft
 
 wav2raw: wav2raw.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o wav2raw wav2raw.c   -lfftw3 -lmyfft
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o wav2raw wav2raw.c -lfftw3 -lmyfft
 
 teeth: teeth.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror  -L../lib -o teeth teeth.c   -lfftw3 -lmyfft
+	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o teeth teeth.c -lfftw3 -lmyfft

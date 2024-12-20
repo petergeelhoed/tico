@@ -11,14 +11,23 @@
 #include "myarr.h"
 #include "myfft.h"
 #include "mylib.h"
+#include "mymath.h"
 #include "mysound.h"
 #include "mysync.h"
-#include "mymath.h"
 
 #define ARR_BUFF 512
+#define DEFAULT_RATE 48000
+#define DEFAULT_BPH 21600
+#define DEFAULT_ZOOM 10
+#define DEFAULT_EVALUE 4
+#define DEFAULT_FITN 30
+#define DEFAULT_LEN 32
+#define DEFAULT_SDTHRESHOLD 3.0
+#define DEFAULT_CVALUE 7
 
 static int keepRunning = 1;
 unsigned int columns = 80;
+
 void sigint_handler(int signal)
 {
     if (signal == SIGINT)
@@ -36,117 +45,111 @@ void sigint_handler(int signal)
 
 void set_signal_action(void)
 {
-    // Declare the sigaction structure
     struct sigaction act;
-
-    // Set all of the structure's bits to 0 to avoid errors
-    // relating to uninitialized variables...
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     sigaction(SIGWINCH, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 }
 
-int main(int argc, char* argv[])
+void parse_arguments(int argc,
+                     char* argv[],
+                     unsigned int* rate,
+                     unsigned int* bph,
+                     unsigned int* evalue,
+                     unsigned int* zoom,
+                     unsigned int* time,
+                     unsigned int* everyline,
+                     unsigned int* cvalue,
+                     unsigned int* verbose,
+                     unsigned int* fitN,
+                     double* SDthreshold,
+                     char** device,
+                     FILE** rawfile,
+                     FILE** mfile,
+                     FILE** fptotal,
+                     FILE** fpDefPeak,
+                     FILE** fpInput)
 {
-    unsigned int rate = 48000;
-    unsigned int bph = 21600;
-    unsigned int evalue = 4; // width of gaussian window
-    unsigned int zoom = 10;
-    unsigned int time = 0;
-    unsigned int everyline = 0;
-    unsigned int len = 32;    //  syncwrite every len tics
-    unsigned int cvalue = 7;  // cutoff for adding to correlation
-    unsigned int verbose = 0; // print for this peak
-    unsigned int fitN = 30;   // fit last 30 peaks, 10 seconds
-    double SDthreshold = 3.;
-    char* device = 0;
-    FILE* rawfile = 0;
-    FILE* mfile = 0;
-    FILE* fptotal = 0;
-    FILE* fpDefPeak = 0;
-    FILE* fpInput = 0;
-
-    double b = 0.0;
-    double a = 0.0;
-    int totalshift = 0;
-
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col;
-    set_signal_action();
-
-    int retVal = 0;
     int c;
     while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:l")) != -1)
     {
         switch (c)
         {
         case 'd':
-            device = optarg;
+            *device = optarg;
             break;
         case 'f':
-            retVal = checkUIntArg(c, &fitN, optarg);
+            if (checkUIntArg(c, fitN, optarg) != 0)
+                exit(-1);
             break;
         case 'c':
-            retVal = checkUIntArg(c, &cvalue, optarg);
-            cvalue = cvalue > 15 ? 15 : cvalue;
+            if (checkUIntArg(c, cvalue, optarg) != 0)
+                exit(-1);
+            *cvalue = *cvalue > 15 ? 15 : *cvalue;
             break;
         case 'l':
-            // number of characters to reserve for beaterror and rate
-            everyline = 14;
+            *everyline = 14;
             break;
         case 'v':
-            retVal = checkUIntArg(c, &verbose, optarg);
+            if (checkUIntArg(c, verbose, optarg) != 0)
+                exit(-1);
             break;
         case 'e':
-            retVal = checkUIntArg(c, &evalue, optarg);
+            if (checkUIntArg(c, evalue, optarg) != 0)
+                exit(-1);
             break;
         case 'I':
-            retVal = checkFileArg(c, &fpInput, optarg, "r");
+            if (checkFileArg(c, fpInput, optarg, "r") != 0)
+                exit(-1);
             break;
         case 'm':
-            retVal = checkFileArg(c, &mfile, optarg, "w+");
+            if (checkFileArg(c, mfile, optarg, "w+") != 0)
+                exit(-1);
             break;
         case 'w':
-            retVal = checkFileArg(c, &rawfile, optarg, "w+");
+            if (checkFileArg(c, rawfile, optarg, "w+") != 0)
+                exit(-1);
             break;
         case 'D':
-            retVal = checkFileArg(c, &fpDefPeak, optarg, "r");
+            if (checkFileArg(c, fpDefPeak, optarg, "r") != 0)
+                exit(-1);
             break;
         case 'p':
-            retVal = checkFileArg(c, &fptotal, optarg, "w");
+            if (checkFileArg(c, fptotal, optarg, "w") != 0)
+                exit(-1);
             break;
         case 's':
-            SDthreshold = 0.0;
-            SDthreshold = atof(optarg);
-            if (SDthreshold == 0.0)
+            *SDthreshold = atof(optarg);
+            if (*SDthreshold == 0.0)
             {
-                printf("invalid float argument for -s '%s'\n", optarg);
-                return -1;
+                fprintf(stderr, "invalid float argument for -s '%s'\n", optarg);
+                exit(-1);
             }
             break;
         case 't':
-            retVal = checkUIntArg(c, &time, optarg);
+            if (checkUIntArg(c, time, optarg) != 0)
+                exit(-1);
             break;
         case 'b':
-            retVal = checkUIntArg(c, &bph, optarg);
-            if (retVal == 0 && bph < 4800)
+            if (checkUIntArg(c, bph, optarg) != 0 || *bph < 4800)
             {
-                printf("refusing bph <4800 %d %d\n", bph, retVal);
-                return -1;
+                fprintf(stderr, "refusing bph <4800 %d\n", *bph);
+                exit(-1);
             }
             break;
         case 'z':
-            retVal = checkUIntArg(c, &zoom, optarg);
+            if (checkUIntArg(c, zoom, optarg) != 0)
+                exit(-1);
             break;
         case 'r':
-            retVal = checkUIntArg(c, &rate, optarg);
+            if (checkUIntArg(c, rate, optarg) != 0)
+                exit(-1);
             break;
         case 'h':
         default:
             fprintf(stderr,
-                    "usage: capture \n"
+                    "usage: capture\n"
                     "capture reads from the microphone and timegraphs your "
                     "mechanical watch\n"
                     "options:\n"
@@ -154,70 +157,114 @@ int main(int argc, char* argv[])
                     " -z 10 zoom\n"
                     " -b 21600 bph of the watch\n"
                     " -r 48000 sampling rate in Hz\n"
-                    " -t 30 measurment time in seconds\n"
-                    " -s 3.0 cutoff standarddeviation\n"
+                    " -t 30 measurement time in seconds\n"
+                    " -s 3.0 cutoff standard deviation\n"
                     " -w <file> write positions to file\n"
                     " -m <file> write correlation to file\n"
                     " -I <file> read from file instead of microphone\n"
                     " -p <file> write pulse to file\n"
                     " -D <file> read pulse from file\n"
-                    " -c 7 color crosscorrelation\n"
+                    " -c 7 color cross-correlation\n"
                     " -f 30 fit n points for local rate\n"
-                    " -e 4 Gaussan convolution over input\n"
+                    " -e 4 Gaussian convolution over input\n"
                     " -n 60 number of points to fit in local rate\n"
-                    " -l print beaterror and rate on each line\n"
-                    " -v <peak> write files for this peak \n");
+                    " -l print beat error and rate on each line\n"
+                    " -v <peak> write files for this peak\n");
             exit(0);
             break;
         }
-        if (retVal != 0)
-        {
-            return retVal;
-        }
     }
+}
 
-    // declarations
+int main(int argc, char* argv[])
+{
+    unsigned int rate = DEFAULT_RATE;
+    unsigned int bph = DEFAULT_BPH;
+    unsigned int evalue = DEFAULT_EVALUE;
+    unsigned int zoom = DEFAULT_ZOOM;
+    unsigned int time = 0;
+    unsigned int everyline = 0;
+    unsigned int cvalue = DEFAULT_CVALUE;
+    unsigned int verbose = 0;
+    unsigned int len = DEFAULT_LEN;
+    unsigned int fitN = DEFAULT_FITN;
+    double SDthreshold = DEFAULT_SDTHRESHOLD;
+    char* device = NULL;
+    FILE* rawfile = NULL;
+    FILE* mfile = NULL;
+    FILE* fptotal = NULL;
+    FILE* fpDefPeak = NULL;
+    FILE* fpInput = NULL;
+
+    parse_arguments(argc,
+                    argv,
+                    &rate,
+                    &bph,
+                    &evalue,
+                    &zoom,
+                    &time,
+                    &everyline,
+                    &cvalue,
+                    &verbose,
+                    &fitN,
+                    &SDthreshold,
+                    &device,
+                    &rawfile,
+                    &mfile,
+                    &fptotal,
+                    &fpDefPeak,
+                    &fpInput);
+
+    double a = 0.0;
+    double b = 0.0;
+    int totalshift = 0;
+    struct winsize w;
+
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    columns = w.ws_col;
+    set_signal_action();
+
     unsigned int NN = rate * 7200 / bph;
-    unsigned int mod = NN / zoom;
     unsigned int maxp = 0;
-    // should be even
     NN = (NN + NN % 2);
+    unsigned int mod = NN / zoom;
     unsigned int n = ARR_BUFF * 2;
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-    struct myarr maxpos = { malloc(n * sizeof(int)), 0 ,n};
-    struct myarr maxvals = {0, calloc(n , sizeof(double)), n};
+    struct myarr maxpos = {malloc(n * sizeof(int)), 0, n};
+    struct myarr maxvals = {0, calloc(n, sizeof(double)), n};
+    struct myarr derivative = {malloc(NN * sizeof(int)), 0, NN};
+    struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
+    struct myarr totaltick = {malloc(NN * sizeof(int)), 0, NN};
 
-    struct myarr derivative = {malloc(NN * sizeof(int)), 0 ,NN}; 
-    struct myarr reference = {malloc(NN * sizeof(int)), 0 ,NN};
-    struct myarr totaltick = {malloc(NN * sizeof(int)), 0 ,NN};
-
-    device = (device == 0) ? "default:1" : device;
+    device = (device == NULL) ? "default:1" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = 0;
-    if (fpInput == 0)
+    snd_pcm_t* capture_handle = NULL;
+
+    if (fpInput == NULL)
     {
         capture_handle = initAudio(format, device, rate);
     }
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
 
-    if (fpInput == 0 && capture_handle == 0)
+    if (fpInput == NULL && capture_handle == NULL)
     {
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
-    if (buffer == 0 || totaltick.arr == 0 || reference.arr == 0 || maxvals.arrd == 0 ||
-        maxpos.arr == 0 || filterFFT == 0 || derivative.arr == 0)
+    if (buffer == NULL || totaltick.arr == NULL || reference.arr == NULL ||
+        maxvals.arrd == NULL || maxpos.arr == NULL || filterFFT == NULL ||
+        derivative.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
         return -5;
     }
 
     fprintf(stderr,
-            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms  /  "
+            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms / "
             "%.1fμs/character\n",
             columns,
             mod * 1000. / rate,
@@ -232,7 +279,9 @@ int main(int argc, char* argv[])
         if (i == n)
         {
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals.arrd, maxvals.arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
+            memcpy(maxvals.arrd,
+                   maxvals.arrd + ARR_BUFF,
+                   ARR_BUFF * sizeof(double));
             i -= ARR_BUFF;
         }
 
@@ -254,7 +303,6 @@ int main(int argc, char* argv[])
         }
         if (totalI == 9)
         {
-            // check after 8 ticktocks
             checkAndFlip(&totaltick, &reference, verbose);
         }
 
@@ -264,7 +312,6 @@ int main(int argc, char* argv[])
             reference.arr = totaltick.arr;
         }
 
-        // NN/2 for no shift
         maxp = fftfit(derivative,
                       totaltick.arr,
                       reference.arr,
@@ -284,13 +331,13 @@ int main(int argc, char* argv[])
 
         printheader(
             b * 86400 / NN, everyline, getBeatError(&totaltick, rate, 0));
-
         printspaces(maxpos.arr[i],
-                    (int)(maxvals.arrd[i]*16),
+                    (int)(maxvals.arrd[i] * 16),
                     (int)mod,
                     columns - everyline,
                     a,
                     (int)cvalue);
+
         i++;
         totalI++;
     }
@@ -308,7 +355,6 @@ int main(int argc, char* argv[])
             printTOD(mfile);
             writefileDouble(mfile, maxvals.arrd + i - i % len, i % len);
         }
-
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
@@ -322,14 +368,14 @@ int main(int argc, char* argv[])
     }
     free(totaltick.arr);
 
-    if (capture_handle != 0)
+    if (capture_handle != NULL)
     {
         snd_pcm_close(capture_handle);
     }
 
     fprintf(stderr,
-            "width = %.3fms  /  %.1fμs/character\n",
+            "width = %.3fms / %.1fμs/character\n",
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
-    exit(0);
+    return 0;
 }

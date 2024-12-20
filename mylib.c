@@ -10,12 +10,14 @@
 #include "mylib.h"
 #include "mysync.h"
 
-/*Prints header on line or at the top */
+#define MAX_COLUMNS 1024
+
+/* Prints header on line or at the top */
 void printheader(double b, unsigned int l, double beatError)
 {
     if (l)
     {
-        char line[14 + 1];
+        char line[15];
         memset(line, ' ', 14);
         snprintf(line, 5, "%4.2f", beatError);
         snprintf(line + 4, 8, "ms%+5.1f", b);
@@ -42,11 +44,11 @@ void printspaces(int maxpos,
         maxpos += mod;
     while (avg_pos < (double)mod)
         avg_pos += (double)mod;
-    columns = columns > 1024 ? 80 : columns;
+    columns = columns > MAX_COLUMNS ? 80 : columns;
     int width = (maxpos % mod) * (int)columns / mod;
     int widtha = (((int)avg_pos) % mod) * (int)columns / mod;
 
-    char spaces[1024];
+    char spaces[MAX_COLUMNS];
     memset(spaces, ' ', (size_t)width);
     spaces[width] = '\0';
     if (widtha < width)
@@ -103,7 +105,6 @@ void linreg(const int* xarr,
             double* b,
             double* s)
 {
-    // remove the average to pospone overflows
     double mx = (xarr[NN - 1] + xarr[0]) / 2;
     double my = (yarr[NN - 1] + yarr[0]) / 2;
     double x = 0;
@@ -203,7 +204,6 @@ void calculateTotalFromFile(unsigned int n,
     unsigned int i = 0;
     if (all)
     {
-
         unsigned int bufsize = 256;
         char* buf = malloc(bufsize * sizeof(char));
         while (getline(&buf, &bufsize, rawfile) > 0 && i < n)
@@ -269,7 +269,6 @@ void calculateTotal(unsigned int n,
 double
 getBeatError(const struct myarr* totaltick, unsigned int rate, int verbose)
 {
-
     unsigned int NN = totaltick->NN;
     int cross[NN / 2];
     crosscorint(NN / 2, totaltick->arr, totaltick->arr + NN / 2, cross);
@@ -285,7 +284,6 @@ getBeatError(const struct myarr* totaltick, unsigned int rate, int verbose)
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)
 {
-    *value = 0;
     *value = (unsigned int)atoi(optarg);
     if (*value == 0)
     {
@@ -305,7 +303,7 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
     }
 
     *fp = fopen(optarg, mode);
-    if (*fp == 0)
+    if (*fp == NULL)
     {
         fprintf(stderr,
                 "cannot open file -%c '%s' for mode %s\n",
@@ -319,17 +317,14 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
 
 void fillReference(FILE* fpDefPeak, struct myarr* reference)
 {
-    // read default peak
-    if (fpDefPeak != 0)
+    if (fpDefPeak != NULL)
     {
         for (unsigned int j = 0; j < reference->NN; j++)
         {
-
             if (fscanf(fpDefPeak, "%d", reference->arr + j) != 1)
             {
                 fprintf(stderr,
                         "not enough values in -D <default peak file>\n");
-
                 exit(-5);
             }
         }
@@ -348,6 +343,11 @@ void checkAndFlip(struct myarr* totaltick,
 {
     unsigned int NN = totaltick->NN;
     int* cross = malloc(NN * sizeof(int));
+    if (!cross)
+    {
+        fprintf(stderr, "Memory allocation failed in checkAndFlip\n");
+        return;
+    }
     crosscorint(NN, totaltick->arr, reference->arr, cross);
     unsigned int flipmaxp = getmaxpos(cross, NN);
     if (verbose)
@@ -372,10 +372,9 @@ void checkAndFlip(struct myarr* totaltick,
     {
         fprintf(stderr, "FLIPPING peaks pos %d\n", flipmaxp);
 
-        int tmp = 0;
         for (unsigned int j = 0; j < NN / 2; j++)
         {
-            tmp = reference->arr[j + NN / 2];
+            int tmp = reference->arr[j + NN / 2];
             reference->arr[j + NN / 2] = reference->arr[j];
             reference->arr[j] = tmp;
         }

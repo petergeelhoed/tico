@@ -7,6 +7,13 @@
 #include "mylib.h"
 #include "mysound.h"
 
+#define INIT_ERROR -2
+#define READ_FAILED -1
+#define PRESHIFT_THRESHOLD 10
+#define REINIT_ERROR -32
+#define INPUT_FILE_ERROR -33
+
+// Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 {
     int err;
@@ -20,7 +27,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
                 "cannot open audio device %s (%s)\n",
                 device,
                 snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0)
@@ -28,7 +35,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot allocate hardware parameter structure (%s)\n",
                 snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_any(capture_handle, hw_params)) < 0)
@@ -36,41 +43,41 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot initialize hardware parameter structure (%s)\n",
                 snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_access(
              capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
     {
         fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_format(
              capture_handle, hw_params, format)) < 0)
     {
         fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_rate_near(
              capture_handle, hw_params, &rate, 0)) < 0)
     {
         fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1)) <
         0)
     {
         fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params(capture_handle, hw_params)) < 0)
     {
         fprintf(stderr, "cannot set parameters (%s)\n", snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     snd_pcm_hw_params_free(hw_params);
@@ -80,7 +87,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot prepare audio interface for use (%s)\n",
                 snd_strerror(err));
-        exit(1);
+        exit(INIT_ERROR);
     }
 
     return capture_handle;
@@ -100,9 +107,9 @@ void readBufferRaw(snd_pcm_t* capture_handle,
                 "read from audio interface failed %d (%s)\n",
                 err,
                 snd_strerror(err));
-        exit(-1);
+        exit(READ_FAILED);
     }
-    for (unsigned int j = 0; j < NN * 2; j += 2)
+    for (unsigned int j = 0; j < 2 * NN; j += 2)
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
@@ -138,7 +145,7 @@ int readBuffer(snd_pcm_t* capture_handle,
     {
         derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
-    derivative[NN] = 0;
+    derivative[NN - 1] = 0;
     return err;
 }
 
@@ -149,8 +156,8 @@ int readShiftedBuffer(int* derivative,
                       int maxpos,
                       FILE* fpInput)
 {
-    int ret = -1;
-    unsigned shift = (unsigned int)(abs(maxpos));
+    int ret = READ_FAILED;
+    unsigned int shift = (unsigned int)(abs(maxpos));
     if (maxpos < 0)
     {
         memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
@@ -161,7 +168,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -33;
+                    ret = INPUT_FILE_ERROR;
                     break;
                 }
             }
@@ -185,7 +192,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -33;
+                    ret = INPUT_FILE_ERROR;
                     break;
                 }
             }
@@ -194,7 +201,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -33;
+                    ret = INPUT_FILE_ERROR;
                     break;
                 }
             }
@@ -207,8 +214,7 @@ int readShiftedBuffer(int* derivative,
         else
         {
             ret = readBuffer(capture_handle, shift, buffer, derivative);
-
-            if (ret != -32)
+            if (ret != REINIT_ERROR)
             {
                 ret = readBuffer(capture_handle, NN, buffer, derivative);
             }
@@ -223,7 +229,7 @@ int readShiftedBuffer(int* derivative,
             {
                 if (fscanf(fpInput, "%d", derivative + j) != 1)
                 {
-                    ret = -33;
+                    ret = INPUT_FILE_ERROR;
                     break;
                 }
             }
@@ -241,6 +247,7 @@ int readShiftedBuffer(int* derivative,
     return ret;
 }
 
+// Get data from audio capture
 int getData(unsigned int maxp,
             int* totalshift,
             FILE* rawfile,
@@ -254,8 +261,8 @@ int getData(unsigned int maxp,
             unsigned int totalI)
 {
     unsigned int NN = derivative.NN;
-    int err = -32;
-    while (err == -32)
+    int err = REINIT_ERROR;
+    while (err == REINIT_ERROR)
     {
         int preshift = 0;
 
@@ -263,15 +270,19 @@ int getData(unsigned int maxp,
         {
             preshift = shiftHalf(maxp, NN);
 
-            if (abs(preshift) > 10)
+            if (abs(preshift) > PRESHIFT_THRESHOLD)
                 preshift = (int)(3 * preshift / sqrt(abs(preshift)));
         }
         *totalshift += preshift;
-        err = readShiftedBuffer(
-            derivative.arr, capture_handle, derivative.NN, buffer, preshift, fpInput);
-        if (err == -32)
+        err = readShiftedBuffer(derivative.arr,
+                                capture_handle,
+                                derivative.NN,
+                                buffer,
+                                preshift,
+                                fpInput);
+        if (err == REINIT_ERROR)
         {
-            totalshift -= preshift;
+            *totalshift -= preshift;
             fprintf(stderr, "Reinitializing capture_handle");
             if (rawfile)
             {
@@ -279,11 +290,12 @@ int getData(unsigned int maxp,
             }
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, rate);
-            err = readBuffer(capture_handle, derivative.NN, buffer, derivative.arr);
+            err = readBuffer(
+                capture_handle, derivative.NN, buffer, derivative.arr);
         }
-        if (err == -33)
+        if (err == INPUT_FILE_ERROR)
         {
-            printf("Could not read integer from inputfile\n");
+            fprintf(stderr, "Could not read integer from inputfile\n");
         }
     }
     return err;

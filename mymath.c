@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "mymath.h"
+
 struct mymat
 {
     double* mat;
@@ -20,7 +21,7 @@ void printmat(double* arr, unsigned int N, unsigned int M)
     {
         for (unsigned int i = 0; i < M; i++)
         {
-            printf("%8.2g",arr[i+M*j]);
+            printf("%8.2g", arr[i + M * j]);
         }
         printf("\n");
     }
@@ -30,6 +31,11 @@ void printmat(double* arr, unsigned int N, unsigned int M)
 void transpone(double* arr, unsigned int N, unsigned int M)
 {
     double* tmp = calloc(N * M, sizeof(double));
+    if (tmp == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed in transpone\n");
+        return;
+    }
     unsigned int k = 0;
     for (unsigned int i = 0; i < M; ++i)
     {
@@ -46,6 +52,11 @@ void invert(double* arr, unsigned int N, unsigned int M)
 {
     // make matrix twice as wide
     double* tmp = calloc(N * M * 2, sizeof(double));
+    if (tmp == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed in invert\n");
+        return;
+    }
     unsigned M2 = M * 2;
     for (unsigned int j = 0; j < N; ++j)
     {
@@ -92,8 +103,16 @@ double* mulmat(double* arr,
                unsigned int T)
 {
     if (M != S)
+    {
+        fprintf(stderr, "Matrix multiplication dimension mismatch\n");
         exit(-1);
+    }
     double* tmp = calloc(N * T, sizeof(double));
+    if (tmp == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed in mulmat\n");
+        return NULL;
+    }
 
     for (unsigned int j = 0; j < N; j++)
     {
@@ -108,73 +127,67 @@ double* mulmat(double* arr,
     return tmp;
 }
 
-double* matlinreg(double* arr,
-               unsigned int N,
-               unsigned int M,
-               double* vec,
-               double* weight)
+// Perform linear regression
+double* matlinreg(
+    double* arr, unsigned int N, unsigned int M, double* vec, double* weight)
 {
-    double* coeffs = calloc(M+1, sizeof(double));
-    double* xarr = calloc((M+1)*N, sizeof(double));
-    //printmat(arr, N, M);
+    double* coeffs = calloc(M + 1, sizeof(double));
+    double* xarr = calloc((M + 1) * N, sizeof(double));
+    double* xarrT = calloc((M + 1) * N, sizeof(double));
+    if (xarrT == NULL || coeffs == NULL || xarr == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed in matlinreg\n");
+        free(coeffs);
+        free(xarr);
+        free(xarrT);
+        return NULL;
+    }
     for (unsigned int j = 0; j < N; j++)
     {
-        xarr[j*(M+1)] = 1.0;
+        xarr[j * (M + 1)] = 1.0;
         for (unsigned int i = 0; i < M; i++)
         {
-            xarr[i+1+(M+1)*j] = arr[i+j*M];
+            xarr[i + 1 + (M + 1) * j] = arr[i + j * M];
         }
     }
-    //printmat(xarr, N, M+1);
 
-
-    double* xarrT = calloc((M+1)*N, sizeof(double));
-    memcpy(xarrT, xarr,(M+1)*N*sizeof(double));
-    transpone(xarrT,N,M+1);
-    
-    //printmat(xarrT,M+1,N);
-
+    memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
+    transpone(xarrT, N, M + 1);
 
     // multiply by inverse of weigths
-    for (unsigned int j = 0; j < M+1; j++)
+    for (unsigned int j = 0; j < M + 1; j++)
     {
         for (unsigned int i = 0; i < N; i++)
         {
-            xarrT[i+N*j] *= weight[i]*weight[i];
+            xarrT[i + N * j] *= weight[i] * weight[i];
         }
     }
-    //printmat(xarrT,M+1,N);
-    //printmat(xarr,N,M+1);
-    double* xtwx =  mulmat(xarrT,M+1,N,xarr, N, M+1);
-    //printmat(xtwx,M+1,M+1);
-    invert (xtwx,M+1,M+1);
-    //printmat(xtwx,M+1,M+1);
-    
-    // this was overwritten
-    memcpy(xarrT, xarr,(M+1)*N*sizeof(double));
-    transpone(xarrT,N,M+1);
-    double *pipe = mulmat(xtwx,M+1,M+1, xarrT,M+1,N);
-    //printmat(pipe,M+1,N);
-    for (unsigned int j = 0; j < M+1; j++)
-    {
-        for (unsigned int i = 0; i < N; i++)
-        {
-            pipe[i+N*j] *= weight[i]*weight[i];
-        }
-    }
-    //printmat(pipe,M+1,N);
 
-    coeffs = mulmat(pipe,M+1,N, vec,N,1);
+    double* xtwx = mulmat(xarrT, M + 1, N, xarr, N, M + 1);
+    invert(xtwx, M + 1, M + 1);
+
+    memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
+    transpone(xarrT, N, M + 1);
+    double* pipe = mulmat(xtwx, M + 1, M + 1, xarrT, M + 1, N);
+
+    for (unsigned int j = 0; j < M + 1; j++)
+    {
+        for (unsigned int i = 0; i < N; i++)
+        {
+            pipe[i + N * j] *= weight[i] * weight[i];
+        }
+    }
+
+    coeffs = mulmat(pipe, M + 1, N, vec, N, 1);
 
     free(pipe);
     free(xtwx);
     free(xarr);
     free(xarrT);
 
-    //printmat(coeffs,M+1,1);
-
     return coeffs;
 }
+
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
@@ -191,20 +204,33 @@ void fitNpeaks(double* a,
         double* x = calloc(fitwindow, sizeof(double));
         double* y = calloc(fitwindow, sizeof(double));
         double* w = calloc(fitwindow, sizeof(double));
+        if (x == NULL || y == NULL || w == NULL)
+        {
+            fprintf(stderr, "Memory allocation failed in fitNpeaks\n");
+            free(x);
+            free(y);
+            free(w);
+            return;
+        }
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            {
-                y[m] = (double)maxes->arr[i-k];
-                x[m] = (double)k;
-                w[m] = (maxvals->arrd[i-k]);
-                m++;
-            }
+            y[m] = (double)maxes->arr[i - k];
+            x[m] = (double)k;
+            w[m] = (maxvals->arrd[i - k]);
+            m++;
         }
         if (m > 1)
         {
-            double *coeffs = matlinreg(x,m,1,y,w);
-            *a = coeffs[0];
-            *b = coeffs[1];
+            double* coeffs = matlinreg(x, m, 1, y, w);
+            if (coeffs != NULL)
+            {
+                *a = coeffs[0];
+                *b = coeffs[1];
+                free(coeffs);
+            }
         }
+        free(x);
+        free(y);
+        free(w);
     }
 }

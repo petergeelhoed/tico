@@ -1,7 +1,7 @@
 /**
  * Read and parse a wave file
  * PG
-* assumes 21600bph and 48000 wav
+ * assumes 21600bph and 48000 wav
  **/
 #include <ctype.h>
 #include <fftw3.h>
@@ -369,7 +369,7 @@ int main(int argc, char** argv)
                 else
                 {
                     // default: take the derivative
-                    in[j][0] = (j > 0) ? abs(mean[j] - mean[j - 1]) : 0.0;
+                    in[j][0] = (j > 0) ? fabs(mean[j] - mean[j - 1]) : 0.0;
                 }
                 if (wvalue && xvalue == Npeak)
                 {
@@ -546,7 +546,7 @@ int main(int argc, char** argv)
                 if (Npeak - lvalue == 1)
                     startshift = globalshift + maxpos;
                 if (Npeak > lvalue + 1 && maxcor > cvalue &&
-                    abs(maxcor) < dvalue)
+                    fabs(maxcor) < dvalue)
                 {
                     fprintf(Npeak % 2 == tvalue ? tickfile : tockfile,
                             "%8d %5d %12.6f %d %d %d %d %d\n",
@@ -563,8 +563,9 @@ int main(int argc, char** argv)
                 // cat tick | plot ' u 1:2  w lp pt 5 ps 2, "tock" u 1:2  w lp
                 // pt 5 ps 2 '
 
-                if (kvalue == 0 && ((Npeak < lvalue + 10 || maxcor > 0.70) &&
-                                    Npeak % 2 == 1) &&
+                if (kvalue == 0 &&
+                    ((Npeak < lvalue + 10 || maxcor > 0.70) &&
+                     Npeak % 2 == 1) &&
                     abs(poscor) > 100)
                 {
                     shift = NN + poscor; //+globalshift/2;

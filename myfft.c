@@ -1,3 +1,4 @@
+#include <fftw3.h>
 #include <limits.h>
 #include <math.h>
 #include <pthread.h>
@@ -38,9 +39,9 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
         }
         for (unsigned int j = NN - evalue * 5; j < NN; j++)
         {
-            in2[j][0] =
-                GAUSSIAN_CONST / evalue * exp(-((double)(NN - j) * (NN - j)) /
-                                              (double)(evalue * evalue) / 2);
+            in2[j][0] = GAUSSIAN_CONST / evalue *
+                        exp(-((double)(NN - j) * (NN - j)) /
+                            (double)(evalue * evalue) / 2);
             in2[j][1] = 0.0;
         }
     }
@@ -262,9 +263,9 @@ unsigned int fftfit(const struct myarr input,
 
         for (unsigned int j = 0; j < NN; j++)
         {
-            total[j] = (int)(total[j] +
-                             (int)(2000 * maxcor * maxcor) *
-                                 filteredinput[(j + poscor + NN) % NN][0]);
+            total[j] =
+                (int)(total[j] + (int)(2000 * maxcor * maxcor) *
+                                     filteredinput[(j + poscor + NN) % NN][0]);
         }
     }
     fftw_free(filteredinput);

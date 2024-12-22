@@ -204,7 +204,7 @@ void calculateTotalFromFile(unsigned int n,
     unsigned int i = 0;
     if (all)
     {
-        unsigned int bufsize = 256;
+        size_t bufsize = 256;
         char* buf = malloc(bufsize * sizeof(char));
         while (getline(&buf, &bufsize, rawfile) > 0 && i < n)
         {

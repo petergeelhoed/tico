@@ -4,7 +4,7 @@ OBJ = ../obj
 LIB = ../lib
 
 # Flags
-CFLAGS = -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
+CFLAGS = -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror # -Wconversion
 # Uncomment the following line for optimized builds
 # CFLAGS = -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
 SANI_ADDR = -fsanitize=address -fno-omit-frame-pointer -static-libasan
@@ -16,7 +16,7 @@ SOUNDFLAGS = -lasound -lmysound
 MYLIBFLAGS = -lmylib
 MYSYNCFLAGS = -lmysync
 MYMATHFLAGS = -lmymath
-FFTFLAGS = -lfftw3 -lmyfft
+FFTFLAGS = -lmyfft -lfftw3 
 
 # Targets
 TARGETS = \
@@ -25,7 +25,6 @@ TARGETS = \
 	fft \
 	recali \
 	record \
-	teeth \
 	testfft \
 	testfilter \
 	testlinreg \
@@ -77,14 +76,14 @@ $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<
 
 %: %.c $(LIBS)
-	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS)
+	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS) -lm  
 
 # Specific executables without conversion warnings
 tico: tico.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o tico tico.c -lfftw3 -lmyfft
+	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o tico tico.c -lfftw3 -lmyfft -lm 
 
 wav2raw: wav2raw.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o wav2raw wav2raw.c -lfftw3 -lmyfft
+	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o wav2raw wav2raw.c -lfftw3 -lmyfft -lm 
 
 teeth: teeth.c $(LIB)/libmyfft.a
-	cc -g -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o teeth teeth.c -lfftw3 -lmyfft
+	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o teeth teeth.c -lfftw3 -lmyfft -lm 

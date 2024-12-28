@@ -153,7 +153,7 @@ void parse_arguments(int argc,
                     "capture reads from the microphone and timegraphs your "
                     "mechanical watch\n"
                     "options:\n"
-                    " -d default:1 capture device>\n"
+                    " -d default:2 capture device>\n"
                     " -z 10 zoom\n"
                     " -b 21600 bph of the watch\n"
                     " -r 48000 sampling rate in Hz\n"
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
     struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
     struct myarr totaltick = {malloc(NN * sizeof(int)), 0, NN};
 
-    device = (device == NULL) ? "default:1" : device;
+    device = (device == NULL) ? "default:2" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = NULL;
@@ -329,8 +329,10 @@ int main(int argc, char* argv[])
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
 
-        printheader(
-            b * 86400 / NN, everyline, getBeatError(&totaltick, rate, 0));
+        printheader(b * 86400 / NN,
+                    everyline,
+                    getBeatError(&totaltick, rate, 0),
+                    (double)totalI / tps);
         printspaces(maxpos.arr[i],
                     (int)(maxvals.arrd[i] * 16),
                     (int)mod,

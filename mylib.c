@@ -13,7 +13,7 @@
 #define MAX_COLUMNS 1024
 
 /* Prints header on line or at the top */
-void printheader(double b, unsigned int l, double beatError)
+void printheader(double b, unsigned int l, double beatError, double seconds)
 {
     if (l)
     {
@@ -27,9 +27,10 @@ void printheader(double b, unsigned int l, double beatError)
     else
     {
         fprintf(stderr,
-                "\033[s\033[2;0H\033[0K%8.2fms   %7.1fs/d\033[u",
+                "\033[s\033[2;0H\033[0K%8.2fms   %9.1fs/d   %12.2fs\033[u",
                 beatError,
-                b);
+                b,
+                seconds);
     }
 }
 

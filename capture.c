@@ -27,10 +27,14 @@
 
 static int keepRunning = 1;
 unsigned int columns = 80;
+volatile sig_atomic_t signal_pending;
+volatile sig_atomic_t defer_signal;
 
 void sigint_handler(int signal)
 {
-    if (signal == SIGINT)
+    if (defer_signal)
+        signal_pending = signal;
+    else if (signal == SIGINT)
     {
         keepRunning = 0;
     }
@@ -285,6 +289,7 @@ int main(int argc, char* argv[])
             i -= ARR_BUFF;
         }
 
+        defer_signal++;
         int err = getData(maxp,
                           &totalshift,
                           rawfile,
@@ -300,6 +305,11 @@ int main(int argc, char* argv[])
         {
             printf("capture error %d\n", err);
             break;
+        }
+        defer_signal--;
+        if (defer_signal == 0 && signal_pending != 0)
+        {
+            raise(signal_pending);
         }
         if (totalI == 9)
         {

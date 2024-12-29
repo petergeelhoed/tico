@@ -125,13 +125,26 @@ int readBuffer(snd_pcm_t* capture_handle,
     unsigned char lsb;
     signed char msb;
     int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
-    if (err != (int)NN)
+    if (err < 0)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
                 err,
                 snd_strerror(err));
         return err;
+    }
+    if (err != (int)NN)
+    {
+        fprintf(stderr, "reread from audio interface  %d \n", err);
+        err =
+            snd_pcm_readi(capture_handle, buffer + err, (long unsigned int)err);
+        if (err < 0)
+        {
+            fprintf(stderr,
+                    "reread from audio interface failed %d (%s)\n",
+                    err,
+                    snd_strerror(err));
+        }
     }
     for (unsigned int j = 0; j < NN * 2; j += 2)
     {

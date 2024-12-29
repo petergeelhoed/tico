@@ -33,7 +33,10 @@ volatile sig_atomic_t defer_signal;
 void sigint_handler(int signal)
 {
     if (defer_signal)
+    {
         signal_pending = signal;
+        return;
+    }
     else if (signal == SIGINT)
     {
         keepRunning = 0;
@@ -45,6 +48,11 @@ void sigint_handler(int signal)
         columns = (unsigned int)w.ws_col;
         fprintf(stderr, "new width %d\n", columns);
     }
+    else
+    {
+        raise(signal);
+    }
+    signal_pending = 0;
 }
 
 void set_signal_action(void)
@@ -52,7 +60,8 @@ void set_signal_action(void)
     struct sigaction act;
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
-    sigaction(SIGWINCH, &act, NULL);
+    // resizing will mess up audioread
+    // sigaction(SIGWINCH, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 }
 

@@ -25,7 +25,7 @@
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
 
-static int keepRunning = 1;
+volatile int keepRunning = 1;
 unsigned int columns = 80;
 volatile sig_atomic_t signal_pending;
 volatile sig_atomic_t defer_signal;
@@ -61,7 +61,7 @@ void set_signal_action(void)
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     // resizing will mess up audioread
-    // sigaction(SIGWINCH, &act, NULL);
+    sigaction(SIGWINCH, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 }
 

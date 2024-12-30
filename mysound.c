@@ -136,14 +136,18 @@ int readBuffer(snd_pcm_t* capture_handle,
     if (err != (int)NN)
     {
         fprintf(stderr, "reread from audio interface  %d \n", err);
-        err =
-            snd_pcm_readi(capture_handle, buffer + err, (long unsigned int)err);
+        err = snd_pcm_readi(
+            capture_handle, buffer + err, (long unsigned int)NN - err);
         if (err < 0)
         {
             fprintf(stderr,
                     "reread from audio interface failed %d (%s)\n",
                     err,
                     snd_strerror(err));
+        }
+        else
+        {
+            err = (int)NN;
         }
     }
     for (unsigned int j = 0; j < NN * 2; j += 2)

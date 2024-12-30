@@ -216,7 +216,7 @@ void fitNpeaks(double* a,
         {
             y[m] = (double)maxes->arr[i - k];
             x[m] = (double)k;
-            w[m] = (maxvals->arrd[i - k]);
+            w[m] = maxvals->arrd[i - k] * maxvals->arrd[i - k];
             m++;
         }
         if (m > 1)

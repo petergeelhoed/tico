@@ -9,7 +9,6 @@
 
 #define INIT_ERROR -2
 #define READ_FAILED -1
-#define PRESHIFT_THRESHOLD 10
 #define REINIT_ERROR -32
 #define INPUT_FILE_ERROR -33
 
@@ -166,140 +165,54 @@ int readBuffer(snd_pcm_t* capture_handle,
     return err;
 }
 
-int readShiftedBuffer(int* derivative,
-                      snd_pcm_t* capture_handle,
-                      unsigned int NN,
-                      char* buffer,
-                      int maxpos,
-                      FILE* fpInput)
+int readBufferOrFile(int* derivative,
+                     snd_pcm_t* capture_handle,
+                     unsigned int NN,
+                     char* buffer,
+                     FILE* fpInput)
 {
     int ret = READ_FAILED;
-    unsigned int shift = (unsigned int)(abs(maxpos));
-    if (maxpos < 0)
+    if (fpInput)
     {
-        memcpy(derivative + NN - shift, derivative, shift * sizeof(int));
-        if (fpInput)
+        ret = (int)NN;
+        for (unsigned int j = 0; j < NN; ++j)
         {
-            ret = (int)(NN - shift);
-            for (unsigned int j = 0; j < NN - shift; ++j)
+            if (fscanf(fpInput, "%d", derivative + j) != 1)
             {
-                if (fscanf(fpInput, "%d", derivative + j) != 1)
-                {
-                    ret = INPUT_FILE_ERROR;
-                    break;
-                }
-            }
-            for (unsigned int j = 0; j < NN - 1; j++)
-            {
-                derivative[j] = abs(derivative[j] - derivative[j + 1]);
-            }
-            derivative[NN - 1] = 0;
-        }
-        else
-        {
-            ret = readBuffer(capture_handle, NN - shift, buffer, derivative);
-        }
-    }
-    else if (maxpos > 0)
-    {
-        if (fpInput)
-        {
-            ret = (int)shift;
-            for (unsigned int j = 0; j < shift; ++j)
-            {
-                if (fscanf(fpInput, "%d", derivative + j) != 1)
-                {
-                    ret = INPUT_FILE_ERROR;
-                    break;
-                }
-            }
-            ret += (int)NN;
-            for (unsigned int j = 0; j < NN; ++j)
-            {
-                if (fscanf(fpInput, "%d", derivative + j) != 1)
-                {
-                    ret = INPUT_FILE_ERROR;
-                    break;
-                }
-            }
-            for (unsigned int j = 0; j < NN - 1; j++)
-            {
-                derivative[j] = abs(derivative[j] - derivative[j + 1]);
-            }
-            derivative[NN - 1] = 0;
-        }
-        else
-        {
-            ret = readBuffer(capture_handle, shift, buffer, derivative);
-            if (ret != REINIT_ERROR)
-            {
-                ret = readBuffer(capture_handle, NN, buffer, derivative);
+                ret = INPUT_FILE_ERROR;
+                break;
             }
         }
+        for (unsigned int j = 0; j < NN - 1; j++)
+        {
+            derivative[j] = abs(derivative[j] - derivative[j + 1]);
+        }
+        derivative[NN - 1] = 0;
     }
     else
     {
-        if (fpInput)
-        {
-            ret = (int)NN;
-            for (unsigned int j = 0; j < NN; ++j)
-            {
-                if (fscanf(fpInput, "%d", derivative + j) != 1)
-                {
-                    ret = INPUT_FILE_ERROR;
-                    break;
-                }
-            }
-            for (unsigned int j = 0; j < NN - 1; j++)
-            {
-                derivative[j] = abs(derivative[j] - derivative[j + 1]);
-            }
-            derivative[NN - 1] = 0;
-        }
-        else
-        {
-            ret = readBuffer(capture_handle, NN, buffer, derivative);
-        }
+        ret = readBuffer(capture_handle, NN, buffer, derivative);
     }
     return ret;
 }
 
 // Get data from audio capture
-int getData(unsigned int maxp,
-            int* totalshift,
-            FILE* rawfile,
+int getData(FILE* rawfile,
             FILE* fpInput,
             snd_pcm_t* capture_handle,
             snd_pcm_format_t format,
             char* device,
             unsigned int rate,
             char* buffer,
-            struct myarr derivative,
-            unsigned int totalI)
+            struct myarr derivative)
 {
-    unsigned int NN = derivative.NN;
     int err = REINIT_ERROR;
     while (err == REINIT_ERROR)
     {
-        int preshift = 0;
-
-        if (totalI > 12)
-        {
-            preshift = shiftHalf(maxp, NN);
-
-            if (abs(preshift) > PRESHIFT_THRESHOLD)
-                preshift = (int)(3 * preshift / sqrt(abs(preshift)));
-        }
-        *totalshift += preshift;
-        err = readShiftedBuffer(derivative.arr,
-                                capture_handle,
-                                derivative.NN,
-                                buffer,
-                                preshift,
-                                fpInput);
+        err = readBufferOrFile(
+            derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
         if (err == REINIT_ERROR)
         {
-            *totalshift -= preshift;
             fprintf(stderr, "Reinitializing capture_handle");
             if (rawfile)
             {
@@ -307,8 +220,8 @@ int getData(unsigned int maxp,
             }
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, rate);
-            err = readBuffer(
-                capture_handle, derivative.NN, buffer, derivative.arr);
+            err = readBufferOrFile(
+                derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
         }
         if (err == INPUT_FILE_ERROR)
         {

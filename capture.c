@@ -24,6 +24,8 @@
 #define DEFAULT_LEN 32
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
+#define PRESHIFT_THRESHOLD 10
+#define AUTOCOR_LIMIT 12
 
 volatile int keepRunning = 1;
 unsigned int columns = 80;
@@ -299,17 +301,14 @@ int main(int argc, char* argv[])
         }
 
         defer_signal++;
-        int err = getData(maxp,
-                          &totalshift,
-                          rawfile,
+        int err = getData(rawfile,
                           fpInput,
                           capture_handle,
                           format,
                           device,
                           rate,
                           buffer,
-                          derivative,
-                          totalI);
+                          derivative);
         if (err < 0)
         {
             printf("capture error %d\n", err);
@@ -325,13 +324,21 @@ int main(int argc, char* argv[])
             checkAndFlip(&totaltick, &reference, verbose);
         }
 
-        if (totalI == 12)
+        if (totalI == AUTOCOR_LIMIT)
         {
             free(reference.arr);
             reference.arr = totaltick.arr;
         }
 
-        maxp = fftfit(derivative,
+        struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
+        for (int j = 0; j < (int)derivative.NN; ++j)
+        {
+            tmpder.arr[j] =
+                derivative.arr[(j + totalshift + (int)derivative.NN) %
+                               (int)derivative.NN];
+        }
+
+        maxp = fftfit(tmpder,
                       totaltick.arr,
                       reference.arr,
                       maxvals.arrd + i,
@@ -339,6 +346,15 @@ int main(int argc, char* argv[])
                       totalI > 0 && totalI == verbose);
 
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
+        if (totalI > AUTOCOR_LIMIT)
+        {
+            int preshift = shiftHalf(maxp, NN);
+
+            if (abs(preshift) > PRESHIFT_THRESHOLD)
+                preshift = (int)(3 * preshift / sqrt(abs(preshift)));
+
+            totalshift += preshift;
+        }
 
         if (rawfile && i > 0 && i % len == 0)
         {

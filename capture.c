@@ -25,7 +25,7 @@
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
-#define AUTOCOR_LIMIT 12
+#define AUTOCOR_LIMIT 1
 
 volatile int keepRunning = 1;
 unsigned int columns = 80;

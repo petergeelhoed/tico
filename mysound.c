@@ -225,7 +225,7 @@ int getData(FILE* rawfile,
         }
         if (err == INPUT_FILE_ERROR)
         {
-            fprintf(stderr, "Could not read integer from inputfile\n");
+            fprintf(stderr, "Could not read integer from inputfile or audio\n");
         }
     }
     return err;

@@ -63,7 +63,7 @@ void set_signal_action(void)
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     // resizing will mess up audioread
-    sigaction(SIGWINCH, &act, NULL);
+    // sigaction(SIGWINCH, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 }
 

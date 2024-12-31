@@ -361,6 +361,10 @@ int main(int argc, char* argv[])
             syncappend(maxpos.arr + i - len, len, rawfile);
             syncappendDouble(maxvals.arrd + i - len, len, mfile);
         }
+        if (totalI % 9 == 0)
+        {
+            syncwrite(totaltick.arr, totaltick.NN, "livepeak");
+        }
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
 

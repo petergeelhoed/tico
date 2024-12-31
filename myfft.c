@@ -263,9 +263,8 @@ unsigned int fftfit(const struct myarr input,
 
         for (unsigned int j = 0; j < NN; j++)
         {
-            total[j] =
-                (int)(total[j] + (int)(2000 * maxcor * maxcor) *
-                                     filteredinput[(j + poscor + NN) % NN][0]);
+            total[j] += (int)(2000 * maxcor * maxcor *
+                              filteredinput[(j + poscor + NN) % NN][0]);
         }
     }
     fftw_free(filteredinput);

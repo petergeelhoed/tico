@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
                       totalI > 0 && totalI == verbose);
 
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
-        if (totalI > AUTOCOR_LIMIT)
+        if (totalI > AUTOCOR_LIMIT && *(maxvals.arrd + i) > (double)cvalue / 16)
         {
             int preshift = shiftHalf(maxp, NN);
 

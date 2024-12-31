@@ -47,7 +47,8 @@ int main(int argc, char** argv)
     double* tmpy = malloc(iN * sizeof(double));
     double* tmpx = malloc(iN * sizeof(double));
     double d;
-    while (scanf("%lf ", &d) != EOF)
+    int ret = 0;
+    while ((ret = scanf("%lf ", &d)), ret == 1)
     {
         tmpy[i] = d;
         tmpx[i] = (double)i;
@@ -78,6 +79,11 @@ int main(int argc, char** argv)
                 return -2;
             }
         }
+    }
+    if (ret == 0)
+    {
+        fprintf(stderr, "Failed to parse double\n");
+        return -1;
     }
 
     unsigned int N = i;
@@ -123,8 +129,9 @@ int main(int argc, char** argv)
         {
             printf("%f %g \n",
                    (double)(i) / (double)N,
-                   2 * z * sqrt(out[i][0] / (N * z) * out[i][0] / (N * z) +
-                                out[i][1] / (z * N) * out[i][1] / (z * N)));
+                   2 * z *
+                       sqrt(out[i][0] / (N * z) * out[i][0] / (N * z) +
+                            out[i][1] / (z * N) * out[i][1] / (z * N)));
         }
     }
     else

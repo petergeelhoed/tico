@@ -251,6 +251,7 @@ int main(int argc, char* argv[])
     struct myarr maxpos = {malloc(n * sizeof(int)), 0, n};
     struct myarr maxvals = {0, calloc(n, sizeof(double)), n};
     struct myarr derivative = {malloc(NN * sizeof(int)), 0, NN};
+    struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
     struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
     struct myarr totaltick = {malloc(NN * sizeof(int)), 0, NN};
 
@@ -330,12 +331,14 @@ int main(int argc, char* argv[])
             reference.arr = totaltick.arr;
         }
 
-        struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
+        // totalshift modulo NN but that could also be negative
+        // so modulate twice
+        int totalm = (totalshift % (int)NN + (int)NN) % (int)NN;
+
         for (int j = 0; j < (int)derivative.NN; ++j)
         {
-            tmpder.arr[j] =
-                derivative.arr[(j + totalshift + (int)derivative.NN) %
-                               (int)derivative.NN];
+            // preshift the derivative
+            tmpder.arr[j] = derivative.arr[(totalm + j) % (int)NN];
         }
 
         maxp = fftfit(tmpder,
@@ -385,6 +388,7 @@ int main(int argc, char* argv[])
 
     free(buffer);
     free(derivative.arr);
+    free(tmpder.arr);
     fftw_free(filterFFT);
 
     if (rawfile)

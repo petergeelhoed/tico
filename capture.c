@@ -179,7 +179,7 @@ void parse_arguments(int argc,
                     " -I <file> read from file instead of microphone\n"
                     " -p <file> write pulse to file\n"
                     " -D <file> read pulse from file\n"
-                    " -c 7 color cross-correlation\n"
+                    " -c 7 cross-correlation limit\n"
                     " -f 30 fit n points for local rate\n"
                     " -e 4 Gaussian convolution over input\n"
                     " -n 60 number of points to fit in local rate\n"
@@ -320,6 +320,7 @@ int main(int argc, char* argv[])
         {
             raise(signal_pending);
         }
+
         if (totalI == 9)
         {
             checkAndFlip(&totaltick, &reference, verbose);
@@ -335,7 +336,7 @@ int main(int argc, char* argv[])
         // so modulate twice
         int totalm = (totalshift % (int)NN + (int)NN) % (int)NN;
 
-        for (int j = 0; j < (int)derivative.NN; ++j)
+        for (int j = 0; j < (int)NN; ++j)
         {
             // preshift the derivative
             tmpder.arr[j] = derivative.arr[(totalm + j) % (int)NN];

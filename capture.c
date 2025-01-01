@@ -26,20 +26,14 @@
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
 #define AUTOCOR_LIMIT 1
+#define ERROR_SIGNAL -5
 
 volatile int keepRunning = 1;
 unsigned int columns = 80;
-volatile sig_atomic_t signal_pending;
-volatile sig_atomic_t defer_signal;
 
 void sigint_handler(int signal)
 {
-    if (defer_signal)
-    {
-        signal_pending = signal;
-        return;
-    }
-    else if (signal == SIGINT)
+    if (signal == SIGINT)
     {
         keepRunning = 0;
     }
@@ -54,7 +48,6 @@ void sigint_handler(int signal)
     {
         raise(signal);
     }
-    signal_pending = 0;
 }
 
 void set_signal_action(void)
@@ -63,7 +56,7 @@ void set_signal_action(void)
     bzero(&act, sizeof(act));
     act.sa_handler = &sigint_handler;
     // resizing will mess up audioread
-    // sigaction(SIGWINCH, &act, NULL);
+    sigaction(SIGWINCH, &act, NULL);
     sigaction(SIGINT, &act, NULL);
 }
 
@@ -288,6 +281,20 @@ int main(int argc, char* argv[])
 
     fillReference(fpDefPeak, &reference);
 
+    struct sigaction sact;
+    sigset_t new_set, old_set;
+
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags = 0;
+    sact.sa_handler = sigint_handler;
+    if (sigaction(SIGWINCH, &sact, NULL) != 0)
+    {
+        fprintf(stderr, "sigaction() error");
+        return ERROR_SIGNAL;
+    }
+    sigemptyset(&new_set);
+    sigaddset(&new_set, SIGWINCH);
+
     unsigned int i = 0;
     unsigned int totalI = 0;
     while (keepRunning && !(totalI > maxtime && time))
@@ -301,7 +308,13 @@ int main(int argc, char* argv[])
             i -= ARR_BUFF;
         }
 
-        defer_signal++;
+        // block signal to alsa
+        if (sigprocmask(SIG_BLOCK, &new_set, &old_set) != 0)
+        {
+            fprintf(stderr, "sigprocmask() error");
+            return ERROR_SIGNAL;
+        }
+
         int err = getData(rawfile,
                           fpInput,
                           capture_handle,
@@ -310,15 +323,17 @@ int main(int argc, char* argv[])
                           rate,
                           buffer,
                           derivative);
+        // restore signal handling
+        if (sigprocmask(SIG_SETMASK, &old_set, NULL) != 0)
+        {
+            fprintf(stderr, "2nd sigprocmask() error");
+            return ERROR_SIGNAL;
+        }
+
         if (err < 0)
         {
             printf("capture error %d\n", err);
             break;
-        }
-        defer_signal--;
-        if (defer_signal == 0 && signal_pending != 0)
-        {
-            raise(signal_pending);
         }
 
         if (totalI == 9)

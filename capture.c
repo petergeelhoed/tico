@@ -53,11 +53,21 @@ void sigint_handler(int signal)
 void set_signal_action(void)
 {
     struct sigaction act;
-    bzero(&act, sizeof(act));
-    act.sa_handler = &sigint_handler;
-    // resizing will mess up audioread
-    sigaction(SIGWINCH, &act, NULL);
-    sigaction(SIGINT, &act, NULL);
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    act.sa_handler = sigint_handler;
+
+    // Set signal handlers
+    if (sigaction(SIGWINCH, &act, NULL) == -1)
+    {
+        perror("sigaction");
+        exit(ERROR_SIGNAL);
+    }
+    if (sigaction(SIGINT, &act, NULL) == -1)
+    {
+        perror("sigaction");
+        exit(ERROR_SIGNAL);
+    }
 }
 
 void parse_arguments(int argc,

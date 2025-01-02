@@ -385,7 +385,7 @@ int main(int argc, char* argv[])
             totalshift += preshift;
         }
 
-        if (rawfile && i > 0 && i % len == 0)
+        if (rawfile && i > 0 && totalI % len == 0)
         {
             syncappend(maxpos.arr + i - len, len, rawfile);
             syncappendDouble(maxvals.arrd + i - len, len, mfile);

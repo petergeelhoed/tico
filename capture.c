@@ -29,7 +29,7 @@
 #define ERROR_SIGNAL -5
 
 volatile int keepRunning = 1;
-unsigned int columns = 80;
+volatile unsigned int columns = 80;
 
 void sigint_handler(int signal)
 {

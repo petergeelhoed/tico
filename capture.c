@@ -25,7 +25,7 @@
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
-#define AUTOCOR_LIMIT 1
+#define AUTOCOR_LIMIT 45
 #define ERROR_SIGNAL -5
 
 volatile int keepRunning = 1;
@@ -256,7 +256,13 @@ int main(int argc, char* argv[])
     struct myarr derivative = {malloc(NN * sizeof(int)), 0, NN};
     struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
     struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
-    struct myarr totaltick = {malloc(NN * sizeof(int)), 0, NN};
+    struct myarr totls[15];
+    for (int t = 0; t < 15; t++)
+    {
+        totls[t].arr = malloc(NN * sizeof(int));
+        totls[t].arrd = NULL;
+        totls[t].NN = NN;
+    }
 
     device = (device == NULL) ? "default:2" : device;
 
@@ -274,9 +280,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
-    if (buffer == NULL || totaltick.arr == NULL || reference.arr == NULL ||
-        maxvals.arrd == NULL || maxpos.arr == NULL || filterFFT == NULL ||
-        derivative.arr == NULL)
+    if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
+        maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
         return -5;
@@ -345,17 +350,19 @@ int main(int argc, char* argv[])
             printf("capture error %d\n", err);
             break;
         }
-
-        if (totalI == 9)
-        {
-            checkAndFlip(&totaltick, &reference, verbose);
-        }
-
-        if (totalI == AUTOCOR_LIMIT)
-        {
-            free(reference.arr);
-            reference.arr = totaltick.arr;
-        }
+        /*
+                if (totalI == 9)
+                {
+                    checkAndFlip(&totaltick, &reference, verbose);
+                }
+                if (totalI == AUTOCOR_LIMIT)
+                {
+                    free(reference.arr);
+                }
+        */
+        struct myarr* totaltick = &totls[totalI % 15];
+        if (totalI > AUTOCOR_LIMIT)
+            reference.arr = totaltick->arr;
 
         // totalshift modulo NN but that could also be negative
         // so modulate twice
@@ -368,7 +375,7 @@ int main(int argc, char* argv[])
         }
 
         maxp = fftfit(tmpder,
-                      totaltick.arr,
+                      totaltick->arr,
                       reference.arr,
                       maxvals.arrd + i,
                       filterFFT,
@@ -392,14 +399,14 @@ int main(int argc, char* argv[])
         }
         if (totalI % 9 == 0)
         {
-            syncwrite(totaltick.arr, totaltick.NN, "livepeak");
+            syncwrite(totaltick->arr, totaltick->NN, "livepeak");
         }
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,
-                    getBeatError(&totaltick, rate, 0),
+                    getBeatError(totaltick, rate, 0),
                     (double)totalI / tps);
         printspaces(maxpos.arr[i],
                     (int)(maxvals.arrd[i] * 16),
@@ -432,12 +439,22 @@ int main(int argc, char* argv[])
     free(maxvals.arrd);
     free(maxpos.arr);
 
+    for (int t = 0; t < 15; ++t)
+    {
+        struct myarr* totaltick = &totls[t];
+        if (fptotal)
+        {
+            for (unsigned int j = 0; j < NN; ++j)
+            {
+                fprintf(fptotal, "%d %d %d\n", j, totaltick->arr[j], t);
+            }
+        }
+        //       free(totaltick.arr);
+    }
     if (fptotal)
     {
-        writefile(fptotal, totaltick.arr, totaltick.NN);
         fclose(fptotal);
     }
-    free(totaltick.arr);
 
     if (capture_handle != NULL)
     {

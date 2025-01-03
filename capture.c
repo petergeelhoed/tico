@@ -309,6 +309,7 @@ int main(int argc, char* argv[])
     }
     sigemptyset(&new_set);
     sigaddset(&new_set, SIGWINCH);
+    sigaddset(&new_set, SIGINT);
 
     unsigned int i = 0;
     unsigned int totalI = 0;

@@ -16,13 +16,17 @@ int main(int argc, char** argv)
     unsigned int z = 1;
     int pval = 0;
     int lval = 0;
+    int fval = 0;
 
-    while ((c = getopt(argc, argv, "zpl")) != -1)
+    while ((c = getopt(argc, argv, "zplf:")) != -1)
     {
         switch (c)
         {
         case 'l':
             lval = 1;
+            break;
+        case 'f':
+            fval = atoi(optarg);
             break;
         case 'p':
             pval = 1;
@@ -34,6 +38,7 @@ int main(int argc, char** argv)
             printf("usage\n fft -z zeropadding -p -l\n");
             printf("-p prints power spectrum i/length\n");
             printf("-l removes first order polynome\n");
+            printf("-f frequency, will print 1/$1/freq\n");
             printf("period = length/$1/freq\n");
             printf("coefficient of sin = 2*sqrt($2*$2+$3*$3)\n");
             printf("l=63;s=2; seq 1 $((s*l)) | awk '{print sin($1/'$s')}'  | "
@@ -127,8 +132,9 @@ int main(int argc, char** argv)
         }
         for (i = 1; i < (N + 2) / 2; i++)
         {
-            printf("%f %g \n",
-                   (double)(i) / (double)N,
+            printf("%g %g \n",
+                   fval ? (double)(N) / (double)i / (double)fval
+                        : (double)(i) / (double)N,
                    2 * z *
                        sqrt(out[i][0] / (N * z) * out[i][0] / (N * z) +
                             out[i][1] / (z * N) * out[i][1] / (z * N)));

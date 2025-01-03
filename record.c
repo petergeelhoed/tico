@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 {
     unsigned int rate = 48000;
     unsigned int bph = 21600;
-    unsigned int time = 30;
+    unsigned int time = 3;
     int c;
     unsigned int evalue = 4;
     char* device = 0;

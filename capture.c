@@ -398,7 +398,8 @@ int main(int argc, char* argv[])
             syncappend(maxpos.arr + i - len, len, rawfile);
             syncappendDouble(maxvals.arrd + i - len, len, mfile);
         }
-        if (totalI % 9 == 0)
+        // should write all peaks, but this is just for diagnostics
+        if (totalI % 15 == 0)
         {
             syncwrite(totaltick->arr, totaltick->NN, "livepeak");
         }

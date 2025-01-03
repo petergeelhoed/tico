@@ -26,7 +26,6 @@ int main()
         if (n == NN)
         {
             NN = NN * 3 / 2;
-            printf("%d %s %s\n", NN, __func__, __FILE__);
             double* p = realloc(peak, NN * sizeof(double));
             double* q = realloc(peak2, NN * sizeof(double));
 

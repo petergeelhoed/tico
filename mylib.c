@@ -320,9 +320,14 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference)
 {
     if (fpDefPeak != NULL)
     {
+        int dummy0, dummy1;
         for (unsigned int j = 0; j < reference->NN; j++)
         {
-            if (fscanf(fpDefPeak, "%d", reference->arr + j) != 1)
+            if (fscanf(fpDefPeak,
+                       "%d %d %d",
+                       &dummy0,
+                       reference->arr + (j % (int)reference->NN),
+                       &dummy1) != 3)
             {
                 fprintf(stderr,
                         "not enough values in -D <default peak file>\n");

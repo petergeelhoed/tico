@@ -24,6 +24,7 @@ TARGETS = \
 	derivative \
 	capture \
 	fft \
+	ifft \
 	recali \
 	record \
 	testfft \

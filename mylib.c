@@ -339,7 +339,11 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference)
     else
     {
         reference->arr[reference->NN / 4] = 100000;
+        reference->arr[reference->NN / 4 - 400] = 80000;
+        reference->arr[reference->NN / 4 - 800] = 60000;
         reference->arr[3 * reference->NN / 4] = 100000;
+        reference->arr[3 * reference->NN / 4 - 400] = 80000;
+        reference->arr[3 * reference->NN / 4 - 800] = 60000;
     }
 }
 

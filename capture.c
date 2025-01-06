@@ -22,10 +22,11 @@
 #define DEFAULT_EVALUE 4
 #define DEFAULT_FITN 30
 #define DEFAULT_LEN 32
+#define DEFAULT_TEETH 1
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
-#define AUTOCOR_LIMIT 45
+#define AUTOCOR_LIMIT 1
 #define ERROR_SIGNAL -5
 
 volatile int keepRunning = 1;
@@ -81,6 +82,7 @@ void parse_arguments(int argc,
                      unsigned int* cvalue,
                      unsigned int* verbose,
                      unsigned int* fitN,
+                     unsigned int* teeth,
                      double* SDthreshold,
                      char** device,
                      FILE** rawfile,
@@ -90,12 +92,16 @@ void parse_arguments(int argc,
                      FILE** fpInput)
 {
     int c;
-    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:l")) != -1)
+    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:")) != -1)
     {
         switch (c)
         {
         case 'd':
             *device = optarg;
+            break;
+        case 'j':
+            if (checkUIntArg(c, teeth, optarg) != 0)
+                exit(-1);
             break;
         case 'f':
             if (checkUIntArg(c, fitN, optarg) != 0)
@@ -187,6 +193,7 @@ void parse_arguments(int argc,
                     " -e 4 Gaussian convolution over input\n"
                     " -n 60 number of points to fit in local rate\n"
                     " -l print beat error and rate on each line\n"
+                    " -j 1 number of ratched wheel teeth\n"
                     " -v <peak> write files for this peak\n");
             exit(0);
             break;
@@ -206,6 +213,7 @@ int main(int argc, char* argv[])
     unsigned int verbose = 0;
     unsigned int len = DEFAULT_LEN;
     unsigned int fitN = DEFAULT_FITN;
+    unsigned int teeth = DEFAULT_TEETH;
     double SDthreshold = DEFAULT_SDTHRESHOLD;
     char* device = NULL;
     FILE* rawfile = NULL;
@@ -225,6 +233,7 @@ int main(int argc, char* argv[])
                     &cvalue,
                     &verbose,
                     &fitN,
+                    &teeth,
                     &SDthreshold,
                     &device,
                     &rawfile,
@@ -256,8 +265,8 @@ int main(int argc, char* argv[])
     struct myarr derivative = {malloc(NN * sizeof(int)), 0, NN};
     struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
     struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
-    struct myarr totls[15];
-    for (int t = 0; t < 15; t++)
+    struct myarr totls[teeth];
+    for (unsigned int t = 0; t < teeth; t++)
     {
         totls[t].arr = malloc(NN * sizeof(int));
         totls[t].arrd = NULL;
@@ -351,19 +360,18 @@ int main(int argc, char* argv[])
             printf("capture error %d\n", err);
             break;
         }
-        /*
-                if (totalI == 9)
-                {
-                    checkAndFlip(&totaltick, &reference, verbose);
-                }
-                if (totalI == AUTOCOR_LIMIT)
-                {
-                    free(reference.arr);
-                }
-        */
-        struct myarr* totaltick = &totls[totalI % 15];
-        if (totalI > AUTOCOR_LIMIT)
+        struct myarr* totaltick = &totls[totalI % teeth];
+        if (totalI >= AUTOCOR_LIMIT * teeth)
+        {
+            // make sure this is only done after the j totls are filled at least
+            // once
+
+            if (totalI == AUTOCOR_LIMIT * teeth)
+            {
+                free(reference.arr);
+            }
             reference.arr = totaltick->arr;
+        }
 
         // totalshift modulo NN but that could also be negative
         // so modulate twice
@@ -399,7 +407,7 @@ int main(int argc, char* argv[])
             syncappendDouble(maxvals.arrd + i - len, len, mfile);
         }
         // should write all peaks, but this is just for diagnostics
-        if (totalI % 15 == 0)
+        if (totalI % teeth == 0)
         {
             syncwrite(totaltick->arr, totaltick->NN, "livepeak");
         }
@@ -441,7 +449,7 @@ int main(int argc, char* argv[])
     free(maxvals.arrd);
     free(maxpos.arr);
 
-    for (int t = 0; t < 15; ++t)
+    for (unsigned int t = 0; t < teeth; ++t)
     {
         struct myarr* totaltick = &totls[t];
         if (fptotal)

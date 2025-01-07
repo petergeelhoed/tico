@@ -314,12 +314,10 @@ int main(int argc, char* argv[])
 
         // totalshift modulo NN but that could also be negative
         // so modulate twice
-        int totalm = (totalshift % (int)NN + (int)NN) % (int)NN;
-
-        for (int j = 0; j < (int)NN; ++j)
+        for (unsigned int j = 0; j < NN; ++j)
         {
             // preshift the derivative
-            tmpder.arr[j] = derivative.arr[(totalm + j) % (int)NN];
+            tmpder.arr[j] = derivative.arr[(totalshift + j) % NN];
         }
 
         maxp = fftfit(tmpder,

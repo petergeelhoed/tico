@@ -76,15 +76,15 @@ void syncwrite(int* input, unsigned int NN, char* file)
         unsigned int NN;
     };
 
-    struct mystruct* info = malloc(sizeof *info);
+    struct mystruct* info = calloc(1, sizeof *info);
 
-    int* copyarr = malloc(NN * sizeof(int));
+    int* copyarr = calloc(NN, sizeof(int));
     memcpy(copyarr, input, NN * sizeof(int));
     info->array = copyarr;
     strcpy(info->file, file);
     info->NN = NN;
 
-    pthread_t tid;
+    pthread_t tid = 0;
     pthread_create(&tid, NULL, threadWrite, info);
     pthread_detach(tid);
 }
@@ -99,20 +99,21 @@ void* threadWrite(void* inStruct)
     } mine = *(struct mystruct*)inStruct;
 
     int* arrptr = mine.array;
-    int* copyarr = malloc(mine.NN * sizeof(int));
+    int* copyarr = calloc(mine.NN, sizeof(int));
     memcpy(copyarr, arrptr, mine.NN * sizeof(int));
-    mine.array = copyarr;
-    free(arrptr);
-    free(inStruct);
 
     writearray(mine.array, mine.NN, mine.file);
 
+    free(copyarr);
+    free(arrptr);
+    free(inStruct);
     pthread_exit(NULL);
 }
 
 void printTOD(FILE* out)
 {
-    if (out == 0) return;
+    if (out == 0)
+        return;
     struct timeval tv;
     struct timezone tz;
     gettimeofday(&tv, &tz);
@@ -131,11 +132,10 @@ void printTOD(FILE* out)
             tv.tv_usec);
 }
 
-
-
 void syncappendDouble(double* input, unsigned int NN, FILE* file)
 {
-    if (file == 0) return;
+    if (file == 0)
+        return;
     struct mystruct
     {
         double* array;
@@ -183,4 +183,3 @@ void* threadAppendDouble(void* inStruct)
     free(copyarr);
     pthread_exit(NULL);
 }
-

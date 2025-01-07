@@ -212,8 +212,8 @@ int main(int argc, char* argv[])
     set_signal_action();
 
     unsigned int NN = rate * 7200 / bph;
-    unsigned int maxp = 0;
     NN = (NN + NN % 2);
+    unsigned int maxp = 0;
     unsigned int mod = NN / zoom;
     unsigned int n = ARR_BUFF * 2;
     unsigned int tps = rate / NN;
@@ -275,6 +275,7 @@ int main(int argc, char* argv[])
     {
         if (i == n)
         {
+            // shift data back, has been written already
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals.arrd,
                    maxvals.arrd + ARR_BUFF,
@@ -283,7 +284,6 @@ int main(int argc, char* argv[])
         }
 
         block_signal(&new_set, &old_set);
-
         int err = getData(rawfile,
                           fpInput,
                           capture_handle,
@@ -292,7 +292,6 @@ int main(int argc, char* argv[])
                           rate,
                           buffer,
                           derivative);
-        // restore signal handling
         unblock_signal(&old_set);
 
         if (err < 0)

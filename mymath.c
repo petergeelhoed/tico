@@ -130,19 +130,21 @@ double* mulmat(double* arr,
 }
 
 // Perform linear regression
-double* matlinreg(
-    double* arr, unsigned int N, unsigned int M, double* vec, double* weight)
+void matlinreg(double coeffs[2],
+               double* arr,
+               unsigned int N,
+               unsigned int M,
+               double* vec,
+               double* weight)
 {
-    double* coeffs = calloc(M + 1, sizeof(double));
     double* xarr = calloc((M + 1) * N, sizeof(double));
     double* xarrT = calloc((M + 1) * N, sizeof(double));
-    if (xarrT == NULL || coeffs == NULL || xarr == NULL)
+    if (xarrT == NULL || xarr == NULL)
     {
         fprintf(stderr, "Memory allocation failed in matlinreg\n");
-        free(coeffs);
         free(xarr);
         free(xarrT);
-        return NULL;
+        return;
     }
     for (unsigned int j = 0; j < N; j++)
     {
@@ -184,15 +186,16 @@ double* matlinreg(
                 }
             }
 
-            coeffs = mulmat(pipe, M + 1, N, vec, N, 1);
+            double* cffs = mulmat(pipe, M + 1, N, vec, N, 1);
+            coeffs[0] = *cffs;
+            coeffs[1] = *(cffs + 1);
+            free(cffs);
             free(pipe);
         }
     }
     free(xtwx);
     free(xarr);
     free(xarrT);
-
-    return coeffs;
 }
 
 void fitNpeaks(double* a,
@@ -228,13 +231,11 @@ void fitNpeaks(double* a,
         }
         if (m > 1)
         {
-            double* coeffs = matlinreg(x, m, 1, y, w);
-            if (coeffs != NULL)
-            {
-                *a = coeffs[0];
-                *b = coeffs[1];
-                free(coeffs);
-            }
+
+            double coeffs[2] = {0.0, 0.0};
+            matlinreg(coeffs, x, m, 1, y, w);
+            *a = coeffs[0];
+            *b = coeffs[1];
         }
         free(x);
         free(y);

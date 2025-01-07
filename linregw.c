@@ -38,7 +38,8 @@ int main()
     unsigned int T = M;
 
     // Perform linear regression
-    double* coeffs = matlinreg(xarr, N, M, yvec, wvec);
+    double coeffs[2];
+    matlinreg(coeffs, xarr, N, M, yvec, wvec);
 
     for (unsigned int i = 0; i < T + 1; i++)
     {
@@ -49,7 +50,6 @@ int main()
     free(xarr);
     free(yvec);
     free(wvec);
-    free(coeffs);
 
     return 0;
 }

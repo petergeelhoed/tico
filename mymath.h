@@ -8,7 +8,7 @@ double* mulmat(double*,
                double*,
                unsigned int S,
                unsigned int T);
-double* matlinreg(
+void matlinreg(double coeffs[2],
                double* xmat,
                unsigned int N,
                unsigned int M,

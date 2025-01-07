@@ -217,6 +217,7 @@ void calculateTotalFromFile(unsigned int n,
         }
         free(buf);
         calculateTotal(n, all, NN, threshold);
+        free(all);
     }
 }
 

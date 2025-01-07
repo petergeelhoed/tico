@@ -59,6 +59,7 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
     fftw_free(in2);
+    fftw_cleanup();
     return filterFFT;
 }
 

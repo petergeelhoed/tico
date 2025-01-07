@@ -45,4 +45,5 @@ void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
     fftw_free(tmpref);
     fftw_free(tmparr);
     fftw_free(coor);
+    fftw_cleanup();
 }

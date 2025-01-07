@@ -220,15 +220,15 @@ int main(int argc, char* argv[])
     unsigned int maxtime = time ? time * tps : 30 * tps;
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-    struct myarr maxpos = {malloc(n * sizeof(int)), 0, n};
+    struct myarr maxpos = {calloc(n, sizeof(int)), 0, n};
     struct myarr maxvals = {0, calloc(n, sizeof(double)), n};
-    struct myarr derivative = {malloc(NN * sizeof(int)), 0, NN};
-    struct myarr tmpder = {malloc(NN * sizeof(int)), 0, derivative.NN};
-    struct myarr reference = {malloc(NN * sizeof(int)), 0, NN};
+    struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
+    struct myarr tmpder = {calloc(NN, sizeof(int)), 0, derivative.NN};
+    struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr totls[teeth];
     for (unsigned int t = 0; t < teeth; t++)
     {
-        totls[t].arr = malloc(NN * sizeof(int));
+        totls[t].arr = calloc(NN, sizeof(int));
         totls[t].arrd = NULL;
         totls[t].NN = NN;
     }
@@ -333,7 +333,9 @@ int main(int argc, char* argv[])
             int preshift = shiftHalf(maxp, NN);
 
             if (abs(preshift) > PRESHIFT_THRESHOLD)
+            {
                 preshift = (int)(3 * preshift / sqrt(abs(preshift)));
+            }
 
             totalshift += preshift;
         }
@@ -396,7 +398,7 @@ int main(int argc, char* argv[])
                 fprintf(fptotal, "%d %d %d\n", j, totaltick->arr[j], t);
             }
         }
-        //       free(totaltick.arr);
+        free(totaltick->arr);
     }
     if (fptotal)
     {

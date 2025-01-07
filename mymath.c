@@ -111,16 +111,18 @@ double* mulmat(double* arr,
     if (tmp == NULL)
     {
         fprintf(stderr, "Memory allocation failed in mulmat\n");
-        return NULL;
     }
-
-    for (unsigned int j = 0; j < N; j++)
+    else
     {
-        for (unsigned int l = 0; l < T; l++)
+
+        for (unsigned int j = 0; j < N; j++)
         {
-            for (unsigned int i = 0; i < M; i++)
+            for (unsigned int l = 0; l < T; l++)
             {
-                tmp[l + j * T] += arr[i + M * j] * vec[i * T + l];
+                for (unsigned int i = 0; i < M; i++)
+                {
+                    tmp[l + j * T] += arr[i + M * j] * vec[i * T + l];
+                }
             }
         }
     }
@@ -164,23 +166,28 @@ double* matlinreg(
     }
 
     double* xtwx = mulmat(xarrT, M + 1, N, xarr, N, M + 1);
-    invert(xtwx, M + 1, M + 1);
-
-    memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
-    transpone(xarrT, N, M + 1);
-    double* pipe = mulmat(xtwx, M + 1, M + 1, xarrT, M + 1, N);
-
-    for (unsigned int j = 0; j < M + 1; j++)
+    if (xtwx != NULL)
     {
-        for (unsigned int i = 0; i < N; i++)
+        invert(xtwx, M + 1, M + 1);
+
+        memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
+        transpone(xarrT, N, M + 1);
+        double* pipe = mulmat(xtwx, M + 1, M + 1, xarrT, M + 1, N);
+        if (pipe != NULL)
         {
-            pipe[i + N * j] *= weight[i] * weight[i];
+
+            for (unsigned int j = 0; j < M + 1; j++)
+            {
+                for (unsigned int i = 0; i < N; i++)
+                {
+                    pipe[i + N * j] *= weight[i] * weight[i];
+                }
+            }
+
+            coeffs = mulmat(pipe, M + 1, N, vec, N, 1);
+            free(pipe);
         }
     }
-
-    coeffs = mulmat(pipe, M + 1, N, vec, N, 1);
-
-    free(pipe);
     free(xtwx);
     free(xarr);
     free(xarrT);

@@ -400,6 +400,10 @@ int main(int argc, char* argv[])
         }
         free(totaltick->arr);
     }
+    if (fpInput)
+    {
+        fclose(fpInput);
+    }
     if (fptotal)
     {
         fclose(fptotal);

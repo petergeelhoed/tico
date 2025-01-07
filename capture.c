@@ -21,7 +21,7 @@
 #define DEFAULT_ZOOM 10
 #define DEFAULT_EVALUE 4
 #define DEFAULT_FITN 30
-#define DEFAULT_LEN 32
+#define DEFAULT_LEN 30
 #define DEFAULT_TEETH 1
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
@@ -344,11 +344,6 @@ int main(int argc, char* argv[])
         {
             syncappend(maxpos.arr + i - len, len, rawfile);
             syncappendDouble(maxvals.arrd + i - len, len, mfile);
-        }
-        // should write all peaks, but this is just for diagnostics
-        if (totalI % teeth == 0)
-        {
-            syncwrite(totaltick->arr, totaltick->NN, "livepeak");
         }
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);

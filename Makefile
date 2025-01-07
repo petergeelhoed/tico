@@ -14,6 +14,7 @@ CC = cc $(CFLAGS)
 # Libraries
 SOUNDFLAGS = -lasound -lmysound
 MYLIBFLAGS = -lmylib
+MYSIGNALFLAGS = -lmysignal
 MYSYNCFLAGS = -lmysync
 MYMATHFLAGS = -lmymath
 FFTFLAGS = -lmyfft -lfftw3 
@@ -55,6 +56,7 @@ LIBS = \
 	$(LIB)/libmylib.a \
 	$(LIB)/libmysound.a \
 	$(LIB)/libmysync.a \
+	$(LIB)/libmysignal.a \
 	$(LIB)/libmyfft.a \
 	$(LIB)/libmymath.a
 
@@ -78,7 +80,7 @@ $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<
 
 %: %.c $(LIBS)
-	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYMATHFLAGS) -lm  
+	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYSIGNALFLAGS) $(MYMATHFLAGS) -lm  
 
 # Specific executables without conversion warnings
 tico: tico.c $(LIB)/libmyfft.a

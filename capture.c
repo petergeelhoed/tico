@@ -71,6 +71,41 @@ void set_signal_action(void)
     }
 }
 
+void setup_block_signals(sigset_t* new_set)
+{
+    struct sigaction sact;
+
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags = 0;
+    sact.sa_handler = sigint_handler;
+    if (sigaction(SIGWINCH, &sact, NULL) != 0)
+    {
+        fprintf(stderr, "sigaction() error");
+        exit(ERROR_SIGNAL);
+    }
+    sigemptyset(new_set);
+    sigaddset(new_set, SIGWINCH);
+    sigaddset(new_set, SIGINT);
+}
+
+void block_signal(sigset_t* new_set, sigset_t* old_set)
+{
+    if (sigprocmask(SIG_BLOCK, new_set, old_set) != 0)
+    {
+        fprintf(stderr, "block sigprocmask() error");
+        exit(ERROR_SIGNAL);
+    }
+}
+
+void unblock_signal(sigset_t* old_set)
+{
+    if (sigprocmask(SIG_SETMASK, old_set, NULL) != 0)
+    {
+        fprintf(stderr, "unblock sigprocmask() error");
+        exit(ERROR_SIGNAL);
+    }
+}
+
 void parse_arguments(int argc,
                      char* argv[],
                      unsigned int* rate,
@@ -305,20 +340,9 @@ int main(int argc, char* argv[])
 
     fillReference(fpDefPeak, &reference);
 
-    struct sigaction sact;
-    sigset_t new_set, old_set;
-
-    sigemptyset(&sact.sa_mask);
-    sact.sa_flags = 0;
-    sact.sa_handler = sigint_handler;
-    if (sigaction(SIGWINCH, &sact, NULL) != 0)
-    {
-        fprintf(stderr, "sigaction() error");
-        return ERROR_SIGNAL;
-    }
-    sigemptyset(&new_set);
-    sigaddset(&new_set, SIGWINCH);
-    sigaddset(&new_set, SIGINT);
+    sigset_t new_set;
+    sigset_t old_set;
+    setup_block_signals(&new_set);
 
     unsigned int i = 0;
     unsigned int totalI = 0;
@@ -333,12 +357,7 @@ int main(int argc, char* argv[])
             i -= ARR_BUFF;
         }
 
-        // block signal to alsa
-        if (sigprocmask(SIG_BLOCK, &new_set, &old_set) != 0)
-        {
-            fprintf(stderr, "sigprocmask() error");
-            return ERROR_SIGNAL;
-        }
+        block_signal(&new_set, &old_set);
 
         int err = getData(rawfile,
                           fpInput,
@@ -349,11 +368,7 @@ int main(int argc, char* argv[])
                           buffer,
                           derivative);
         // restore signal handling
-        if (sigprocmask(SIG_SETMASK, &old_set, NULL) != 0)
-        {
-            fprintf(stderr, "2nd sigprocmask() error");
-            return ERROR_SIGNAL;
-        }
+        unblock_signal(&old_set);
 
         if (err < 0)
         {

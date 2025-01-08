@@ -55,6 +55,12 @@ int main()
     {
         printf("%d %lf %lf %lf\n", i, peak[i], peak2[i], cross[i][0]);
     }
+    free(peak);
+    free(peak2);
+    fftw_free(in);
+    fftw_free(in2);
+    fftw_free(cross);
 
+    fftw_cleanup();
     exit(0);
 }

@@ -7,6 +7,8 @@
 
 #include "mysync.h"
 
+extern pthread_mutex_t count_mutex;
+
 void writearray(int* arr, unsigned int NN, const char* file)
 {
     FILE* fp = fopen(file, "w");
@@ -17,7 +19,7 @@ void writearray(int* arr, unsigned int NN, const char* file)
     fclose(fp);
 }
 
-void syncappend(int* input, unsigned int NN, FILE* file)
+long unsigned int syncappend(int* input, unsigned int NN, FILE* file)
 {
     struct mystruct
     {
@@ -33,14 +35,18 @@ void syncappend(int* input, unsigned int NN, FILE* file)
     info->array = copyarr;
     info->file = file;
     info->NN = NN;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_t tid = 0lu;
+    pthread_create(&tid, &attr, threadAppend, info);
 
-    pthread_t tid;
-    pthread_create(&tid, NULL, threadAppend, info);
-    pthread_detach(tid);
+    return tid;
 }
 
 void* threadAppend(void* inStruct)
 {
+    pthread_mutex_lock(&count_mutex);
     struct mystruct
     {
         int* array;
@@ -64,6 +70,7 @@ void* threadAppend(void* inStruct)
     fflush(file);
 
     free(copyarr);
+    pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
 
@@ -84,13 +91,16 @@ void syncwrite(int* input, unsigned int NN, char* file)
     strcpy(info->file, file);
     info->NN = NN;
 
-    pthread_t tid = 0;
-    pthread_create(&tid, NULL, threadWrite, info);
-    pthread_detach(tid);
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_t tid = 0lu;
+    pthread_create(&tid, &attr, threadWrite, info);
 }
 
 void* threadWrite(void* inStruct)
 {
+    pthread_mutex_lock(&count_mutex);
     struct mystruct
     {
         int* array;
@@ -107,6 +117,7 @@ void* threadWrite(void* inStruct)
     free(copyarr);
     free(arrptr);
     free(inStruct);
+    pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
 
@@ -151,13 +162,16 @@ void syncappendDouble(double* input, unsigned int NN, FILE* file)
     info->file = file;
     info->NN = NN;
 
-    pthread_t tid;
-    pthread_create(&tid, NULL, threadAppendDouble, info);
-    pthread_detach(tid);
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_t tid = 0lu;
+    pthread_create(&tid, &attr, threadAppendDouble, info);
 }
 
 void* threadAppendDouble(void* inStruct)
 {
+    pthread_mutex_lock(&count_mutex);
     struct mystruct
     {
         double* array;
@@ -181,5 +195,6 @@ void* threadAppendDouble(void* inStruct)
     fflush(file);
 
     free(copyarr);
+    pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }

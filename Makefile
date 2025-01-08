@@ -8,7 +8,9 @@ CFLAGS = -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror # -Wconvers
 # Uncomment the following line for optimized builds
 # CFLAGS = -O3 -lm -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -Wconversion
 SANI_ADDR = -fsanitize=address -fno-omit-frame-pointer -static-libasan
+SANI_THREAD = -fsanitize=thread -fno-omit-frame-pointer -static-libtsan
 #CC= cc $(CFLAGS) $(SANI_ADDR)
+#CC= cc $(CFLAGS) $(SANI_THREAD) 
 CC = cc $(CFLAGS)
 
 # Libraries

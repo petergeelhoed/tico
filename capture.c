@@ -2,6 +2,7 @@
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -27,6 +28,8 @@
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
 #define AUTOCOR_LIMIT 1
+
+pthread_mutex_t count_mutex;
 
 volatile int keepRunning = 1;
 volatile unsigned int columns = 80;
@@ -340,10 +343,17 @@ int main(int argc, char* argv[])
             totalshift += preshift;
         }
 
-        if (rawfile && i > 0 && totalI % len == 0)
+        if (i > 0 && totalI % len == 0)
+
         {
-            syncappend(maxpos.arr + i - len, len, rawfile);
-            syncappendDouble(maxvals.arrd + i - len, len, mfile);
+            if (rawfile)
+            {
+                syncappend(maxpos.arr + i - len, len, rawfile);
+            }
+            if (mfile)
+            {
+                syncappendDouble(maxvals.arrd + i - len, len, mfile);
+            }
         }
 
         fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
@@ -368,18 +378,21 @@ int main(int argc, char* argv[])
     free(tmpder.arr);
     fftw_free(filterFFT);
 
+    pthread_mutex_lock(&count_mutex);
+    if (mfile)
+    {
+        printTOD(mfile);
+        writefileDouble(mfile, maxvals.arrd + i - i % len, i % len);
+    }
     if (rawfile)
     {
         printTOD(rawfile);
         writefile(rawfile, maxpos.arr + i - i % len, i % len);
-        if (mfile)
-        {
-            printTOD(mfile);
-            writefileDouble(mfile, maxvals.arrd + i - i % len, i % len);
-        }
+        //   syncappend(maxpos.arr + i - i % len, i % len, rawfile);
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
+    pthread_mutex_unlock(&count_mutex);
     free(maxvals.arrd);
     free(maxpos.arr);
 

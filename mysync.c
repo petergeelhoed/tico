@@ -7,7 +7,11 @@
 
 #include "mysync.h"
 
-extern pthread_mutex_t count_mutex;
+static pthread_mutex_t count_mutex;
+
+void thread_unlock() { pthread_mutex_unlock(&count_mutex); }
+
+void thread_lock() { pthread_mutex_lock(&count_mutex); }
 
 void writearray(int* arr, unsigned int NN, const char* file)
 {

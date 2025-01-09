@@ -2,7 +2,6 @@
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -28,8 +27,6 @@
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
 #define AUTOCOR_LIMIT 1
-
-pthread_mutex_t count_mutex;
 
 volatile int keepRunning = 1;
 volatile unsigned int columns = 80;
@@ -378,7 +375,7 @@ int main(int argc, char* argv[])
     free(tmpder.arr);
     fftw_free(filterFFT);
 
-    pthread_mutex_lock(&count_mutex);
+    thread_lock();
     if (mfile)
     {
         printTOD(mfile);
@@ -392,7 +389,7 @@ int main(int argc, char* argv[])
         calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
         fclose(rawfile);
     }
-    pthread_mutex_unlock(&count_mutex);
+    thread_unlock();
     free(maxvals.arrd);
     free(maxpos.arr);
 

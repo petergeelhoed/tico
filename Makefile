@@ -1,7 +1,14 @@
 # Directories
-BIN = ../bin
-OBJ = ../obj
-LIB = ../lib
+BIN = bin
+OBJ = obj
+LIB = lib
+
+DIRS=\
+     $(BIN)\
+     $(OBJ)\
+     $(LIB)
+
+$(shell mkdir -p $(DIRS))
 
 # Flags
 CFLAGS = -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror # -Wconversion

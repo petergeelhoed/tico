@@ -37,19 +37,21 @@ TARGETS = \
 	ifft \
 	recali \
 	record \
+	linregw \
+	tico \
+	wav2raw
+
+TESTTARGETS = \
 	testfft \
 	testfilter \
 	testlinreg \
 	testinvert \
 	testmulmat \
-	linregw \
 	testmatlinreg \
 	testmatlinregquad \
 	testcalculateall \
 	testcrosscorint \
-	testtranspone \
-	tico \
-	wav2raw
+	testtranspone 
 
 # Outputs
 OUTPUTS = \
@@ -70,6 +72,7 @@ LIBS = \
 	$(LIB)/libmymath.a
 
 all: $(LIBS) $(TARGETS)
+test: $(TESTTARGETS)
 
 libs: $(LIBS)
 
@@ -77,7 +80,7 @@ install: $(TARGETS)
 	mv $(TARGETS) $(BIN)
 
 clean:
-	rm -f $(LIB)/* $(OBJ)/* $(TARGETS) $(OUTPUTS)
+	rm -f $(LIB)/* $(OBJ)/* $(TARGETS) $(OUTPUTS) $(TESTTARGETS)
 
 $(OBJ)/%.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<

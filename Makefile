@@ -39,6 +39,7 @@ TARGETS = \
 	record \
 	linregw \
 	tico \
+	teeth \
 	wav2raw
 
 TESTTARGETS = \
@@ -80,7 +81,7 @@ install: $(TARGETS)
 	mv $(TARGETS) $(BIN)
 
 clean:
-	rm -f $(LIB)/* $(OBJ)/* $(TARGETS) $(OUTPUTS) $(TESTTARGETS)
+	rm -r $(LIB) $(OBJ) $(BIN) $(TARGETS) $(OUTPUTS) $(TESTTARGETS)
 
 $(OBJ)/%.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -95,11 +96,6 @@ $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYSIGNALFLAGS) $(MYMATHFLAGS) -lm  
 
 # Specific executables without conversion warnings
-tico: tico.c $(LIB)/libmyfft.a
-	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o tico tico.c -lfftw3 -lmyfft -lm 
-
-wav2raw: wav2raw.c $(LIB)/libmyfft.a
-	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o wav2raw wav2raw.c -lfftw3 -lmyfft -lm 
 
 teeth: teeth.c $(LIB)/libmyfft.a
 	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o teeth teeth.c -lfftw3 -lmyfft -lm 

@@ -27,6 +27,7 @@ int main()
     linreg(xarr, yarr, n, &a, &b, &s);
 
     fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
+    yarr[0] = 600;
     xarr[0] = 1;
     yarr[1] = 592;
     xarr[1] = 2;

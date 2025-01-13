@@ -6,6 +6,7 @@
 #include <sys/time.h>
 
 #include "mysync.h"
+#define  FILE_NAME_LENGTH 80
 
 static pthread_mutex_t count_mutex;
 
@@ -83,7 +84,7 @@ void syncwrite(int* input, unsigned int NN, char* file)
     struct mystruct
     {
         int* array;
-        char file[20];
+        char file[FILE_NAME_LENGTH];
         unsigned int NN;
     };
 
@@ -108,7 +109,7 @@ void* threadWrite(void* inStruct)
     struct mystruct
     {
         int* array;
-        char file[20];
+        char file[FILE_NAME_LENGTH];
         unsigned int NN;
     } mine = *(struct mystruct*)inStruct;
 

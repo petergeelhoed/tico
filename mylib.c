@@ -327,7 +327,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference)
             if (fscanf(fpDefPeak,
                        "%d %d %d",
                        &dummy0,
-                       reference->arr + (j % (int)reference->NN),
+                       reference->arr + (j % reference->NN),
                        &dummy1) != 3)
             {
                 fprintf(stderr,

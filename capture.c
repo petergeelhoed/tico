@@ -312,12 +312,14 @@ int main(int argc, char* argv[])
             reference.arr = totaltick->arr;
         }
 
-        // totalshift modulo NN but that could also be negative
-        // so modulate twice
         for (unsigned int j = 0; j < NN; ++j)
         {
+            // totalshift modulo NN but that could also be negative
+            // so modulate twice
+            int pos = ((int)(totalshift + j) % (int)NN + (int)NN) % (int)NN;
+
             // preshift the derivative
-            tmpder.arr[j] = derivative.arr[(totalshift + j) % NN];
+            tmpder.arr[j] = derivative.arr[pos];
         }
 
         maxp = fftfit(tmpder,

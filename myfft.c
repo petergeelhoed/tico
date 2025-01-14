@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "myfft.h"
+#include "mylib.h"
 #include "mysync.h"
 
 #define MAX_COLUMNS 1024
@@ -217,6 +218,28 @@ void applyFilter(const struct myarr input, fftw_complex* filterFFT, double* out)
         out[j] = filteredinput[j][0];
     }
     fftw_free(filteredinput);
+}
+
+int getshift(const struct myarr x, const struct myarr y)
+{
+    unsigned int NN = x.NN;
+    fftw_complex* Fx = fftw_alloc_complex(NN);
+    fftw_complex* Fy = fftw_alloc_complex(NN);
+
+    for (unsigned int j = 0; j < NN; j++)
+    {
+        Fx[j][0] = (double)x.arr[j];
+        Fx[j][1] = 0.0;
+        Fy[j][0] = (double)y.arr[j];
+        Fy[j][1] = 0.0;
+    }
+    fftw_complex* corr = crosscor(NN, Fx, Fy);
+
+    unsigned int poscor = getmaxfftw(corr, NN);
+    fftw_free(Fx);
+    fftw_free(corr);
+    fftw_free(Fy);
+    return ((int)poscor + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
 }
 
 unsigned int fftfit(const struct myarr input,

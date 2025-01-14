@@ -1,5 +1,5 @@
-#include <fftw3.h>
 #include "myarr.h"
+#include <fftw3.h>
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN);
 
@@ -21,3 +21,4 @@ void writefftw(fftw_complex* arr, unsigned int NN, const char* file);
 void remove50hz(unsigned int NN, int* array, unsigned int rate);
 void normalise(unsigned int NN, fftw_complex* in);
 void rescale(int* total, unsigned int NN);
+int getshift(const struct myarr x, const struct myarr y);

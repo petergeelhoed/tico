@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
             // make sure this is only done after the j totls are filled at least
             // once
             cshift = getshift(totls[0], totls[totalI % teeth]);
-            printf("%d\n", cshift);
+            printf("%d %d\n", cshift, totalshift);
 
             if (totalI == AUTOCOR_LIMIT * teeth)
             {
@@ -318,19 +318,21 @@ int main(int argc, char* argv[])
         {
             // totalshift modulo NN but that could also be negative
             // so modulate twice
-            int pos = ((int)(totalshift + j) % (int)NN + (int)NN) % (int)NN;
+            int pos =
+                ((int)(totalshift + j + cshift) % (int)NN + (int)NN) % (int)NN;
 
             // preshift the derivative
             tmpder.arr[j] = derivative.arr[pos];
         }
 
-        maxp = -cshift + fftfit(tmpder,
-                                totaltick->arr,
-                                reference.arr,
-                                maxvals.arrd + i,
-                                filterFFT,
-                                totalI > 0 && totalI == verbose);
+        maxp = fftfit(tmpder,
+                      totaltick->arr,
+                      reference.arr,
+                      maxvals.arrd + i,
+                      filterFFT,
+                      totalI > 0 && totalI == verbose);
 
+        printf("maxp %d\n", maxp);
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
         if (totalI > AUTOCOR_LIMIT && *(maxvals.arrd + i) > (double)cvalue / 16)
         {
@@ -408,12 +410,17 @@ int main(int argc, char* argv[])
         struct myarr* totaltick = &totls[t];
         if (fptotal)
         {
+            int cshift = getshift(totls[0], *totaltick);
             for (unsigned int j = 0; j < NN; ++j)
             {
-                fprintf(fptotal, "%d %d %d\n", j, totaltick->arr[j], t);
+                fprintf(
+                    fptotal, "%d %d %d %d\n", j, totaltick->arr[j], t, cshift);
             }
         }
-        free(totaltick->arr);
+    }
+    for (unsigned int t = 0; t < teeth; ++t)
+    {
+        free(totls[t].arr);
     }
     if (fpInput)
     {

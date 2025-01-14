@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
     sigset_t new_set;
     sigset_t old_set;
     setup_block_signals(&new_set);
-
+    int cshift = 0;
     unsigned int i = 0;
     unsigned int totalI = 0;
     while (keepRunning && !(totalI > maxtime && time))
@@ -304,6 +304,8 @@ int main(int argc, char* argv[])
         {
             // make sure this is only done after the j totls are filled at least
             // once
+            cshift = getshift(totls[0], totls[totalI % teeth]);
+            printf("%d\n", cshift);
 
             if (totalI == AUTOCOR_LIMIT * teeth)
             {
@@ -322,12 +324,12 @@ int main(int argc, char* argv[])
             tmpder.arr[j] = derivative.arr[pos];
         }
 
-        maxp = fftfit(tmpder,
-                      totaltick->arr,
-                      reference.arr,
-                      maxvals.arrd + i,
-                      filterFFT,
-                      totalI > 0 && totalI == verbose);
+        maxp = -cshift + fftfit(tmpder,
+                                totaltick->arr,
+                                reference.arr,
+                                maxvals.arrd + i,
+                                filterFFT,
+                                totalI > 0 && totalI == verbose);
 
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
         if (totalI > AUTOCOR_LIMIT && *(maxvals.arrd + i) > (double)cvalue / 16)
@@ -370,6 +372,12 @@ int main(int argc, char* argv[])
 
         i++;
         totalI++;
+    }
+
+    for (unsigned int k = 1; k < teeth; ++k)
+    {
+        int cshift = getshift(totls[0], totls[k]);
+        printf("%d %d\n", k, cshift);
     }
 
     free(buffer);

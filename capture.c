@@ -304,8 +304,10 @@ int main(int argc, char* argv[])
         {
             // make sure this is only done after the j totls are filled at least
             // once
-            cshift = getshift(totls[0], totls[totalI % teeth]);
-            printf("%d %d\n", cshift, totalshift);
+            if (teeth > 1)
+            {
+                cshift = getshift(totls[0], totls[totalI % teeth]);
+            }
 
             if (totalI == AUTOCOR_LIMIT * teeth)
             {
@@ -332,7 +334,6 @@ int main(int argc, char* argv[])
                       filterFFT,
                       totalI > 0 && totalI == verbose);
 
-        printf("maxp %d\n", maxp);
         maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
         if (totalI > AUTOCOR_LIMIT && *(maxvals.arrd + i) > (double)cvalue / 16)
         {

@@ -27,7 +27,7 @@
 #define DEFAULT_CVALUE 7
 #define PRESHIFT_THRESHOLD 10
 #define AUTOCOR_LIMIT 1
-
+#define ERROR_ALLOCATE_MEM -5
 volatile int keepRunning = 1;
 volatile unsigned int columns = 80;
 
@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
         if (totls[t].arr == NULL)
         {
             fprintf(stderr, "Could not allocate memory");
-            return -5;
+            return ERROR_ALLOCATE_MEM;
         }
 
         totls[t].arrd = NULL;
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
         tmpder.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
-        return -5;
+        return ERROR_ALLOCATE_MEM;
     }
 
     fprintf(stderr,

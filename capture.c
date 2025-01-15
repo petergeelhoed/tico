@@ -218,6 +218,23 @@ int main(int argc, char* argv[])
     unsigned int n = ARR_BUFF * 2;
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
+
+    device = (device == NULL) ? "default:2" : device;
+
+    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+    snd_pcm_t* capture_handle = NULL;
+
+    if (fpInput == NULL)
+    {
+        capture_handle = initAudio(format, device, rate);
+    }
+
+    if (fpInput == NULL && capture_handle == NULL)
+    {
+        fprintf(stderr, "No inputfile or soundcard");
+        return -6;
+    }
+
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
     struct myarr maxpos = {calloc(n, sizeof(int)), 0, n};
@@ -229,28 +246,20 @@ int main(int argc, char* argv[])
     for (unsigned int t = 0; t < teeth; t++)
     {
         totls[t].arr = calloc(NN, sizeof(int));
+        if (totls[t].arr == NULL)
+        {
+            fprintf(stderr, "Could not allocate memory");
+            return -5;
+        }
+
         totls[t].arrd = NULL;
         totls[t].NN = NN;
     }
 
-    device = (device == NULL) ? "default:2" : device;
-
-    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = NULL;
-
-    if (fpInput == NULL)
-    {
-        capture_handle = initAudio(format, device, rate);
-    }
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
-
-    if (fpInput == NULL && capture_handle == NULL)
-    {
-        fprintf(stderr, "No inputfile or soundcard");
-        return -6;
-    }
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
-        maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL)
+        maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL ||
+        tmpder.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
         return -5;

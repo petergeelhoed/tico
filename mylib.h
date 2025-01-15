@@ -49,7 +49,9 @@ getBeatError(const struct myarr* totalTick, unsigned int rate, int verbose);
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 
 int checkFileArg(int name, FILE** fp, char* optarg, char* mode);
-void fillReference(FILE* fpDefPeak, struct myarr* reference);
+void fillReference(FILE* fpDefPeak,
+                   struct myarr* reference,
+                   unsigned int teeth);
 
 void checkAndFlip(struct myarr* totaltick,
                   struct myarr* reference,

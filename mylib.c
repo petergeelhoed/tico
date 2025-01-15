@@ -317,22 +317,33 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
     return 0;
 }
 
-void fillReference(FILE* fpDefPeak, struct myarr* reference)
+void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 {
     if (fpDefPeak != NULL)
     {
         int dummy0, dummy1;
-        for (unsigned int j = 0; j < reference->NN; j++)
+        int shift = 0;
+        for (unsigned int t = 0; t < teeth; t++)
         {
-            if (fscanf(fpDefPeak,
-                       "%d %d %d",
-                       &dummy0,
-                       reference->arr + (j % reference->NN),
-                       &dummy1) != 3)
+            for (unsigned int j = 0; j < reference->NN; j++)
             {
-                fprintf(stderr,
-                        "not enough values in -D <default peak file>\n");
-                exit(-5);
+                int value = 0;
+                if (fscanf(fpDefPeak,
+                           "%d %d %d %d",
+                           &dummy0,
+                           &value,
+                           &dummy1,
+                           &shift) != 4)
+                {
+                    fprintf(stderr,
+                            "not enough values in -D <default peak file>\n 4 "
+                            "columns required, %u samples and %u teeth\n",
+                            reference->NN,
+                            teeth);
+                    exit(-5);
+                }
+                reference->arr[((int)j + shift + (int)reference->NN) %
+                               (int)reference->NN] = value;
             }
         }
         fclose(fpDefPeak);

@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
             mod * 1000. / rate,
             mod * 1000000. / rate / (columns - everyline));
 
-    fillReference(fpDefPeak, &reference);
+    fillReference(fpDefPeak, &reference, teeth);
 
     sigset_t new_set;
     sigset_t old_set;

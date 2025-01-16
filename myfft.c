@@ -115,6 +115,7 @@ void remove50hz(unsigned int NN, int* array, unsigned int rate)
     }
     fftw_free(in);
     fftw_free(out);
+    fftw_cleanup();
 }
 
 fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
@@ -152,6 +153,7 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
     fftw_destroy_plan(forward);
     fftw_destroy_plan(reverse);
     fftw_free(out);
+    fftw_cleanup();
     return in;
 }
 
@@ -202,6 +204,7 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     fftw_free(tmparr);
     fftw_free(tmpref);
     fftw_free(tmp);
+    fftw_cleanup();
     return corr;
 }
 
@@ -218,6 +221,7 @@ void applyFilter(const struct myarr input, fftw_complex* filterFFT, double* out)
         out[j] = filteredinput[j][0];
     }
     fftw_free(filteredinput);
+    fftw_cleanup();
 }
 
 int getshift(const struct myarr x, const struct myarr y)
@@ -239,6 +243,7 @@ int getshift(const struct myarr x, const struct myarr y)
     fftw_free(Fx);
     fftw_free(corr);
     fftw_free(Fy);
+    fftw_cleanup();
     return ((int)poscor + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
 }
 
@@ -294,7 +299,7 @@ unsigned int fftfit(const struct myarr input,
     fftw_free(filteredinput);
     fftw_free(Fbase);
     fftw_free(corr);
-
+    fftw_cleanup();
     return poscor;
 }
 

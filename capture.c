@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
         teethArray[t].NN = NN;
     }
 
-    char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
+    char* buffer = calloc(NN, (unsigned int)snd_pcm_format_width(format) / 8);
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
         maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL ||
         tmpder.arr == NULL)

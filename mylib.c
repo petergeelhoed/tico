@@ -342,8 +342,9 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                             teeth);
                     exit(-5);
                 }
-                reference->arr[((int)j + shift + (int)reference->NN) %
-                               (int)reference->NN] = value;
+                reference
+                    ->arr[((int)j + (int)reference->NN) % (int)reference->NN] =
+                    value;
             }
         }
         fclose(fpDefPeak);

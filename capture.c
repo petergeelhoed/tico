@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
     sigset_t new_set;
     sigset_t old_set;
     setup_block_signals(&new_set);
-    int cshift = 0;
+    int toothshift = 0;
     unsigned int i = 0;
     unsigned int totalI = 0;
     while (keepRunning && !(totalI > maxtime && time))
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
             // once
             if (teeth > 1)
             {
-                cshift = getshift(totls[0], totls[totalI % teeth]);
+                toothshift = getshift(totls[0], totls[totalI % teeth]);
             }
 
             if (totalI == AUTOCOR_LIMIT * teeth)
@@ -329,8 +329,8 @@ int main(int argc, char* argv[])
         {
             // totalshift modulo NN but that could also be negative
             // so modulate twice
-            int pos =
-                ((int)(totalshift + j + cshift) % (int)NN + (int)NN) % (int)NN;
+            int pos = ((int)(totalshift + j + toothshift) % (int)NN + (int)NN) %
+                      (int)NN;
 
             // preshift the derivative
             tmpder.arr[j] = derivative.arr[pos];
@@ -386,10 +386,11 @@ int main(int argc, char* argv[])
         totalI++;
     }
 
-    for (unsigned int k = 1; k < teeth; ++k)
+    printf("peak   shift \n");
+    for (unsigned int k = 0; k < teeth; ++k)
     {
-        int cshift = getshift(totls[0], totls[k]);
-        printf("%d %d\n", k, cshift);
+        int toothshift = getshift(totls[0], totls[k]);
+        printf("%6d6%d\n", k, toothshift);
     }
 
     free(buffer);
@@ -420,11 +421,15 @@ int main(int argc, char* argv[])
         struct myarr* totaltick = &totls[t];
         if (fptotal)
         {
-            int cshift = getshift(totls[0], *totaltick);
+            int toothshift = getshift(totls[0], *totaltick);
             for (unsigned int j = 0; j < NN; ++j)
             {
-                fprintf(
-                    fptotal, "%d %d %d %d\n", j, totaltick->arr[j], t, cshift);
+                fprintf(fptotal,
+                        "%d %d %d %d\n",
+                        shiftHalf(j + toothshift, NN),
+                        totaltick->arr[j],
+                        t,
+                        toothshift);
             }
         }
     }

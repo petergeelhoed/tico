@@ -385,12 +385,14 @@ int main(int argc, char* argv[])
         i++;
         totalI++;
     }
-
-    printf("peak   shift \n");
-    for (unsigned int k = 0; k < teeth; ++k)
+    if (teeth > 1)
     {
-        int toothshift = getshift(totls[0], totls[k]);
-        printf("%6d6%d\n", k, toothshift);
+        printf("peak   shift \n");
+        for (unsigned int k = 0; k < teeth; ++k)
+        {
+            int toothshift = getshift(totls[0], totls[k]);
+            printf("%6d6%d\n", k, toothshift);
+        }
     }
 
     free(buffer);

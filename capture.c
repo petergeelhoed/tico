@@ -385,6 +385,7 @@ int main(int argc, char* argv[])
         i++;
         totalI++;
     }
+
     if (teeth > 1)
     {
         printf("peak   shift \n");
@@ -415,6 +416,7 @@ int main(int argc, char* argv[])
         fclose(rawfile);
     }
     thread_unlock();
+
     free(maxvals.arrd);
     free(maxpos.arr);
 

@@ -242,18 +242,18 @@ int main(int argc, char* argv[])
     struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr tmpder = {calloc(NN, sizeof(int)), 0, derivative.NN};
     struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
-    struct myarr totls[teeth];
+    struct myarr teethArray[teeth];
     for (unsigned int t = 0; t < teeth; t++)
     {
-        totls[t].arr = calloc(NN, sizeof(int));
-        if (totls[t].arr == NULL)
+        teethArray[t].arr = calloc(NN, sizeof(int));
+        if (teethArray[t].arr == NULL)
         {
             fprintf(stderr, "Could not allocate memory");
             return ERROR_ALLOCATE_MEM;
         }
 
-        totls[t].arrd = NULL;
-        totls[t].NN = NN;
+        teethArray[t].arrd = NULL;
+        teethArray[t].NN = NN;
     }
 
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
@@ -308,14 +308,15 @@ int main(int argc, char* argv[])
             printf("capture error %d\n", err);
             break;
         }
-        struct myarr* totaltick = &totls[totalI % teeth];
+        struct myarr* totaltick = &teethArray[totalI % teeth];
         if (totalI >= AUTOCOR_LIMIT * teeth)
         {
-            // make sure this is only done after the j totls are filled at least
-            // once
+            // make sure this is only done after the j teethArray are filled at
+            // least once
             if (teeth > 1)
             {
-                toothshift = getshift(totls[0], totls[totalI % teeth]);
+                toothshift =
+                    getshift(teethArray[0], teethArray[totalI % teeth]);
             }
 
             if (totalI == AUTOCOR_LIMIT * teeth)
@@ -390,7 +391,7 @@ int main(int argc, char* argv[])
         printf("peak   shift \n");
         for (unsigned int k = 0; k < teeth; ++k)
         {
-            int toothshift = getshift(totls[0], totls[k]);
+            int toothshift = getshift(teethArray[0], teethArray[k]);
             printf("%6d6%d\n", k, toothshift);
         }
     }
@@ -420,10 +421,10 @@ int main(int argc, char* argv[])
 
     for (unsigned int t = 0; t < teeth; ++t)
     {
-        struct myarr* totaltick = &totls[t];
+        struct myarr* totaltick = &teethArray[t];
         if (fptotal)
         {
-            int toothshift = getshift(totls[0], *totaltick);
+            int toothshift = getshift(teethArray[0], *totaltick);
             for (unsigned int j = 0; j < NN; ++j)
             {
                 fprintf(fptotal,
@@ -437,7 +438,7 @@ int main(int argc, char* argv[])
     }
     for (unsigned int t = 0; t < teeth; ++t)
     {
-        free(totls[t].arr);
+        free(teethArray[t].arr);
     }
     if (fpInput)
     {

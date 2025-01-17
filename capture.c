@@ -181,6 +181,16 @@ int main(int argc, char* argv[])
     FILE* fptotal = NULL;
     FILE* fpDefPeak = NULL;
     FILE* fpInput = NULL;
+    double a = 0.0;
+    double b = 0.0;
+    int totalshift = 0;
+    unsigned int maxp = 0;
+    unsigned int n = ARR_BUFF * 2;
+    struct winsize w;
+
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    columns = w.ws_col;
+    set_signal_action();
 
     parse_arguments(argc,
                     argv,
@@ -202,20 +212,9 @@ int main(int argc, char* argv[])
                     &fpDefPeak,
                     &fpInput);
 
-    double a = 0.0;
-    double b = 0.0;
-    int totalshift = 0;
-    struct winsize w;
-
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col;
-    set_signal_action();
-
     unsigned int NN = rate * 7200 / bph;
     NN = (NN + NN % 2);
-    unsigned int maxp = 0;
     unsigned int mod = NN / zoom;
-    unsigned int n = ARR_BUFF * 2;
     unsigned int tps = rate / NN;
     unsigned int maxtime = time ? time * tps : 30 * tps;
 
@@ -452,6 +451,7 @@ int main(int argc, char* argv[])
     if (capture_handle != NULL)
     {
         snd_pcm_close(capture_handle);
+        snd_pcm_hw_free(capture_handle);
     }
 
     fprintf(stderr,

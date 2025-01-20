@@ -43,6 +43,7 @@ TARGETS = \
 TESTTARGETS = \
 	testfft \
 	testfilter \
+	testremove50 \
 	testlinreg \
 	testinvert \
 	testmulmat \

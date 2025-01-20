@@ -135,6 +135,7 @@ void linreg(const int* xarr,
     *a -= *b * mx - my;
 }
 
+// fit y=a+b*x
 void fit10secs(double* a,
                double* b,
                double* s,
@@ -370,7 +371,7 @@ void checkAndFlip(struct myarr* totaltick,
                   unsigned int verbose)
 {
     unsigned int NN = totaltick->NN;
-    int* cross = malloc(NN * sizeof(int));
+    int* cross = calloc(NN, sizeof(int));
     if (!cross)
     {
         fprintf(stderr, "Memory allocation failed in checkAndFlip\n");

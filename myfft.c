@@ -14,12 +14,12 @@
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 {
-    fftw_complex* in2 = fftw_alloc_complex(NN);
+    fftw_complex* filter = fftw_alloc_complex(NN);
     fftw_complex* filterFFT = fftw_alloc_complex(NN);
-    fftw_plan makefilter =
-        fftw_plan_dft_1d((int)NN, in2, filterFFT, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan makefilter = fftw_plan_dft_1d(
+        (int)NN, filter, filterFFT, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    if (in2 == NULL || filterFFT == NULL)
+    if (filter == NULL || filterFFT == NULL)
     {
         fprintf(stderr, "Memory allocation failed in makeFilter\n");
         return NULL;
@@ -29,37 +29,38 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
     {
         for (unsigned int j = 0; j < evalue * 5; j++)
         {
-            in2[j][0] = GAUSSIAN_CONST / evalue *
-                        exp(-((double)(j * j)) / (double)(evalue * evalue) / 2);
-            in2[j][1] = 0.0;
+            filter[j][0] =
+                GAUSSIAN_CONST / evalue *
+                exp(-((double)(j * j)) / (double)(evalue * evalue) / 2);
+            filter[j][1] = 0.0;
         }
         for (unsigned int j = evalue * 5; j < NN - evalue * 5; j++)
         {
-            in2[j][0] = 0.0;
-            in2[j][1] = 0.0;
+            filter[j][0] = 0.0;
+            filter[j][1] = 0.0;
         }
         for (unsigned int j = NN - evalue * 5; j < NN; j++)
         {
-            in2[j][0] = GAUSSIAN_CONST / evalue *
-                        exp(-((double)(NN - j) * (NN - j)) /
-                            (double)(evalue * evalue) / 2);
-            in2[j][1] = 0.0;
+            filter[j][0] = GAUSSIAN_CONST / evalue *
+                           exp(-((double)(NN - j) * (NN - j)) /
+                               (double)(evalue * evalue) / 2);
+            filter[j][1] = 0.0;
         }
     }
     else
     {
-        in2[0][0] = 100;
-        in2[0][1] = 0;
+        filter[0][0] = 1;
+        filter[0][1] = 0;
         for (unsigned int j = 1; j < NN; j++)
         {
-            in2[j][0] = 0;
-            in2[j][1] = 0;
+            filter[j][0] = 0;
+            filter[j][1] = 0;
         }
     }
 
     fftw_execute(makefilter);
     fftw_destroy_plan(makefilter);
-    fftw_free(in2);
+    fftw_free(filter);
     fftw_cleanup();
     return filterFFT;
 }

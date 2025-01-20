@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     struct myarr maxvals = {
         0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
     struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
-    struct myarr tmpder = {calloc(NN, sizeof(int)), 0, derivative.NN};
+    struct myarr tmpder = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr teethArray[teeth];
     for (unsigned int t = 0; t < teeth; t++)
@@ -332,12 +332,9 @@ int main(int argc, char* argv[])
 
         for (unsigned int j = 0; j < NN; ++j)
         {
-            // totalshift modulo NN but that could also be negative
-            // so modulate twice
-            int pos = modSigned(totalshift + j + toothshift, NN);
-
             // preshift the derivative
-            tmpder.arr[j] = derivative.arr[pos];
+            tmpder.arr[j] =
+                derivative.arr[modSigned(totalshift + j + toothshift, NN)];
         }
 
         maxposition =
@@ -350,11 +347,13 @@ int main(int argc, char* argv[])
                       NN);
 
         maxpos.arr[ticktock] = totalshift + maxposition;
+
         if (totalTickTock > AUTOCOR_LIMIT &&
             *(maxvals.arrd + ticktock) > (double)cvalue / 16)
         {
             if (abs(maxposition) > PRESHIFT_THRESHOLD)
             {
+                // shift with 3√ outside threshold
                 maxposition = (int)(3 * maxposition / sqrt(abs(maxposition)));
             }
 

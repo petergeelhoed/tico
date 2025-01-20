@@ -250,7 +250,7 @@ int getshift(const struct myarr x, const struct myarr y)
 unsigned int fftfit(const struct myarr input,
                     int* total,
                     int* base,
-                    double* hexvalue,
+                    double* corvalue,
                     fftw_complex* filterFFT,
                     int verb)
 {
@@ -284,7 +284,7 @@ unsigned int fftfit(const struct myarr input,
     unsigned int poscor = getmaxfftw(corr, NN);
 
     double maxcor = corr[poscor][0];
-    *hexvalue = maxcor;
+    *corvalue = maxcor;
 
     if (total)
     {

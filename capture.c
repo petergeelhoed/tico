@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
             break;
         }
 
-        struct myarr* totaltick = &teethArray[totalI % teeth];
+        struct myarr* cumulativeTick = &teethArray[totalI % teeth];
         if (totalI >= AUTOCOR_LIMIT * teeth)
         {
             // make sure this is only done after the j teethArray are filled at
@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
                 free(reference.arr);
             }
             // use the appropriate tick as a reference
-            reference.arr = totaltick->arr;
+            reference.arr = cumulativeTick->arr;
         }
 
         for (unsigned int j = 0; j < NN; ++j)
@@ -339,7 +339,7 @@ int main(int argc, char* argv[])
         }
 
         maxp = fftfit(tmpder,
-                      totaltick->arr,
+                      cumulativeTick->arr,
                       reference.arr,
                       maxvals.arrd + i,
                       filterFFT,
@@ -375,7 +375,7 @@ int main(int argc, char* argv[])
 
         printheader(b * 86400 / NN,
                     everyline,
-                    getBeatError(totaltick, rate, 0),
+                    getBeatError(cumulativeTick, rate, 0),
                     (double)totalI / tps);
         printspaces(maxpos.arr[i],
                     maxvals.arrd[i] * 16,
@@ -423,16 +423,16 @@ int main(int argc, char* argv[])
 
     for (unsigned int t = 0; t < teeth; ++t)
     {
-        struct myarr* totaltick = &teethArray[t];
+        struct myarr* cumulativeTick = &teethArray[t];
         if (fptotal)
         {
-            int toothshift = getshift(teethArray[0], *totaltick);
+            int toothshift = getshift(teethArray[0], *cumulativeTick);
             for (unsigned int j = 0; j < NN; ++j)
             {
                 fprintf(fptotal,
                         "%d %d %u %d\n",
                         shiftHalf(j + toothshift, NN),
-                        totaltick->arr[j],
+                        cumulativeTick->arr[j],
                         t,
                         toothshift);
             }

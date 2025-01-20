@@ -278,18 +278,18 @@ int main(int argc, char* argv[])
     sigset_t old_set;
     setup_block_signals(&new_set);
     int toothshift = 0;
-    unsigned int i = 0;
-    unsigned int totalI = 0;
-    while (keepRunning && !(totalI > maxtime && time))
+    unsigned int ticktock = 0;
+    unsigned int totalTickTock = 0;
+    while (keepRunning && !(totalTickTock > maxtime && time))
     {
-        if (i == n)
+        if (ticktock == n)
         {
             // shift data back, has been written already
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals.arrd,
                    maxvals.arrd + ARR_BUFF,
                    ARR_BUFF * sizeof(double));
-            i -= ARR_BUFF;
+            ticktock -= ARR_BUFF;
         }
 
         block_signal(&new_set, &old_set);
@@ -309,18 +309,18 @@ int main(int argc, char* argv[])
             break;
         }
 
-        struct myarr* cumulativeTick = &teethArray[totalI % teeth];
-        if (totalI >= AUTOCOR_LIMIT * teeth)
+        struct myarr* cumulativeTick = &teethArray[totalTickTock % teeth];
+        if (totalTickTock >= AUTOCOR_LIMIT * teeth)
         {
             // make sure this is only done after the j teethArray are filled at
             // least once
             if (teeth > 1)
             {
                 toothshift =
-                    getshift(teethArray[0], teethArray[totalI % teeth]);
+                    getshift(teethArray[0], teethArray[totalTickTock % teeth]);
             }
 
-            if (totalI == AUTOCOR_LIMIT * teeth)
+            if (totalTickTock == AUTOCOR_LIMIT * teeth)
             {
                 free(reference.arr);
             }
@@ -341,12 +341,13 @@ int main(int argc, char* argv[])
         maxp = fftfit(tmpder,
                       cumulativeTick->arr,
                       reference.arr,
-                      maxvals.arrd + i,
+                      maxvals.arrd + ticktock,
                       filterFFT,
-                      totalI > 0 && totalI == verbose);
+                      totalTickTock > 0 && totalTickTock == verbose);
 
-        maxpos.arr[i] = totalshift + shiftHalf(maxp, NN);
-        if (totalI > AUTOCOR_LIMIT && *(maxvals.arrd + i) > (double)cvalue / 16)
+        maxpos.arr[ticktock] = totalshift + shiftHalf(maxp, NN);
+        if (totalTickTock > AUTOCOR_LIMIT &&
+            *(maxvals.arrd + ticktock) > (double)cvalue / 16)
         {
             int preshift = shiftHalf(maxp, NN);
 
@@ -358,34 +359,34 @@ int main(int argc, char* argv[])
             totalshift += preshift;
         }
 
-        if (i > 0 && totalI % len == 0)
+        if (ticktock > 0 && totalTickTock % len == 0)
 
         {
             if (fpposition)
             {
-                syncappend(maxpos.arr + i - len, len, fpposition);
+                syncappend(maxpos.arr + ticktock - len, len, fpposition);
             }
             if (fpmaxcor)
             {
-                syncappendDouble(maxvals.arrd + i - len, len, fpmaxcor);
+                syncappendDouble(maxvals.arrd + ticktock - len, len, fpmaxcor);
             }
         }
 
-        fitNpeaks(&a, &b, i, &maxvals, &maxpos, fitN);
+        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,
                     getBeatError(cumulativeTick, rate, 0),
-                    (double)totalI / tps);
-        printspaces(maxpos.arr[i],
-                    maxvals.arrd[i] * 16,
+                    (double)totalTickTock / tps);
+        printspaces(maxpos.arr[ticktock],
+                    maxvals.arrd[ticktock] * 16,
                     mod,
                     columns - everyline,
                     a,
                     cvalue);
 
-        i++;
-        totalI++;
+        ticktock++;
+        totalTickTock++;
     }
 
     if (teeth > 1)
@@ -406,14 +407,17 @@ int main(int argc, char* argv[])
     if (fpmaxcor)
     {
         printTOD(fpmaxcor);
-        writefileDouble(fpmaxcor, maxvals.arrd + i - i % len, i % len);
+        writefileDouble(
+            fpmaxcor, maxvals.arrd + ticktock - ticktock % len, ticktock % len);
     }
     if (fpposition)
     {
         printTOD(fpposition);
-        writefile(fpposition, maxpos.arr + i - i % len, i % len);
-        //   syncappend(maxpos.arr + i - i % len, i % len, fpposition);
-        calculateTotalFromFile(totalI, fpposition, NN, SDthreshold);
+        writefile(
+            fpposition, maxpos.arr + ticktock - ticktock % len, ticktock % len);
+        //   syncappend(maxpos.arr + ticktock - ticktock % len, ticktock % len,
+        //   fpposition);
+        calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
         fclose(fpposition);
     }
     thread_unlock();

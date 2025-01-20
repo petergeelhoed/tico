@@ -174,6 +174,7 @@ int main(int argc, char* argv[])
     unsigned int writeinterval = DEFAULT_TICKTOCK_WRITE;
     unsigned int fitN = DEFAULT_FITN;
     unsigned int teeth = DEFAULT_TEETH;
+    unsigned int ticktockBuffer = ARR_BUFF * 2;
     double SDthreshold = DEFAULT_SDTHRESHOLD;
     char* device = NULL;
     FILE* fpposition = NULL;
@@ -183,9 +184,8 @@ int main(int argc, char* argv[])
     FILE* fpInput = NULL;
     double a = 0.0;
     double b = 0.0;
+    int maxposition = 0;
     int totalshift = 0;
-    unsigned int maxposition = 0;
-    unsigned int ticktockBuffer = ARR_BUFF * 2;
     struct winsize w;
 
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -340,25 +340,25 @@ int main(int argc, char* argv[])
             tmpder.arr[j] = derivative.arr[pos];
         }
 
-        maxposition = fftfit(tmpder,
+        maxposition =
+            shiftHalf(fftfit(tmpder,
                              cumulativeTick->arr,
                              reference.arr,
                              maxvals.arrd + ticktock,
                              filterFFT,
-                             totalTickTock > 0 && totalTickTock == verbose);
+                             totalTickTock > 0 && totalTickTock == verbose),
+                      NN);
 
-        maxpos.arr[ticktock] = totalshift + shiftHalf(maxposition, NN);
+        maxpos.arr[ticktock] = totalshift + maxposition;
         if (totalTickTock > AUTOCOR_LIMIT &&
             *(maxvals.arrd + ticktock) > (double)cvalue / 16)
         {
-            int preshift = shiftHalf(maxposition, NN);
-
-            if (abs(preshift) > PRESHIFT_THRESHOLD)
+            if (abs(maxposition) > PRESHIFT_THRESHOLD)
             {
-                preshift = (int)(3 * preshift / sqrt(abs(preshift)));
+                maxposition = (int)(3 * maxposition / sqrt(abs(maxposition)));
             }
 
-            totalshift += preshift;
+            totalshift += maxposition;
         }
 
         if (ticktock > 0 && totalTickTock % writeinterval == 0)

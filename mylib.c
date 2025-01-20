@@ -38,7 +38,7 @@ void printheader(double fittedRate,
 }
 
 void printspaces(int maxpos,
-                 double hexvalue,
+                 double corvalue,
                  unsigned int mod,
                  unsigned int columns,
                  double avg_pos,
@@ -61,9 +61,9 @@ void printspaces(int maxpos,
     fprintf(stderr,
             "%s%s%X\033[0m",
             spaces,
-            (unsigned int)hexvalue < correlationThreshold ? "\033[31m"
+            (unsigned int)corvalue < correlationThreshold ? "\033[31m"
                                                           : "\033[32m",
-            (int)hexvalue);
+            (int)corvalue);
 
     memset(spaces, ' ', (size_t)width);
     if (widtha > width)

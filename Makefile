@@ -38,8 +38,6 @@ TARGETS = \
 	recali \
 	record \
 	linregw \
-	tico \
-	teeth \
 	wav2raw
 
 TESTTARGETS = \
@@ -94,8 +92,3 @@ $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 
 %: %.c $(LIBS)
 	$(CC) -L$(LIB) -o $@ $< $(SOUNDFLAGS) $(MYLIBFLAGS) $(FFTFLAGS) $(MYSYNCFLAGS) $(MYSIGNALFLAGS) $(MYMATHFLAGS) -lm  
-
-# Specific executables without conversion warnings
-
-teeth: teeth.c $(LIB)/libmyfft.a
-	cc -g -Wall -pthread -Wpedantic -Wextra -Wsign-compare -Werror -L$(LIB) -o teeth teeth.c -lfftw3 -lmyfft -lm 

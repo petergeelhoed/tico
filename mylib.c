@@ -49,11 +49,11 @@ void printspaces(int maxpos,
     while (avg_pos < (double)mod)
         avg_pos += (double)mod;
     columns = columns > MAX_COLUMNS ? 80 : columns;
-    int width = modSigned(maxpos, mod) * columns / mod;
-    int widtha = modSigned((int)avg_pos, mod) * columns / mod;
+    size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
+    size_t widtha = (size_t)modSigned(lround(avg_pos), mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
-    memset(spaces, ' ', (size_t)width);
+    memset(spaces, ' ', width);
     spaces[width] = '\0';
     if (widtha < width)
         spaces[widtha] = '|';
@@ -65,7 +65,7 @@ void printspaces(int maxpos,
                                                           : "\033[32m",
             (int)corvalue);
 
-    memset(spaces, ' ', (size_t)width);
+    memset(spaces, ' ', width);
     if (widtha > width)
     {
         spaces[widtha - width - 1] = '|';
@@ -110,6 +110,7 @@ void linreg(const int* xarr,
             double* b,
             double* s)
 {
+    // trick to use more dynamic range of double type
     double mx = (xarr[NN - 1] + xarr[0]) / 2;
     double my = (yarr[NN - 1] + yarr[0]) / 2;
     double x = 0;

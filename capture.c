@@ -321,7 +321,6 @@ int main(int argc, char* argv[])
 
             if (totalI == AUTOCOR_LIMIT * teeth)
             {
-                // free reference once
                 free(reference.arr);
             }
             // use the appropriate tick as a reference
@@ -430,7 +429,7 @@ int main(int argc, char* argv[])
             for (unsigned int j = 0; j < NN; ++j)
             {
                 fprintf(fptotal,
-                        "%d %d %d %d\n",
+                        "%d %d %u %d\n",
                         shiftHalf(j + toothshift, NN),
                         totaltick->arr[j],
                         t,

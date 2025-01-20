@@ -18,8 +18,12 @@ unsigned int getmaxpos(int* array, unsigned int NN);
 
 void printheader(double b, unsigned int l, double beatError, double tps);
 
-void printspaces(
-    int maxpos, int val, int mod, unsigned int columns, double a, int cvalue);
+void printspaces(int maxpos,
+                 double hexvalue,
+                 unsigned int mod,
+                 unsigned int columns,
+                 double a,
+                 unsigned int cvalue);
 
 void fit10secs(double* a,
                double* b,
@@ -57,3 +61,4 @@ void checkAndFlip(struct myarr* totaltick,
                   struct myarr* reference,
                   unsigned int verbose);
 int shiftHalf(unsigned int value, unsigned int NN);
+int modSigned(int value, unsigned int NN);

@@ -35,19 +35,19 @@ void printheader(double b, unsigned int l, double beatError, double seconds)
 }
 
 void printspaces(int maxpos,
-                 int hexvalue,
-                 int mod,
+                 double hexvalue,
+                 unsigned int mod,
                  unsigned int columns,
                  double avg_pos,
-                 int cvalue)
+                 unsigned int cvalue)
 {
-    while (maxpos < mod)
+    while (maxpos < (int)mod)
         maxpos += mod;
     while (avg_pos < (double)mod)
         avg_pos += (double)mod;
     columns = columns > MAX_COLUMNS ? 80 : columns;
-    int width = (maxpos % mod) * (int)columns / mod;
-    int widtha = (((int)avg_pos) % mod) * (int)columns / mod;
+    int width = modSigned(maxpos, mod) * columns / mod;
+    int widtha = modSigned((int)avg_pos, mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
     memset(spaces, ' ', (size_t)width);
@@ -58,8 +58,8 @@ void printspaces(int maxpos,
     fprintf(stderr,
             "%s%s%X\033[0m",
             spaces,
-            hexvalue < cvalue ? "\033[31m" : "\033[32m",
-            hexvalue);
+            (unsigned int)hexvalue < cvalue ? "\033[31m" : "\033[32m",
+            (int)hexvalue);
 
     memset(spaces, ' ', (size_t)width);
     if (widtha > width)
@@ -409,4 +409,10 @@ void checkAndFlip(struct myarr* totaltick,
 int shiftHalf(unsigned int value, unsigned int NN)
 {
     return ((int)value + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
+}
+
+// mods an int with a signed int, but makes sure the result is positive
+int modSigned(int value, unsigned int NN)
+{
+    return (value % (int)NN + (int)NN) % (int)NN;
 }

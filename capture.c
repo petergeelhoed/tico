@@ -321,8 +321,10 @@ int main(int argc, char* argv[])
 
             if (totalI == AUTOCOR_LIMIT * teeth)
             {
+                // free reference once
                 free(reference.arr);
             }
+            // use the appropriate tick as a reference
             reference.arr = totaltick->arr;
         }
 
@@ -330,8 +332,7 @@ int main(int argc, char* argv[])
         {
             // totalshift modulo NN but that could also be negative
             // so modulate twice
-            int pos = ((int)(totalshift + j + toothshift) % (int)NN + (int)NN) %
-                      (int)NN;
+            int pos = modSigned(totalshift + j + toothshift, NN);
 
             // preshift the derivative
             tmpder.arr[j] = derivative.arr[pos];
@@ -377,11 +378,11 @@ int main(int argc, char* argv[])
                     getBeatError(totaltick, rate, 0),
                     (double)totalI / tps);
         printspaces(maxpos.arr[i],
-                    (int)(maxvals.arrd[i] * 16),
-                    (int)mod,
+                    maxvals.arrd[i] * 16,
+                    mod,
                     columns - everyline,
                     a,
-                    (int)cvalue);
+                    cvalue);
 
         i++;
         totalI++;

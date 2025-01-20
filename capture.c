@@ -184,8 +184,8 @@ int main(int argc, char* argv[])
     double a = 0.0;
     double b = 0.0;
     int totalshift = 0;
-    unsigned int maxp = 0;
-    unsigned int n = ARR_BUFF * 2;
+    unsigned int maxposition = 0;
+    unsigned int ticktockBuffer = ARR_BUFF * 2;
     struct winsize w;
 
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -237,8 +237,10 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
-    struct myarr maxpos = {calloc(n, sizeof(int)), 0, n};
-    struct myarr maxvals = {0, calloc(n, sizeof(double)), n};
+    struct myarr maxpos = {
+        calloc(ticktockBuffer, sizeof(int)), 0, ticktockBuffer};
+    struct myarr maxvals = {
+        0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
     struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr tmpder = {calloc(NN, sizeof(int)), 0, derivative.NN};
     struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
@@ -282,7 +284,7 @@ int main(int argc, char* argv[])
     unsigned int totalTickTock = 0;
     while (keepRunning && !(totalTickTock > maxtime && time))
     {
-        if (ticktock == n)
+        if (ticktock == ticktockBuffer)
         {
             // shift data back, has been written already
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
@@ -338,18 +340,18 @@ int main(int argc, char* argv[])
             tmpder.arr[j] = derivative.arr[pos];
         }
 
-        maxp = fftfit(tmpder,
-                      cumulativeTick->arr,
-                      reference.arr,
-                      maxvals.arrd + ticktock,
-                      filterFFT,
-                      totalTickTock > 0 && totalTickTock == verbose);
+        maxposition = fftfit(tmpder,
+                             cumulativeTick->arr,
+                             reference.arr,
+                             maxvals.arrd + ticktock,
+                             filterFFT,
+                             totalTickTock > 0 && totalTickTock == verbose);
 
-        maxpos.arr[ticktock] = totalshift + shiftHalf(maxp, NN);
+        maxpos.arr[ticktock] = totalshift + shiftHalf(maxposition, NN);
         if (totalTickTock > AUTOCOR_LIMIT &&
             *(maxvals.arrd + ticktock) > (double)cvalue / 16)
         {
-            int preshift = shiftHalf(maxp, NN);
+            int preshift = shiftHalf(maxposition, NN);
 
             if (abs(preshift) > PRESHIFT_THRESHOLD)
             {

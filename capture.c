@@ -46,7 +46,7 @@ void parse_arguments(int argc,
                      double* SDthreshold,
                      char** device,
                      FILE** rawfile,
-                     FILE** mfile,
+                     FILE** fpmaxcor,
                      FILE** fptotal,
                      FILE** fpDefPeak,
                      FILE** fpInput)
@@ -88,7 +88,7 @@ void parse_arguments(int argc,
                 exit(-1);
             break;
         case 'm':
-            if (checkFileArg(c, mfile, optarg, "w+") != 0)
+            if (checkFileArg(c, fpmaxcor, optarg, "w+") != 0)
                 exit(-1);
             break;
         case 'w':
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
     double SDthreshold = DEFAULT_SDTHRESHOLD;
     char* device = NULL;
     FILE* rawfile = NULL;
-    FILE* mfile = NULL;
+    FILE* fpmaxcor = NULL;
     FILE* fptotal = NULL;
     FILE* fpDefPeak = NULL;
     FILE* fpInput = NULL;
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
                     &SDthreshold,
                     &device,
                     &rawfile,
-                    &mfile,
+                    &fpmaxcor,
                     &fptotal,
                     &fpDefPeak,
                     &fpInput);
@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
 
     device = (device == NULL) ? "default:2" : device;
 
+    // initialize sound source
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = NULL;
 
@@ -363,9 +364,9 @@ int main(int argc, char* argv[])
             {
                 syncappend(maxpos.arr + i - len, len, rawfile);
             }
-            if (mfile)
+            if (fpmaxcor)
             {
-                syncappendDouble(maxvals.arrd + i - len, len, mfile);
+                syncappendDouble(maxvals.arrd + i - len, len, fpmaxcor);
             }
         }
 
@@ -402,10 +403,10 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
 
     thread_lock();
-    if (mfile)
+    if (fpmaxcor)
     {
-        printTOD(mfile);
-        writefileDouble(mfile, maxvals.arrd + i - i % len, i % len);
+        printTOD(fpmaxcor);
+        writefileDouble(fpmaxcor, maxvals.arrd + i - i % len, i % len);
     }
     if (rawfile)
     {

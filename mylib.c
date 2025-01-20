@@ -13,14 +13,17 @@
 #define MAX_COLUMNS 1024
 
 /* Prints header on line or at the top */
-void printheader(double b, unsigned int l, double beatError, double seconds)
+void printheader(double fittedRate,
+                 unsigned int everyline,
+                 double beatError,
+                 double seconds)
 {
-    if (l)
+    if (everyline)
     {
         char line[15];
         memset(line, ' ', 14);
         snprintf(line, 5, "%4.2f", beatError);
-        snprintf(line + 4, 8, "ms%+5.1f", b);
+        snprintf(line + 4, 8, "ms%+5.1f", fittedRate);
         sprintf(line + 11, "s/d");
         fprintf(stderr, "%s", line);
     }
@@ -29,7 +32,7 @@ void printheader(double b, unsigned int l, double beatError, double seconds)
         fprintf(stderr,
                 "\033[s\033[2;0H\033[0K%8.2fms   %9.1fs/d   %12.2fs\033[u",
                 beatError,
-                b,
+                fittedRate,
                 seconds);
     }
 }
@@ -39,7 +42,7 @@ void printspaces(int maxpos,
                  unsigned int mod,
                  unsigned int columns,
                  double avg_pos,
-                 unsigned int cvalue)
+                 unsigned int correlationThreshold)
 {
     while (maxpos < (int)mod)
         maxpos += mod;
@@ -58,7 +61,8 @@ void printspaces(int maxpos,
     fprintf(stderr,
             "%s%s%X\033[0m",
             spaces,
-            (unsigned int)hexvalue < cvalue ? "\033[31m" : "\033[32m",
+            (unsigned int)hexvalue < correlationThreshold ? "\033[31m"
+                                                          : "\033[32m",
             (int)hexvalue);
 
     memset(spaces, ' ', (size_t)width);
@@ -136,7 +140,7 @@ void fit10secs(double* a,
                const unsigned int i,
                const int* maxvals,
                const int* maxes,
-               const int cvalue,
+               const int correlationThreshold,
                const unsigned int npeaks)
 {
     unsigned int m = 0;
@@ -148,7 +152,7 @@ void fit10secs(double* a,
         int yarr[fitwindow];
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            if (maxvals[i - k] > cvalue)
+            if (maxvals[i - k] > correlationThreshold)
             {
                 yarr[m] = maxes[i - k];
                 xarr[m] = (int)k;

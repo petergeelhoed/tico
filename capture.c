@@ -45,7 +45,7 @@ void parse_arguments(int argc,
                      unsigned int* teeth,
                      double* SDthreshold,
                      char** device,
-                     FILE** rawfile,
+                     FILE** fpposition,
                      FILE** fpmaxcor,
                      FILE** fptotal,
                      FILE** fpDefPeak,
@@ -92,7 +92,7 @@ void parse_arguments(int argc,
                 exit(-1);
             break;
         case 'w':
-            if (checkFileArg(c, rawfile, optarg, "w+") != 0)
+            if (checkFileArg(c, fpposition, optarg, "w+") != 0)
                 exit(-1);
             break;
         case 'D':
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     unsigned int teeth = DEFAULT_TEETH;
     double SDthreshold = DEFAULT_SDTHRESHOLD;
     char* device = NULL;
-    FILE* rawfile = NULL;
+    FILE* fpposition = NULL;
     FILE* fpmaxcor = NULL;
     FILE* fptotal = NULL;
     FILE* fpDefPeak = NULL;
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
                     &teeth,
                     &SDthreshold,
                     &device,
-                    &rawfile,
+                    &fpposition,
                     &fpmaxcor,
                     &fptotal,
                     &fpDefPeak,
@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
         }
 
         block_signal(&new_set, &old_set);
-        int err = getData(rawfile,
+        int err = getData(fpposition,
                           fpInput,
                           capture_handle,
                           format,
@@ -360,9 +360,9 @@ int main(int argc, char* argv[])
         if (i > 0 && totalI % len == 0)
 
         {
-            if (rawfile)
+            if (fpposition)
             {
-                syncappend(maxpos.arr + i - len, len, rawfile);
+                syncappend(maxpos.arr + i - len, len, fpposition);
             }
             if (fpmaxcor)
             {
@@ -408,13 +408,13 @@ int main(int argc, char* argv[])
         printTOD(fpmaxcor);
         writefileDouble(fpmaxcor, maxvals.arrd + i - i % len, i % len);
     }
-    if (rawfile)
+    if (fpposition)
     {
-        printTOD(rawfile);
-        writefile(rawfile, maxpos.arr + i - i % len, i % len);
-        //   syncappend(maxpos.arr + i - i % len, i % len, rawfile);
-        calculateTotalFromFile(totalI, rawfile, NN, SDthreshold);
-        fclose(rawfile);
+        printTOD(fpposition);
+        writefile(fpposition, maxpos.arr + i - i % len, i % len);
+        //   syncappend(maxpos.arr + i - i % len, i % len, fpposition);
+        calculateTotalFromFile(totalI, fpposition, NN, SDthreshold);
+        fclose(fpposition);
     }
     thread_unlock();
 

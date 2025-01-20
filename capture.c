@@ -308,6 +308,7 @@ int main(int argc, char* argv[])
             printf("capture error %d\n", err);
             break;
         }
+
         struct myarr* totaltick = &teethArray[totalI % teeth];
         if (totalI >= AUTOCOR_LIMIT * teeth)
         {

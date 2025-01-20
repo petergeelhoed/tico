@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
     NN = (NN + NN % 2);
     unsigned int mod = NN / zoom;
     unsigned int tps = rate / NN;
-    unsigned int maxtime = time ? time * tps : 30 * tps;
+    unsigned int maxtime = tps * (time ? time : 30);
 
     device = (device == NULL) ? "default:2" : device;
 

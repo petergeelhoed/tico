@@ -394,7 +394,7 @@ int main(int argc, char* argv[])
         for (unsigned int k = 0; k < teeth; ++k)
         {
             int toothshift = getshift(teethArray[0], teethArray[k]);
-            printf("%6d6%d\n", k, toothshift);
+            printf("%6d%6d\n", k, toothshift);
         }
     }
 

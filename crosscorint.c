@@ -1,5 +1,7 @@
 #include "myfft.h"
+#include <stdlib.h>
 
+#define ERROR_ALLOCATE_MEM -5
 // Perform cross-correlation using FFT
 void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
 {
@@ -13,7 +15,8 @@ void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
             fftw_free(tmparr);
         if (tmpref)
             fftw_free(tmpref);
-        return;
+        fftw_cleanup();
+        exit(ERROR_ALLOCATE_MEM);
     }
 
     // Initialize FFTW complex arrays with input data
@@ -32,7 +35,8 @@ void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
         fprintf(stderr, "Cross-correlation failed in crosscorint\n");
         fftw_free(tmpref);
         fftw_free(tmparr);
-        return;
+        fftw_cleanup();
+        exit(ERROR_ALLOCATE_MEM);
     }
 
     // Store results in the output array

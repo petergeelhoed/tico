@@ -21,7 +21,7 @@
 #define DEFAULT_ZOOM 10
 #define DEFAULT_EVALUE 4
 #define DEFAULT_FITN 30
-#define DEFAULT_LEN 30
+#define DEFAULT_TICKTOCK_WRITE 30
 #define DEFAULT_TEETH 1
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
     unsigned int everyline = 0;
     unsigned int cvalue = DEFAULT_CVALUE;
     unsigned int verbose = 0;
-    unsigned int len = DEFAULT_LEN;
+    unsigned int writeinterval = DEFAULT_TICKTOCK_WRITE;
     unsigned int fitN = DEFAULT_FITN;
     unsigned int teeth = DEFAULT_TEETH;
     double SDthreshold = DEFAULT_SDTHRESHOLD;
@@ -274,9 +274,9 @@ int main(int argc, char* argv[])
 
     fillReference(fpDefPeak, &reference, teeth);
 
-    sigset_t new_set;
-    sigset_t old_set;
-    setup_block_signals(&new_set);
+    sigset_t block;
+    sigset_t non_block;
+    setup_block_signals(&block);
     int toothshift = 0;
     unsigned int ticktock = 0;
     unsigned int totalTickTock = 0;
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
             ticktock -= ARR_BUFF;
         }
 
-        block_signal(&new_set, &old_set);
+        block_signal(&block, &non_block);
         int err = getData(fpposition,
                           fpInput,
                           capture_handle,
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
                           rate,
                           buffer,
                           derivative);
-        unblock_signal(&old_set);
+        unblock_signal(&non_block);
 
         if (err < 0)
         {
@@ -359,16 +359,20 @@ int main(int argc, char* argv[])
             totalshift += preshift;
         }
 
-        if (ticktock > 0 && totalTickTock % len == 0)
+        if (ticktock > 0 && totalTickTock % writeinterval == 0)
 
         {
             if (fpposition)
             {
-                syncappend(maxpos.arr + ticktock - len, len, fpposition);
+                syncappend(maxpos.arr + ticktock - writeinterval,
+                           writeinterval,
+                           fpposition);
             }
             if (fpmaxcor)
             {
-                syncappendDouble(maxvals.arrd + ticktock - len, len, fpmaxcor);
+                syncappendDouble(maxvals.arrd + ticktock - writeinterval,
+                                 writeinterval,
+                                 fpmaxcor);
             }
         }
 
@@ -407,16 +411,18 @@ int main(int argc, char* argv[])
     if (fpmaxcor)
     {
         printTOD(fpmaxcor);
-        writefileDouble(
-            fpmaxcor, maxvals.arrd + ticktock - ticktock % len, ticktock % len);
+        writefileDouble(fpmaxcor,
+                        maxvals.arrd + ticktock - ticktock % writeinterval,
+                        ticktock % writeinterval);
     }
     if (fpposition)
     {
         printTOD(fpposition);
-        writefile(
-            fpposition, maxpos.arr + ticktock - ticktock % len, ticktock % len);
-        //   syncappend(maxpos.arr + ticktock - ticktock % len, ticktock % len,
-        //   fpposition);
+        writefile(fpposition,
+                  maxpos.arr + ticktock - ticktock % writeinterval,
+                  ticktock % writeinterval);
+        //   syncappend(maxpos.arr + ticktock - ticktock % writeinterval,
+        //   ticktock % writeinterval, fpposition);
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
         fclose(fpposition);
     }

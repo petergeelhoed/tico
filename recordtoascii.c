@@ -28,7 +28,7 @@ int main()
     {
         out[j] = rawin[j];
     }
-    remove50hz(NN, rawin, rate);
+    // remove50hz(NN, rawin, rate);
 
     for (unsigned int j = 0; j < NN; j++)
     {

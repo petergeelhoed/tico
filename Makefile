@@ -34,7 +34,6 @@ TARGETS = \
 	capture \
 	fft \
 	ifft \
-	recordtoascii \
 	record \
 	linregw \
 	wav2raw

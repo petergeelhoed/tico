@@ -16,8 +16,8 @@
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
 {
     int err;
-    snd_pcm_t* capture_handle;
-    snd_pcm_hw_params_t* hw_params;
+    snd_pcm_t* capture_handle = NULL;
+    snd_pcm_hw_params_t* hw_params = NULL;
 
     if ((err = snd_pcm_open(
              &capture_handle, device, SND_PCM_STREAM_CAPTURE, 0)) < 0)
@@ -34,6 +34,8 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot allocate hardware parameter structure (%s)\n",
                 snd_strerror(err));
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -42,6 +44,10 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot initialize hardware parameter structure (%s)\n",
                 snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -49,6 +55,10 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
              capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
     {
         fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -56,6 +66,10 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
              capture_handle, hw_params, format)) < 0)
     {
         fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -63,6 +77,10 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
              capture_handle, hw_params, &rate, 0)) < 0)
     {
         fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -70,12 +88,20 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         0)
     {
         fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params(capture_handle, hw_params)) < 0)
     {
         fprintf(stderr, "cannot set parameters (%s)\n", snd_strerror(err));
+        if (hw_params)
+            snd_pcm_hw_params_free(hw_params);
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 
@@ -86,6 +112,8 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         fprintf(stderr,
                 "cannot prepare audio interface for use (%s)\n",
                 snd_strerror(err));
+        if (capture_handle)
+            snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
     }
 

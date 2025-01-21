@@ -31,7 +31,6 @@ FFTFLAGS = -lmyfft -lfftw3
 # Targets
 TARGETS = \
     1dcor \
-	derivative \
 	capture \
 	fft \
 	ifft \

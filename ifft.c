@@ -12,8 +12,8 @@ int main()
     unsigned int iN = 4000;
     unsigned int i = 0;
 
-    double* tmpy = malloc(iN * sizeof(double));
-    double* tmpx = malloc(iN * sizeof(double));
+    double* tmpy = calloc(iN, sizeof(double));
+    double* tmpx = calloc(iN, sizeof(double));
     double real, img;
     int ret = 0;
     int index;

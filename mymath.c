@@ -57,7 +57,7 @@ void invert(double* arr, unsigned int N, unsigned int M)
         fprintf(stderr, "Memory allocation failed in invert\n");
         return;
     }
-    unsigned M2 = M * 2;
+    unsigned int M2 = M * 2;
     for (unsigned int j = 0; j < N; ++j)
     {
         for (unsigned int i = 0; i < M; ++i)

@@ -6,9 +6,10 @@
 #include <sys/time.h>
 
 #include "mysync.h"
-#define  FILE_NAME_LENGTH 80
 
-static pthread_mutex_t count_mutex;
+#define FILE_NAME_LENGTH 256
+
+static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void thread_unlock() { pthread_mutex_unlock(&count_mutex); }
 
@@ -17,6 +18,11 @@ void thread_lock() { pthread_mutex_lock(&count_mutex); }
 void writearray(int* arr, unsigned int NN, const char* file)
 {
     FILE* fp = fopen(file, "w");
+    if (fp == NULL)
+    {
+        perror("Error opening file");
+        return;
+    }
     for (unsigned int j = 0; j < NN; j++)
     {
         fprintf(fp, "%d %d\n", j, arr[j]);
@@ -34,17 +40,35 @@ long unsigned int syncappend(int* input, unsigned int NN, FILE* file)
     };
 
     struct mystruct* info = malloc(sizeof *info);
+    if (info == NULL)
+    {
+        perror("Error allocating memory");
+        return 0;
+    }
 
     int* copyarr = malloc(NN * sizeof(int));
+    if (copyarr == NULL)
+    {
+        perror("Error allocating memory");
+        free(info);
+        return 0;
+    }
     memcpy(copyarr, input, NN * sizeof(int));
     info->array = copyarr;
     info->file = file;
     info->NN = NN;
+
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0lu;
-    pthread_create(&tid, &attr, threadAppend, info);
+    pthread_t tid = 0;
+    if (pthread_create(&tid, &attr, threadAppend, info) != 0)
+    {
+        perror("Error creating thread");
+        free(copyarr);
+        free(info);
+        return 0;
+    }
 
     return tid;
 }
@@ -52,29 +76,34 @@ long unsigned int syncappend(int* input, unsigned int NN, FILE* file)
 void* threadAppend(void* inStruct)
 {
     pthread_mutex_lock(&count_mutex);
+
     struct mystruct
     {
         int* array;
         FILE* file;
         unsigned int NN;
-    } mine = *(struct mystruct*)inStruct;
+    }* mine = inStruct;
 
-    int* arrptr = mine.array;
-    FILE* file = mine.file;
-    int* copyarr = malloc(mine.NN * sizeof(int));
-    memcpy(copyarr, arrptr, mine.NN * sizeof(int));
-    mine.array = copyarr;
-    free(arrptr);
-    free(inStruct);
-
-    printTOD(file);
-    for (unsigned int j = 0; j < mine.NN; j++)
+    int* copyarr = malloc(mine->NN * sizeof(int));
+    if (copyarr == NULL)
     {
-        fprintf(file, "%d\n", mine.array[j]);
+        perror("Error allocating memory");
+        pthread_mutex_unlock(&count_mutex);
+        pthread_exit(NULL);
     }
-    fflush(file);
+    memcpy(copyarr, mine->array, mine->NN * sizeof(int));
+    free(mine->array);
+    mine->array = copyarr;
 
-    free(copyarr);
+    printTOD(mine->file);
+    for (unsigned int j = 0; j < mine->NN; j++)
+    {
+        fprintf(mine->file, "%d\n", mine->array[j]);
+    }
+    fflush(mine->file);
+
+    free(mine->array);
+    free(mine);
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
@@ -89,54 +118,73 @@ void syncwrite(int* input, unsigned int NN, char* file)
     };
 
     struct mystruct* info = calloc(1, sizeof *info);
+    if (info == NULL)
+    {
+        perror("Error allocating memory");
+        return;
+    }
 
     int* copyarr = calloc(NN, sizeof(int));
+    if (copyarr == NULL)
+    {
+        perror("Error allocating memory");
+        free(info);
+        return;
+    }
     memcpy(copyarr, input, NN * sizeof(int));
     info->array = copyarr;
-    strcpy(info->file, file);
+    strncpy(info->file, file, FILE_NAME_LENGTH - 1);
+    info->file[FILE_NAME_LENGTH - 1] = '\0';
     info->NN = NN;
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0lu;
-    pthread_create(&tid, &attr, threadWrite, info);
+    pthread_t tid = 0;
+    if (pthread_create(&tid, &attr, threadWrite, info) != 0)
+    {
+        perror("Error creating thread");
+        free(copyarr);
+        free(info);
+    }
 }
 
 void* threadWrite(void* inStruct)
 {
     pthread_mutex_lock(&count_mutex);
+
     struct mystruct
     {
         int* array;
         char file[FILE_NAME_LENGTH];
         unsigned int NN;
-    } mine = *(struct mystruct*)inStruct;
+    }* mine = inStruct;
 
-    int* arrptr = mine.array;
-    int* copyarr = calloc(mine.NN, sizeof(int));
-    memcpy(copyarr, arrptr, mine.NN * sizeof(int));
+    writearray(mine->array, mine->NN, mine->file);
 
-    writearray(mine.array, mine.NN, mine.file);
-
-    free(copyarr);
-    free(arrptr);
-    free(inStruct);
+    free(mine->array);
+    free(mine);
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }
 
 void printTOD(FILE* out)
 {
-    if (out == 0)
+    if (out == NULL)
         return;
+
     struct timeval tv;
-    struct timezone tz;
-    gettimeofday(&tv, &tz);
+    gettimeofday(&tv, NULL);
 
     struct tm* today = localtime(&tv.tv_sec);
+    if (today == NULL)
+    {
+        perror("Error getting local time");
+        return;
+    }
+
     fprintf(out,
-            "# %04d-%02d-%02dT%02d:%02d:%02d.%ld %lu.%lu\n",
+            "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lu.%06lu\n",
             today->tm_year + 1900,
             today->tm_mon + 1,
             today->tm_mday,
@@ -150,8 +198,9 @@ void printTOD(FILE* out)
 
 void syncappendDouble(double* input, unsigned int NN, FILE* file)
 {
-    if (file == 0)
+    if (file == NULL)
         return;
+
     struct mystruct
     {
         double* array;
@@ -160,8 +209,19 @@ void syncappendDouble(double* input, unsigned int NN, FILE* file)
     };
 
     struct mystruct* info = malloc(sizeof *info);
+    if (info == NULL)
+    {
+        perror("Error allocating memory");
+        return;
+    }
 
     double* copyarr = malloc(NN * sizeof(double));
+    if (copyarr == NULL)
+    {
+        perror("Error allocating memory");
+        free(info);
+        return;
+    }
     memcpy(copyarr, input, NN * sizeof(double));
     info->array = copyarr;
     info->file = file;
@@ -170,36 +230,46 @@ void syncappendDouble(double* input, unsigned int NN, FILE* file)
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0lu;
-    pthread_create(&tid, &attr, threadAppendDouble, info);
+    pthread_t tid = 0;
+    if (pthread_create(&tid, &attr, threadAppendDouble, info) != 0)
+    {
+        perror("Error creating thread");
+        free(copyarr);
+        free(info);
+    }
 }
 
 void* threadAppendDouble(void* inStruct)
 {
     pthread_mutex_lock(&count_mutex);
+
     struct mystruct
     {
         double* array;
         FILE* file;
         unsigned int NN;
-    } mine = *(struct mystruct*)inStruct;
+    }* mine = inStruct;
 
-    double* arrptr = mine.array;
-    FILE* file = mine.file;
-    double* copyarr = malloc(mine.NN * sizeof(double));
-    memcpy(copyarr, arrptr, mine.NN * sizeof(double));
-    mine.array = copyarr;
-    free(arrptr);
-    free(inStruct);
-
-    printTOD(file);
-    for (unsigned int j = 0; j < mine.NN; j++)
+    double* copyarr = malloc(mine->NN * sizeof(double));
+    if (copyarr == NULL)
     {
-        fprintf(file, "%f\n", mine.array[j]);
+        perror("Error allocating memory");
+        pthread_mutex_unlock(&count_mutex);
+        pthread_exit(NULL);
     }
-    fflush(file);
+    memcpy(copyarr, mine->array, mine->NN * sizeof(double));
+    free(mine->array);
+    mine->array = copyarr;
 
-    free(copyarr);
+    printTOD(mine->file);
+    for (unsigned int j = 0; j < mine->NN; j++)
+    {
+        fprintf(mine->file, "%f\n", mine->array[j]);
+    }
+    fflush(mine->file);
+
+    free(mine->array);
+    free(mine);
     pthread_mutex_unlock(&count_mutex);
     pthread_exit(NULL);
 }

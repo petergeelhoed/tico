@@ -25,7 +25,8 @@
 #define DEFAULT_TEETH 1
 #define DEFAULT_SDTHRESHOLD 3.0
 #define DEFAULT_CVALUE 7
-#define PRESHIFT_THRESHOLD 10
+#define PRESHIFT_THRESHOLD 100
+#define PRESHIFT_THRESHOLD_ROOT 10
 #define AUTOCOR_LIMIT 1
 #define ERROR_ALLOCATE_MEM -5
 volatile int keepRunning = 1;
@@ -349,12 +350,14 @@ int main(int argc, char* argv[])
         maxpos.arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&
-            *(maxvals.arrd + ticktock) > (double)cvalue / 16)
+            *(maxvals.arrd + ticktock) > (double)cvalue / 16 &&
+            totalTickTock % teeth == 0)
         {
             if (abs(maxposition) > PRESHIFT_THRESHOLD)
             {
-                // shift with 3√ outside threshold
-                maxposition = (int)(3 * maxposition / sqrt(abs(maxposition)));
+                // shift with √ outside threshold
+                maxposition = (int)(PRESHIFT_THRESHOLD_ROOT * maxposition /
+                                    sqrt(abs(maxposition)));
             }
 
             totalshift += maxposition;

@@ -396,10 +396,14 @@ int main(int argc, char* argv[])
 
     if (teeth > 1)
     {
-        printf("peak   shift \n");
+        printf("peak   shift beaterr\n");
         for (unsigned int k = 0; k < teeth; ++k)
         {
-            printf("%6d%6d\n", k, getshift(teethArray[0], teethArray[k]));
+            double beaterr = getBeatError(&teethArray[k], rate, 0);
+            printf("%6d%6d%6.2f\n",
+                   k,
+                   getshift(teethArray[0], teethArray[k]),
+                   beaterr);
         }
     }
 

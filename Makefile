@@ -69,6 +69,10 @@ LIBS = \
 	$(LIB)/libmyfft.a \
 	$(LIB)/libmymath.a
 
+MYOBJS = \
+       $(OBJ)/crosscorint.o \
+       $(OBJ)/parseargs.o 
+
 all: $(LIBS) $(TARGETS)
 test: $(TESTTARGETS)
 
@@ -83,8 +87,8 @@ clean:
 $(OBJ)/%.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(LIB)/libmylib.a: $(OBJ)/mylib.o $(OBJ)/crosscorint.o myarr.h
-	ar -rcs $@ $< $(OBJ)/crosscorint.o
+$(LIB)/libmylib.a: $(OBJ)/mylib.o $(MYOBJS) myarr.h 
+	ar -rcs $@ $< $(MYOBJS)
 
 $(LIB)/lib%.a: $(OBJ)/%.o myarr.h
 	ar -rcs $@ $<

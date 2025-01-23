@@ -9,7 +9,6 @@
 
 int main()
 {
-
     unsigned int NN = 1000;
     double d;
     double d1;

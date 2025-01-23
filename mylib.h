@@ -1,5 +1,8 @@
 #include "crosscorint.h"
 #include "myarr.h"
+#include "parseargs.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void linregd(const double* xarr,
              const double* yarr,

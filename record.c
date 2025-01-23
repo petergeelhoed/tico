@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "myarr.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
@@ -72,24 +73,17 @@ int main(int argc, char* argv[])
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, rate);
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
-    int rawread[NN];
+    struct myarr rawread = {calloc(NN, sizeof(int)), 0, NN};
+
     FILE* fp = fopen("recorded", "w");
-    readBufferRaw(capture_handle, 8000, buffer, rawread);
-    readBufferRaw(capture_handle, 8000, buffer, rawread);
-    readBufferRaw(capture_handle, 8000, buffer, rawread);
+    readBufferRaw(capture_handle, buffer, &rawread);
+    readBufferRaw(capture_handle, buffer, &rawread);
     while (length)
     {
         length--;
-        readBufferRaw(capture_handle, NN, buffer, rawread);
+        readBufferRaw(capture_handle, buffer, &rawread);
 
-        // double out[NN];
-        // applyFilter(rawread, NN, filterFFT, out);
-        /*       for (int j = 0; j < NN; j++)
-               {
-                   fprintf(fp, "%d\n", rawread[j]);
-               }
-          */
-        syncappend(rawread, NN, fp);
+        syncappend(rawread.arr, rawread.NN, fp);
         printf("%d\n", length);
     }
 

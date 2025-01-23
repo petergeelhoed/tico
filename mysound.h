@@ -7,10 +7,7 @@ int readBuffer(snd_pcm_t* capture_handle,
                unsigned int NN,
                char* buffer,
                int* derivative);
-void readBufferRaw(snd_pcm_t* capture_handle,
-                   unsigned int NN,
-                   char* buffer,
-                   int* in);
+void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in);
 
 int readBufferOrFile(int* derivative,
                      snd_pcm_t* capture_handle,

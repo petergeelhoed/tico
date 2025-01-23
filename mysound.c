@@ -120,15 +120,12 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
     return capture_handle;
 }
 
-void readBufferRaw(snd_pcm_t* capture_handle,
-                   unsigned int NN,
-                   char* buffer,
-                   int* in)
+void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
-    if (err != (int)NN)
+    int err = snd_pcm_readi(capture_handle, buffer, in->NN);
+    if (err != (int)in->NN)
     {
         fprintf(stderr,
                 "read from audio interface failed %d (%s)\n",
@@ -136,11 +133,11 @@ void readBufferRaw(snd_pcm_t* capture_handle,
                 snd_strerror(err));
         exit(READ_FAILED);
     }
-    for (unsigned int j = 0; j < 2 * NN; j += 2)
+    for (unsigned int j = 0; j < 2 * in->NN; j += 2)
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
-        in[j / 2] = (msb << 8) | lsb;
+        in->arr[j / 2] = (msb << 8) | lsb;
     }
 }
 

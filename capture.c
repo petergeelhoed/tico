@@ -246,6 +246,7 @@ int main(int argc, char* argv[])
                            maxpos.arr + ticktock - writeinterval,
                            writeinterval * sizeof(int));
                     syncAppendMyarr(&syncarr, fpposition);
+                    free(syncarr.arr);
                 }
             }
             if (fpmaxcor != NULL)
@@ -258,6 +259,7 @@ int main(int argc, char* argv[])
                            maxvals.arrd + ticktock - writeinterval,
                            writeinterval * sizeof(double));
                     syncAppendMyarr(&syncarr, fpmaxcor);
+                    free(syncarr.arrd);
                 }
             }
         }
@@ -305,6 +307,7 @@ int main(int argc, char* argv[])
         writefileDouble(fpmaxcor,
                         maxvals.arrd + ticktock - ticktock % writeinterval,
                         ticktock % writeinterval);
+        fclose(fpmaxcor);
     }
     if (fpposition)
     {

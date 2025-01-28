@@ -6,7 +6,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "myarr.h"
 #include "mysync.h"
 
 #define FILE_NAME_LENGTH 256
@@ -142,6 +141,7 @@ void* threadAppendMyarr(void* inStruct)
 
     free(mine->array->arr);
     free(mine->array->arrd);
+    free(mine->array);
     free(mine);
     count--;
     pthread_mutex_unlock(&count_mutex);

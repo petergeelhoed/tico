@@ -238,15 +238,27 @@ int main(int argc, char* argv[])
         {
             if (fpposition)
             {
-                syncappend(maxpos.arr + ticktock - writeinterval,
-                           writeinterval,
-                           fpposition);
+                struct myarr syncarr = {
+                    calloc(writeinterval, sizeof(int)), 0, writeinterval};
+                if (syncarr.arr != NULL)
+                {
+                    memcpy(syncarr.arr,
+                           maxpos.arr + ticktock - writeinterval,
+                           writeinterval * sizeof(int));
+                    syncAppendMyarr(&syncarr, fpposition);
+                }
             }
-            if (fpmaxcor)
+            if (fpmaxcor != NULL)
             {
-                syncappendDouble(maxvals.arrd + ticktock - writeinterval,
-                                 writeinterval,
-                                 fpmaxcor);
+                struct myarr syncarr = {
+                    NULL, calloc(writeinterval, sizeof(double)), writeinterval};
+                if (syncarr.arrd != NULL)
+                {
+                    memcpy(syncarr.arrd,
+                           maxvals.arrd + ticktock - writeinterval,
+                           writeinterval * sizeof(double));
+                    syncAppendMyarr(&syncarr, fpmaxcor);
+                }
             }
         }
 
@@ -285,6 +297,7 @@ int main(int argc, char* argv[])
     free(tmpder.arr);
     fftw_free(filterFFT);
 
+    wait();
     thread_lock();
     if (fpmaxcor)
     {

@@ -40,6 +40,7 @@ TARGETS = \
 
 TESTTARGETS = \
 	testfft \
+	testmysync \
 	testfilter \
 	testremove50 \
 	testlinreg \

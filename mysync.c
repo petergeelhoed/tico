@@ -4,12 +4,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
+#include "myarr.h"
 #include "mysync.h"
 
 #define FILE_NAME_LENGTH 256
 
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
+volatile int count = 0;
+
+void wait()
+{
+    while (count > 0)
+    {
+        usleep(10000);
+    }
+}
 
 void thread_unlock() { pthread_mutex_unlock(&count_mutex); }
 
@@ -28,6 +39,113 @@ void writearray(int* arr, unsigned int NN, const char* file)
         fprintf(fp, "%d %d\n", j, arr[j]);
     }
     fclose(fp);
+}
+
+long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
+{
+    count++;
+    struct mystruct
+    {
+        struct myarr* array;
+        FILE* file;
+    };
+
+    struct mystruct* info = malloc(sizeof(struct mystruct));
+    if (info == NULL)
+    {
+        count--;
+        perror("Error allocating memory");
+        return 0;
+    }
+
+    info->array = malloc(sizeof(struct myarr));
+    if (info->array == NULL)
+    {
+        count--;
+        perror("Error allocating memory");
+        return 0;
+    }
+    info->array->arr = NULL;
+    info->array->arrd = NULL;
+
+    if (input->arr != NULL)
+    {
+        info->array->arr = malloc(input->NN * sizeof(int));
+        if (info->array->arr == NULL)
+        {
+            count--;
+            perror("Error allocating memory");
+            return 0;
+        }
+
+        memcpy(info->array->arr, input->arr, input->NN * sizeof(int));
+    }
+    if (input->arrd != NULL)
+    {
+        info->array->arrd = malloc(input->NN * sizeof(double));
+        if (info->array->arrd == NULL)
+        {
+            count--;
+            perror("Error allocating memory");
+            return 0;
+        }
+
+        memcpy(info->array->arrd, input->arrd, input->NN * sizeof(double));
+    }
+
+    info->file = file;
+    info->array->NN = input->NN;
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_t tid = 0;
+    if (pthread_create(&tid, &attr, threadAppendMyarr, info) != 0)
+    {
+        perror("Error creating thread");
+        free(info->array->arr);
+        free(info->array->arrd);
+        free(info);
+        return 0;
+    }
+    return tid;
+}
+
+void* threadAppendMyarr(void* inStruct)
+{
+    pthread_mutex_lock(&count_mutex);
+
+    struct mystruct
+    {
+        struct myarr* array;
+        FILE* file;
+    }* mine = inStruct;
+
+    printTOD(mine->file);
+    if (mine->array->arr != NULL)
+    {
+        for (unsigned int j = 0; j < mine->array->NN; j++)
+        {
+            fprintf(mine->file, "%d\n", mine->array->arr[j]);
+        }
+    }
+
+    if (mine->array->arrd != NULL)
+    {
+        for (unsigned int j = 0; j < mine->array->NN; j++)
+        {
+            fprintf(mine->file, "%f\n", mine->array->arrd[j]);
+        }
+    }
+
+    fflush(mine->file);
+
+    free(mine->array->arr);
+    free(mine->array->arrd);
+    free(mine);
+    count--;
+    pthread_mutex_unlock(&count_mutex);
+    pthread_exit(NULL);
 }
 
 long unsigned int syncappend(int* input, unsigned int NN, FILE* file)

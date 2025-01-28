@@ -299,8 +299,6 @@ int main(int argc, char* argv[])
         writefile(fpposition,
                   maxpos.arr + ticktock - ticktock % writeinterval,
                   ticktock % writeinterval);
-        //   syncappend(maxpos.arr + ticktock - ticktock % writeinterval,
-        //   ticktock % writeinterval, fpposition);
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
         fclose(fpposition);
     }

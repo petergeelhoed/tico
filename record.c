@@ -83,10 +83,14 @@ int main(int argc, char* argv[])
         length--;
         readBufferRaw(capture_handle, buffer, &rawread);
 
-        syncappend(rawread.arr, rawread.NN, fp);
+        syncAppendMyarr(&rawread, fp);
         printf("%d\n", length);
     }
 
     fftw_free(filterFFT);
+    wait();
+    thread_lock();
+    fclose(fp);
+    thread_unlock();
     exit(0);
 }

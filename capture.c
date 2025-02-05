@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
     unsigned int cvalue = DEFAULT_CVALUE;
     unsigned int verbose = 0;
     unsigned int writeinterval = DEFAULT_TICKTOCK_WRITE;
+    unsigned int lastWrite = 0;
     unsigned int fitN = DEFAULT_FITN;
     unsigned int teeth = DEFAULT_TEETH;
     unsigned int ticktockBuffer = ARR_BUFF * 2;
@@ -234,8 +235,9 @@ int main(int argc, char* argv[])
         }
 
         if (ticktock > 0 && totalTickTock % writeinterval == 0)
-
         {
+            lastWrite = totalTickTock;
+
             if (fpposition)
             {
                 struct myarr syncarr = {
@@ -305,16 +307,16 @@ int main(int argc, char* argv[])
     {
         printTOD(fpmaxcor);
         writefileDouble(fpmaxcor,
-                        maxvals.arrd + ticktock - ticktock % writeinterval,
-                        ticktock % writeinterval);
+                        maxvals.arrd + ticktock - (totalTickTock - lastWrite),
+                        totalTickTock - lastWrite);
         fclose(fpmaxcor);
     }
     if (fpposition)
     {
         printTOD(fpposition);
         writefile(fpposition,
-                  maxpos.arr + ticktock - ticktock % writeinterval,
-                  ticktock % writeinterval);
+                  maxpos.arr + ticktock - (totalTickTock - lastWrite),
+                  totalTickTock - lastWrite);
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
         fclose(fpposition);
     }

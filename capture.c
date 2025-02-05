@@ -84,6 +84,12 @@ int main(int argc, char* argv[])
                     &fpDefPeak,
                     &fpInput);
 
+    if (fitN > ticktockBuffer / 2)
+    {
+        printf("Local fit N(%d) cannot be larger than %d\n",
+               fitN,
+               ticktockBuffer / 2);
+    }
     unsigned int NN = rate * 7200 / bph;
     NN = (NN + NN % 2);
     unsigned int mod = NN / zoom;

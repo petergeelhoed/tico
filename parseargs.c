@@ -1,5 +1,5 @@
-#include "mylib.h"
 #include "parseargs.h"
+#include "mylib.h"
 #include <unistd.h>
 
 void parse_arguments(int argc,
@@ -87,9 +87,9 @@ void parse_arguments(int argc,
                 exit(-1);
             break;
         case 'b':
-            if (checkUIntArg(c, bph, optarg) != 0 || *bph < 4800)
+            if (checkUIntArg(c, bph, optarg) != 0 || *bph < 3600)
             {
-                fprintf(stderr, "refusing bph <4800 %d\n", *bph);
+                fprintf(stderr, "refusing bph < 3600 %d\n", *bph);
                 exit(-1);
             }
             break;

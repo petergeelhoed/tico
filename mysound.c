@@ -13,7 +13,7 @@
 #define INPUT_FILE_ERROR -33
 
 // Initialize audio capture
-snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
+snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
     int err;
     snd_pcm_t* capture_handle = NULL;
@@ -73,8 +73,9 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         exit(INIT_ERROR);
     }
 
+    unsigned int requestedRate = *rate;
     if ((err = snd_pcm_hw_params_set_rate_near(
-             capture_handle, hw_params, &rate, 0)) < 0)
+             capture_handle, hw_params, rate, 0)) < 0)
     {
         fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
         if (hw_params)
@@ -82,6 +83,13 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate)
         if (capture_handle)
             snd_pcm_close(capture_handle);
         exit(INIT_ERROR);
+    }
+    if (*rate != requestedRate)
+    {
+        fprintf(stderr,
+                "Requested audiorate %d unavailable, using %d\n",
+                requestedRate,
+                *rate);
     }
 
     if ((err = snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1)) <
@@ -244,7 +252,7 @@ int getData(FILE* rawfile,
                 fprintf(rawfile, "# Reinitializing capture_handle");
             }
             snd_pcm_close(capture_handle);
-            capture_handle = initAudio(format, device, rate);
+            capture_handle = initAudio(format, device, &rate);
             err = readBufferOrFile(
                 derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
         }

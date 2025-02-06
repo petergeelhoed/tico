@@ -90,11 +90,6 @@ int main(int argc, char* argv[])
                fitN,
                ticktockBuffer / 2);
     }
-    unsigned int NN = rate * 7200 / bph;
-    NN = (NN + NN % 2);
-    unsigned int mod = NN / zoom;
-    unsigned int tps = rate / NN;
-    unsigned int maxtime = tps * (time ? time : 30);
 
     device = (device == NULL) ? "default:2" : device;
 
@@ -104,7 +99,8 @@ int main(int argc, char* argv[])
 
     if (fpInput == NULL)
     {
-        capture_handle = initAudio(format, device, rate);
+        // rate could change, if not available
+        capture_handle = initAudio(format, device, &rate);
     }
 
     if (fpInput == NULL && capture_handle == NULL)
@@ -112,6 +108,12 @@ int main(int argc, char* argv[])
         fprintf(stderr, "No inputfile or soundcard");
         return -6;
     }
+
+    unsigned int NN = rate * 7200 / bph;
+    NN = (NN + NN % 2);
+    unsigned int mod = NN / zoom;
+    unsigned int tps = rate / NN;
+    unsigned int maxtime = tps * (time ? time : 30);
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 

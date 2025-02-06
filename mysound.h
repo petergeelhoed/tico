@@ -2,7 +2,7 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 
-snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int rate);
+snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate);
 int readBuffer(snd_pcm_t* capture_handle,
                unsigned int NN,
                char* buffer,

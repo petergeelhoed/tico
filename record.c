@@ -18,7 +18,6 @@ int main(int argc, char* argv[])
     unsigned int evalue = 4;
     char* device = 0;
     // declarations
-    unsigned int NN = rate * 3600 * 2 / bph;
 
     while ((c = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
     {
@@ -64,14 +63,15 @@ int main(int argc, char* argv[])
             return retVal;
         }
     }
-    unsigned int length = time * bph / 7200;
-
-    fftw_complex* filterFFT = makeFilter(evalue, NN);
 
     device = device == 0 ? "default:1" : device;
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = initAudio(format, device, rate);
+    snd_pcm_t* capture_handle = initAudio(format, device, &rate);
+    unsigned int NN = rate * 3600 * 2 / bph;
+    unsigned int length = time * bph / 7200;
+
+    fftw_complex* filterFFT = makeFilter(evalue, NN);
     char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
     struct myarr rawread = {calloc(NN, sizeof(int)), 0, NN};
 

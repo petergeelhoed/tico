@@ -34,6 +34,7 @@ volatile unsigned int columns = 80;
 
 int main(int argc, char* argv[])
 {
+    // test github
     unsigned int rate = DEFAULT_RATE;
     unsigned int bph = DEFAULT_BPH;
     unsigned int evalue = DEFAULT_EVALUE;

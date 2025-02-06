@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
     }
 
     fprintf(stderr,
-            "\033[2J\033[2;0H\nFound COLUMNS=%d, width = %.3fms / "
+            "Found COLUMNS=%d, width = %.3fms / "
             "%.1fμs/character\n",
             columns,
             mod * 1000. / rate,

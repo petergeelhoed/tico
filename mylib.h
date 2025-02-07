@@ -49,7 +49,7 @@ void calculateTotalFromFile(unsigned int n,
                             double threshold);
 
 void calculateTotal(unsigned int n,
-                    int* maxpos,
+                    double* maxpos,
                     unsigned int NN,
                     double threshold);
 

@@ -231,8 +231,6 @@ int main(int argc, char* argv[])
                              subpos.arrd + ticktock),
                       NN);
 
-        printf("%d %d %f\n", totalTickTock, maxposition, subpos.arrd[ticktock]);
-
         maxpos.arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&

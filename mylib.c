@@ -207,7 +207,7 @@ void calculateTotalFromFile(unsigned int n,
                             double threshold)
 {
     fseek(rawfile, 0, SEEK_SET);
-    int* all = calloc(n, sizeof(int));
+    double* all = calloc(n, sizeof(double));
     unsigned int i = 0;
     if (all)
     {
@@ -217,7 +217,7 @@ void calculateTotalFromFile(unsigned int n,
         {
             if (buf[0] != '#')
             {
-                all[i] = atoi(buf);
+                all[i] = atof(buf);
                 i++;
             }
         }
@@ -228,21 +228,21 @@ void calculateTotalFromFile(unsigned int n,
 }
 
 void calculateTotal(unsigned int n,
-                    int* maxpos,
+                    double* maxpos,
                     unsigned int NN,
                     double threshold)
 {
     double b = 0.0;
     double a = 0.0;
     double s = 0.0;
-    int xarr[n];
+    double xarr[n];
 
     for (unsigned int i = 0; i < n; ++i)
     {
-        xarr[i] = (int)i;
+        xarr[i] = (double)i;
     }
 
-    linreg(xarr, maxpos, n, &a, &b, &s);
+    linregd(xarr, maxpos, n, &a, &b, &s);
 
     /*
        a /= NN*NN;
@@ -265,7 +265,7 @@ void calculateTotal(unsigned int n,
             m++;
         }
     }
-    linreg(xarr, maxpos, m, &a, &b, &s);
+    linregd(xarr, maxpos, m, &a, &b, &s);
 
     fprintf(stderr,
             "after %.1fσ removal: %.2f s/d, %d samples\n",

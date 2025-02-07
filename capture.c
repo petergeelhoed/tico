@@ -117,6 +117,8 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
+    struct myarr subpos = {
+        0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
     struct myarr maxpos = {
         calloc(ticktockBuffer, sizeof(int)), 0, ticktockBuffer};
     struct myarr maxvals = {
@@ -140,8 +142,8 @@ int main(int argc, char* argv[])
 
     char* buffer = calloc(NN, (unsigned int)snd_pcm_format_width(format) / 8);
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
-        maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL ||
-        tmpder.arr == NULL)
+        maxpos.arr == NULL || subpos.arrd == NULL || filterFFT == NULL ||
+        derivative.arr == NULL || tmpder.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
@@ -167,6 +169,8 @@ int main(int argc, char* argv[])
         if (ticktock == ticktockBuffer)
         {
             // shift data back, has been written already
+            memcpy(
+                subpos.arrd, subpos.arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals.arrd,
                    maxvals.arrd + ARR_BUFF,
@@ -223,8 +227,11 @@ int main(int argc, char* argv[])
                              reference.arr,
                              maxvals.arrd + ticktock,
                              filterFFT,
-                             totalTickTock > 0 && totalTickTock == verbose),
+                             totalTickTock > 0 && totalTickTock == verbose,
+                             subpos.arrd + ticktock),
                       NN);
+
+        printf("%d %d %f\n", totalTickTock, maxposition, subpos.arrd[ticktock]);
 
         maxpos.arr[ticktock] = totalshift + maxposition;
 

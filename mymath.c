@@ -197,6 +197,7 @@ void fitNpeaks(double* a,
                const unsigned int i,
                const struct myarr* maxvals,
                const struct myarr* maxes,
+               const struct myarr* subpos,
                const unsigned int npeaks)
 {
     unsigned int fitwindow = (i > npeaks) ? npeaks : i;
@@ -218,7 +219,7 @@ void fitNpeaks(double* a,
         }
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            y[m] = (double)maxes->arr[i - k];
+            y[m] = (double)maxes->arr[i - k] + subpos->arrd[i - k];
             x[m] = (double)k;
             w[m] = maxvals->arrd[i - k] * maxvals->arrd[i - k];
             m++;

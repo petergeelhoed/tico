@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, fitN);
+        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, &subpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,

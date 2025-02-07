@@ -117,6 +117,8 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
+    struct myarr subpos = {
+        0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
     struct myarr maxpos = {
         calloc(ticktockBuffer, sizeof(int)), 0, ticktockBuffer};
     struct myarr maxvals = {
@@ -140,8 +142,8 @@ int main(int argc, char* argv[])
 
     char* buffer = calloc(NN, (unsigned int)snd_pcm_format_width(format) / 8);
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
-        maxpos.arr == NULL || filterFFT == NULL || derivative.arr == NULL ||
-        tmpder.arr == NULL)
+        maxpos.arr == NULL || subpos.arrd == NULL || filterFFT == NULL ||
+        derivative.arr == NULL || tmpder.arr == NULL)
     {
         fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
@@ -167,6 +169,8 @@ int main(int argc, char* argv[])
         if (ticktock == ticktockBuffer)
         {
             // shift data back, has been written already
+            memcpy(
+                subpos.arrd, subpos.arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
             memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals.arrd,
                    maxvals.arrd + ARR_BUFF,
@@ -223,7 +227,8 @@ int main(int argc, char* argv[])
                              reference.arr,
                              maxvals.arrd + ticktock,
                              filterFFT,
-                             totalTickTock > 0 && totalTickTock == verbose),
+                             totalTickTock > 0 && totalTickTock == verbose,
+                             subpos.arrd + ticktock),
                       NN);
 
         maxpos.arr[ticktock] = totalshift + maxposition;
@@ -249,14 +254,17 @@ int main(int argc, char* argv[])
             if (fpposition)
             {
                 struct myarr syncarr = {
-                    calloc(writeinterval, sizeof(int)), 0, writeinterval};
-                if (syncarr.arr != NULL)
+                    0, calloc(writeinterval, sizeof(double)), writeinterval};
+                if (syncarr.arrd != NULL)
                 {
-                    memcpy(syncarr.arr,
-                           maxpos.arr + ticktock - writeinterval,
-                           writeinterval * sizeof(int));
+                    for (unsigned int k = 0; k < writeinterval; ++k)
+                    {
+                        syncarr.arrd[k] =
+                            subpos.arrd[ticktock - writeinterval + k] +
+                            (double)maxpos.arr[ticktock - writeinterval + k];
+                    }
                     syncAppendMyarr(&syncarr, fpposition);
-                    free(syncarr.arr);
+                    free(syncarr.arrd);
                 }
             }
             if (fpmaxcor != NULL)
@@ -274,7 +282,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, fitN);
+        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, &subpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,
@@ -310,7 +318,6 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
 
     wait();
-    thread_lock();
     if (fpmaxcor)
     {
         printTOD(fpmaxcor);
@@ -321,14 +328,27 @@ int main(int argc, char* argv[])
     }
     if (fpposition)
     {
-        printTOD(fpposition);
-        writefile(fpposition,
-                  maxpos.arr + ticktock - (totalTickTock - lastWrite),
-                  totalTickTock - lastWrite);
+        thread_lock();
+        unsigned int writelength = totalTickTock - lastWrite;
+        struct myarr syncarr = {
+            0, calloc(writelength, sizeof(double)), writelength};
+        if (syncarr.arrd != NULL)
+        {
+            for (unsigned int k = 0; k < writelength; ++k)
+            {
+                syncarr.arrd[k] =
+                    subpos.arrd[ticktock - writelength + k] +
+                    (double)maxpos.arr[ticktock - writelength + k];
+            }
+            syncAppendMyarr(&syncarr, fpposition);
+            free(syncarr.arrd);
+        }
+
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
+        thread_unlock();
+        wait();
         fclose(fpposition);
     }
-    thread_unlock();
 
     free(maxvals.arrd);
     free(maxpos.arr);

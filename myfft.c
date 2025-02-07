@@ -253,7 +253,8 @@ unsigned int fftfit(const struct myarr input,
                     int* base,
                     double* corvalue,
                     fftw_complex* filterFFT,
-                    int verb)
+                    int verb,
+                    double* subpos)
 {
     unsigned int NN = input.NN;
     fftw_complex* Fbase = fftw_alloc_complex(NN);
@@ -297,6 +298,12 @@ unsigned int fftfit(const struct myarr input,
                               filteredinput[(j + poscor + NN) % NN][0]);
         }
     }
+
+    *subpos = -0.5 *
+              (corr[(poscor - 1 + NN) % NN][0] - corr[(poscor + 1) % NN][0]) /
+              (2 * corr[poscor][0] - corr[(poscor - 1 + NN) % NN][0] -
+               corr[(poscor + 1) % NN][0]);
+
     fftw_free(filteredinput);
     fftw_free(Fbase);
     fftw_free(corr);

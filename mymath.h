@@ -20,4 +20,5 @@ void fitNpeaks(double* a,
                const unsigned int i,
                const struct myarr* maxvals,
                const struct myarr* maxes,
+               const struct myarr* subpos,
                const unsigned int npeaks);

@@ -301,52 +301,6 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
     }
 }
 
-void checkAndFlip(struct myarr* totaltick,
-                  struct myarr* reference,
-                  unsigned int verbose)
-{
-    unsigned int NN = totaltick->NN;
-    int* cross = calloc(NN, sizeof(int));
-    if (!cross)
-    {
-        fprintf(stderr, "Memory allocation failed in checkAndFlip\n");
-        return;
-    }
-    crosscorint(NN, totaltick->arr, reference->arr, cross);
-    unsigned int flipmaxp = getmaxpos(cross, NN);
-    if (verbose)
-    {
-        FILE* fp = fopen("flip", "w");
-        if (fp)
-        {
-            for (unsigned int j = 0; j < NN; j++)
-            {
-                fprintf(fp,
-                        "%d %d %d %d\n",
-                        j,
-                        totaltick->arr[j],
-                        reference->arr[j],
-                        cross[j]);
-            }
-            fclose(fp);
-        }
-    }
-
-    if (flipmaxp > NN / 4 && flipmaxp < NN * 3 / 4)
-    {
-        fprintf(stderr, "FLIPPING peaks pos %d\n", flipmaxp);
-
-        for (unsigned int j = 0; j < NN / 2; j++)
-        {
-            int tmp = reference->arr[j + NN / 2];
-            reference->arr[j + NN / 2] = reference->arr[j];
-            reference->arr[j] = tmp;
-        }
-    }
-
-    free(cross);
-}
-
 int shiftHalf(unsigned int value, unsigned int NN)
 {
     return ((int)value + (int)NN / 2) % (int)(NN) - (int)(NN / 2);

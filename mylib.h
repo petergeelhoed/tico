@@ -50,8 +50,5 @@ void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);
 
-void checkAndFlip(struct myarr* totaltick,
-                  struct myarr* reference,
-                  unsigned int verbose);
 int shiftHalf(unsigned int value, unsigned int NN);
 int modSigned(int value, unsigned int NN);

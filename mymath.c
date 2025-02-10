@@ -202,7 +202,7 @@ void fitNpeaks(double* a,
 {
     unsigned int fitwindow = (i > npeaks) ? npeaks : i;
 
-    if (i >= fitwindow)
+    if (i >= fitwindow && maxvals->arrd != NULL && maxes->arr != NULL && subpos->arrd!= NULL)
     {
         unsigned int m = 0;
 

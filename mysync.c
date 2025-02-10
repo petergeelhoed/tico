@@ -148,49 +148,6 @@ void* threadAppendMyarr(void* inStruct)
     pthread_exit(NULL);
 }
 
-long unsigned int syncappend(int* input, unsigned int NN, FILE* file)
-{
-    struct mystruct
-    {
-        int* array;
-        FILE* file;
-        unsigned int NN;
-    };
-
-    struct mystruct* info = malloc(sizeof *info);
-    if (info == NULL)
-    {
-        perror("Error allocating memory");
-        return 0;
-    }
-
-    int* copyarr = malloc(NN * sizeof(int));
-    if (copyarr == NULL)
-    {
-        perror("Error allocating memory");
-        free(info);
-        return 0;
-    }
-    memcpy(copyarr, input, NN * sizeof(int));
-    info->array = copyarr;
-    info->file = file;
-    info->NN = NN;
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0;
-    if (pthread_create(&tid, &attr, threadAppend, info) != 0)
-    {
-        perror("Error creating thread");
-        free(copyarr);
-        free(info);
-        return 0;
-    }
-
-    return tid;
-}
-
 void* threadAppend(void* inStruct)
 {
     pthread_mutex_lock(&count_mutex);
@@ -312,49 +269,6 @@ void printTOD(FILE* out)
             tv.tv_usec,
             tv.tv_sec,
             tv.tv_usec);
-}
-
-void syncappendDouble(double* input, unsigned int NN, FILE* file)
-{
-    if (file == NULL)
-        return;
-
-    struct mystruct
-    {
-        double* array;
-        FILE* file;
-        unsigned int NN;
-    };
-
-    struct mystruct* info = malloc(sizeof *info);
-    if (info == NULL)
-    {
-        perror("Error allocating memory");
-        return;
-    }
-
-    double* copyarr = malloc(NN * sizeof(double));
-    if (copyarr == NULL)
-    {
-        perror("Error allocating memory");
-        free(info);
-        return;
-    }
-    memcpy(copyarr, input, NN * sizeof(double));
-    info->array = copyarr;
-    info->file = file;
-    info->NN = NN;
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0;
-    if (pthread_create(&tid, &attr, threadAppendDouble, info) != 0)
-    {
-        perror("Error creating thread");
-        free(copyarr);
-        free(info);
-    }
 }
 
 void* threadAppendDouble(void* inStruct)

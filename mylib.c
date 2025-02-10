@@ -103,38 +103,6 @@ void linregd(const double* xarr,
               NN);
 }
 
-void linreg(const int* xarr,
-            const int* yarr,
-            unsigned int NN,
-            double* a,
-            double* b,
-            double* s)
-{
-    // trick to use more dynamic range of double type
-    double mx = (xarr[NN - 1] + xarr[0]) / 2;
-    double my = (yarr[NN - 1] + yarr[0]) / 2;
-    double x = 0;
-    double y = 0;
-    double xx = 0;
-    double xy = 0;
-    double yy = 0;
-    for (unsigned int i = 0; i < NN; ++i)
-    {
-        y += yarr[i] - my;
-        xx += (xarr[i] - mx) * (xarr[i] - mx);
-        x += xarr[i] - mx;
-        xy += (xarr[i] - mx) * (yarr[i] - my);
-        yy += (yarr[i] - my) * (yarr[i] - my);
-    }
-
-    *a = (y * xx - x * xy) / (NN * xx - x * x);
-    *b = (NN * xy - x * y) / (NN * xx - x * x);
-    *s = sqrt((yy - 2 * (*a) * y - 2 * (*b) * xy + 2 * (*a) * (*b) * x +
-               (*a) * (*a) * NN + (*b) * (*b) * xx) /
-              NN);
-    *a -= *b * mx - my;
-}
-
 // fit y=a+b*x
 void fit10secs(double* a,
                double* b,
@@ -150,20 +118,20 @@ void fit10secs(double* a,
 
     if (i >= fitwindow)
     {
-        int xarr[fitwindow];
-        int yarr[fitwindow];
+        double xarr[fitwindow];
+        double yarr[fitwindow];
         for (unsigned int k = 0; k < fitwindow; k++)
         {
             if (maxvals[i - k] > correlationThreshold)
             {
-                yarr[m] = maxes[i - k];
-                xarr[m] = (int)k;
+                yarr[m] =(double) maxes[i - k];
+                xarr[m] = (double)k;
                 m++;
             }
         }
         if (m > 1)
         {
-            linreg(xarr, yarr, m, a, b, s);
+            linregd(xarr, yarr, m, a, b, s);
         }
     }
 }

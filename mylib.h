@@ -10,12 +10,6 @@ void linregd(const double* xarr,
              double* a,
              double* b,
              double* s);
-void linreg(const int* xarr,
-            const int* yarr,
-            unsigned int NN,
-            double* a,
-            double* b,
-            double* s);
 
 unsigned int getmaxpos(int* array, unsigned int NN);
 

@@ -11,8 +11,8 @@
 int main()
 {
     unsigned int fitwindow = 14;
-    int xarr[fitwindow];
-    int yarr[fitwindow];
+    double xarr[fitwindow];
+    double yarr[fitwindow];
     double a = 0;
     double b = 0;
     double s = 0;
@@ -24,7 +24,7 @@ int main()
         yarr[k] = 4 + k * 2 + k % 2;
     }
 
-    linreg(xarr, yarr, n, &a, &b, &s);
+    linregd(xarr, yarr, n, &a, &b, &s);
 
     fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
     yarr[0] = 600;
@@ -49,7 +49,7 @@ int main()
     xarr[9] = 19;
     yarr[9] = 16;
     n = 10;
-    linreg(xarr, yarr, n, &a, &b, &s);
+    linregd(xarr, yarr, n, &a, &b, &s);
 
     fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
 

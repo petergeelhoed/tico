@@ -368,6 +368,7 @@ int main(int argc, char* argv[])
                         t,
                         toothshift);
             }
+            fprintf(fptotal,"\n\n");
         }
     }
     for (unsigned int t = 0; t < teeth; ++t)

@@ -5,11 +5,11 @@
 #include <stdlib.h>
 
 void linreg(const double* xarr,
-             const double* yarr,
-             unsigned int NN,
-             double* a,
-             double* b,
-             double* s);
+            const double* yarr,
+            unsigned int NN,
+            double* a,
+            double* b,
+            double* s);
 
 unsigned int getmaxpos(int* array, unsigned int NN);
 
@@ -38,10 +38,8 @@ void calculateTotal(unsigned int n,
                     unsigned int NN,
                     double threshold);
 
-double getBeatError(
-        const struct myarr* totalTick, 
-        unsigned int rate, 
-        int verbose);
+double
+getBeatError(const struct myarr* totalTick, unsigned int rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 

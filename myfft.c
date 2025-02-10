@@ -209,7 +209,6 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     return corr;
 }
 
-
 int getshift(const struct myarr x, const struct myarr y)
 {
     unsigned int NN = x.NN;

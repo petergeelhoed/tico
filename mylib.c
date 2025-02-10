@@ -76,11 +76,11 @@ void printspaces(int maxpos,
 }
 
 void linreg(const double* xarr,
-             const double* yarr,
-             unsigned int NN,
-             double* a,
-             double* b,
-             double* s)
+            const double* yarr,
+            unsigned int NN,
+            double* a,
+            double* b,
+            double* s)
 {
     double x = 0;
     double y = 0;

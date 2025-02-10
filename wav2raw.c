@@ -1,7 +1,7 @@
 /**
  * Read and parse a wave file
  * PG
-* assumes 21600bph and 48000 wav
+ * assumes 21600bph and 48000 wav
  **/
 #include <ctype.h>
 #include <math.h>

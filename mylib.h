@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void linregd(const double* xarr,
+void linreg(const double* xarr,
              const double* yarr,
              unsigned int NN,
              double* a,

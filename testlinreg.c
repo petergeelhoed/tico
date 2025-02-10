@@ -24,7 +24,7 @@ int main()
         yarr[k] = 4 + k * 2 + k % 2;
     }
 
-    linregd(xarr, yarr, n, &a, &b, &s);
+    linreg(xarr, yarr, n, &a, &b, &s);
 
     fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
     yarr[0] = 600;
@@ -49,7 +49,7 @@ int main()
     xarr[9] = 19;
     yarr[9] = 16;
     n = 10;
-    linregd(xarr, yarr, n, &a, &b, &s);
+    linreg(xarr, yarr, n, &a, &b, &s);
 
     fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
 

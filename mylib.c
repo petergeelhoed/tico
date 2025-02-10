@@ -75,7 +75,7 @@ void printspaces(int maxpos,
     fprintf(stderr, "\n");
 }
 
-void linregd(const double* xarr,
+void linreg(const double* xarr,
              const double* yarr,
              unsigned int NN,
              double* a,
@@ -131,7 +131,7 @@ void fit10secs(double* a,
         }
         if (m > 1)
         {
-            linregd(xarr, yarr, m, a, b, s);
+            linreg(xarr, yarr, m, a, b, s);
         }
     }
 }
@@ -210,7 +210,7 @@ void calculateTotal(unsigned int n,
         xarr[i] = (double)i;
     }
 
-    linregd(xarr, maxpos, n, &a, &b, &s);
+    linreg(xarr, maxpos, n, &a, &b, &s);
 
     /*
        a /= NN*NN;
@@ -233,7 +233,7 @@ void calculateTotal(unsigned int n,
             m++;
         }
     }
-    linregd(xarr, maxpos, m, &a, &b, &s);
+    linreg(xarr, maxpos, m, &a, &b, &s);
 
     fprintf(stderr,
             "after %.1fσ removal: %.2f s/d, %d samples\n",

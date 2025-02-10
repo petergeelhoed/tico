@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     double a = 0, b = 0, s = 0;
     if (lval)
     {
-        linregd(tmpx, tmpy, N, &a, &b, &s);
+        linreg(tmpx, tmpy, N, &a, &b, &s);
         fprintf(stderr, "a=%lf b=%lf s=%lf\n", a, b, s);
     }
     free(tmpx);

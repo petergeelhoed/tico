@@ -270,38 +270,3 @@ void printTOD(FILE* out)
             tv.tv_sec,
             tv.tv_usec);
 }
-
-void* threadAppendDouble(void* inStruct)
-{
-    pthread_mutex_lock(&count_mutex);
-
-    struct mystruct
-    {
-        double* array;
-        FILE* file;
-        unsigned int NN;
-    }* mine = inStruct;
-
-    double* copyarr = malloc(mine->NN * sizeof(double));
-    if (copyarr == NULL)
-    {
-        perror("Error allocating memory");
-        pthread_mutex_unlock(&count_mutex);
-        pthread_exit(NULL);
-    }
-    memcpy(copyarr, mine->array, mine->NN * sizeof(double));
-    free(mine->array);
-    mine->array = copyarr;
-
-    printTOD(mine->file);
-    for (unsigned int j = 0; j < mine->NN; j++)
-    {
-        fprintf(mine->file, "%f\n", mine->array[j]);
-    }
-    fflush(mine->file);
-
-    free(mine->array);
-    free(mine);
-    pthread_mutex_unlock(&count_mutex);
-    pthread_exit(NULL);
-}

@@ -25,15 +25,6 @@ void printspaces(int maxpos,
                  double a,
                  unsigned int cvalue);
 
-void fit10secs(double* a,
-               double* b,
-               double* s,
-               const unsigned int i,
-               const int* maxvals,
-               const int* maxes,
-               const int cvalue,
-               const unsigned int npeaks);
-
 void writefile(FILE* fp, int* array, unsigned int NN);
 void writefileDouble(FILE* fp, double* array, unsigned int NN);
 

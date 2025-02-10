@@ -103,39 +103,6 @@ void linreg(const double* xarr,
               NN);
 }
 
-// fit y=a+b*x
-void fit10secs(double* a,
-               double* b,
-               double* s,
-               const unsigned int i,
-               const int* maxvals,
-               const int* maxes,
-               const int correlationThreshold,
-               const unsigned int npeaks)
-{
-    unsigned int m = 0;
-    unsigned int fitwindow = i > npeaks ? npeaks : i;
-
-    if (i >= fitwindow)
-    {
-        double xarr[fitwindow];
-        double yarr[fitwindow];
-        for (unsigned int k = 0; k < fitwindow; k++)
-        {
-            if (maxvals[i - k] > correlationThreshold)
-            {
-                yarr[m] =(double) maxes[i - k];
-                xarr[m] = (double)k;
-                m++;
-            }
-        }
-        if (m > 1)
-        {
-            linreg(xarr, yarr, m, a, b, s);
-        }
-    }
-}
-
 void writefile(FILE* fp, int* array, unsigned int NN)
 {
     if (fp)

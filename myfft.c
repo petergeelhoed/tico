@@ -209,21 +209,6 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     return corr;
 }
 
-void applyFilter(const struct myarr input, fftw_complex* filterFFT, double* out)
-{
-    fftw_complex* filteredinput = convolute(input, filterFFT);
-    if (filteredinput == NULL)
-    {
-        fprintf(stderr, "Convolution failed in applyFilter\n");
-        return;
-    }
-    for (unsigned int j = 0; j < input.NN; j++)
-    {
-        out[j] = filteredinput[j][0];
-    }
-    fftw_free(filteredinput);
-    fftw_cleanup();
-}
 
 int getshift(const struct myarr x, const struct myarr y)
 {

@@ -112,8 +112,7 @@ int main(int argc, char* argv[])
     unsigned int NN = rate * 7200 / bph;
     NN = (NN + NN % 2);
     unsigned int mod = NN / zoom;
-    unsigned int tps = rate / NN;
-    unsigned int maxtime = tps * (time ? time : 30);
+    unsigned int maxtime = rate * (time ? time : 30)/NN;
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
@@ -287,7 +286,7 @@ int main(int argc, char* argv[])
         printheader(b * 86400 / NN,
                     everyline,
                     getBeatError(cumulativeTick, rate, 0),
-                    (double)totalTickTock / tps);
+                    (double)totalTickTock * NN / rate);
         printspaces(maxpos.arr[ticktock],
                     maxvals.arrd[ticktock] * 16,
                     mod,

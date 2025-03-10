@@ -3,7 +3,7 @@
 
 void parse_arguments(int argc,
                      char* argv[],
-                     unsigned int* rate,
+                     double* rate,
                      unsigned int* bph,
                      unsigned int* evalue,
                      unsigned int* zoom,

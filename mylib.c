@@ -209,8 +209,7 @@ void calculateTotal(unsigned int n,
             m);
 }
 
-double
-getBeatError(const struct myarr* totaltick, unsigned int rate, int verbose)
+double getBeatError(const struct myarr* totaltick, double rate, int verbose)
 {
     unsigned int NN = totaltick->NN;
     int cross[NN / 2];
@@ -222,7 +221,7 @@ getBeatError(const struct myarr* totaltick, unsigned int rate, int verbose)
         syncwrite(totaltick->arr + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
-    return shiftHalf(postick, NN / 2) * 1000 / (double)rate;
+    return shiftHalf(postick, NN / 2) * 1000 / rate;
 }
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)

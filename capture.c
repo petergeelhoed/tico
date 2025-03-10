@@ -34,7 +34,7 @@ volatile unsigned int columns = 80;
 
 int main(int argc, char* argv[])
 {
-    unsigned int rate = DEFAULT_RATE;
+    double inputRate = DEFAULT_RATE;
     unsigned int bph = DEFAULT_BPH;
     unsigned int evalue = DEFAULT_EVALUE;
     unsigned int zoom = DEFAULT_ZOOM;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
     parse_arguments(argc,
                     argv,
-                    &rate,
+                    &inputRate,
                     &bph,
                     &evalue,
                     &zoom,
@@ -84,6 +84,8 @@ int main(int argc, char* argv[])
                     &fpDefPeak,
                     &fpInput);
 
+    unsigned int actualRate = (unsigned int)inputRate;
+
     if (fitN > ticktockBuffer / 2)
     {
         printf("Local fit N(%d) cannot be larger than %d\n",
@@ -100,7 +102,12 @@ int main(int argc, char* argv[])
     if (fpInput == NULL)
     {
         // rate could change, if not available
-        capture_handle = initAudio(format, device, &rate);
+        capture_handle = initAudio(format, device, &actualRate);
+        if (actualRate != (unsigned int)inputRate)
+        {
+            printf(
+                "Actual rate %d, calculating with %f\n", actualRate, inputRate);
+        }
     }
 
     if (fpInput == NULL && capture_handle == NULL)
@@ -109,10 +116,10 @@ int main(int argc, char* argv[])
         return -6;
     }
 
-    unsigned int NN = rate * 7200 / bph;
+    unsigned int NN = actualRate * 7200 / bph;
     NN = (NN + NN % 2);
     unsigned int mod = NN / zoom;
-    unsigned int maxtime = rate * (time ? time : 30)/NN;
+    unsigned int maxtime = (unsigned int)inputRate * (time ? time : 30) / NN;
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
 
@@ -152,8 +159,8 @@ int main(int argc, char* argv[])
             "Found COLUMNS=%d, width = %.3fms / "
             "%.1fμs/character\n",
             columns,
-            mod * 1000. / rate,
-            mod * 1000000. / rate / (columns - everyline));
+            mod * 1000. / inputRate,
+            mod * 1000000. / inputRate / (columns - everyline));
 
     fillReference(fpDefPeak, &reference, teeth);
 
@@ -183,7 +190,7 @@ int main(int argc, char* argv[])
                           capture_handle,
                           format,
                           device,
-                          rate,
+                          inputRate,
                           buffer,
                           derivative);
         unblock_signal(&non_block);
@@ -285,8 +292,8 @@ int main(int argc, char* argv[])
 
         printheader(b * 86400 / NN,
                     everyline,
-                    getBeatError(cumulativeTick, rate, 0),
-                    (double)totalTickTock * NN / rate);
+                    getBeatError(cumulativeTick, inputRate, 0),
+                    (double)totalTickTock * NN / inputRate);
         printspaces(maxpos.arr[ticktock],
                     maxvals.arrd[ticktock] * 16,
                     mod,
@@ -303,7 +310,7 @@ int main(int argc, char* argv[])
         printf("peak   shift beaterr\n");
         for (unsigned int k = 0; k < teeth; ++k)
         {
-            double beaterr = getBeatError(&teethArray[k], rate, 0);
+            double beaterr = getBeatError(&teethArray[k], inputRate, 0);
             printf("%6d%6d%6.2f\n",
                    k,
                    getshift(teethArray[0], teethArray[k]),
@@ -391,7 +398,7 @@ int main(int argc, char* argv[])
 
     fprintf(stderr,
             "width = %.3fms / %.1fμs/character\n",
-            mod * 1000. / rate,
-            mod * 1000000. / rate / (columns - everyline));
+            mod * 1000. / inputRate,
+            mod * 1000000. / inputRate / (columns - everyline));
     return 0;
 }

@@ -2,9 +2,20 @@
 #include "mylib.h"
 #include <unistd.h>
 
+int checkFloatArg(int name, double* value, char* optarg)
+{
+    *value = atof(optarg);
+    if (*value == 0)
+    {
+        printf("invalid float argument for -%c: '%s'\n", (char)name, optarg);
+        return -1;
+    }
+    return 0;
+}
+
 void parse_arguments(int argc,
                      char* argv[],
-                     unsigned int* rate,
+                     double* rate,
                      unsigned int* bph,
                      unsigned int* evalue,
                      unsigned int* zoom,
@@ -98,7 +109,7 @@ void parse_arguments(int argc,
                 exit(-1);
             break;
         case 'r':
-            if (checkUIntArg(c, rate, optarg) != 0)
+            if (checkFloatArg(c, rate, optarg) != 0)
                 exit(-1);
             break;
         case 'h':

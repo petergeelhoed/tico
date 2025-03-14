@@ -102,6 +102,9 @@ int main(int argc, char* argv[])
     if (fpInput == NULL)
     {
         // rate could change, if not available
+        printf("Casting inputrate %f(double) to soundcard rate %d(int)\n",
+               inputRate,
+               actualRate);
         capture_handle = initAudio(format, device, &actualRate);
         if (actualRate != (unsigned int)inputRate)
         {

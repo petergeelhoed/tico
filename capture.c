@@ -106,11 +106,7 @@ int main(int argc, char* argv[])
                inputRate,
                actualRate);
         capture_handle = initAudio(format, device, &actualRate);
-        if (actualRate != (unsigned int)inputRate)
-        {
-            printf(
-                "Actual rate %d, calculating with %f\n", actualRate, inputRate);
-        }
+        printf("Actual rate %d, calculating with %f\n", actualRate, inputRate);
     }
 
     if (fpInput == NULL && capture_handle == NULL)

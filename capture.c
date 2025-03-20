@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
                     &fpDefPeak,
                     &fpInput);
 
-    unsigned int actualRate = (unsigned int)inputRate;
+    unsigned int actualRate = (unsigned int)inputRate + 0.5 ;
 
     if (fitN > ticktockBuffer / 2)
     {

@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
                     &fpDefPeak,
                     &fpInput);
 
-    unsigned int actualRate = (unsigned int)inputRate + 0.5 ;
+    unsigned int actualRate = (unsigned int)inputRate + 0.5;
 
     if (fitN > ticktockBuffer / 2)
     {
@@ -285,6 +285,7 @@ int main(int argc, char* argv[])
                     free(syncarr.arrd);
                 }
             }
+            syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
         }
 
         fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, &subpos, fitN);

@@ -21,6 +21,7 @@ add_library(mysound STATIC mysound.c)
 add_library(mysync STATIC mysync.c)
 add_library(mysignal STATIC mysignal.c)
 add_library(myfft STATIC myfft.c)
+target_link_libraries(myfft PRIVATE mysync)
 add_library(mymath STATIC mymath.c)
 
 # 5. Define Test Targets
@@ -54,9 +55,9 @@ endforeach()
 foreach(TEST ${TEST_TARGETS})
     add_executable(${TEST} ${TEST}.c)
     target_link_libraries(${TEST} 
-        -Wl,--start-group
+#        -Wl,--start-group
         ${INTERNAL_LIBS} 
-        -Wl,--end-group
+#        -Wl,--end-group
         ${ASOUND_LIB} 
         ${FFTW3_LIB} 
         ${MATH_LIB}

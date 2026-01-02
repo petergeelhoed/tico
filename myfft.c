@@ -237,7 +237,7 @@ int getshift(const struct myarr xarr, const struct myarr yarr)
     return (((int)poscor + (int)NN / 2) % (int)(NN)) - (int)(NN / 2);
 }
 
-unsigned int fftfit(struct myarr input,
+unsigned int fftfit(const struct myarr input,
                     int* total,
                     const int* base,
                     double* corvalue,

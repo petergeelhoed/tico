@@ -4,7 +4,7 @@ project(MyProject C)
 # 1. Compiler Flags
 set(CMAKE_C_STANDARD 99)
 add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -pthread -g)
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Sanitizer Options (Uncomment one to enable)
 # add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
 # add_link_options(-fsanitize=address -static-libasan)

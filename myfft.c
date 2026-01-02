@@ -1,16 +1,18 @@
+#include <assert.h>
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "myarr.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysync.h"
 
 #define MAX_COLUMNS 1024
 #define GAUSSIAN_CONST .398942280401
+#define GAUSSPOINTS 5
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 {
@@ -21,25 +23,27 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 
     if (filter == NULL || filterFFT == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in makeFilter\n");
+        (void)fprintf(stderr, "Memory allocation failed in makeFilter\n");
         return NULL;
     }
 
     if (evalue != 0)
     {
-        for (unsigned int j = 0; j < evalue * 5; j++)
+        for (unsigned int j = 0; j < evalue * GAUSSPOINTS; j++)
         {
             filter[j][0] =
                 GAUSSIAN_CONST / evalue *
                 exp(-((double)(j * j)) / (double)(evalue * evalue) / 2);
             filter[j][1] = 0.0;
         }
-        for (unsigned int j = evalue * 5; j < NN - evalue * 5; j++)
+        for (unsigned int j = evalue * GAUSSPOINTS;
+             j < NN - evalue * GAUSSPOINTS;
+             j++)
         {
             filter[j][0] = 0.0;
             filter[j][1] = 0.0;
         }
-        for (unsigned int j = NN - evalue * 5; j < NN; j++)
+        for (unsigned int j = NN - (evalue * GAUSSPOINTS); j < NN; j++)
         {
             filter[j][0] = GAUSSIAN_CONST / evalue *
                            exp(-((double)(NN - j) * (NN - j)) /
@@ -67,7 +71,7 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 
 void remove50hz(unsigned int NN, int* array, unsigned int rate)
 {
-    unsigned int freq = 50;
+    const unsigned int freq = 50;
     unsigned int ofj = NN * freq / rate;
     fftw_complex* in = fftw_alloc_complex(NN);
     fftw_complex* out = fftw_alloc_complex(NN);
@@ -78,7 +82,7 @@ void remove50hz(unsigned int NN, int* array, unsigned int rate)
 
     if (in == NULL || out == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in remove50hz\n");
+        (void)fprintf(stderr, "Memory allocation failed in remove50hz\n");
         return;
     }
 
@@ -131,7 +135,7 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
 
     if (in == NULL || out == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in convolute\n");
+        (void)fprintf(stderr, "Memory allocation failed in convolute\n");
         return NULL;
     }
 
@@ -170,7 +174,7 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
 
     if (tmparr == NULL || tmpref == NULL || tmp == NULL || corr == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in crosscor\n");
+        (void)fprintf(stderr, "Memory allocation failed in crosscor\n");
         return NULL;
     }
 
@@ -209,17 +213,17 @@ fftw_complex* crosscor(unsigned int NN, fftw_complex* array, fftw_complex* ref)
     return corr;
 }
 
-int getshift(const struct myarr x, const struct myarr y)
+int getshift(const struct myarr xarr, const struct myarr yarr)
 {
-    unsigned int NN = x.NN;
+    unsigned int NN = xarr.NN;
     fftw_complex* Fx = fftw_alloc_complex(NN);
     fftw_complex* Fy = fftw_alloc_complex(NN);
 
     for (unsigned int j = 0; j < NN; j++)
     {
-        Fx[j][0] = (double)x.arr[j];
+        Fx[j][0] = (double)xarr.arr[j];
         Fx[j][1] = 0.0;
-        Fy[j][0] = (double)y.arr[j];
+        Fy[j][0] = (double)yarr.arr[j];
         Fy[j][1] = 0.0;
     }
     fftw_complex* corr = crosscor(NN, Fx, Fy);
@@ -229,12 +233,13 @@ int getshift(const struct myarr x, const struct myarr y)
     fftw_free(corr);
     fftw_free(Fy);
     fftw_cleanup();
-    return ((int)poscor + (int)NN / 2) % (int)(NN) - (int)(NN / 2);
+    assert(NN > 0);
+    return (((int)poscor + (int)NN / 2) % (int)(NN)) - (int)(NN / 2);
 }
 
-unsigned int fftfit(const struct myarr input,
+unsigned int fftfit(struct myarr input,
                     int* total,
-                    int* base,
+                    const int* base,
                     double* corvalue,
                     fftw_complex* filterFFT,
                     int verb,
@@ -246,7 +251,7 @@ unsigned int fftfit(const struct myarr input,
 
     if (Fbase == NULL || filteredinput == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in fftfit\n");
+        (void)fprintf(stderr, "Memory allocation failed in fftfit\n");
         return 0;
     }
 
@@ -278,12 +283,15 @@ unsigned int fftfit(const struct myarr input,
 
         for (unsigned int j = 0; j < NN; j++)
         {
-            total[j] += (int)(2000 * maxcor * maxcor *
+            const int magic = 2000;
+            total[j] += (int)(magic * maxcor * maxcor *
                               filteredinput[(j + poscor + NN) % NN][0]);
         }
     }
 
-    *subpos = -0.5 *
+    const double half = 0.5;
+    assert(NN > 0);
+    *subpos = -half *
               (corr[(poscor - 1 + NN) % NN][0] - corr[(poscor + 1) % NN][0]) /
               (2 * corr[poscor][0] - corr[(poscor - 1 + NN) % NN][0] -
                corr[(poscor + 1) % NN][0]);
@@ -310,14 +318,16 @@ void rescale(int* total, unsigned int NN)
     avg /= NN;
     int avi = (int)avg;
 
-    if (maxval > 100000000 || minval < -100000000)
+    const int magic = 100000000;
+    const int ten = 10;
+    if (maxval > magic || minval < -magic)
     {
         for (unsigned int j = 0; j < NN; j++)
         {
             total[j] /= 2;
         }
     }
-    else if (abs(avi) > 10)
+    else if (abs(avi) > ten)
     {
         for (unsigned int j = 0; j < NN; j++)
         {
@@ -354,14 +364,14 @@ void writefftw(fftw_complex* arr, unsigned int NN, const char* file)
     FILE* fp = fopen(file, "w");
     if (fp == NULL)
     {
-        fprintf(stderr, "File opening failed in writefftw\n");
+        (void)fprintf(stderr, "File opening failed in writefftw\n");
         return;
     }
     for (unsigned int j = 0; j < NN; j++)
     {
-        fprintf(fp, "%d %f %f\n", j, arr[j][0], arr[j][1]);
+        (void)fprintf(fp, "%d %f %f\n", j, arr[j][0], arr[j][1]);
     }
-    fclose(fp);
+    (void)fclose(fp);
 }
 
 void normalise(unsigned int NN, fftw_complex* in)
@@ -374,10 +384,10 @@ void normalise(unsigned int NN, fftw_complex* in)
         ix += in[j][0];
         ixx += in[j][0] * in[j][0];
     }
-    double m = ix / NN;
-    double s = sqrt(ixx / NN - m * m);
+    double mean = ix / NN;
+    double stdev = sqrt((ixx / NN) - (mean * mean));
     for (unsigned int j = 0; j < NN; j++)
     {
-        in[j][0] = (in[j][0] - m) / s;
+        in[j][0] = (in[j][0] - mean) / stdev;
     }
 }

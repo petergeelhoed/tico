@@ -25,7 +25,8 @@ add_library(mymath STATIC mymath.c)
 
 # 5. Define Test Targets
 set(TEST_TARGETS 
-    testfft testmysync testfilter testremove50 testlinreg 
+ testfft
+    testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone
 )
@@ -43,9 +44,7 @@ set(INTERNAL_LIBS
 foreach(TGT ${TARGETS})
     add_executable(${TGT} ${TGT}.c)
     target_link_libraries(${TGT} 
-        -Wl,--start-group
         ${INTERNAL_LIBS} 
-        -Wl,--end-group
         ${ASOUND_LIB} 
         ${FFTW3_LIB} 
         ${MATH_LIB}

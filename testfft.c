@@ -1,15 +1,14 @@
-#include <alsa/asoundlib.h>
 #include <fftw3.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "myfft.h"
 #include "mylib.h"
+#include "mysync.h"
 
 int main()
 {
-    unsigned int NN = 20;
+    const unsigned int NN = 20;
     unsigned int evalue = 1;
     int ipeak[NN];
 

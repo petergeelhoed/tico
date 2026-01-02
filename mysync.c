@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "myarr.h"
 #include "mysync.h"
 
 #define FILE_NAME_LENGTH 256

@@ -1,0 +1,23 @@
+Checks: >
+  misc-include-cleaner,
+  bug-prone-*,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  misc-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  clang-diagnostic-*,
+  cert-*,
+  google-*,
+  -google-runtime-int
+WarningsAsErrors: ''
+FormatStyle: file
+
+CheckOptions:
+  - { key: readability-identifier-length.MinimumVariableNameLength, value: 2 }
+  - { key: readability-identifier-length.MinimumParameterNameLength, value: 2 }
+  - { key: readability-identifier-length.MinimumLoopCounterNameLength, value: 1 }
+  - { key: readability-identifier-length.MinimumExceptionNameLength, value: 2 }
+
+

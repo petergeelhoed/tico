@@ -352,10 +352,11 @@ int main(int argc, char* argv[])
     }
 
     free(buffer);
-    free(derivative.arr);
-    free(tmpder.arr);
+    freemyarr(&derivative);
+    freemyarr(&tmpder);
     fftw_free(filterFFT);
 
+    freemyarr(&reference);
     wait();
     if (fpmaxcor)
     {
@@ -363,7 +364,7 @@ int main(int argc, char* argv[])
         writefileDouble(fpmaxcor,
                         maxvals.arrd + ticktock - (totalTickTock - lastWrite),
                         totalTickTock - lastWrite);
-        fclose(fpmaxcor);
+        (void)fclose(fpmaxcor);
     }
     if (fpposition)
     {
@@ -380,17 +381,18 @@ int main(int argc, char* argv[])
                     (double)maxpos.arr[ticktock - writelength + k];
             }
             syncAppendMyarr(&syncarr, fpposition);
-            free(syncarr.arrd);
+            freemyarr(&syncarr);
         }
 
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
         thread_unlock();
         wait();
-        fclose(fpposition);
+        (void)fclose(fpposition);
     }
+    freemyarr(&subpos);
 
-    free(maxvals.arrd);
-    free(maxpos.arr);
+    freemyarr(&maxvals);
+    freemyarr(&maxpos);
 
     for (unsigned int t = 0; t < teeth; ++t)
     {
@@ -416,11 +418,11 @@ int main(int argc, char* argv[])
     }
     if (fpInput)
     {
-        fclose(fpInput);
+        (void)fclose(fpInput);
     }
     if (fptotal)
     {
-        fclose(fptotal);
+        (void)fclose(fptotal);
     }
 
     if (capture_handle != NULL)

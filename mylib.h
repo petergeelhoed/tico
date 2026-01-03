@@ -2,7 +2,6 @@
 #include "myarr.h"
 #include "parseargs.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 void linreg(const double* xarr,
             const double* yarr,

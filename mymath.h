@@ -17,8 +17,8 @@ void matlinreg(double coeffs[2],
 
 void fitNpeaks(double* a,
                double* b,
-               const unsigned int i,
+               unsigned int i,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
-               const unsigned int npeaks);
+               unsigned int npeaks);

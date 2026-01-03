@@ -1,7 +1,8 @@
 #include "myarr.h"
-#include <alsa/asoundlib.h>
-#include <fftw3.h>
+#include <alsa/asoundlib.h> // IWYU pragma: export
+#include <stdio.h>
 
+// NOLINTNEXTLINE(misc-include-cleaner)
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate);
 int readBuffer(snd_pcm_t* capture_handle,
                unsigned int NN,

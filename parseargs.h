@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
 
 void parse_arguments(int argc,
                      char* argv[],

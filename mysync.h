@@ -1,8 +1,10 @@
 #include "myarr.h"
 
-void wait();
-void thread_lock();
-void thread_unlock();
+#include <stdio.h>
+
+void wait(void);
+void thread_lock(void);
+void thread_unlock(void);
 void syncwrite(int* input, unsigned int NN, char* file);
 void* threadWrite(void* arr);
 void* threadAppend(void* arr);

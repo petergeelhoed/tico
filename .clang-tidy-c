@@ -15,8 +15,8 @@ WarningsAsErrors: ''
 FormatStyle: file
 
 CheckOptions:
-  - { key: readability-identifier-length.MinimumVariableNameLength, value: 2 }
-  - { key: readability-identifier-length.MinimumParameterNameLength, value: 2 }
+  - { key: readability-identifier-length.MinimumVariableNameLength, value: 1 }
+  - { key: readability-identifier-length.MinimumParameterNameLength, value: 1 }
   - { key: readability-identifier-length.MinimumLoopCounterNameLength, value: 1 }
   - { key: readability-identifier-length.MinimumExceptionNameLength, value: 2 }
 

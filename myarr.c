@@ -7,6 +7,7 @@ void freemyarr(struct myarr* arr)
     arr->NN = 0;
     arr->arr = NULL;
     arr->arrd = NULL;
+    free(arr);
 }
 
 struct myarr* makemyarrd(unsigned int NN)

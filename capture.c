@@ -174,13 +174,13 @@ int main(int argc, char* argv[])
         derivative.arr == NULL || tmpder.arr == NULL)
     {
         free(buffer);
-        freemyarr(&reference);
-        freemyarr(&maxvals);
-        freemyarr(&maxpos);
         freemyarr(subpos);
+        free(reference.arr);
+        free(maxvals.arrd);
+        free(maxpos.arr);
         fftw_free(&filterFFT);
-        freemyarr(&derivative);
-        freemyarr(&tmpder);
+        free(derivative.arr);
+        free(tmpder.arr);
 
         (void)fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
@@ -243,7 +243,6 @@ int main(int argc, char* argv[])
                 toothshift =
                     getshift(teethArray[0], teethArray[totalTickTock % teeth]);
             }
-
             if (totalTickTock == AUTOCOR_LIMIT * teeth)
             {
                 free(reference.arr);
@@ -318,7 +317,7 @@ int main(int argc, char* argv[])
                     free(syncarr.arrd);
                 }
             }
-            syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
+            //  syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
         }
 
         fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, subpos, fitN);
@@ -352,11 +351,10 @@ int main(int argc, char* argv[])
     }
 
     free(buffer);
-    freemyarr(&derivative);
-    freemyarr(&tmpder);
+    free(derivative.arr);
+    free(tmpder.arr);
     fftw_free(filterFFT);
 
-    freemyarr(&reference);
     wait();
     if (fpmaxcor)
     {
@@ -381,7 +379,7 @@ int main(int argc, char* argv[])
                     (double)maxpos.arr[ticktock - writelength + k];
             }
             syncAppendMyarr(&syncarr, fpposition);
-            freemyarr(&syncarr);
+            free(syncarr.arrd);
         }
 
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
@@ -391,9 +389,12 @@ int main(int argc, char* argv[])
     }
     freemyarr(subpos);
 
-    freemyarr(&maxvals);
-    freemyarr(&maxpos);
-
+    free(maxvals.arrd);
+    free(maxpos.arr);
+    if (totalTickTock < AUTOCOR_LIMIT * teeth)
+    {
+        free(reference.arr);
+    }
     for (unsigned int t = 0; t < teeth; ++t)
     {
         struct myarr* cumulativeTick = &teethArray[t];

@@ -21,6 +21,7 @@
 #define DEFAULT_ZOOM 10
 #define DEFAULT_EVALUE 4
 #define DEFAULT_FITN 30
+#define DEFAULT_TIME 30
 #define DEFAULT_TICKTOCK_WRITE 30
 #define DEFAULT_TEETH 1
 #define DEFAULT_SDTHRESHOLD 3.0
@@ -29,16 +30,14 @@
 #define PRESHIFT_THRESHOLD_ROOT 10
 #define AUTOCOR_LIMIT 1
 #define ERROR_ALLOCATE_MEM -5
+#define HALF 0.5
+#define DEFAULT_COLUMNS 80
+
 volatile int keepRunning = 1;
-volatile unsigned int columns = 80;
+volatile unsigned int columns = DEFAULT_COLUMNS;
 
 int main(int argc, char* argv[])
 {
-    double inputRate = DEFAULT_RATE;
-    unsigned int bph = DEFAULT_BPH;
-    unsigned int evalue = DEFAULT_EVALUE;
-    unsigned int zoom = DEFAULT_ZOOM;
-    unsigned int time = 0;
     unsigned int everyline = 0;
     unsigned int cvalue = DEFAULT_CVALUE;
     unsigned int verbose = 0;
@@ -65,11 +64,11 @@ int main(int argc, char* argv[])
     set_signal_action();
 
     CapConfig cfg;
-    cfg.rate = inputRate;
-    cfg.bph = bph;
-    cfg.evalue = evalue;
-    cfg.zoom = zoom;
-    cfg.time = time;
+    cfg.rate = DEFAULT_RATE;
+    cfg.bph = DEFAULT_BPH;
+    cfg.evalue = DEFAULT_EVALUE;
+    cfg.zoom = DEFAULT_ZOOM;
+    cfg.time = 0;
     cfg.everyline = everyline;
     cfg.cvalue = cvalue;
     cfg.verbose = verbose;
@@ -85,11 +84,6 @@ int main(int argc, char* argv[])
 
     parse_arguments(argc, argv, &cfg);
 
-    inputRate = cfg.rate;
-    bph = cfg.bph;
-    evalue = cfg.evalue;
-    zoom = cfg.zoom;
-    time = cfg.time;
     everyline = cfg.everyline;
     cvalue = cfg.cvalue;
     verbose = cfg.verbose;
@@ -103,7 +97,7 @@ int main(int argc, char* argv[])
     fpDefPeak = cfg.fpDefPeak;
     fpInput = cfg.fpInput;
 
-    unsigned int actualRate = (unsigned int)inputRate + 0.5;
+    unsigned int actualRate = (unsigned int)(cfg.rate + HALF);
 
     if (fitN > ticktockBuffer / 2)
     {
@@ -122,10 +116,10 @@ int main(int argc, char* argv[])
     {
         // rate could change, if not available
         printf("Casting inputrate %f(double) to soundcard rate %d(int)\n",
-               inputRate,
+               cfg.rate,
                actualRate);
         capture_handle = initAudio(format, device, &actualRate);
-        printf("Actual rate %d, calculating with %f\n", actualRate, inputRate);
+        printf("Actual rate %d, calculating with %f\n", actualRate, cfg.rate);
     }
 
     if (fpInput == NULL && capture_handle == NULL)
@@ -134,12 +128,13 @@ int main(int argc, char* argv[])
         return -6;
     }
 
-    unsigned int NN = actualRate * 7200 / bph;
+    unsigned int NN = actualRate * 7200 / cfg.bph;
     NN = (NN + NN % 2);
-    unsigned int mod = NN / zoom;
-    unsigned int maxtime = (unsigned int)inputRate * (time ? time : 30) / NN;
+    unsigned int mod = NN / cfg.zoom;
+    unsigned int maxtime =
+        (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / NN;
 
-    fftw_complex* filterFFT = makeFilter(evalue, NN);
+    fftw_complex* filterFFT = makeFilter(cfg.evalue, NN);
 
     struct myarr subpos = {
         0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
@@ -177,8 +172,8 @@ int main(int argc, char* argv[])
             "Found COLUMNS=%d, width = %.3fms / "
             "%.1fμs/character\n",
             columns,
-            mod * 1000. / inputRate,
-            mod * 1000000. / inputRate / (columns - everyline));
+            mod * 1000. / cfg.rate,
+            mod * 1000000. / cfg.rate / (columns - everyline));
 
     fillReference(fpDefPeak, &reference, teeth);
 
@@ -188,7 +183,7 @@ int main(int argc, char* argv[])
     int toothshift = 0;
     unsigned int ticktock = 0;
     unsigned int totalTickTock = 0;
-    while (keepRunning && !(totalTickTock > maxtime && time))
+    while (keepRunning && !(totalTickTock > maxtime && cfg.time))
     {
         if (ticktock == ticktockBuffer)
         {
@@ -208,7 +203,7 @@ int main(int argc, char* argv[])
                           capture_handle,
                           format,
                           device,
-                          inputRate,
+                          cfg.rate,
                           buffer,
                           derivative);
         unblock_signal(&non_block);
@@ -311,8 +306,8 @@ int main(int argc, char* argv[])
 
         printheader(b * 86400 / NN,
                     everyline,
-                    getBeatError(cumulativeTick, inputRate, 0),
-                    (double)totalTickTock * NN / inputRate);
+                    getBeatError(cumulativeTick, cfg.rate, 0),
+                    (double)totalTickTock * NN / cfg.rate);
         printspaces(maxpos.arr[ticktock],
                     maxvals.arrd[ticktock] * 16,
                     mod,
@@ -329,7 +324,7 @@ int main(int argc, char* argv[])
         printf("peak   shift beaterr\n");
         for (unsigned int k = 0; k < teeth; ++k)
         {
-            double beaterr = getBeatError(&teethArray[k], inputRate, 0);
+            double beaterr = getBeatError(&teethArray[k], cfg.rate, 0);
             printf("%6d%6d%6.2f\n",
                    k,
                    getshift(teethArray[0], teethArray[k]),
@@ -417,7 +412,7 @@ int main(int argc, char* argv[])
 
     fprintf(stderr,
             "width = %.3fms / %.1fμs/character\n",
-            mod * 1000. / inputRate,
-            mod * 1000000. / inputRate / (columns - everyline));
+            mod * 1000. / cfg.rate,
+            mod * 1000000. / cfg.rate / (columns - everyline));
     return 0;
 }

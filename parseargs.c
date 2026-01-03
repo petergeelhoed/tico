@@ -1,5 +1,6 @@
 #include "parseargs.h"
 #include "mylib.h"
+#include <stdlib.h>
 #include <unistd.h>
 
 int checkFloatArg(int name, double* value, char* optarg)

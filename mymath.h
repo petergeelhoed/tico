@@ -2,18 +2,18 @@
 void transpone(double*, unsigned int N, unsigned int M);
 void invert(double*, unsigned int N, unsigned int M);
 
-double* mulmat(double*,
+double* mulmat(const double* matrix,
                unsigned int N,
                unsigned int M,
-               double*,
+               const double* vector,
                unsigned int S,
                unsigned int T);
 void matlinreg(double coeffs[2],
-               double* xmat,
+               const double* xmat,
                unsigned int N,
                unsigned int M,
-               double* y,
-               double* w);
+               double* vec,
+               const double* weight);
 
 void fitNpeaks(double* a,
                double* b,

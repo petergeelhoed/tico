@@ -1,10 +1,9 @@
 #include <limits.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
+#include "myarr.h"
 #include "mymath.h"
 
 struct mymat
@@ -33,7 +32,7 @@ void transpone(double* arr, unsigned int N, unsigned int M)
     double* tmp = (double*)calloc(N * M, sizeof(double));
     if (tmp == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in transpone\n");
+        (void)fprintf(stderr, "Memory allocation failed in transpone\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned int i = 0; i < M; ++i)
@@ -53,7 +52,7 @@ void invert(double* arr, unsigned int N, unsigned int M)
     double* tmp = (double*)calloc(N * M * 2, sizeof(double));
     if (tmp == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in invert\n");
+        (void)fprintf(stderr, "Memory allocation failed in invert\n");
         exit(EXIT_FAILURE);
     }
     unsigned int M2 = M * 2;
@@ -94,22 +93,22 @@ void invert(double* arr, unsigned int N, unsigned int M)
     free(tmp);
 }
 
-double* mulmat(double* arr,
+double* mulmat(const double* matrix,
                unsigned int N,
                unsigned int M,
-               double* vec,
+               const double* vector,
                unsigned int S,
                unsigned int T)
 {
     if (M != S)
     {
-        fprintf(stderr, "Matrix multiplication dimension mismatch\n");
+        (void)fprintf(stderr, "Matrix multiplication dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
     double* tmp = (double*)calloc(N * T, sizeof(double));
     if (tmp == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in mulmat\n");
+        (void)fprintf(stderr, "Memory allocation failed in mulmat\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned int j = 0; j < N; j++)
@@ -118,7 +117,7 @@ double* mulmat(double* arr,
         {
             for (unsigned int i = 0; i < M; i++)
             {
-                tmp[l + j * T] += arr[i + M * j] * vec[i * T + l];
+                tmp[l + j * T] += matrix[i + M * j] * vector[i * T + l];
             }
         }
     }
@@ -126,17 +125,17 @@ double* mulmat(double* arr,
 }
 
 void matlinreg(double coeffs[2],
-               double* arr,
+               const double* xmat,
                unsigned int N,
                unsigned int M,
                double* vec,
-               double* weight)
+               const double* weight)
 {
     double* xarr = (double*)calloc((M + 1) * N, sizeof(double));
     double* xarrT = (double*)calloc((M + 1) * N, sizeof(double));
     if (xarrT == NULL || xarr == NULL)
     {
-        fprintf(stderr, "Memory allocation failed in matlinreg\n");
+        (void)fprintf(stderr, "Memory allocation failed in matlinreg\n");
         free(xarr);
         free(xarrT);
         exit(EXIT_FAILURE);
@@ -146,7 +145,7 @@ void matlinreg(double coeffs[2],
         xarr[j * (M + 1)] = 1.0;
         for (unsigned int i = 0; i < M; i++)
         {
-            xarr[i + 1 + (M + 1) * j] = arr[i + j * M];
+            xarr[i + 1 + (M + 1) * j] = xmat[i + j * M];
         }
     }
 
@@ -212,7 +211,7 @@ void fitNpeaks(double* a,
         double* w = (double*)calloc(fitwindow, sizeof(double));
         if (x == NULL || y == NULL || w == NULL)
         {
-            fprintf(stderr, "Memory allocation failed in fitNpeaks\n");
+            (void)fprintf(stderr, "Memory allocation failed in fitNpeaks\n");
             free(x);
             free(y);
             free(w);

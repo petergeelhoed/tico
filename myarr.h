@@ -9,4 +9,6 @@ struct myarr
 };
 
 void freemyarr(struct myarr* arr);
+struct myarr* makemyarr(unsigned int NN);
+struct myarr* makemyarrd(unsigned int NN);
 #endif

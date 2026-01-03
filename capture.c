@@ -29,9 +29,12 @@
 #define PRESHIFT_THRESHOLD 100
 #define PRESHIFT_THRESHOLD_ROOT 10
 #define AUTOCOR_LIMIT 1
-#define ERROR_ALLOCATE_MEM -5
 #define HALF 0.5
 #define DEFAULT_COLUMNS 80
+#define PCM_WIDTH 8
+
+#define ERROR_ALLOCATE_MEM -5
+#define ERROR_NO_SOURCE -6
 
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
@@ -124,17 +127,36 @@ int main(int argc, char* argv[])
 
     if (fpInput == NULL && capture_handle == NULL)
     {
-        fprintf(stderr, "No inputfile or soundcard");
-        return -6;
+        (void)fprintf(stderr, "No inputfile or soundcard");
+        return ERROR_NO_SOURCE;
     }
 
-    unsigned int NN = actualRate * 7200 / cfg.bph;
+    unsigned int NN = actualRate * 2 * SECS_HOUR / cfg.bph;
     NN = (NN + NN % 2);
     unsigned int mod = NN / cfg.zoom;
     unsigned int maxtime =
         (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / NN;
 
     fftw_complex* filterFFT = makeFilter(cfg.evalue, NN);
+
+    struct myarr teethArray[teeth];
+    for (unsigned int t = 0; t < teeth; t++)
+    {
+        teethArray[t].arr = calloc(NN, sizeof(int));
+        if (teethArray[t].arr == NULL)
+        {
+            for (unsigned int idx = 0; idx < t; idx++)
+            {
+                free(teethArray[idx].arr);
+            }
+
+            (void)fprintf(stderr, "Could not allocate memory");
+            return ERROR_ALLOCATE_MEM;
+        }
+
+        teethArray[t].arrd = NULL;
+        teethArray[t].NN = NN;
+    }
 
     struct myarr subpos = {
         0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
@@ -145,35 +167,32 @@ int main(int argc, char* argv[])
     struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr tmpder = {calloc(NN, sizeof(int)), 0, NN};
     struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
-    struct myarr teethArray[teeth];
-    for (unsigned int t = 0; t < teeth; t++)
-    {
-        teethArray[t].arr = calloc(NN, sizeof(int));
-        if (teethArray[t].arr == NULL)
-        {
-            fprintf(stderr, "Could not allocate memory");
-            return ERROR_ALLOCATE_MEM;
-        }
 
-        teethArray[t].arrd = NULL;
-        teethArray[t].NN = NN;
-    }
-
-    char* buffer = calloc(NN, (unsigned int)snd_pcm_format_width(format) / 8);
+    char* buffer =
+        calloc(NN, (unsigned int)snd_pcm_format_width(format) / PCM_WIDTH);
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
         maxpos.arr == NULL || subpos.arrd == NULL || filterFFT == NULL ||
         derivative.arr == NULL || tmpder.arr == NULL)
     {
-        fprintf(stderr, "Could not allocate memory");
+        free(buffer);
+        freemyarr(&reference);
+        freemyarr(&maxvals);
+        freemyarr(&maxpos);
+        freemyarr(&subpos);
+        fftw_free(&filterFFT);
+        freemyarr(&derivative);
+        freemyarr(&tmpder);
+
+        (void)fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
     }
 
-    fprintf(stderr,
-            "Found COLUMNS=%d, width = %.3fms / "
-            "%.1fμs/character\n",
-            columns,
-            mod * 1000. / cfg.rate,
-            mod * 1000000. / cfg.rate / (columns - everyline));
+    (void)fprintf(stderr,
+                  "Found COLUMNS=%d, width = %.3fms / "
+                  "%.1fμs/character\n",
+                  columns,
+                  mod * 1000. / cfg.rate,
+                  mod * 1000000. / cfg.rate / (columns - everyline));
 
     fillReference(fpDefPeak, &reference, teeth);
 
@@ -381,14 +400,14 @@ int main(int argc, char* argv[])
             int toothshift = getshift(teethArray[0], *cumulativeTick);
             for (unsigned int j = 0; j < NN; ++j)
             {
-                fprintf(fptotal,
-                        "%d %d %u %d\n",
-                        shiftHalf(j + toothshift, NN),
-                        cumulativeTick->arr[j],
-                        t,
-                        toothshift);
+                (void)fprintf(fptotal,
+                              "%d %d %u %d\n",
+                              shiftHalf(j + toothshift, NN),
+                              cumulativeTick->arr[j],
+                              t,
+                              toothshift);
             }
-            fprintf(fptotal, "\n\n");
+            (void)fprintf(fptotal, "\n\n");
         }
     }
     for (unsigned int t = 0; t < teeth; ++t)
@@ -410,9 +429,9 @@ int main(int argc, char* argv[])
         snd_pcm_hw_free(capture_handle);
     }
 
-    fprintf(stderr,
-            "width = %.3fms / %.1fμs/character\n",
-            mod * 1000. / cfg.rate,
-            mod * 1000000. / cfg.rate / (columns - everyline));
+    (void)fprintf(stderr,
+                  "width = %.3fms / %.1fμs/character\n",
+                  mod * 1000. / cfg.rate,
+                  mod * 1000000. / cfg.rate / (columns - everyline));
     return 0;
 }

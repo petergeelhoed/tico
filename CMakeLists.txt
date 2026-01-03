@@ -54,11 +54,9 @@ foreach(TGT ${TARGETS})
 endforeach()
 
 foreach(TEST ${TEST_TARGETS})
-    add_executable(${TEST} ${TEST}.c)
+    add_executable(${TEST} ${TEST}.c myarr.c)
     target_link_libraries(${TEST} 
-#        -Wl,--start-group
         ${INTERNAL_LIBS} 
-#        -Wl,--end-group
         ${ASOUND_LIB} 
         ${FFTW3_LIB} 
         ${MATH_LIB}

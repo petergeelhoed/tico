@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #ifndef MYARR
 #define MYARR
 struct myarr
@@ -6,4 +7,6 @@ struct myarr
     double* arrd;
     unsigned int NN;
 };
+
+void freemyarr(struct myarr* arr);
 #endif

@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define SECS_HOUR 3600
 #define CVAL 15
 
 void print_usage(void)

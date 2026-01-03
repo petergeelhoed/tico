@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#define EVERY_WIDTH 14
 
 typedef struct
 {

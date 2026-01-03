@@ -7,7 +7,6 @@
 
 #define SECS_HOUR 3600
 #define CVAL 15
-#define EVERY_WIDTH 14
 
 void print_usage(void)
 {

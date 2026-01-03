@@ -65,6 +65,24 @@ int main(int argc, char* argv[])
     set_signal_action();
 
     CapConfig cfg;
+    cfg.rate = inputRate;
+    cfg.bph = bph;
+    cfg.evalue = evalue;
+    cfg.zoom = zoom;
+    cfg.time = time;
+    cfg.everyline = everyline;
+    cfg.cvalue = cvalue;
+    cfg.verbose = verbose;
+    cfg.fitN = fitN;
+    cfg.teeth = teeth;
+    cfg.SDthreshold = SDthreshold;
+    cfg.device = device;
+    cfg.fpposition = fpposition;
+    cfg.fpmaxcor = fpmaxcor;
+    cfg.fptotal = fptotal;
+    cfg.fpDefPeak = fpDefPeak;
+    cfg.fpInput = fpInput;
+
     parse_arguments(argc, argv, &cfg);
 
     inputRate = cfg.rate;

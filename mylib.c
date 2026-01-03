@@ -9,8 +9,12 @@
 #include "myfft.h"
 #include "mylib.h"
 #include "mysync.h"
+#include "parseargs.h"
 
 #define MAX_COLUMNS 1024
+#define MAX_COLUMNS 1024
+#define BEAT_WIDTH 5
+#define RATE_WIDTH 8
 
 /* Prints header on line or at the top */
 void printheader(double fittedRate,
@@ -20,11 +24,12 @@ void printheader(double fittedRate,
 {
     if (everyline)
     {
-        char line[15];
-        memset(line, ' ', 14);
-        snprintf(line, 5, "%4.2f", beatError);
-        snprintf(line + 4, 8, "ms%+5.1f", fittedRate);
-        sprintf(line + 11, "s/d");
+        char line[EVERY_WIDTH + 1];
+        memset(line, ' ', EVERY_WIDTH);
+        (void)snprintf(line, BEAT_WIDTH, "%4.2f", beatError);
+        (void)snprintf(
+            line + BEAT_WIDTH - 1, RATE_WIDTH, "ms%+4.1f", fittedRate);
+        (void)sprintf(line + BEAT_WIDTH + RATE_WIDTH - 2, "s/d");
         (void)fprintf(stderr, "%s", line);
     }
     else

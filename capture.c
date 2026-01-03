@@ -159,8 +159,7 @@ int main(int argc, char* argv[])
     }
 
     struct myarr* subpos = makemyarrd(ticktockBuffer);
-    struct myarr maxpos = {
-        calloc(ticktockBuffer, sizeof(int)), 0, ticktockBuffer};
+    struct myarr* maxpos = makemyarr(ticktockBuffer);
     struct myarr maxvals = {
         0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
     struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
@@ -170,14 +169,14 @@ int main(int argc, char* argv[])
     char* buffer =
         calloc(NN, (unsigned int)snd_pcm_format_width(format) / PCM_WIDTH);
     if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
-        maxpos.arr == NULL || subpos->arrd == NULL || filterFFT == NULL ||
+        maxpos->arr == NULL || subpos->arrd == NULL || filterFFT == NULL ||
         derivative.arr == NULL || tmpder.arr == NULL)
     {
         free(buffer);
         freemyarr(subpos);
         free(reference.arr);
         free(maxvals.arrd);
-        free(maxpos.arr);
+        freemyarr(maxpos);
         fftw_free(&filterFFT);
         free(derivative.arr);
         free(tmpder.arr);
@@ -209,7 +208,7 @@ int main(int argc, char* argv[])
             memcpy(subpos->arrd,
                    subpos->arrd + ARR_BUFF,
                    ARR_BUFF * sizeof(double));
-            memcpy(maxpos.arr, maxpos.arr + ARR_BUFF, ARR_BUFF * sizeof(int));
+            memcpy(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
             memcpy(maxvals.arrd,
                    maxvals.arrd + ARR_BUFF,
                    ARR_BUFF * sizeof(double));
@@ -268,7 +267,7 @@ int main(int argc, char* argv[])
                              subpos->arrd + ticktock),
                       NN);
 
-        maxpos.arr[ticktock] = totalshift + maxposition;
+        maxpos->arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&
             *(maxvals.arrd + ticktock) > (double)cvalue / 16 &&
@@ -298,7 +297,7 @@ int main(int argc, char* argv[])
                     {
                         syncarr.arrd[k] =
                             subpos->arrd[ticktock - writeinterval + k] +
-                            (double)maxpos.arr[ticktock - writeinterval + k];
+                            (double)maxpos->arr[ticktock - writeinterval + k];
                     }
                     syncAppendMyarr(&syncarr, fpposition);
                     free(syncarr.arrd);
@@ -320,13 +319,13 @@ int main(int argc, char* argv[])
             //  syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
         }
 
-        fitNpeaks(&a, &b, ticktock, &maxvals, &maxpos, subpos, fitN);
+        fitNpeaks(&a, &b, ticktock, &maxvals, maxpos, subpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * NN / cfg.rate);
-        printspaces(maxpos.arr[ticktock],
+        printspaces(maxpos->arr[ticktock],
                     maxvals.arrd[ticktock] * 16,
                     mod,
                     columns - everyline,
@@ -376,7 +375,7 @@ int main(int argc, char* argv[])
             {
                 syncarr.arrd[k] =
                     subpos->arrd[ticktock - writelength + k] +
-                    (double)maxpos.arr[ticktock - writelength + k];
+                    (double)maxpos->arr[ticktock - writelength + k];
             }
             syncAppendMyarr(&syncarr, fpposition);
             free(syncarr.arrd);
@@ -390,7 +389,7 @@ int main(int argc, char* argv[])
     freemyarr(subpos);
 
     free(maxvals.arrd);
-    free(maxpos.arr);
+    freemyarr(maxpos);
     if (totalTickTock < AUTOCOR_LIMIT * teeth)
     {
         free(reference.arr);

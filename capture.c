@@ -160,26 +160,25 @@ int main(int argc, char* argv[])
 
     struct myarr* subpos = makemyarrd(ticktockBuffer);
     struct myarr* maxpos = makemyarr(ticktockBuffer);
-    struct myarr maxvals = {
-        0, calloc(ticktockBuffer, sizeof(double)), ticktockBuffer};
-    struct myarr derivative = {calloc(NN, sizeof(int)), 0, NN};
-    struct myarr tmpder = {calloc(NN, sizeof(int)), 0, NN};
+    struct myarr* maxvals = makemyarrd(ticktockBuffer);
+    struct myarr* derivative = makemyarr(NN);
+    struct myarr* tmpder = makemyarr(NN);
     struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
 
     char* buffer =
         calloc(NN, (unsigned int)snd_pcm_format_width(format) / PCM_WIDTH);
-    if (buffer == NULL || reference.arr == NULL || maxvals.arrd == NULL ||
+    if (buffer == NULL || reference.arr == NULL || maxvals->arrd == NULL ||
         maxpos->arr == NULL || subpos->arrd == NULL || filterFFT == NULL ||
-        derivative.arr == NULL || tmpder.arr == NULL)
+        derivative->arr == NULL || tmpder->arr == NULL)
     {
         free(buffer);
         freemyarr(subpos);
         free(reference.arr);
-        free(maxvals.arrd);
+        freemyarr(maxvals);
         freemyarr(maxpos);
         fftw_free(&filterFFT);
-        free(derivative.arr);
-        free(tmpder.arr);
+        freemyarr(derivative);
+        freemyarr(tmpder);
 
         (void)fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
@@ -209,8 +208,8 @@ int main(int argc, char* argv[])
                    subpos->arrd + ARR_BUFF,
                    ARR_BUFF * sizeof(double));
             memcpy(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals.arrd,
-                   maxvals.arrd + ARR_BUFF,
+            memcpy(maxvals->arrd,
+                   maxvals->arrd + ARR_BUFF,
                    ARR_BUFF * sizeof(double));
             ticktock -= ARR_BUFF;
         }
@@ -223,7 +222,7 @@ int main(int argc, char* argv[])
                           device,
                           cfg.rate,
                           buffer,
-                          derivative);
+                          *derivative);
         unblock_signal(&non_block);
 
         if (err < 0)
@@ -253,15 +252,15 @@ int main(int argc, char* argv[])
         for (unsigned int j = 0; j < NN; ++j)
         {
             // preshift the derivative
-            tmpder.arr[j] =
-                derivative.arr[modSigned(totalshift + j + toothshift, NN)];
+            tmpder->arr[j] =
+                derivative->arr[modSigned(totalshift + j + toothshift, NN)];
         }
 
         maxposition =
-            shiftHalf(fftfit(tmpder,
+            shiftHalf(fftfit(*tmpder,
                              cumulativeTick->arr,
                              reference.arr,
-                             maxvals.arrd + ticktock,
+                             maxvals->arrd + ticktock,
                              filterFFT,
                              totalTickTock > 0 && totalTickTock == verbose,
                              subpos->arrd + ticktock),
@@ -270,7 +269,7 @@ int main(int argc, char* argv[])
         maxpos->arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&
-            *(maxvals.arrd + ticktock) > (double)cvalue / 16 &&
+            *(maxvals->arrd + ticktock) > (double)cvalue / 16 &&
             totalTickTock % teeth == 0)
         {
             if (abs(maxposition) > PRESHIFT_THRESHOLD)
@@ -310,7 +309,7 @@ int main(int argc, char* argv[])
                 if (syncarr.arrd != NULL)
                 {
                     memcpy(syncarr.arrd,
-                           maxvals.arrd + ticktock - writeinterval,
+                           maxvals->arrd + ticktock - writeinterval,
                            writeinterval * sizeof(double));
                     syncAppendMyarr(&syncarr, fpmaxcor);
                     free(syncarr.arrd);
@@ -319,14 +318,14 @@ int main(int argc, char* argv[])
             //  syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
         }
 
-        fitNpeaks(&a, &b, ticktock, &maxvals, maxpos, subpos, fitN);
+        fitNpeaks(&a, &b, ticktock, maxvals, maxpos, subpos, fitN);
 
         printheader(b * 86400 / NN,
                     everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * NN / cfg.rate);
         printspaces(maxpos->arr[ticktock],
-                    maxvals.arrd[ticktock] * 16,
+                    maxvals->arrd[ticktock] * 16,
                     mod,
                     columns - everyline,
                     a,
@@ -350,8 +349,8 @@ int main(int argc, char* argv[])
     }
 
     free(buffer);
-    free(derivative.arr);
-    free(tmpder.arr);
+    freemyarr(derivative);
+    freemyarr(tmpder);
     fftw_free(filterFFT);
 
     wait();
@@ -359,7 +358,7 @@ int main(int argc, char* argv[])
     {
         printTOD(fpmaxcor);
         writefileDouble(fpmaxcor,
-                        maxvals.arrd + ticktock - (totalTickTock - lastWrite),
+                        maxvals->arrd + ticktock - (totalTickTock - lastWrite),
                         totalTickTock - lastWrite);
         (void)fclose(fpmaxcor);
     }
@@ -388,7 +387,7 @@ int main(int argc, char* argv[])
     }
     freemyarr(subpos);
 
-    free(maxvals.arrd);
+    freemyarr(maxvals);
     freemyarr(maxpos);
     if (totalTickTock < AUTOCOR_LIMIT * teeth)
     {

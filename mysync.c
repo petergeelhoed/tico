@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
+#include <sys/time.h> // IWYU pragma: keep
 #include <unistd.h>
 
 #include "myarr.h"
@@ -11,20 +11,22 @@
 
 #define FILE_NAME_LENGTH 256
 
+// NOLINTNEXTLINE(misc-include-cleaner)
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 volatile int count = 0;
 
-void wait()
+void wait(void)
 {
     while (count > 0)
     {
-        usleep(10000);
+        const int WAIT = 10000;
+        usleep(WAIT);
     }
 }
 
-void thread_unlock() { pthread_mutex_unlock(&count_mutex); }
+void thread_unlock(void) { pthread_mutex_unlock(&count_mutex); }
 
-void thread_lock() { pthread_mutex_lock(&count_mutex); }
+void thread_lock(void) { pthread_mutex_lock(&count_mutex); }
 
 void writearray(int* arr, unsigned int NN, const char* file)
 {
@@ -36,9 +38,12 @@ void writearray(int* arr, unsigned int NN, const char* file)
     }
     for (unsigned int j = 0; j < NN; j++)
     {
-        fprintf(fp, "%d %d\n", j, arr[j]);
+        (void)fprintf(fp, "%d %d\n", j, arr[j]);
     }
-    fclose(fp);
+    if (fclose(fp))
+    {
+        perror("Error closing file");
+    }
 }
 
 long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
@@ -61,6 +66,7 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
     info->array = malloc(sizeof(struct myarr));
     if (info->array == NULL)
     {
+        free(info);
         count--;
         perror("Error allocating memory");
         return 0;
@@ -73,6 +79,7 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
         info->array->arr = malloc(input->NN * sizeof(int));
         if (info->array->arr == NULL)
         {
+            free(info);
             count--;
             perror("Error allocating memory");
             return 0;
@@ -85,6 +92,7 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
         info->array->arrd = malloc(input->NN * sizeof(double));
         if (info->array->arrd == NULL)
         {
+            free(info);
             count--;
             perror("Error allocating memory");
             return 0;
@@ -96,10 +104,10 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
     info->file = file;
     info->array->NN = input->NN;
 
-    pthread_attr_t attr;
+    pthread_attr_t attr; // NOLINT(misc-include-cleaner)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0;
+    pthread_t tid = 0; // NOLINT(misc-include-cleaner)
     if (pthread_create(&tid, &attr, threadAppendMyarr, info) != 0)
     {
         perror("Error creating thread");
@@ -126,7 +134,7 @@ void* threadAppendMyarr(void* inStruct)
     {
         for (unsigned int j = 0; j < mine->array->NN; j++)
         {
-            fprintf(mine->file, "%d\n", mine->array->arr[j]);
+            (void)fprintf(mine->file, "%d\n", mine->array->arr[j]);
         }
     }
 
@@ -134,11 +142,11 @@ void* threadAppendMyarr(void* inStruct)
     {
         for (unsigned int j = 0; j < mine->array->NN; j++)
         {
-            fprintf(mine->file, "%f\n", mine->array->arrd[j]);
+            (void)fprintf(mine->file, "%f\n", mine->array->arrd[j]);
         }
     }
 
-    fflush(mine->file);
+    (void)fflush(mine->file);
 
     free(mine->array->arr);
     free(mine->array->arrd);
@@ -174,9 +182,9 @@ void* threadAppend(void* inStruct)
     printTOD(mine->file);
     for (unsigned int j = 0; j < mine->NN; j++)
     {
-        fprintf(mine->file, "%d\n", mine->array[j]);
+        (void)fprintf(mine->file, "%d\n", mine->array[j]);
     }
-    fflush(mine->file);
+    (void)fflush(mine->file);
 
     free(mine->array);
     free(mine);
@@ -247,27 +255,30 @@ void* threadWrite(void* inStruct)
 void printTOD(FILE* out)
 {
     if (out == NULL)
+    {
         return;
+    }
 
-    struct timeval tv;
+    struct timeval tv; // NOLINT(misc-include-cleaner)
     gettimeofday(&tv, NULL);
 
-    struct tm* today = localtime(&tv.tv_sec);
+    struct tm* today = localtime(&tv.tv_sec); // NOLINT(misc-include-cleaner)
     if (today == NULL)
     {
         perror("Error getting local time");
         return;
     }
 
-    fprintf(out,
-            "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lu.%06lu\n",
-            today->tm_year + 1900,
-            today->tm_mon + 1,
-            today->tm_mday,
-            today->tm_hour,
-            today->tm_min,
-            today->tm_sec,
-            tv.tv_usec,
-            tv.tv_sec,
-            tv.tv_usec);
+    const int nineteenhundred = 1900;
+    (void)fprintf(out,
+                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lu.%06lu\n",
+                  today->tm_year + nineteenhundred,
+                  today->tm_mon + 1,
+                  today->tm_mday,
+                  today->tm_hour,
+                  today->tm_min,
+                  today->tm_sec,
+                  tv.tv_usec,
+                  tv.tv_sec,
+                  tv.tv_usec);
 }

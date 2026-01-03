@@ -1,4 +1,5 @@
 #include "mysignal.h"
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -18,13 +19,13 @@ void sigint_handler(int signal)
     else if (signal == SIGWINCH)
     {
         struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w); // NOLINT(misc-include-cleaner)
         columns = (unsigned int)w.ws_col;
-        fprintf(stderr, "new width %d\n", columns);
+        (void)fprintf(stderr, "new width %d\n", columns);
     }
     else
     {
-        raise(signal);
+        (void)raise(signal);
     }
 }
 
@@ -48,7 +49,7 @@ void set_signal_action(void)
     }
 }
 
-void setup_block_signals(sigset_t* new_set)
+void setup_block_signals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
 {
     struct sigaction sact;
 
@@ -57,7 +58,7 @@ void setup_block_signals(sigset_t* new_set)
     sact.sa_handler = sigint_handler;
     if (sigaction(SIGWINCH, &sact, NULL) != 0)
     {
-        fprintf(stderr, "sigaction() error");
+        (void)fprintf(stderr, "sigaction() error");
         exit(ERROR_SIGNAL);
     }
     sigemptyset(new_set);
@@ -69,7 +70,7 @@ void block_signal(sigset_t* new_set, sigset_t* old_set)
 {
     if (sigprocmask(SIG_BLOCK, new_set, old_set) != 0)
     {
-        fprintf(stderr, "block sigprocmask() error");
+        (void)fprintf(stderr, "block sigprocmask() error");
         exit(ERROR_SIGNAL);
     }
 }
@@ -78,7 +79,7 @@ void unblock_signal(sigset_t* old_set)
 {
     if (sigprocmask(SIG_SETMASK, old_set, NULL) != 0)
     {
-        fprintf(stderr, "unblock sigprocmask() error");
+        (void)fprintf(stderr, "unblock sigprocmask() error");
         exit(ERROR_SIGNAL);
     }
 }

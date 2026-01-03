@@ -1,21 +1,14 @@
+#pragma once
 #include <stdio.h>
 
-void parse_arguments(int argc,
-                     char* argv[],
-                     double* rate,
-                     unsigned int* bph,
-                     unsigned int* evalue,
-                     unsigned int* zoom,
-                     unsigned int* time,
-                     unsigned int* everyline,
-                     unsigned int* cvalue,
-                     unsigned int* verbose,
-                     unsigned int* fitN,
-                     unsigned int* teeth,
-                     double* SDthreshold,
-                     char** device,
-                     FILE** fpposition,
-                     FILE** fpmaxcor,
-                     FILE** fptotal,
-                     FILE** fpDefPeak,
-                     FILE** fpInput);
+typedef struct
+{
+    double rate;
+    unsigned int bph, evalue, zoom, time, everyline, cvalue, verbose, fitN,
+        teeth;
+    double SDthreshold;
+    char* device;
+    FILE *fpposition, *fpmaxcor, *fptotal, *fpDefPeak, *fpInput;
+} CapConfig;
+
+void parse_arguments(int argc, char* argv[], CapConfig* cfg);

@@ -25,15 +25,16 @@ void printheader(double fittedRate,
         snprintf(line, 5, "%4.2f", beatError);
         snprintf(line + 4, 8, "ms%+5.1f", fittedRate);
         sprintf(line + 11, "s/d");
-        fprintf(stderr, "%s", line);
+        (void)fprintf(stderr, "%s", line);
     }
     else
     {
-        fprintf(stderr,
-                "\033[s\033[2;0H\033[0K%8.2fms   %9.1fs/d   %12.2fs\033[u",
-                beatError,
-                fittedRate,
-                seconds);
+        (void)fprintf(
+            stderr,
+            "\033[s\033[2;0H\033[0K%8.2fms   %9.1fs/d   %12.2fs\033[u",
+            beatError,
+            fittedRate,
+            seconds);
     }
 }
 
@@ -58,21 +59,21 @@ void printspaces(int maxpos,
     if (widtha < width)
         spaces[widtha] = '|';
 
-    fprintf(stderr,
-            "%s%s%X\033[0m",
-            spaces,
-            (unsigned int)corvalue < correlationThreshold ? "\033[31m"
-                                                          : "\033[32m",
-            (int)corvalue);
+    (void)fprintf(stderr,
+                  "%s%s%X\033[0m",
+                  spaces,
+                  (unsigned int)corvalue < correlationThreshold ? "\033[31m"
+                                                                : "\033[32m",
+                  (int)corvalue);
 
     memset(spaces, ' ', width);
     if (widtha > width)
     {
         spaces[widtha - width - 1] = '|';
         spaces[widtha - width] = '\0';
-        fprintf(stderr, "%s", spaces);
+        (void)fprintf(stderr, "%s", spaces);
     }
-    fprintf(stderr, "\n");
+    (void)fprintf(stderr, "\n");
 }
 
 void linreg(const double* xarr,
@@ -108,7 +109,7 @@ void writefile(FILE* fp, int* array, unsigned int NN)
     if (fp)
     {
         for (unsigned int j = 0; j < NN; j++)
-            fprintf(fp, "%d\n", array[j]);
+            (void)fprintf(fp, "%d\n", array[j]);
     }
 }
 
@@ -117,7 +118,7 @@ void writefileDouble(FILE* fp, double* array, unsigned int NN)
     if (fp)
     {
         for (unsigned int j = 0; j < NN; j++)
-            fprintf(fp, "%f\n", array[j]);
+            (void)fprintf(fp, "%f\n", array[j]);
     }
 }
 
@@ -185,7 +186,7 @@ void calculateTotal(unsigned int n,
        s /= rate;
      */
 
-    fprintf(stderr, "raw rate: %f s/d, %d samples\n", -b * 86400 / NN, n);
+    (void)fprintf(stderr, "raw rate: %f s/d, %d samples\n", -b * 86400 / NN, n);
     unsigned int m = 0;
 
     double e;
@@ -202,11 +203,11 @@ void calculateTotal(unsigned int n,
     }
     linreg(xarr, maxpos, m, &a, &b, &s);
 
-    fprintf(stderr,
-            "after %.1fσ removal: %.2f s/d, %d samples\n",
-            threshold,
-            -b * 86400 / NN,
-            m);
+    (void)fprintf(stderr,
+                  "after %.1fσ removal: %.2f s/d, %d samples\n",
+                  threshold,
+                  -b * 86400 / NN,
+                  m);
 }
 
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)
@@ -235,11 +236,11 @@ int checkUIntArg(int name, unsigned int* value, char* optarg)
     return 0;
 }
 
-int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
+int checkFileArg(int name, FILE** fp, const char* optarg, const char* mode)
 {
     if (*optarg == '-')
     {
-        fprintf(
+        (void)fprintf(
             stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
         return -1;
     }
@@ -247,11 +248,11 @@ int checkFileArg(int name, FILE** fp, char* optarg, char* mode)
     *fp = fopen(optarg, mode);
     if (*fp == NULL)
     {
-        fprintf(stderr,
-                "cannot open file -%c '%s' for mode %s\n",
-                (char)name,
-                optarg,
-                mode);
+        (void)fprintf(stderr,
+                      "cannot open file -%c '%s' for mode %s\n",
+                      (char)name,
+                      optarg,
+                      mode);
         return -4;
     }
     return 0;
@@ -275,11 +276,12 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                            &dummy1,
                            &shift) != 4)
                 {
-                    fprintf(stderr,
-                            "not enough values in -D <default peak file>\n 4 "
-                            "columns required, %u samples and %u teeth\n",
-                            reference->NN,
-                            teeth);
+                    (void)fprintf(
+                        stderr,
+                        "not enough values in -D <default peak file>\n 4 "
+                        "columns required, %u samples and %u teeth\n",
+                        reference->NN,
+                        teeth);
                     exit(-5);
                 }
                 reference

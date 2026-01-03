@@ -64,25 +64,26 @@ int main(int argc, char* argv[])
     columns = w.ws_col;
     set_signal_action();
 
-    parse_arguments(argc,
-                    argv,
-                    &inputRate,
-                    &bph,
-                    &evalue,
-                    &zoom,
-                    &time,
-                    &everyline,
-                    &cvalue,
-                    &verbose,
-                    &fitN,
-                    &teeth,
-                    &SDthreshold,
-                    &device,
-                    &fpposition,
-                    &fpmaxcor,
-                    &fptotal,
-                    &fpDefPeak,
-                    &fpInput);
+    CapConfig cfg;
+    parse_arguments(argc, argv, &cfg);
+
+    inputRate = cfg.rate;
+    bph = cfg.bph;
+    evalue = cfg.evalue;
+    zoom = cfg.zoom;
+    time = cfg.time;
+    everyline = cfg.everyline;
+    cvalue = cfg.cvalue;
+    verbose = cfg.verbose;
+    fitN = cfg.fitN;
+    teeth = cfg.teeth;
+    SDthreshold = cfg.SDthreshold;
+    device = cfg.device;
+    fpposition = cfg.fpposition;
+    fpmaxcor = cfg.fpmaxcor;
+    fptotal = cfg.fptotal;
+    fpDefPeak = cfg.fpDefPeak;
+    fpInput = cfg.fpInput;
 
     unsigned int actualRate = (unsigned int)inputRate + 0.5;
 

@@ -41,7 +41,7 @@ double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 
-int checkFileArg(int name, FILE** fp, char* optarg, char* mode);
+int checkFileArg(int name, FILE** fp, const char* optarg, const char* mode);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);

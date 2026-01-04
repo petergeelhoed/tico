@@ -45,21 +45,9 @@ volatile unsigned int columns = DEFAULT_COLUMNS;
 
 int main(int argc, char* argv[])
 {
-    unsigned int everyline = 0;
-    unsigned int cvalue = DEFAULT_CVALUE;
-    unsigned int verbose = 0;
     unsigned int writeinterval = DEFAULT_TICKTOCK_WRITE;
     unsigned int lastWrite = 0;
-    unsigned int fitN = DEFAULT_FITN;
-    unsigned int teeth = DEFAULT_TEETH;
     unsigned int ticktockBuffer = ARR_BUFF * 2;
-    double SDthreshold = DEFAULT_SDTHRESHOLD;
-    char* device = NULL;
-    FILE* fpposition = NULL;
-    FILE* fpmaxcor = NULL;
-    FILE* fptotal = NULL;
-    FILE* fpDefPeak = NULL;
-    FILE* fpInput = NULL;
     double a = 0.0;
     double b = 0.0;
     int maxposition = 0;
@@ -76,60 +64,47 @@ int main(int argc, char* argv[])
     cfg.evalue = DEFAULT_EVALUE;
     cfg.zoom = DEFAULT_ZOOM;
     cfg.time = 0;
-    cfg.everyline = everyline;
-    cfg.cvalue = cvalue;
-    cfg.verbose = verbose;
-    cfg.fitN = fitN;
-    cfg.teeth = teeth;
-    cfg.SDthreshold = SDthreshold;
-    cfg.device = device;
-    cfg.fpposition = fpposition;
-    cfg.fpmaxcor = fpmaxcor;
-    cfg.fptotal = fptotal;
-    cfg.fpDefPeak = fpDefPeak;
-    cfg.fpInput = fpInput;
+    cfg.everyline = 0;
+    cfg.cvalue = DEFAULT_CVALUE;
+    cfg.verbose = 0;
+    cfg.fitN = DEFAULT_FITN;
+    cfg.teeth = DEFAULT_TEETH;
+    cfg.SDthreshold = DEFAULT_SDTHRESHOLD;
+    cfg.device = NULL;
+    cfg.fpposition = NULL;
+    cfg.fpmaxcor = NULL;
+    cfg.fptotal = NULL;
+    cfg.fpDefPeak = NULL;
+    cfg.fpInput = NULL;
 
     parse_arguments(argc, argv, &cfg);
 
-    everyline = cfg.everyline;
-    cvalue = cfg.cvalue;
-    verbose = cfg.verbose;
-    fitN = cfg.fitN;
-    teeth = cfg.teeth;
-    SDthreshold = cfg.SDthreshold;
-    device = cfg.device;
-    fpposition = cfg.fpposition;
-    fpmaxcor = cfg.fpmaxcor;
-    fptotal = cfg.fptotal;
-    fpDefPeak = cfg.fpDefPeak;
-    fpInput = cfg.fpInput;
-
     unsigned int actualRate = (unsigned int)(cfg.rate + HALF);
 
-    if (fitN > ticktockBuffer / 2)
+    if (cfg.fitN > ticktockBuffer / 2)
     {
         printf("Local fit N(%d) cannot be larger than %d\n",
-               fitN,
+               cfg.fitN,
                ticktockBuffer / 2);
     }
 
-    device = (device == NULL) ? "default:2" : device;
+    cfg.device = (cfg.device == NULL) ? "default:2" : cfg.device;
 
     // initialize sound source
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = NULL;
 
-    if (fpInput == NULL)
+    if (cfg.fpInput == NULL)
     {
         // rate could change, if not available
         printf("Casting inputrate %f(double) to soundcard rate %d(int)\n",
                cfg.rate,
                actualRate);
-        capture_handle = initAudio(format, device, &actualRate);
+        capture_handle = initAudio(format, cfg.device, &actualRate);
         printf("Actual rate %d, calculating with %f\n", actualRate, cfg.rate);
     }
 
-    if (fpInput == NULL && capture_handle == NULL)
+    if (cfg.fpInput == NULL && capture_handle == NULL)
     {
         (void)fprintf(stderr, "No inputfile or soundcard");
         return ERROR_NO_SOURCE;
@@ -143,8 +118,8 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(cfg.evalue, NN);
 
-    struct myarr* teethArray[teeth];
-    for (unsigned int t = 0; t < teeth; t++)
+    struct myarr* teethArray[cfg.teeth];
+    for (unsigned int t = 0; t < cfg.teeth; t++)
     {
         teethArray[t] = makemyarr(NN);
     }
@@ -172,7 +147,7 @@ int main(int argc, char* argv[])
         freemyarr(derivative);
         freemyarr(tmpder);
 
-        for (unsigned int idx = 0; idx < teeth; idx++)
+        for (unsigned int idx = 0; idx < cfg.teeth; idx++)
         {
             freemyarr(teethArray[idx]);
         }
@@ -185,9 +160,9 @@ int main(int argc, char* argv[])
                   "%.1fμs/character\n",
                   columns,
                   mod * KILO / cfg.rate,
-                  mod * MEGA / cfg.rate / (columns - everyline));
+                  mod * MEGA / cfg.rate / (columns - cfg.everyline));
 
-    fillReference(fpDefPeak, reference, teeth);
+    fillReference(cfg.fpDefPeak, reference, cfg.teeth);
 
     sigset_t block;
     sigset_t non_block;
@@ -211,11 +186,11 @@ int main(int argc, char* argv[])
         }
 
         block_signal(&block, &non_block);
-        int err = getData(fpposition,
-                          fpInput,
+        int err = getData(cfg.fpposition,
+                          cfg.fpInput,
                           capture_handle,
                           format,
-                          device,
+                          cfg.device,
                           cfg.rate,
                           buffer,
                           *derivative);
@@ -227,17 +202,17 @@ int main(int argc, char* argv[])
             break;
         }
 
-        struct myarr* cumulativeTick = teethArray[totalTickTock % teeth];
-        if (totalTickTock >= AUTOCOR_LIMIT * teeth)
+        struct myarr* cumulativeTick = teethArray[totalTickTock % cfg.teeth];
+        if (totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
         {
             // make sure this is only done after the j teethArray are filled at
             // least once
-            if (teeth > 1)
+            if (cfg.teeth > 1)
             {
                 toothshift = getshift(*teethArray[0],
-                                      *teethArray[totalTickTock % teeth]);
+                                      *teethArray[totalTickTock % cfg.teeth]);
             }
-            if (totalTickTock == AUTOCOR_LIMIT * teeth)
+            if (totalTickTock == AUTOCOR_LIMIT * cfg.teeth)
             {
                 // this needs to be freed but we do need the struct
                 free(reference->arr);
@@ -259,15 +234,15 @@ int main(int argc, char* argv[])
                              reference->arr,
                              maxvals->arrd + ticktock,
                              filterFFT,
-                             totalTickTock > 0 && totalTickTock == verbose,
+                             totalTickTock > 0 && totalTickTock == cfg.verbose,
                              subpos->arrd + ticktock),
                       NN);
 
         maxpos->arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&
-            *(maxvals->arrd + ticktock) > (double)cvalue / HEXDEC &&
-            totalTickTock % teeth == 0)
+            *(maxvals->arrd + ticktock) > (double)cfg.cvalue / HEXDEC &&
+            totalTickTock % cfg.teeth == 0)
         {
             if (abs(maxposition) > PRESHIFT_THRESHOLD)
             {
@@ -283,7 +258,7 @@ int main(int argc, char* argv[])
         {
             lastWrite = totalTickTock;
 
-            if (fpposition)
+            if (cfg.fpposition)
             {
                 struct myarr* syncarr = makemyarrd(writeinterval);
                 if (syncarr != NULL)
@@ -294,11 +269,11 @@ int main(int argc, char* argv[])
                             subpos->arrd[ticktock - writeinterval + k] +
                             (double)maxpos->arr[ticktock - writeinterval + k];
                     }
-                    syncAppendMyarr(syncarr, fpposition);
+                    syncAppendMyarr(syncarr, cfg.fpposition);
                     freemyarr(syncarr);
                 }
             }
-            if (fpmaxcor != NULL)
+            if (cfg.fpmaxcor != NULL)
             {
                 struct myarr* syncarr = makemyarrd(writeinterval);
                 if (syncarr != NULL)
@@ -306,34 +281,34 @@ int main(int argc, char* argv[])
                     memcpy(syncarr->arrd,
                            maxvals->arrd + ticktock - writeinterval,
                            writeinterval * sizeof(double));
-                    syncAppendMyarr(syncarr, fpmaxcor);
+                    syncAppendMyarr(syncarr, cfg.fpmaxcor);
                     freemyarr(syncarr);
                 }
             }
             //  syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
         }
 
-        fitNpeaks(&a, &b, ticktock, maxvals, maxpos, subpos, fitN);
+        fitNpeaks(&a, &b, ticktock, maxvals, maxpos, subpos, cfg.fitN);
 
         printheader(b * SECS_DAY / NN,
-                    everyline,
+                    cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * NN / cfg.rate);
         printspaces(maxpos->arr[ticktock],
                     maxvals->arrd[ticktock] * HEXDEC,
                     mod,
-                    columns - everyline,
+                    columns - cfg.everyline,
                     a,
-                    cvalue);
+                    cfg.cvalue);
 
         ticktock++;
         totalTickTock++;
     }
 
-    if (teeth > 1)
+    if (cfg.teeth > 1)
     {
         printf("peak   shift beaterr\n");
-        for (unsigned int k = 0; k < teeth; ++k)
+        for (unsigned int k = 0; k < cfg.teeth; ++k)
         {
             double beaterr = getBeatError(teethArray[k], cfg.rate, 0);
             printf("%6d%6d%6.2f\n",
@@ -349,15 +324,15 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
 
     wait();
-    if (fpmaxcor)
+    if (cfg.fpmaxcor)
     {
-        printTOD(fpmaxcor);
-        writefileDouble(fpmaxcor,
+        printTOD(cfg.fpmaxcor);
+        writefileDouble(cfg.fpmaxcor,
                         maxvals->arrd + ticktock - (totalTickTock - lastWrite),
                         totalTickTock - lastWrite);
-        (void)fclose(fpmaxcor);
+        (void)fclose(cfg.fpmaxcor);
     }
-    if (fpposition)
+    if (cfg.fpposition)
     {
         thread_lock();
         unsigned int writelength = totalTickTock - lastWrite;
@@ -370,55 +345,56 @@ int main(int argc, char* argv[])
                     subpos->arrd[ticktock - writelength + k] +
                     (double)maxpos->arr[ticktock - writelength + k];
             }
-            syncAppendMyarr(syncarr, fpposition);
+            syncAppendMyarr(syncarr, cfg.fpposition);
             freemyarr(syncarr);
         }
 
-        calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);
+        calculateTotalFromFile(
+            totalTickTock, cfg.fpposition, NN, cfg.SDthreshold);
         thread_unlock();
         wait();
-        (void)fclose(fpposition);
+        (void)fclose(cfg.fpposition);
     }
     freemyarr(subpos);
 
     freemyarr(maxvals);
     freemyarr(maxpos);
-    for (unsigned int t = 0; t < teeth; ++t)
+    for (unsigned int t = 0; t < cfg.teeth; ++t)
     {
         struct myarr* cumulativeTick = teethArray[t];
-        if (fptotal)
+        if (cfg.fptotal)
         {
             int toothshift = getshift(*teethArray[0], *cumulativeTick);
             for (unsigned int j = 0; j < NN; ++j)
             {
-                (void)fprintf(fptotal,
+                (void)fprintf(cfg.fptotal,
                               "%d %d %u %d\n",
                               shiftHalf(j + toothshift, NN),
                               cumulativeTick->arr[j],
                               t,
                               toothshift);
             }
-            (void)fprintf(fptotal, "\n\n");
+            (void)fprintf(cfg.fptotal, "\n\n");
         }
     }
 
-    if (totalTickTock >= AUTOCOR_LIMIT * teeth)
+    if (totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
     {
         reference->arr = 0;
     }
     freemyarr(reference);
 
-    for (unsigned int t = 0; t < teeth; ++t)
+    for (unsigned int t = 0; t < cfg.teeth; ++t)
     {
         freemyarr(teethArray[t]);
     }
-    if (fpInput)
+    if (cfg.fpInput)
     {
-        (void)fclose(fpInput);
+        (void)fclose(cfg.fpInput);
     }
-    if (fptotal)
+    if (cfg.fptotal)
     {
-        (void)fclose(fptotal);
+        (void)fclose(cfg.fptotal);
     }
 
     if (capture_handle != NULL)
@@ -430,6 +406,6 @@ int main(int argc, char* argv[])
     (void)fprintf(stderr,
                   "width = %.3fms / %.1fμs/character\n",
                   mod * KILO / cfg.rate,
-                  mod * MEGA / cfg.rate / (columns - everyline));
+                  mod * MEGA / cfg.rate / (columns - cfg.everyline));
     return 0;
 }

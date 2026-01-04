@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <fftw3.h>
 #include <math.h>
 #include <stdio.h>
@@ -7,9 +8,12 @@
 #include "myfft.h"
 #include "mylib.h"
 
+#define INIT_N 4000
+#define DECIMAL 10
+#define BUFF_SIZE 256
 int main(int argc, char** argv)
 {
-    unsigned int iN = 4000;
+    unsigned int iN = INIT_N;
     unsigned int i = 0;
 
     int c;
@@ -17,6 +21,7 @@ int main(int argc, char** argv)
     int pval = 0;
     int lval = 0;
     int fval = 0;
+    char* endptr;
 
     while ((c = getopt(argc, argv, "zplf:")) != -1)
     {
@@ -26,7 +31,10 @@ int main(int argc, char** argv)
             lval = 1;
             break;
         case 'f':
-            fval = atoi(optarg);
+            errno = 0; // Important: Clear errno before the call
+            endptr = NULL;
+            long val = strtol(optarg, &endptr, DECIMAL);
+            fval = (int)val;
             break;
         case 'p':
             pval = 1;
@@ -53,50 +61,74 @@ int main(int argc, char** argv)
     double* tmpx = malloc(iN * sizeof(double));
     double d;
     int ret = 0;
-    while ((ret = scanf("%lf ", &d)), ret == 1)
+    char line[BUFF_SIZE];
+    char* ptr;
+    while (fgets(line, sizeof(line), stdin))
     {
-        tmpy[i] = d;
-        tmpx[i] = (double)i;
-
-        i++;
-        if (i == iN)
+        ptr = line;
+        while (*ptr != '\0')
         {
-            iN *= 3;
-            iN /= 2;
-            double* tmp2 = realloc(tmpy, iN * sizeof(double));
-            if (tmp2)
+            endptr = NULL;
+            errno = 0;
+            d = strtod(ptr, &endptr);
+            if (ptr == endptr)
             {
-                tmpy = tmp2;
+                ptr++;
+                continue; // No number found on this line
             }
-            else
+            ptr = endptr;
+            ret = 1;
+            tmpy[i] = d;
+            tmpx[i] = (double)i;
+
+            i++;
+            if (i == iN)
             {
-                fprintf(stderr, "Memory allocation failed");
-                return -2;
-            }
-            tmp2 = realloc(tmpx, iN * sizeof(double));
-            if (tmp2)
-            {
-                tmpx = tmp2;
-            }
-            else
-            {
-                fprintf(stderr, "Memory allocation failed");
-                return -2;
+                iN *= 3;
+                iN /= 2;
+                double* tmp2 = realloc(tmpy, iN * sizeof(double));
+                if (tmp2)
+                {
+                    tmpy = tmp2;
+                }
+                else
+                {
+                    free(tmpx);
+                    free(tmpy);
+                    (void)fprintf(stderr, "Memory allocation failed");
+                    return -2;
+                }
+                tmp2 = realloc(tmpx, iN * sizeof(double));
+                if (tmp2)
+                {
+                    tmpx = tmp2;
+                }
+                else
+                {
+                    free(tmpx);
+                    free(tmpy);
+                    (void)fprintf(stderr, "Memory allocation failed");
+                    return -2;
+                }
             }
         }
     }
     if (ret == 0)
     {
-        fprintf(stderr, "Failed to parse double\n");
+        free(tmpx);
+        free(tmpy);
+        (void)fprintf(stderr, "Failed to parse double\n");
         return -1;
     }
 
     unsigned int N = i;
-    double a = 0, b = 0, s = 0;
+    double a = 0.0;
+    double b = 0.0;
+    double s = 0.0;
     if (lval)
     {
         linreg(tmpx, tmpy, N, &a, &b, &s);
-        fprintf(stderr, "a=%lf b=%lf s=%lf\n", a, b, s);
+        (void)fprintf(stderr, "a=%lf b=%lf s=%lf\n", a, b, s);
     }
     free(tmpx);
 

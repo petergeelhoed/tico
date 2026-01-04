@@ -207,22 +207,12 @@ int main(int argc, char* argv[])
         }
 
         struct myarr* cumulativeTick = teethArray[totalTickTock % cfg.teeth];
-        if (totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
+        if (cfg.teeth > 1 && totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
         {
             // make sure this is only done after the j teethArray are filled at
             // least once
-            if (cfg.teeth > 1)
-            {
-                toothshift = getshift(*teethArray[0],
-                                      *teethArray[totalTickTock % cfg.teeth]);
-            }
-            if (totalTickTock == AUTOCOR_LIMIT * cfg.teeth)
-            {
-                // this needs to be freed but we do need the struct
-                free(reference->arr);
-            }
-            // use the appropriate tick as a reference
-            reference->arr = cumulativeTick->arr;
+            toothshift = getshift(*teethArray[0],
+                                  *teethArray[totalTickTock % cfg.teeth]);
         }
 
         for (unsigned int j = 0; j < NN; ++j)
@@ -235,7 +225,9 @@ int main(int argc, char* argv[])
         maxposition =
             shiftHalf(fftfit(*tmpder,
                              cumulativeTick->arr,
-                             reference->arr,
+                             (totalTickTock < AUTOCOR_LIMIT * cfg.teeth)
+                                 ? reference->arr
+                                 : cumulativeTick->arr,
                              maxvals->arrd + ticktock,
                              filterFFT,
                              totalTickTock > 0 && totalTickTock == cfg.verbose,
@@ -360,7 +352,7 @@ int main(int argc, char* argv[])
         (void)fclose(cfg.fpposition);
     }
     freemyarr(subpos);
-
+    freemyarr(reference);
     freemyarr(maxvals);
     freemyarr(maxpos);
     for (unsigned int t = 0; t < cfg.teeth; ++t)
@@ -381,12 +373,6 @@ int main(int argc, char* argv[])
             (void)fprintf(cfg.fptotal, "\n\n");
         }
     }
-
-    if (totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
-    {
-        reference->arr = 0;
-    }
-    freemyarr(reference);
 
     for (unsigned int t = 0; t < cfg.teeth; ++t)
     {

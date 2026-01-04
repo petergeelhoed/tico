@@ -3,18 +3,22 @@
 
 #define ERROR_ALLOCATE_MEM -5
 // Perform cross-correlation using FFT
-void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
+void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
 {
     // Allocate memory for FFTW complex arrays
     fftw_complex* tmparr = fftw_alloc_complex(NN);
     fftw_complex* tmpref = fftw_alloc_complex(NN);
     if (!tmparr || !tmpref)
     {
-        fprintf(stderr, "Memory allocation failed in crosscorint\n");
+        (void)fprintf(stderr, "Memory allocation failed in crosscorint\n");
         if (tmparr)
+        {
             fftw_free(tmparr);
+        }
         if (tmpref)
+        {
             fftw_free(tmpref);
+        }
         fftw_cleanup();
         exit(ERROR_ALLOCATE_MEM);
     }
@@ -32,7 +36,7 @@ void crosscorint(unsigned int NN, int* array, int* ref, int* cross)
     fftw_complex* coor = crosscor(NN, tmparr, tmpref);
     if (!coor)
     {
-        fprintf(stderr, "Cross-correlation failed in crosscorint\n");
+        (void)fprintf(stderr, "Cross-correlation failed in crosscorint\n");
         fftw_free(tmpref);
         fftw_free(tmparr);
         fftw_cleanup();

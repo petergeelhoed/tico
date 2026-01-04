@@ -139,23 +139,20 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(cfg.evalue, NN);
 
-    struct myarr teethArray[teeth];
+    struct myarr* teethArray[teeth];
     for (unsigned int t = 0; t < teeth; t++)
     {
-        teethArray[t].arr = calloc(NN, sizeof(int));
-        if (teethArray[t].arr == NULL)
+        teethArray[t] = makemyarr(NN);
+        if (teethArray[t] == NULL)
         {
             for (unsigned int idx = 0; idx < t; idx++)
             {
-                free(teethArray[idx].arr);
+                freemyarr(teethArray[idx]);
             }
 
             (void)fprintf(stderr, "Could not allocate memory");
             return ERROR_ALLOCATE_MEM;
         }
-
-        teethArray[t].arrd = NULL;
-        teethArray[t].NN = NN;
     }
 
     struct myarr* subpos = makemyarrd(ticktockBuffer);
@@ -180,6 +177,10 @@ int main(int argc, char* argv[])
         freemyarr(derivative);
         freemyarr(tmpder);
 
+        for (unsigned int idx = 0; idx < teeth; idx++)
+        {
+            freemyarr(teethArray[idx]);
+        }
         (void)fprintf(stderr, "Could not allocate memory");
         return ERROR_ALLOCATE_MEM;
     }
@@ -231,15 +232,15 @@ int main(int argc, char* argv[])
             break;
         }
 
-        struct myarr* cumulativeTick = &teethArray[totalTickTock % teeth];
+        struct myarr* cumulativeTick = teethArray[totalTickTock % teeth];
         if (totalTickTock >= AUTOCOR_LIMIT * teeth)
         {
             // make sure this is only done after the j teethArray are filled at
             // least once
             if (teeth > 1)
             {
-                toothshift =
-                    getshift(teethArray[0], teethArray[totalTickTock % teeth]);
+                toothshift = getshift(*teethArray[0],
+                                      *teethArray[totalTickTock % teeth]);
             }
             if (totalTickTock == AUTOCOR_LIMIT * teeth)
             {
@@ -340,10 +341,10 @@ int main(int argc, char* argv[])
         printf("peak   shift beaterr\n");
         for (unsigned int k = 0; k < teeth; ++k)
         {
-            double beaterr = getBeatError(&teethArray[k], cfg.rate, 0);
+            double beaterr = getBeatError(teethArray[k], cfg.rate, 0);
             printf("%6d%6d%6.2f\n",
                    k,
-                   getshift(teethArray[0], teethArray[k]),
+                   getshift(*teethArray[0], *teethArray[k]),
                    beaterr);
         }
     }
@@ -395,10 +396,10 @@ int main(int argc, char* argv[])
     }
     for (unsigned int t = 0; t < teeth; ++t)
     {
-        struct myarr* cumulativeTick = &teethArray[t];
+        struct myarr* cumulativeTick = teethArray[t];
         if (fptotal)
         {
-            int toothshift = getshift(teethArray[0], *cumulativeTick);
+            int toothshift = getshift(*teethArray[0], *cumulativeTick);
             for (unsigned int j = 0; j < NN; ++j)
             {
                 (void)fprintf(fptotal,
@@ -413,7 +414,7 @@ int main(int argc, char* argv[])
     }
     for (unsigned int t = 0; t < teeth; ++t)
     {
-        free(teethArray[t].arr);
+        freemyarr(teethArray[t]);
     }
     if (fpInput)
     {

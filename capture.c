@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     unsigned int NN = actualRate * 2 * SECS_HOUR / cfg.bph;
     NN = (NN + NN % 2);
     unsigned int mod = NN / cfg.zoom;
-    unsigned int maxtime =
+    const unsigned int maxtime =
         (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / NN;
 
     fftw_complex* filterFFT = makeFilter(cfg.evalue, NN);

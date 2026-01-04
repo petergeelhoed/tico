@@ -43,6 +43,18 @@
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
 
+void shift_buffer_data(unsigned int* ticktock,
+                       struct myarr* subpos,
+                       struct myarr* maxpos,
+                       struct myarr* maxvals)
+{
+    memmove(subpos->arrd, subpos->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
+    memmove(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
+    memmove(maxvals->arrd, maxvals->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
+
+    *ticktock -= ARR_BUFF;
+}
+
 int main(int argc, char* argv[])
 {
     unsigned int writeinterval = DEFAULT_TICKTOCK_WRITE;
@@ -174,15 +186,7 @@ int main(int argc, char* argv[])
     {
         if (ticktock == ticktockBuffer)
         {
-            // shift data back, has been written already
-            memcpy(subpos->arrd,
-                   subpos->arrd + ARR_BUFF,
-                   ARR_BUFF * sizeof(double));
-            memcpy(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-            memcpy(maxvals->arrd,
-                   maxvals->arrd + ARR_BUFF,
-                   ARR_BUFF * sizeof(double));
-            ticktock -= ARR_BUFF;
+            shift_buffer_data(&ticktock, subpos, maxpos, maxvals);
         }
 
         block_signal(&block, &non_block);

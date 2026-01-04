@@ -143,16 +143,6 @@ int main(int argc, char* argv[])
     for (unsigned int t = 0; t < teeth; t++)
     {
         teethArray[t] = makemyarr(NN);
-        if (teethArray[t] == NULL)
-        {
-            for (unsigned int idx = 0; idx < t; idx++)
-            {
-                freemyarr(teethArray[idx]);
-            }
-
-            (void)fprintf(stderr, "Could not allocate memory");
-            return ERROR_ALLOCATE_MEM;
-        }
     }
 
     struct myarr* subpos = makemyarrd(ticktockBuffer);
@@ -289,31 +279,29 @@ int main(int argc, char* argv[])
 
             if (fpposition)
             {
-                struct myarr syncarr = {
-                    0, calloc(writeinterval, sizeof(double)), writeinterval};
-                if (syncarr.arrd != NULL)
+                struct myarr* syncarr = makemyarrd(writeinterval);
+                if (syncarr != NULL)
                 {
                     for (unsigned int k = 0; k < writeinterval; ++k)
                     {
-                        syncarr.arrd[k] =
+                        syncarr->arrd[k] =
                             subpos->arrd[ticktock - writeinterval + k] +
                             (double)maxpos->arr[ticktock - writeinterval + k];
                     }
-                    syncAppendMyarr(&syncarr, fpposition);
-                    free(syncarr.arrd);
+                    syncAppendMyarr(syncarr, fpposition);
+                    freemyarr(syncarr);
                 }
             }
             if (fpmaxcor != NULL)
             {
-                struct myarr syncarr = {
-                    NULL, calloc(writeinterval, sizeof(double)), writeinterval};
-                if (syncarr.arrd != NULL)
+                struct myarr* syncarr = makemyarrd(writeinterval);
+                if (syncarr != NULL)
                 {
-                    memcpy(syncarr.arrd,
+                    memcpy(syncarr->arrd,
                            maxvals->arrd + ticktock - writeinterval,
                            writeinterval * sizeof(double));
-                    syncAppendMyarr(&syncarr, fpmaxcor);
-                    free(syncarr.arrd);
+                    syncAppendMyarr(syncarr, fpmaxcor);
+                    freemyarr(syncarr);
                 }
             }
             //  syncwrite(teethArray->arr, NN, "/home/peter/tmp/livepeak");
@@ -367,18 +355,17 @@ int main(int argc, char* argv[])
     {
         thread_lock();
         unsigned int writelength = totalTickTock - lastWrite;
-        struct myarr syncarr = {
-            0, calloc(writelength, sizeof(double)), writelength};
-        if (syncarr.arrd != NULL)
+        struct myarr* syncarr = makemyarrd(writelength);
+        if (syncarr != NULL)
         {
             for (unsigned int k = 0; k < writelength; ++k)
             {
-                syncarr.arrd[k] =
+                syncarr->arrd[k] =
                     subpos->arrd[ticktock - writelength + k] +
                     (double)maxpos->arr[ticktock - writelength + k];
             }
-            syncAppendMyarr(&syncarr, fpposition);
-            free(syncarr.arrd);
+            syncAppendMyarr(syncarr, fpposition);
+            freemyarr(syncarr);
         }
 
         calculateTotalFromFile(totalTickTock, fpposition, NN, SDthreshold);

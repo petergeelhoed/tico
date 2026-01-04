@@ -15,7 +15,11 @@
 #include "mysound.h"
 #include "mysync.h"
 
+#define KILO 1000.
+#define MEGA 1000000.
 #define ARR_BUFF 512
+#define SECS_DAY 86400
+#define HEXDEC 16
 #define DEFAULT_RATE 48000
 #define DEFAULT_BPH 21600
 #define DEFAULT_ZOOM 10
@@ -150,17 +154,18 @@ int main(int argc, char* argv[])
     struct myarr* maxvals = makemyarrd(ticktockBuffer);
     struct myarr* derivative = makemyarr(NN);
     struct myarr* tmpder = makemyarr(NN);
-    struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
+    struct myarr* reference = makemyarr(NN);
+    // struct myarr reference = {calloc(NN, sizeof(int)), 0, NN};
 
     char* buffer =
         calloc(NN, (unsigned int)snd_pcm_format_width(format) / PCM_WIDTH);
-    if (buffer == NULL || reference.arr == NULL || maxvals->arrd == NULL ||
+    if (buffer == NULL || reference->arr == NULL || maxvals->arrd == NULL ||
         maxpos->arr == NULL || subpos->arrd == NULL || filterFFT == NULL ||
         derivative->arr == NULL || tmpder->arr == NULL)
     {
         free(buffer);
         freemyarr(subpos);
-        free(reference.arr);
+        freemyarr(reference);
         freemyarr(maxvals);
         freemyarr(maxpos);
         fftw_free(&filterFFT);
@@ -179,10 +184,10 @@ int main(int argc, char* argv[])
                   "Found COLUMNS=%d, width = %.3fms / "
                   "%.1fμs/character\n",
                   columns,
-                  mod * 1000. / cfg.rate,
-                  mod * 1000000. / cfg.rate / (columns - everyline));
+                  mod * KILO / cfg.rate,
+                  mod * MEGA / cfg.rate / (columns - everyline));
 
-    fillReference(fpDefPeak, &reference, teeth);
+    fillReference(fpDefPeak, reference, teeth);
 
     sigset_t block;
     sigset_t non_block;
@@ -234,10 +239,11 @@ int main(int argc, char* argv[])
             }
             if (totalTickTock == AUTOCOR_LIMIT * teeth)
             {
-                free(reference.arr);
+                // this needs to be freed but we do need the struct
+                free(reference->arr);
             }
             // use the appropriate tick as a reference
-            reference.arr = cumulativeTick->arr;
+            reference->arr = cumulativeTick->arr;
         }
 
         for (unsigned int j = 0; j < NN; ++j)
@@ -250,7 +256,7 @@ int main(int argc, char* argv[])
         maxposition =
             shiftHalf(fftfit(*tmpder,
                              cumulativeTick->arr,
-                             reference.arr,
+                             reference->arr,
                              maxvals->arrd + ticktock,
                              filterFFT,
                              totalTickTock > 0 && totalTickTock == verbose,
@@ -260,7 +266,7 @@ int main(int argc, char* argv[])
         maxpos->arr[ticktock] = totalshift + maxposition;
 
         if (totalTickTock > AUTOCOR_LIMIT &&
-            *(maxvals->arrd + ticktock) > (double)cvalue / 16 &&
+            *(maxvals->arrd + ticktock) > (double)cvalue / HEXDEC &&
             totalTickTock % teeth == 0)
         {
             if (abs(maxposition) > PRESHIFT_THRESHOLD)
@@ -309,12 +315,12 @@ int main(int argc, char* argv[])
 
         fitNpeaks(&a, &b, ticktock, maxvals, maxpos, subpos, fitN);
 
-        printheader(b * 86400 / NN,
+        printheader(b * SECS_DAY / NN,
                     everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * NN / cfg.rate);
         printspaces(maxpos->arr[ticktock],
-                    maxvals->arrd[ticktock] * 16,
+                    maxvals->arrd[ticktock] * HEXDEC,
                     mod,
                     columns - everyline,
                     a,
@@ -377,10 +383,6 @@ int main(int argc, char* argv[])
 
     freemyarr(maxvals);
     freemyarr(maxpos);
-    if (totalTickTock < AUTOCOR_LIMIT * teeth)
-    {
-        free(reference.arr);
-    }
     for (unsigned int t = 0; t < teeth; ++t)
     {
         struct myarr* cumulativeTick = teethArray[t];
@@ -399,6 +401,13 @@ int main(int argc, char* argv[])
             (void)fprintf(fptotal, "\n\n");
         }
     }
+
+    if (totalTickTock >= AUTOCOR_LIMIT * teeth)
+    {
+        reference->arr = 0;
+    }
+    freemyarr(reference);
+
     for (unsigned int t = 0; t < teeth; ++t)
     {
         freemyarr(teethArray[t]);
@@ -420,7 +429,7 @@ int main(int argc, char* argv[])
 
     (void)fprintf(stderr,
                   "width = %.3fms / %.1fμs/character\n",
-                  mod * 1000. / cfg.rate,
-                  mod * 1000000. / cfg.rate / (columns - everyline));
+                  mod * KILO / cfg.rate,
+                  mod * MEGA / cfg.rate / (columns - everyline));
     return 0;
 }

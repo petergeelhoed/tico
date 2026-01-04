@@ -7,18 +7,40 @@
 #include "myfft.h"
 #include "mylib.h"
 
+#define DEFAULT_NN 1000
+#define LINESIZE 256
+
 int main()
 {
-    unsigned int NN = 1000;
+    unsigned int NN = DEFAULT_NN;
     double d;
     double d1;
     double* peak = calloc(NN, sizeof(double));
     double* peak2 = calloc(NN, sizeof(double));
 
     unsigned int n = 0;
+    char line[LINESIZE];
+    char* endptr;
+    char* next_start;
 
-    while (scanf("%lf", &d) != EOF && scanf("%lf", &d1) != EOF)
+    // Read lines until EOF or error
+    while (fgets(line, sizeof(line), stdin))
     {
+        errno = 0;
+
+        // 1. Convert first number
+        d = strtod(line, &endptr);
+        if (line == endptr)
+        {
+            continue; // No number found on this line
+        }
+        // 2. Convert second number starting where the first one ended
+        next_start = endptr;
+        d1 = strtod(next_start, &endptr);
+        if (next_start == endptr)
+        {
+            continue; // Second number not found
+        }
         peak[n] = d;
         peak2[n] = d1;
         n++;

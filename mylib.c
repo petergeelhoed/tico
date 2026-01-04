@@ -28,7 +28,7 @@ void printheader(double fittedRate,
         memset(line, ' ', EVERY_WIDTH);
         (void)snprintf(line, BEAT_WIDTH, "%4.2f", beatError);
         (void)snprintf(
-            line + BEAT_WIDTH - 1, RATE_WIDTH, "ms%+4.1f", fittedRate);
+            line + BEAT_WIDTH - 1, RATE_WIDTH, "ms%+5.1f", fittedRate);
         (void)sprintf(line + BEAT_WIDTH + RATE_WIDTH - 2, "s/d");
         (void)fprintf(stderr, "%s", line);
     }

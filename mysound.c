@@ -9,6 +9,7 @@
 #include "mysound.h"
 
 #define INIT_ERROR -2
+#define BITS_IN_BYTE 8
 #define READ_FAILED -1
 #define REINIT_ERROR -32
 #define INPUT_FILE_ERROR -33
@@ -23,54 +24,70 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     if ((err = snd_pcm_open(
              &capture_handle, device, SND_PCM_STREAM_CAPTURE, 0)) < 0)
     {
-        fprintf(stderr,
-                "cannot open audio device %s (%s)\n",
-                device,
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "cannot open audio device %s (%s)\n",
+                      device,
+                      snd_strerror(err));
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0)
     {
-        fprintf(stderr,
-                "cannot allocate hardware parameter structure (%s)\n",
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "cannot allocate hardware parameter structure (%s)\n",
+                      snd_strerror(err));
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_any(capture_handle, hw_params)) < 0)
     {
-        fprintf(stderr,
-                "cannot initialize hardware parameter structure (%s)\n",
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "cannot initialize hardware parameter structure (%s)\n",
+                      snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_access(
              capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
     {
-        fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
+        (void)fprintf(
+            stderr, "cannot set access type (%s)\n", snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params_set_format(
              capture_handle, hw_params, format)) < 0)
     {
-        fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
+        (void)fprintf(
+            stderr, "cannot set sample format (%s)\n", snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
@@ -78,39 +95,54 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     if ((err = snd_pcm_hw_params_set_rate_near(
              capture_handle, hw_params, rate, 0)) < 0)
     {
-        fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
+        (void)fprintf(
+            stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
     if (*rate != requestedRate)
     {
-        fprintf(stderr,
-                "Requested audiorate %d unavailable, using %d\n",
-                requestedRate,
-                *rate);
+        (void)fprintf(stderr,
+                      "Requested audiorate %d unavailable, using %d\n",
+                      requestedRate,
+                      *rate);
     }
 
     if ((err = snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1)) <
         0)
     {
-        fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
+        (void)fprintf(
+            stderr, "cannot set channel count (%s)\n", snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
     if ((err = snd_pcm_hw_params(capture_handle, hw_params)) < 0)
     {
-        fprintf(stderr, "cannot set parameters (%s)\n", snd_strerror(err));
+        (void)fprintf(
+            stderr, "cannot set parameters (%s)\n", snd_strerror(err));
         if (hw_params)
+        {
             snd_pcm_hw_params_free(hw_params);
+        }
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
@@ -118,11 +150,13 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 
     if ((err = snd_pcm_prepare(capture_handle)) < 0)
     {
-        fprintf(stderr,
-                "cannot prepare audio interface for use (%s)\n",
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "cannot prepare audio interface for use (%s)\n",
+                      snd_strerror(err));
         if (capture_handle)
+        {
             snd_pcm_close(capture_handle);
+        }
         exit(INIT_ERROR);
     }
 
@@ -136,17 +170,17 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
     int err = snd_pcm_readi(capture_handle, buffer, in->NN);
     if (err != (int)in->NN)
     {
-        fprintf(stderr,
-                "read from audio interface failed %d (%s)\n",
-                err,
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "read from audio interface failed %d (%s)\n",
+                      err,
+                      snd_strerror(err));
         exit(READ_FAILED);
     }
     for (unsigned int j = 0; j < 2 * in->NN; j += 2)
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
-        in->arr[j / 2] = (msb << 8) | lsb;
+        in->arr[j / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
 }
 
@@ -160,23 +194,23 @@ int readBuffer(snd_pcm_t* capture_handle,
     int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
     if (err < 0)
     {
-        fprintf(stderr,
-                "read from audio interface failed %d (%s)\n",
-                err,
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "read from audio interface failed %d (%s)\n",
+                      err,
+                      snd_strerror(err));
         return err;
     }
     if (err != (int)NN)
     {
-        fprintf(stderr, "reread from audio interface  %d \n", err);
+        (void)fprintf(stderr, "reread from audio interface  %d \n", err);
         err = snd_pcm_readi(
             capture_handle, buffer + err, (long unsigned int)NN - err);
         if (err < 0)
         {
-            fprintf(stderr,
-                    "reread from audio interface failed %d (%s)\n",
-                    err,
-                    snd_strerror(err));
+            (void)fprintf(stderr,
+                          "reread from audio interface failed %d (%s)\n",
+                          err,
+                          snd_strerror(err));
         }
         else
         {
@@ -187,7 +221,7 @@ int readBuffer(snd_pcm_t* capture_handle,
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
-        derivative[j / 2] = (msb << 8) | lsb;
+        derivative[j / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
     //       remove50hz(NN,in,48000);
 
@@ -247,10 +281,10 @@ int getData(FILE* rawfile,
             derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
         if (err == REINIT_ERROR)
         {
-            fprintf(stderr, "Reinitializing capture_handle");
+            (void)fprintf(stderr, "Reinitializing capture_handle");
             if (rawfile)
             {
-                fprintf(rawfile, "# Reinitializing capture_handle");
+                (void)fprintf(rawfile, "# Reinitializing capture_handle");
             }
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, &rate);
@@ -259,7 +293,8 @@ int getData(FILE* rawfile,
         }
         if (err == INPUT_FILE_ERROR)
         {
-            fprintf(stderr, "Could not read integer from inputfile or audio\n");
+            (void)fprintf(stderr,
+                          "Could not read integer from inputfile or audio\n");
         }
     }
     return err;

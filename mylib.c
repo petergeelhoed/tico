@@ -320,19 +320,35 @@ int modSigned(int value, unsigned int NN)
     return (value % (int)NN + (int)NN) % (int)NN;
 }
 
-double getDouble(char* ptr)
+int getInt(char* ptr)
 {
     char* endptr;
 
     errno = 0;
-    // Use strtol for %d equivalent; use strtod for floating point
     long val = strtol(ptr, &endptr, DECIMAL);
 
     // If ptr == endptr, no more numbers were found on this line
     if (ptr == endptr || errno == ERANGE)
     {
-        (void)fprintf(stderr, "Idvalid double");
-        exit(errno);
+        (void)fprintf(stderr, "Invalid long or out of range\n");
+        return INT_MIN;
+    }
+
+    return val;
+}
+
+double getDouble(char* ptr)
+{
+    char* endptr;
+
+    // Reset errno before the call to accurately catch new range errors
+    errno = 0;
+    double val = strtod(ptr, &endptr);
+
+    if (ptr == endptr || errno == ERANGE)
+    {
+        (void)fprintf(stderr, "Invalid double or out of range\n");
+        val = NAN;
     }
 
     return val;

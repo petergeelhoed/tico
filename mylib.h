@@ -48,3 +48,5 @@ void fillReference(FILE* fpDefPeak,
 
 int shiftHalf(unsigned int value, unsigned int NN);
 int modSigned(int value, unsigned int NN);
+int getInt(char* ptr);
+double getDouble(char* ptr);

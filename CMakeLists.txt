@@ -31,6 +31,7 @@ set(TEST_TARGETS
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone
+    testgetinput
 )
 # Define the internal libraries group
 set(INTERNAL_LIBS 

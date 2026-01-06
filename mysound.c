@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
@@ -9,10 +10,12 @@
 #include "mysound.h"
 
 #define INIT_ERROR -2
+#define DECIMAL 10
 #define BITS_IN_BYTE 8
 #define READ_FAILED -1
 #define REINIT_ERROR -32
 #define INPUT_FILE_ERROR -33
+#define INPUT_OVERFLOW -4
 
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
@@ -240,20 +243,54 @@ int readBufferOrFile(int* derivative,
                      FILE* fpInput)
 {
     int ret = READ_FAILED;
+
     if (fpInput)
     {
-        ret = (int)NN;
-        for (unsigned int j = 0; j < NN; ++j)
+        char* line = NULL;
+        size_t len = 0;
+        unsigned int j = 0;
+
+        // Read entire lines until we have NN numbers
+        while (j < NN && getline(&line, &len, fpInput) != -1)
         {
-            if (fscanf(fpInput, "%d", derivative + j) != 1)
+            char* ptr = line;
+            char* endptr;
+
+            while (j < NN)
             {
-                ret = INPUT_FILE_ERROR;
-                break;
+                errno = 0;
+                // Use strtol for %d equivalent; use strtod for floating point
+                long val = strtol(ptr, &endptr, DECIMAL);
+
+                // If ptr == endptr, no more numbers were found on this line
+                if (ptr == endptr)
+                {
+                    break;
+                }
+
+                // Error checking (optional but recommended)
+                if (errno == ERANGE)
+                { /* Handle overflow */
+                    return INPUT_OVERFLOW;
+                }
+
+                derivative[j++] = (int)val;
+                ptr = endptr; // Advance to the rest of the string
             }
         }
-        for (unsigned int j = 0; j < NN - 1; j++)
+
+        free(line); // getline allocates memory that must be freed
+
+        if (j < NN)
         {
-            derivative[j] = abs(derivative[j] - derivative[j + 1]);
+            return INPUT_FILE_ERROR;
+        }
+        ret = (int)NN;
+
+        // Perform derivative calculation
+        for (unsigned int k = 0; k < NN - 1; k++)
+        {
+            derivative[k] = abs(derivative[k] - derivative[k + 1]);
         }
         derivative[NN - 1] = 0;
     }

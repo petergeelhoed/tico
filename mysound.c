@@ -1,3 +1,4 @@
+#include <alsa/asoundlib.h>
 #include <errno.h>
 #include <fftw3.h>
 #include <limits.h>
@@ -17,150 +18,93 @@
 #define INPUT_FILE_ERROR -33
 #define INPUT_OVERFLOW -4
 
+// Helper to handle repetitive ALSA parameter setting and error reporting
+static void check_alsa_err(int err,
+                           const char* msg,
+                           snd_pcm_t* handle,
+                           snd_pcm_hw_params_t* params)
+{
+    if (err < 0)
+    {
+        fprintf(stderr, "%s (%s)\n", msg, snd_strerror(err));
+        if (params)
+            snd_pcm_hw_params_free(params);
+        if (handle)
+            snd_pcm_close(handle);
+        exit(INIT_ERROR);
+    }
+}
+
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
-    int err;
     snd_pcm_t* capture_handle = NULL;
     snd_pcm_hw_params_t* hw_params = NULL;
-
-    if ((err = snd_pcm_open(
-             &capture_handle, device, SND_PCM_STREAM_CAPTURE, 0)) < 0)
-    {
-        (void)fprintf(stderr,
-                      "cannot open audio device %s (%s)\n",
-                      device,
-                      snd_strerror(err));
-        exit(INIT_ERROR);
-    }
-
-    if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0)
-    {
-        (void)fprintf(stderr,
-                      "cannot allocate hardware parameter structure (%s)\n",
-                      snd_strerror(err));
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
-
-    if ((err = snd_pcm_hw_params_any(capture_handle, hw_params)) < 0)
-    {
-        (void)fprintf(stderr,
-                      "cannot initialize hardware parameter structure (%s)\n",
-                      snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
-
-    if ((err = snd_pcm_hw_params_set_access(
-             capture_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
-    {
-        (void)fprintf(
-            stderr, "cannot set access type (%s)\n", snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
-
-    if ((err = snd_pcm_hw_params_set_format(
-             capture_handle, hw_params, format)) < 0)
-    {
-        (void)fprintf(
-            stderr, "cannot set sample format (%s)\n", snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
-
     unsigned int requestedRate = *rate;
-    if ((err = snd_pcm_hw_params_set_rate_near(
-             capture_handle, hw_params, rate, 0)) < 0)
-    {
-        (void)fprintf(
-            stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
-    if (*rate != requestedRate)
-    {
-        (void)fprintf(stderr,
-                      "Requested audiorate %d unavailable, using %d\n",
-                      requestedRate,
-                      *rate);
-    }
 
-    if ((err = snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1)) <
-        0)
-    {
-        (void)fprintf(
-            stderr, "cannot set channel count (%s)\n", snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
+    // 1. Open Device
+    check_alsa_err(
+        snd_pcm_open(&capture_handle, device, SND_PCM_STREAM_CAPTURE, 0),
+        "cannot open audio device",
+        NULL,
+        NULL);
 
-    if ((err = snd_pcm_hw_params(capture_handle, hw_params)) < 0)
-    {
-        (void)fprintf(
-            stderr, "cannot set parameters (%s)\n", snd_strerror(err));
-        if (hw_params)
-        {
-            snd_pcm_hw_params_free(hw_params);
-        }
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
-    }
+    // 2. Allocate and Init Params
+    check_alsa_err(snd_pcm_hw_params_malloc(&hw_params),
+                   "cannot allocate hardware parameter structure",
+                   capture_handle,
+                   NULL);
+
+    check_alsa_err(snd_pcm_hw_params_any(capture_handle, hw_params),
+                   "cannot initialize hardware parameter structure",
+                   capture_handle,
+                   hw_params);
+
+    // 3. Set Hardware Configurations
+    check_alsa_err(snd_pcm_hw_params_set_access(capture_handle,
+                                                hw_params,
+                                                SND_PCM_ACCESS_RW_INTERLEAVED),
+                   "cannot set access type",
+                   capture_handle,
+                   hw_params);
+
+    check_alsa_err(
+        snd_pcm_hw_params_set_format(capture_handle, hw_params, format),
+        "cannot set sample format",
+        capture_handle,
+        hw_params);
+
+    check_alsa_err(
+        snd_pcm_hw_params_set_rate_near(capture_handle, hw_params, rate, 0),
+        "cannot set sample rate",
+        capture_handle,
+        hw_params);
+
+    check_alsa_err(snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1),
+                   "cannot set channel count",
+                   capture_handle,
+                   hw_params);
+
+    // 4. Apply Params and Prepare
+    check_alsa_err(snd_pcm_hw_params(capture_handle, hw_params),
+                   "cannot set parameters",
+                   capture_handle,
+                   hw_params);
 
     snd_pcm_hw_params_free(hw_params);
 
-    if ((err = snd_pcm_prepare(capture_handle)) < 0)
+    check_alsa_err(snd_pcm_prepare(capture_handle),
+                   "cannot prepare audio interface",
+                   capture_handle,
+                   NULL);
+
+    // Minor logic check
+    if (*rate != requestedRate)
     {
-        (void)fprintf(stderr,
-                      "cannot prepare audio interface for use (%s)\n",
-                      snd_strerror(err));
-        if (capture_handle)
-        {
-            snd_pcm_close(capture_handle);
-        }
-        exit(INIT_ERROR);
+        fprintf(stderr,
+                "Requested audiorate %u unavailable, using %u\n",
+                requestedRate,
+                *rate);
     }
 
     return capture_handle;

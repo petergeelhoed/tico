@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <pthread.h>
@@ -15,6 +16,7 @@
 #define MAX_COLUMNS 1024
 #define BEAT_WIDTH 5
 #define RATE_WIDTH 8
+#define DECIMAL 10
 
 /* Prints header on line or at the top */
 void printheader(double fittedRate,
@@ -316,4 +318,22 @@ int shiftHalf(unsigned int value, unsigned int NN)
 int modSigned(int value, unsigned int NN)
 {
     return (value % (int)NN + (int)NN) % (int)NN;
+}
+
+double getDouble(char* ptr)
+{
+    char* endptr;
+
+    errno = 0;
+    // Use strtol for %d equivalent; use strtod for floating point
+    long val = strtol(ptr, &endptr, DECIMAL);
+
+    // If ptr == endptr, no more numbers were found on this line
+    if (ptr == endptr || errno == ERANGE)
+    {
+        (void)fprintf(stderr, "Idvalid double");
+        exit(errno);
+    }
+
+    return val;
 }

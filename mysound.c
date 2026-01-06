@@ -26,11 +26,15 @@ static void check_alsa_err(int err,
 {
     if (err < 0)
     {
-        fprintf(stderr, "%s (%s)\n", msg, snd_strerror(err));
+        (void)fprintf(stderr, "%s (%s)\n", msg, snd_strerror(err));
         if (params)
+        {
             snd_pcm_hw_params_free(params);
+        }
         if (handle)
+        {
             snd_pcm_close(handle);
+        }
         exit(INIT_ERROR);
     }
 }
@@ -101,10 +105,10 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     // Minor logic check
     if (*rate != requestedRate)
     {
-        fprintf(stderr,
-                "Requested audiorate %u unavailable, using %u\n",
-                requestedRate,
-                *rate);
+        (void)fprintf(stderr,
+                      "Requested audiorate %u unavailable, using %u\n",
+                      requestedRate,
+                      *rate);
     }
 
     return capture_handle;

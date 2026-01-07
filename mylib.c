@@ -325,16 +325,17 @@ int getInt(char* ptr)
     char* endptr;
 
     errno = 0;
-    long val = strtol(ptr, &endptr, DECIMAL);
+    long val = INT_MIN;
+    val = strtol(ptr, &endptr, DECIMAL);
 
     // If ptr == endptr, no more numbers were found on this line
-    if (ptr == endptr || errno == ERANGE)
+    if (ptr == endptr || errno == ERANGE || (val < INT_MIN || val > INT_MAX))
     {
         (void)fprintf(stderr, "Invalid long or out of range\n");
         return INT_MIN;
     }
 
-    return val;
+    return (int)val;
 }
 
 double getDouble(char* ptr)

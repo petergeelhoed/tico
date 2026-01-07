@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define BUF_SIZE 32
-#define NR_TESTS 4
+#define NR_TESTS 5
 
 struct exp
 {
@@ -23,6 +23,9 @@ int main(void)
     array[1] = (struct exp){.input = " 34.1", .integer = 34, .dbl = 34.1};
     array[2] = (struct exp){.input = "", .integer = INT_MIN, .dbl = NAN};
     array[3] = (struct exp){.input = " -1.7 ", .integer = -1, .dbl = -1.7};
+    array[4] = (struct exp){.input = " 1111111111111111",
+                            .integer = INT_MIN,
+                            .dbl = 1111111111111111.};
     // NOLINTEND(readability-magic-numbers)
 
     for (size_t i = 0; i < NR_TESTS; i++)

@@ -50,3 +50,4 @@ int shiftHalf(unsigned int value, unsigned int NN);
 int modSigned(int value, unsigned int NN);
 int getInt(char* ptr);
 double getDouble(char* ptr);
+int getDoublesFromStdin(size_t max_count, double* arr);

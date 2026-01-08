@@ -354,3 +354,51 @@ double getDouble(char* ptr)
 
     return val;
 }
+
+#include <ctype.h>
+
+/**
+ * Reads one line from stdin and parses up to max_count doubles into array.
+ * Returns the number of doubles stored (>=0), or -1 on I/O/memory error.
+ */
+int getDoublesFromStdin(size_t max_count, double* arr)
+{
+    if (!arr || max_count == 0)
+    {
+        return 0; // nothing to do
+    }
+
+    char* line = NULL;
+    size_t len = 0;
+
+    ssize_t nread = getline(&line, &len, stdin);
+    if (nread == -1)
+    {
+        // getline error or EOF before any input
+        free(line);
+        return -1;
+    }
+
+    const char* ptr = line;
+    char* endptr = NULL;
+    size_t parsed = 0;
+
+    while (*ptr != '\0' && parsed < max_count)
+    {
+        errno = 0;
+        double val = strtod(ptr, &endptr);
+
+        if (endptr == ptr)
+        {
+            ptr++;
+            continue;
+        }
+
+        arr[parsed++] = val;
+
+        ptr = endptr;
+    }
+
+    free(line);
+    return (int)parsed;
+}

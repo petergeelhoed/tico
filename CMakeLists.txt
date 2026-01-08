@@ -26,8 +26,11 @@ add_library(mymath STATIC mymath.c)
 
 # 5. Define Test Targets
 set(TEST_TARGETS 
- testfft
- capture 1dcor fft
+    testfft
+    capture 1dcor fft linregw
+    wav2raw
+    testgetdoubles
+    ifft       record 
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone

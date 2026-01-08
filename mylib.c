@@ -370,35 +370,32 @@ int getDoublesFromStdin(size_t max_count, double* arr)
 
     char* line = NULL;
     size_t len = 0;
-
     ssize_t nread = getline(&line, &len, stdin);
     if (nread == -1)
     {
-        // getline error or EOF before any input
         free(line);
-        return -1;
+        return -1; // EOF or read error
     }
 
     const char* ptr = line;
     char* endptr = NULL;
     size_t parsed = 0;
 
+    // Parse up to max_count doubles from THIS line only
     while (*ptr != '\0' && parsed < max_count)
     {
         errno = 0;
         double val = strtod(ptr, &endptr);
-
         if (endptr == ptr)
         {
+            // No number at current position; skip one char
             ptr++;
             continue;
         }
-
         arr[parsed++] = val;
-
         ptr = endptr;
     }
 
     free(line);
-    return (int)parsed;
+    return (int)parsed; // returns 0..max_count
 }

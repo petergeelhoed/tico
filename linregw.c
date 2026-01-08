@@ -50,7 +50,7 @@ int main(void)
 
         if (N >= n)
         {
-            fprintf(
+            (void)fprintf(
                 stderr,
                 "Capacity reached (%zu). Remaining input will be ignored.\n",
                 n);

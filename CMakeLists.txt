@@ -30,7 +30,8 @@ set(TEST_TARGETS
     capture 1dcor fft linregw
     wav2raw
     testgetdoubles
-    ifft       record 
+    ifft linreg
+    record 
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone

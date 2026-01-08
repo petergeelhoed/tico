@@ -17,6 +17,9 @@
 #define BEAT_WIDTH 5
 #define RATE_WIDTH 8
 #define DECIMAL 10
+#define BUF_SIZE 256
+#define SECS_DAY 86400
+#define THOUSAND 1000
 
 /* Prints header on line or at the top */
 void printheader(double fittedRate,
@@ -53,10 +56,15 @@ void printspaces(int maxpos,
                  unsigned int correlationThreshold)
 {
     while (maxpos < (int)mod)
+    {
         maxpos += mod;
+    }
     while (avg_pos < (double)mod)
+    {
         avg_pos += (double)mod;
-    columns = columns > MAX_COLUMNS ? 80 : columns;
+    }
+    const unsigned int default_columns = 80;
+    columns = columns > MAX_COLUMNS ? default_columns : columns;
     size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
     size_t widtha = (size_t)modSigned(lround(avg_pos), mod) * columns / mod;
 
@@ -64,7 +72,9 @@ void printspaces(int maxpos,
     memset(spaces, ' ', width);
     spaces[width] = '\0';
     if (widtha < width)
+    {
         spaces[widtha] = '|';
+    }
 
     (void)fprintf(stderr,
                   "%s%s%X\033[0m",
@@ -116,7 +126,9 @@ void writefile(FILE* fp, int* array, unsigned int NN)
     if (fp)
     {
         for (unsigned int j = 0; j < NN; j++)
+        {
             (void)fprintf(fp, "%d\n", array[j]);
+        }
     }
 }
 
@@ -125,11 +137,13 @@ void writefileDouble(FILE* fp, double* array, unsigned int NN)
     if (fp)
     {
         for (unsigned int j = 0; j < NN; j++)
+        {
             (void)fprintf(fp, "%f\n", array[j]);
+        }
     }
 }
 
-unsigned int getmaxpos(int* array, unsigned int NN)
+unsigned int getmaxpos(const int* array, unsigned int NN)
 {
     int maxtick = -INT_MAX;
     unsigned int postick = 0;
@@ -149,18 +163,23 @@ void calculateTotalFromFile(unsigned int n,
                             unsigned int NN,
                             double threshold)
 {
-    fseek(rawfile, 0, SEEK_SET);
+    errno = 0;
+    if (fseek(rawfile, 0, SEEK_SET) == -1)
+    {
+        (void)fprintf(stderr, "fseek fauled with %d\n", errno);
+        return;
+    }
     double* all = calloc(n, sizeof(double));
     unsigned int i = 0;
     if (all)
     {
-        size_t bufsize = 256;
+        size_t bufsize = BUF_SIZE;
         char* buf = malloc(bufsize * sizeof(char));
         while (getline(&buf, &bufsize, rawfile) > 0 && i < n)
         {
             if (buf[0] != '#')
             {
-                all[i] = atof(buf);
+                all[i] = getDouble(buf);
                 i++;
             }
         }
@@ -193,14 +212,15 @@ void calculateTotal(unsigned int n,
        s /= rate;
      */
 
-    (void)fprintf(stderr, "raw rate: %f s/d, %d samples\n", -b * 86400 / NN, n);
+    (void)fprintf(
+        stderr, "raw rate: %f s/d, %d samples\n", -b * SECS_DAY / NN, n);
     unsigned int m = 0;
 
     double e;
 
     for (unsigned int i = 0; i < n; ++i)
     {
-        e = fabs(((double)maxpos[i] - (a + xarr[i] * b)) / s);
+        e = fabs((maxpos[i] - (a + xarr[i] * b)) / s);
         if (e < threshold)
         {
             maxpos[m] = maxpos[i];
@@ -213,7 +233,7 @@ void calculateTotal(unsigned int n,
     (void)fprintf(stderr,
                   "after %.1fσ removal: %.2f s/d, %d samples\n",
                   threshold,
-                  -b * 86400 / NN,
+                  -b * SECS_DAY / NN,
                   m);
 }
 
@@ -229,12 +249,12 @@ double getBeatError(const struct myarr* totaltick, double rate, int verbose)
         syncwrite(totaltick->arr + NN / 2, NN / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, NN / 2);
-    return shiftHalf(postick, NN / 2) * 1000 / rate;
+    return shiftHalf(postick, NN / 2) * THOUSAND / rate;
 }
 
 int checkUIntArg(int name, unsigned int* value, char* optarg)
 {
-    *value = (unsigned int)atoi(optarg);
+    *value = (unsigned int)getInt(optarg);
     if (*value == 0)
     {
         printf("invalid integer argument for -%c: '%s'\n", (char)name, optarg);
@@ -269,19 +289,17 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 {
     if (fpDefPeak != NULL)
     {
-        int dummy0, dummy1;
-        int shift = 0;
+        int arr[4];
         for (unsigned int t = 0; t < teeth; t++)
         {
             for (unsigned int j = 0; j < reference->NN; j++)
             {
-                int value = 0;
-                if (fscanf(fpDefPeak,
-                           "%d %d %d %d",
-                           &dummy0,
-                           &value,
-                           &dummy1,
-                           &shift) != 4)
+                int k = getIntsFromStdin(4, arr);
+                if (k < 0)
+                {
+                    break;
+                }
+                if (k < 3)
                 {
                     (void)fprintf(
                         stderr,
@@ -289,23 +307,27 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                         "columns required, %u samples and %u teeth\n",
                         reference->NN,
                         teeth);
-                    exit(-5);
+                    exit(EXIT_FAILURE);
                 }
+                int value = arr[1];
+
                 reference
                     ->arr[((int)j + (int)reference->NN) % (int)reference->NN] =
                     value;
             }
         }
-        fclose(fpDefPeak);
+        (void)fclose(fpDefPeak);
     }
     else
     {
-        reference->arr[reference->NN / 4] = 100000;
-        reference->arr[reference->NN / 4 - 400] = 80000;
-        reference->arr[reference->NN / 4 - 800] = 60000;
-        reference->arr[3 * reference->NN / 4] = 100000;
-        reference->arr[3 * reference->NN / 4 - 400] = 80000;
-        reference->arr[3 * reference->NN / 4 - 800] = 60000;
+        const int peakheight[3] = {100000, 80000, 60000};
+        const int peakpos[3] = {0, 400, 800};
+
+        for (int i = 0; i < 3; i++)
+        {
+            reference->arr[reference->NN / 4 - peakpos[i]] = peakheight[i];
+            reference->arr[3 * reference->NN / 4 - peakpos[i]] = peakheight[i];
+        }
     }
 }
 
@@ -386,6 +408,45 @@ int getDoublesFromStdin(size_t max_count, double* arr)
     {
         errno = 0;
         double val = strtod(ptr, &endptr);
+        if (endptr == ptr)
+        {
+            // No number at current position; skip one char
+            ptr++;
+            continue;
+        }
+        arr[parsed++] = val;
+        ptr = endptr;
+    }
+
+    free(line);
+    return (int)parsed; // returns 0..max_count
+}
+
+int getIntsFromStdin(size_t max_count, int* arr)
+{
+    if (!arr || max_count == 0)
+    {
+        return 0; // nothing to do
+    }
+
+    char* line = NULL;
+    size_t len = 0;
+    ssize_t nread = getline(&line, &len, stdin);
+    if (nread == -1)
+    {
+        free(line);
+        return -1; // EOF or read error
+    }
+
+    const char* ptr = line;
+    char* endptr = NULL;
+    size_t parsed = 0;
+
+    // Parse up to max_count doubles from THIS line only
+    while (*ptr != '\0' && parsed < max_count)
+    {
+        errno = 0;
+        int val = strtol(ptr, &endptr, DECIMAL);
         if (endptr == ptr)
         {
             // No number at current position; skip one char

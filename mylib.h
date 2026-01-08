@@ -10,7 +10,7 @@ void linreg(const double* xarr,
             double* b,
             double* s);
 
-unsigned int getmaxpos(int* array, unsigned int NN);
+unsigned int getmaxpos(const int* array, unsigned int NN);
 
 void printheader(double fittedRate,
                  unsigned int everyline,
@@ -51,3 +51,4 @@ int modSigned(int value, unsigned int NN);
 int getInt(char* ptr);
 double getDouble(char* ptr);
 int getDoublesFromStdin(size_t max_count, double* arr);
+int getIntsFromStdin(size_t max_count, int* arr);

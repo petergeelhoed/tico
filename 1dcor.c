@@ -7,8 +7,6 @@
 #include "myfft.h"
 #include "mylib.h"
 
-#define DEFAULT_NN 1000
-#define LINESIZE 256
 
 int main()
 {

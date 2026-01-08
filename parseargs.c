@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define CVAL 15
 
 void print_usage(void)
 {

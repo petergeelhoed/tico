@@ -7,19 +7,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysync.h"
 #include "parseargs.h"
-
-#define MAX_COLUMNS 1024
-#define MAX_COLUMNS 1024
-#define BEAT_WIDTH 5
-#define RATE_WIDTH 8
-#define DECIMAL 10
-#define BUF_SIZE 256
-#define SECS_DAY 86400
-#define THOUSAND 1000
 
 /* Prints header on line or at the top */
 void printheader(double fittedRate,

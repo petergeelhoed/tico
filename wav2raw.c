@@ -3,16 +3,13 @@
  * PG
  * assumes 21600bph and 48000 wav
  **/
+#include "mydefs.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#define TRUE 1
-#define FALSE 0
-#define DEBUG 0
 
 // WAVE file header format
 struct HEADER

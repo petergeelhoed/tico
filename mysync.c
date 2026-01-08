@@ -7,9 +7,8 @@
 #include <unistd.h>
 
 #include "myarr.h"
+#include "mydefs.h"
 #include "mysync.h"
-
-#define FILE_NAME_LENGTH 256
 
 // NOLINTNEXTLINE(misc-include-cleaner)
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;

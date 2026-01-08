@@ -8,9 +8,6 @@
 
 #include "myfft.h"
 #include "mylib.h"
-#define INIT_N 4000
-#define BUFF_SIZE 256
-#define DECIMAL 10
 typedef struct
 {
     unsigned int z;

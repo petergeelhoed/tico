@@ -14,29 +14,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#define KILO 1000.
-#define MEGA 1000000.
-#define ARR_BUFF 512
-#define SECS_DAY 86400
-#define HEXDEC 16
-#define DEFAULT_RATE 48000
-#define DEFAULT_BPH 21600
-#define DEFAULT_ZOOM 10
-#define DEFAULT_EVALUE 4
-#define DEFAULT_FITN 30
-#define DEFAULT_TIME 30
-#define DEFAULT_TICKTOCK_WRITE 30
-#define DEFAULT_TEETH 1
-#define DEFAULT_SDTHRESHOLD 3.0
-#define DEFAULT_CVALUE 7
-#define PRESHIFT_THRESHOLD 100
-#define PRESHIFT_THRESHOLD_ROOT 10
-#define AUTOCOR_LIMIT 1
-#define HALF 0.5
-#define DEFAULT_COLUMNS 80
-#define PCM_WIDTH 8
-#define ERROR_ALLOCATE_MEM -5
-#define ERROR_NO_SOURCE -6
 
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;

@@ -10,13 +10,6 @@
 #include "mylib.h"
 #include "mysound.h"
 
-#define INIT_ERROR -2
-#define DECIMAL 10
-#define BITS_IN_BYTE 8
-#define READ_FAILED -1
-#define REINIT_ERROR -32
-#define INPUT_FILE_ERROR -33
-#define INPUT_OVERFLOW -4
 
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void check_alsa_err(int err,

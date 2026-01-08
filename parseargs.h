@@ -1,8 +1,7 @@
 #pragma once
 #include <stdio.h>
 
-#define EVERY_WIDTH 14
-#define SECS_HOUR 3600
+#include "mydefs.h"
 
 typedef struct
 {

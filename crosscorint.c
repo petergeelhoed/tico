@@ -1,7 +1,8 @@
+#include "mydefs.h"
 #include "myfft.h"
+
 #include <stdlib.h>
 
-#define ERROR_ALLOCATE_MEM -5
 // Perform cross-correlation using FFT
 void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
 {

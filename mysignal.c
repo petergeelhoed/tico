@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#define ERROR_SIGNAL -6
+#include "mydefs.h"
 
 extern int keepRunning;
 extern unsigned int columns;

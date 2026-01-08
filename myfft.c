@@ -10,9 +10,6 @@
 #include "mylib.h"
 #include "mysync.h"
 
-#define MAX_COLUMNS 1024
-#define GAUSSIAN_CONST .398942280401
-#define GAUSSPOINTS 5
 
 fftw_complex* makeFilter(unsigned int evalue, unsigned int NN)
 {

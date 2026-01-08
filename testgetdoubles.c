@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "mylib.h"
-#define BUF_SIZE 64
 
 static void
 print_result(const char* label, int n, const double* vals, size_t max_count)

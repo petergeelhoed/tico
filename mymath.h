@@ -21,7 +21,8 @@ void fitNpeaks(double* a,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
-               unsigned int npeaks);
+               unsigned int npeaks,
+               double SDthreshold);
 
 void fastlinreg(double coeffs[2],
                 const double* xmat,

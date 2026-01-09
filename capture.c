@@ -14,7 +14,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
 
@@ -234,8 +233,14 @@ int main(int argc, char* argv[])
 
         double a = 0.0;
         double b = 0.0;
-        fitNpeaks(
-            &a, &b, ticktock, res.maxvals, res.maxpos, res.subpos, cfg.fitN);
+        fitNpeaks(&a,
+                  &b,
+                  ticktock,
+                  res.maxvals,
+                  res.maxpos,
+                  res.subpos,
+                  cfg.fitN,
+                  cfg.SDthreshold);
         printheader(b * SECS_DAY / NN,
                     cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),

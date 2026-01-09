@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -235,43 +236,61 @@ void fitNpeaks(double* a,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
-               const unsigned int npeaks)
+               const unsigned int npeaks,
+               const double SDthreshold)
 {
     unsigned int fitwindow = (i > npeaks) ? npeaks : i;
 
-    if (i >= fitwindow && maxvals->arrd != NULL && maxes->arr != NULL &&
-        subpos->arrd != NULL)
+    if (fitwindow > 1 && i >= fitwindow && maxvals->arrd != NULL &&
+        maxes->arr != NULL && subpos->arrd != NULL)
     {
-        unsigned int m = 0;
-
         double* x = (double*)calloc(fitwindow, sizeof(double));
         double* y = (double*)calloc(fitwindow, sizeof(double));
         double* w = (double*)calloc(fitwindow, sizeof(double));
+        double* s = (double*)calloc(fitwindow, sizeof(double));
         if (x == NULL || y == NULL || w == NULL)
         {
             (void)fprintf(stderr, "Memory allocation failed in fitNpeaks\n");
             free(x);
             free(y);
             free(w);
+            free(s);
             exit(EXIT_FAILURE);
         }
         for (unsigned int k = 0; k < fitwindow; k++)
         {
-            y[m] = (double)maxes->arr[i - k] + subpos->arrd[i - k];
-            x[m] = (double)k;
-            w[m] = maxvals->arrd[i - k] * maxvals->arrd[i - k];
-            m++;
+            y[k] = (double)maxes->arr[i - k] + subpos->arrd[i - k];
+            x[k] = (double)k;
+            w[k] = maxvals->arrd[i - k];
         }
-        if (m > 1)
+        double coeffs[2] = {0.0, 0.0};
+        fastlinreg(coeffs, x, fitwindow, y, w);
+
+        // removal of  points outside of SDthreshold
+        double stdev = 0.0;
+
+        for (unsigned int k = 0; k < fitwindow; k++)
         {
-            double coeffs[2] = {0.0, 0.0};
-            // matlinreg(coeffs, x, m, 1, y, w);
-            fastlinreg(coeffs, x, m, y, w);
-            *a = coeffs[0];
-            *b = coeffs[1];
+            s[k] = fabs(y[k] - x[k] * coeffs[1] - coeffs[0]);
+            stdev += s[k] * s[k];
         }
+        stdev = sqrt(stdev / fitwindow) * SDthreshold;
+
+        for (unsigned int k = 0; k < fitwindow; k++)
+        {
+            if (s[k] > stdev)
+            {
+                w[k] = 0.0;
+            }
+        }
+        fastlinreg(coeffs, x, fitwindow, y, w);
+
+        *a = coeffs[0];
+        *b = coeffs[1];
+
         free(x);
         free(y);
         free(w);
+        free(s);
     }
 }

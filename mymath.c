@@ -230,6 +230,133 @@ void fastlinreg(double coeffs[2],
     }
 }
 
+// Accumulate sufficient stats for weighted y = a + b x
+static int fastlinreg_sufficient_stats(
+    long double* Sw,
+    long double* Swx,
+    long double* Swy,
+    long double* Swxx,
+    long double* Swxy,
+    long double* Sw2,
+    const unsigned int i,
+    const unsigned int fitwindow,
+    const struct myarr* maxvals,
+    const struct myarr* maxes,
+    const struct myarr* subpos,
+    int skip_outliers,
+    double a,
+    double b,
+    double stdev_threshold // absolute threshold; compare with residual
+)
+{
+    *Sw = *Swx = *Swy = *Swxx = *Swxy = *Sw2 = 0.0L;
+
+    for (unsigned int k = 0; k < fitwindow; ++k)
+    {
+        unsigned int idx = i - k;
+
+        // x = k
+        double x = (double)k;
+
+        // y = maxes->arr[idx] + subpos->arrd[idx]
+        double y = (double)maxes->arr[idx] + subpos->arrd[idx];
+
+        // w = maxvals->arrd[idx]
+        double w = maxvals->arrd[idx];
+        if (!(w > 0.0))
+        {
+            continue;
+        } // skip non-positive weights
+
+        if (skip_outliers)
+        {
+            double r = y - (a + b * x);
+            if (fabs(r) > stdev_threshold)
+            {
+                continue;
+            }
+        }
+
+        long double wl = (long double)w;
+        long double xl = (long double)x;
+        long double yl = (long double)y;
+
+        *Sw += wl;
+        *Swx += wl * xl;
+        *Swy += wl * yl;
+        *Swxx += wl * xl * xl;
+        *Swxy += wl * xl * yl;
+        *Sw2 += wl * wl;
+    }
+
+    // Return success if we have at least two distinct weighted points
+    return (*Sw > 0.0L) ? 1 : 0;
+}
+
+static int solve_weighted_line(double* a,
+                               double* b,
+                               long double Sw,
+                               long double Swx,
+                               long double Swy,
+                               long double Swxx,
+                               long double Swxy)
+{
+    long double denom = Sw * Swxx - Swx * Swx;
+    const long double eps = 1e-18L;
+    if (fabsl(denom) < eps || Sw <= 0.0L)
+    {
+        return 0; // degenerate
+    }
+    long double bL = (Sw * Swxy - Swx * Swy) / denom;
+    long double aL = (Swy - bL * Swx) / Sw;
+    *a = (double)aL;
+    *b = (double)bL;
+    return 1;
+}
+
+// Compute weighted residual SSE for given (a,b) over the window
+static long double compute_weighted_SSE(double a,
+                                        double b,
+                                        const unsigned int i,
+                                        const unsigned int fitwindow,
+                                        const struct myarr* maxvals,
+                                        const struct myarr* maxes,
+                                        const struct myarr* subpos,
+                                        long double* Sw_out,
+                                        long double* Sw2_out)
+{
+    long double SSE = 0.0L;
+    long double Sw = 0.0L;
+    long double Sw2 = 0.0L;
+
+    for (unsigned int k = 0; k < fitwindow; ++k)
+    {
+        unsigned int idx = i - k;
+        double x = (double)k;
+        double y = (double)maxes->arr[idx] + subpos->arrd[idx];
+        double w = maxvals->arrd[idx];
+        if (!(w > 0.0))
+        {
+            continue;
+        }
+
+        double r = y - (a + b * x);
+        long double wl = (long double)w;
+        SSE += wl * (long double)(r * r);
+        Sw += wl;
+        Sw2 += wl * wl;
+    }
+    if (Sw_out)
+    {
+        *Sw_out = Sw;
+    }
+    if (Sw2_out)
+    {
+        *Sw2_out = Sw2;
+    }
+    return SSE;
+}
+
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
@@ -241,56 +368,95 @@ void fitNpeaks(double* a,
 {
     unsigned int fitwindow = (i > npeaks) ? npeaks : i;
 
-    if (fitwindow > 1 && i >= fitwindow && maxvals->arrd != NULL &&
-        maxes->arr != NULL && subpos->arrd != NULL)
+    if (fitwindow > 1 && i >= fitwindow && maxvals && maxvals->arrd && maxes &&
+        maxes->arr && subpos && subpos->arrd)
     {
-        double* x = (double*)calloc(fitwindow, sizeof(double));
-        double* y = (double*)calloc(fitwindow, sizeof(double));
-        double* w = (double*)calloc(fitwindow, sizeof(double));
-        double* s = (double*)calloc(fitwindow, sizeof(double));
-        if (x == NULL || y == NULL || w == NULL)
+        // Pass 1: fit using all points (positive weights)
+        long double Sw;
+        long double Swx;
+        long double Swy;
+        long double Swxx;
+        long double Swxy;
+        long double Sw2;
+        int ok1 = fastlinreg_sufficient_stats(&Sw,
+                                              &Swx,
+                                              &Swy,
+                                              &Swxx,
+                                              &Swxy,
+                                              &Sw2,
+                                              i,
+                                              fitwindow,
+                                              maxvals,
+                                              maxes,
+                                              subpos,
+                                              /*skip_outliers=*/0,
+                                              /*a=*/0.0,
+                                              /*b=*/0.0,
+                                              /*stdev_threshold=*/0.0);
+        if (!ok1)
         {
-            (void)fprintf(stderr, "Memory allocation failed in fitNpeaks\n");
-            free(x);
-            free(y);
-            free(w);
-            free(s);
-            exit(EXIT_FAILURE);
+            // No valid data
+            *a = 0.0;
+            *b = 0.0;
+            return;
         }
-        for (unsigned int k = 0; k < fitwindow; k++)
+
+        double a1 = 0.0;
+        double b1 = 0.0;
+        if (!solve_weighted_line(&a1, &b1, Sw, Swx, Swy, Swxx, Swxy))
         {
-            y[k] = (double)maxes->arr[i - k] + subpos->arrd[i - k];
-            x[k] = (double)k;
-            w[k] = maxvals->arrd[i - k];
+            (void)fprintf(stderr, "Degenerate data in initial fit\n");
+            *a = 0.0;
+            *b = 0.0;
+            return;
         }
-        double coeffs[2] = {0.0, 0.0};
-        fastlinreg(coeffs, x, fitwindow, y, w);
 
-        // removal of  points outside of SDthreshold
-        double stdev = 0.0;
+        // Compute weighted residual SSE and sigma
+        long double Sw_res;
+        long double Sw2_res;
+        long double SSE = compute_weighted_SSE(
+            a1, b1, i, fitwindow, maxvals, maxes, subpos, &Sw_res, &Sw2_res);
 
-        for (unsigned int k = 0; k < fitwindow; k++)
+        const long double two = 2.0L;
+        // degrees of freedom
+        long double df = Sw_res - two;
+        double sigma = 0.0;
+        if (df > 0.0L && SSE >= 0.0L)
         {
-            s[k] = fabs(y[k] - x[k] * coeffs[1] - coeffs[0]);
-            stdev += s[k] * s[k];
+            sigma = sqrt((double)(SSE / df));
         }
-        stdev = sqrt(stdev / fitwindow) * SDthreshold;
 
-        for (unsigned int k = 0; k < fitwindow; k++)
+        double thresh = SDthreshold * sigma;
+
+        // Pass 2: re-fit excluding outliers |residual| > thresh
+        ok1 = fastlinreg_sufficient_stats(&Sw,
+                                          &Swx,
+                                          &Swy,
+                                          &Swxx,
+                                          &Swxy,
+                                          &Sw2,
+                                          i,
+                                          fitwindow,
+                                          maxvals,
+                                          maxes,
+                                          subpos,
+                                          /*skip_outliers=*/(thresh > 0.0),
+                                          a1,
+                                          b1,
+                                          thresh);
+
+        double a2 = a1;
+        double b2 = b1;
+        if (ok1 && solve_weighted_line(&a2, &b2, Sw, Swx, Swy, Swxx, Swxy))
         {
-            if (s[k] > stdev)
-            {
-                w[k] = 0.0;
-            }
+            *a = a2;
+            *b = b2;
         }
-        fastlinreg(coeffs, x, fitwindow, y, w);
-
-        *a = coeffs[0];
-        *b = coeffs[1];
-
-        free(x);
-        free(y);
-        free(w);
-        free(s);
+        else
+        {
+            // Fall back to initial fit if second pass degenerates
+            *a = a1;
+            *b = b1;
+        }
     }
 }

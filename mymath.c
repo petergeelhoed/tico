@@ -191,6 +191,44 @@ void matlinreg(double coeffs[2],
     free(xarrT);
 }
 
+void fastlinreg(double coeffs[2],
+                const double* xmat,
+                unsigned int N,
+                const double* vec,
+                const double* weight)
+{
+    double Sw = 0.0;
+    double Swx = 0.0;
+    double Swy = 0.0;
+    double Swxx = 0.0;
+    double Swxy = 0.0;
+
+    for (unsigned int i = 0; i < N; i++)
+    {
+        double x = xmat[i];
+        double y = vec[i];
+        double w = weight[i] * weight[i];
+        Sw += w;
+        Swx += w * x;
+        Swy += w * y;
+        Swxx += w * x * x;
+        Swxy += w * x * y;
+    }
+    double denom = Sw * Swxx - Swx * Swx;
+    coeffs[0] = 0.0;
+    coeffs[1] = 0.0;
+    if (denom != 0.0)
+    {
+        coeffs[1] = (Sw * Swxy - Swx * Swy) / denom;
+        coeffs[0] = (Swy - coeffs[1] * Swx) / Sw;
+    }
+    else
+    {
+        (void)fprintf(stderr,
+                      "Degenerate data: cannot regress (denominator zero)\n");
+    }
+}
+
 void fitNpeaks(double* a,
                double* b,
                const unsigned int i,
@@ -227,7 +265,8 @@ void fitNpeaks(double* a,
         if (m > 1)
         {
             double coeffs[2] = {0.0, 0.0};
-            matlinreg(coeffs, x, m, 1, y, w);
+            // matlinreg(coeffs, x, m, 1, y, w);
+            fastlinreg(coeffs, x, m, y, w);
             *a = coeffs[0];
             *b = coeffs[1];
         }

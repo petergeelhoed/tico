@@ -43,5 +43,13 @@ int main()
         printf("%8.3f ", tmp[i]);
     }
     printf("\n");
+
+    fastlinreg(tmp, xarr, N, yvec, wvec);
+    for (unsigned int i = 0; i < T + 1; i++)
+    {
+        printf("%8.3f ", tmp[i]);
+    }
+    printf("\n");
+
     exit(0);
 }

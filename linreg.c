@@ -2,7 +2,8 @@
 #include "mylib.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+// this gives a liniar weight , not a squared one like gnuplot or matlinreg from
+// mymath
 int main(void)
 {
     double Sw = 0.0;

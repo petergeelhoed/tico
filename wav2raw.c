@@ -54,8 +54,8 @@ int openfiles(FILE** tickfile,
 int main()
 {
     int rvalue = 0;
-    int qvalue = 4000;
-    int NN = 8000;
+    const int qvalue = 4000;
+    const int NN = 8000;
     opterr = 0;
     int read = 0;
     opterr = 0;
@@ -67,16 +67,22 @@ int main()
         long i = 0;
         unsigned char lsb[1];
         signed char msb[1];
-
-        for (i = 44; i <= 100; i++)
+        const long start_shit = 44;
+        const long end_shit = 100;
+        for (i = start_shit; i <= end_shit; i++)
         {
             // skip shit
             read = fread(lsb, sizeof(lsb), 1, stdin);
             read += fread(msb, sizeof(msb), 1, stdin);
         }
+        if (read != end_shit - start_shit)
+        {
+            (void)fprintf(stderr, "header read failure\n");
+            exit(EXIT_FAILURE);
+        }
 
         long length =
-            header.overall_size / 2 + qvalue - rvalue * NN - 100 - NN * 2;
+            header.overall_size / 2 + qvalue - rvalue * NN - end_shit - NN * 2;
 
         // loop the entire file
         while (i < length)
@@ -86,12 +92,12 @@ int main()
             if (read == 2)
             {
                 i++;
-                printf("%d\n", (msb[0] << 8) | lsb[0]);
+                printf("%d\n", (msb[0] << BITS_IN_BYTE) | lsb[0]);
             }
             else
             {
                 printf("Error reading file. %d bytes\n", read);
-                exit(-1);
+                exit(EXIT_FAILURE);
             }
         }
     }
@@ -109,21 +115,34 @@ struct HEADER readheader()
     // read header parts
 
     read = fread(header.riff, sizeof(header.riff), 1, stdin);
+    if (read != sizeof(header.riff))
+    {
+        (void)fprintf(stderr, "Read error %d\n", __LINE__);
+        exit(EXIT_FAILURE);
+    }
     if (DEBUG != 0)
+    {
         printf("(1-4): %s \n", header.riff);
-
+    }
     read = fread(buffer4, sizeof(buffer4), 1, stdin);
+    if (read != sizeof(buffer4))
+    {
+        (void)fprintf(stderr, "Read error %d\n", __LINE__);
+        exit(EXIT_FAILURE);
+    }
     if (DEBUG != 0)
+    {
         printf("%u %u %u %u\n", buffer4[0], buffer4[1], buffer4[2], buffer4[3]);
-
+    }
     // convert little endian to big endian 4 byte int
     header.overall_size = buffer4[0] | (buffer4[1] << 8) | (buffer4[2] << 16) |
                           (buffer4[3] << 24);
     if (DEBUG != 0)
+    {
         printf("(5-8) Overall size: bytes:%u, Kb:%u \n",
                header.overall_size,
                header.overall_size / 1024);
-
+    }
     read = fread(header.wave, sizeof(header.wave), 1, stdin);
     if (DEBUG != 0)
         printf("(9-12) Wave marker: %s\n", header.wave);

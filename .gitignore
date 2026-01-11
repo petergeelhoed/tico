@@ -1,5 +1,1 @@
-*.a
-*.o
-.*.swp
-.gitignore
-rommel
+build/

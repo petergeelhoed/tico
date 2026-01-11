@@ -25,13 +25,15 @@ target_link_libraries(myfft PRIVATE mysync)
 add_library(mymath STATIC mymath.c)
 
 # 5. Define Test Targets
-set(TEST_TARGETS 
-    testfft
-    capture 1dcor fft linregw
-    wav2raw
-    testgetdoubles
+set(BINARIES
+    capture 1dcor fft linregw wav2raw
     ifft linreg
     record 
+   )
+
+set(TEST_TARGETS 
+    testfft
+    testgetdoubles
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone
@@ -47,18 +49,7 @@ set(INTERNAL_LIBS
     mymath
 )
 
-# Use -Wl,--start-group and -Wl,--end-group to handle circular dependencies
-foreach(TGT ${TARGETS})
-    add_executable(${TGT} ${TGT}.c)
-    target_link_libraries(${TGT} 
-        ${INTERNAL_LIBS} 
-        ${ASOUND_LIB} 
-        ${FFTW3_LIB} 
-        ${MATH_LIB}
-    )
-endforeach()
-
-foreach(TEST ${TEST_TARGETS})
+foreach(TEST ${TEST_TARGETS} ${BINARIES})
     add_executable(${TEST} ${TEST}.c myarr.c)
     target_link_libraries(${TEST} 
         ${INTERNAL_LIBS} 

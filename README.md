@@ -7,7 +7,8 @@ There are several logging options, like the average sound of a tick per tooth (-
 
 
 # building
-$ make 
+$ cmake -B build
+$ cmake --build build
 should build everything
 
 

@@ -1,24 +1,51 @@
+#include <errno.h>
 #include <fftw3.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
 
 int main()
 {
-    unsigned int iN = 4000;
+    unsigned int iN = INIT_N;
     unsigned int i = 0;
 
     double* tmpy = calloc(iN, sizeof(double));
     double* tmpx = calloc(iN, sizeof(double));
-    double real, img;
+    double real;
+    double img;
     int ret = 0;
     int index;
-    while ((ret = scanf("%d %lf %lf", &index, &real, &img)), ret == 3)
+    char line[LINESIZE];
+    char* endptr;
+    char* next_start;
+    while (fgets(line, sizeof(line), stdin))
     {
+        errno = 0;
+        index = strtol(line, &endptr, DECIMAL);
+        (void)index;
+
+        if (line == endptr)
+        {
+            continue; // No number found on this line
+        }
+        next_start = endptr;
+        real = strtod(next_start, &endptr);
+        if (next_start == endptr)
+        {
+            continue; // Second number not found
+        }
+        next_start = endptr;
+        img = strtod(next_start, &endptr);
+        if (next_start == endptr)
+        {
+            continue; // Third number not found
+        }
+
         tmpy[i] = img;
         tmpx[i] = real;
 
@@ -34,7 +61,7 @@ int main()
             }
             else
             {
-                fprintf(stderr, "Memory allocation failed");
+                (void)fprintf(stderr, "Memory allocation failed");
                 return -2;
             }
             tmp2 = realloc(tmpx, iN * sizeof(double));
@@ -44,14 +71,14 @@ int main()
             }
             else
             {
-                fprintf(stderr, "Memory allocation failed");
+                (void)fprintf(stderr, "Memory allocation failed");
                 return -2;
             }
         }
     }
     if (ret == 0)
     {
-        fprintf(stderr, "Failed to parse double\n");
+        (void)fprintf(stderr, "Failed to parse double\n");
         return -1;
     }
 

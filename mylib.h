@@ -15,14 +15,14 @@ unsigned int getmaxpos(const int* array, unsigned int NN);
 void printheader(double fittedRate,
                  unsigned int everyline,
                  double beatError,
-                 double tps);
+                 double seconds);
 
 void printspaces(int maxpos,
                  double hexvalue,
                  unsigned int mod,
                  unsigned int columns,
-                 double a,
-                 unsigned int cvalue);
+                 double avg_pos,
+                 unsigned int correlationThreshold);
 
 void writefile(FILE* fp, int* array, unsigned int NN);
 void writefileDouble(FILE* fp, double* array, unsigned int NN);

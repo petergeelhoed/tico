@@ -26,10 +26,14 @@ add_library(mymath STATIC mymath.c)
 
 # 5. Define Test Targets
 set(BINARIES
-    capture 1dcor fft linregw wav2raw
-    ifft linreg
-    record 
-   )
+    capture
+    1dcor
+    fft
+    linregw
+    ifft
+    linreg
+    record
+)
 
 set(TEST_TARGETS 
     testfft

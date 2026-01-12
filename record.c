@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "myarr.h"
+#include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mysound.h"
@@ -11,8 +12,8 @@
 
 int main(int argc, char* argv[])
 {
-    unsigned int rate = 48000;
-    unsigned int bph = 21600;
+    unsigned int rate = DEFAULT_RATE;
+    unsigned int bph = DEFAULT_BPH;
     unsigned int time = 3;
     int c;
     unsigned int evalue = 4;
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
             break;
         case 'h':
         default:
-            fprintf(
+            (void)fprintf(
                 stderr,
                 "usage: capture \n"
                 "capture reads from the microphone and timegraphs your watch\n"
@@ -68,11 +69,12 @@ int main(int argc, char* argv[])
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, &rate);
-    unsigned int NN = rate * 3600 * 2 / bph;
-    unsigned int length = time * bph / 7200;
+    unsigned int NN = rate * SECS_HOUR * 2 / bph;
+    unsigned int length = time * bph / 2 / SECS_HOUR;
 
     fftw_complex* filterFFT = makeFilter(evalue, NN);
-    char* buffer = malloc(NN * (unsigned int)snd_pcm_format_width(format) / 8);
+    char* buffer =
+        malloc(NN * (unsigned int)snd_pcm_format_width(format) / BITS_IN_BYTE);
     struct myarr rawread = {calloc(NN, sizeof(int)), 0, NN};
 
     FILE* fp = fopen("recorded", "w");
@@ -90,7 +92,7 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     wait();
     thread_lock();
-    fclose(fp);
+    (void)fclose(fp);
     thread_unlock();
     exit(0);
 }

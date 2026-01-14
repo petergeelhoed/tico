@@ -10,69 +10,69 @@
 struct mymat
 {
     double* mat;
-    unsigned int M;
-    unsigned int N;
+    unsigned int Ncols;
+    unsigned int Nrows;
 };
 
-void printmat(double* arr, unsigned int N, unsigned int M)
+void printmat(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
     printf("\n");
-    for (unsigned int j = 0; j < N; j++)
+    for (unsigned int j = 0; j < Nrows; j++)
     {
-        for (unsigned int i = 0; i < M; i++)
+        for (unsigned int i = 0; i < Ncols; i++)
         {
-            printf("%8.2g", arr[i + M * j]);
+            printf("%8.2g", arr[i + Ncols * j]);
         }
         printf("\n");
     }
     printf("\n");
 }
 
-void transpone(double* arr, unsigned int N, unsigned int M)
+void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
-    double* tmp = (double*)calloc(N * M, sizeof(double));
+    double* tmp = (double*)calloc(Nrows * Ncols, sizeof(double));
     if (tmp == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in transpone\n");
         exit(EXIT_FAILURE);
     }
-    for (unsigned int i = 0; i < M; ++i)
+    for (unsigned int i = 0; i < Ncols; ++i)
     {
-        for (unsigned int j = 0; j < N; ++j)
+        for (unsigned int j = 0; j < Nrows; ++j)
         {
-            tmp[j + i * N] = arr[i + j * M];
+            tmp[j + i * Nrows] = arr[i + j * Ncols];
         }
     }
-    memcpy(arr, tmp, sizeof(double) * M * N);
+    memcpy(arr, tmp, sizeof(double) * Ncols * Nrows);
     free(tmp);
 }
 
-void invert(double* arr, unsigned int N, unsigned int M)
+void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
     // make matrix twice as wide
-    double* tmp = (double*)calloc(N * M * 2, sizeof(double));
+    double* tmp = (double*)calloc(Nrows * Ncols * 2, sizeof(double));
     if (tmp == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in invert\n");
         exit(EXIT_FAILURE);
     }
-    unsigned int M2 = M * 2;
-    for (unsigned int j = 0; j < N; ++j)
+    unsigned int M2 = Ncols * 2;
+    for (unsigned int j = 0; j < Nrows; ++j)
     {
-        for (unsigned int i = 0; i < M; ++i)
+        for (unsigned int i = 0; i < Ncols; ++i)
         {
-            tmp[i + j * M2] = arr[i + j * N];
+            tmp[i + j * M2] = arr[i + j * Nrows];
         }
     }
     // make second part diagonal 1
-    for (unsigned int i = 0; i < M; ++i)
+    for (unsigned int i = 0; i < Ncols; ++i)
     {
-        tmp[i + M + i * M2] = 1.0;
+        tmp[i + Ncols + i * M2] = 1.0;
     }
 
-    for (unsigned int j = 0; j < N; j++)
+    for (unsigned int j = 0; j < Nrows; j++)
     {
-        for (unsigned int k = 0; k < N; k++)
+        for (unsigned int k = 0; k < Nrows; k++)
         {
             if (j != k)
             {
@@ -84,41 +84,41 @@ void invert(double* arr, unsigned int N, unsigned int M)
             }
         }
     }
-    for (unsigned int j = 0; j < N; j++)
+    for (unsigned int j = 0; j < Nrows; j++)
     {
-        for (unsigned int i = 0; i < M; i++)
+        for (unsigned int i = 0; i < Ncols; i++)
         {
-            arr[i + j * M] = tmp[i + M + j * M2] / tmp[j + j * M2];
+            arr[i + j * Ncols] = tmp[i + Ncols + j * M2] / tmp[j + j * M2];
         }
     }
     free(tmp);
 }
 
 double* mulmat(const double* matrix,
-               unsigned int N,
-               unsigned int M,
+               unsigned int Nrows,
+               unsigned int Ncols,
                const double* vector,
                unsigned int S,
                unsigned int T)
 {
-    if (M != S)
+    if (Ncols != S)
     {
         (void)fprintf(stderr, "Matrix multiplication dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
-    double* tmp = (double*)calloc(N * T, sizeof(double));
+    double* tmp = (double*)calloc(Nrows * T, sizeof(double));
     if (tmp == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in mulmat\n");
         exit(EXIT_FAILURE);
     }
-    for (unsigned int j = 0; j < N; j++)
+    for (unsigned int j = 0; j < Nrows; j++)
     {
         for (unsigned int l = 0; l < T; l++)
         {
-            for (unsigned int i = 0; i < M; i++)
+            for (unsigned int i = 0; i < Ncols; i++)
             {
-                tmp[l + j * T] += matrix[i + M * j] * vector[i * T + l];
+                tmp[l + j * T] += matrix[i + Ncols * j] * vector[i * T + l];
             }
         }
     }
@@ -127,13 +127,13 @@ double* mulmat(const double* matrix,
 
 void matlinreg(double coeffs[2],
                const double* xmat,
-               unsigned int N,
-               unsigned int M,
+               unsigned int Nrows,
+               unsigned int Ncols,
                double* vec,
                const double* weight)
 {
-    double* xarr = (double*)calloc((M + 1) * N, sizeof(double));
-    double* xarrT = (double*)calloc((M + 1) * N, sizeof(double));
+    double* xarr = (double*)calloc((Ncols + 1) * Nrows, sizeof(double));
+    double* xarrT = (double*)calloc((Ncols + 1) * Nrows, sizeof(double));
     if (xarrT == NULL || xarr == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in matlinreg\n");
@@ -141,46 +141,47 @@ void matlinreg(double coeffs[2],
         free(xarrT);
         exit(EXIT_FAILURE);
     }
-    for (unsigned int j = 0; j < N; j++)
+    for (unsigned int j = 0; j < Nrows; j++)
     {
-        xarr[j * (M + 1)] = 1.0;
-        for (unsigned int i = 0; i < M; i++)
+        xarr[j * (Ncols + 1)] = 1.0;
+        for (unsigned int i = 0; i < Ncols; i++)
         {
-            xarr[i + 1 + (M + 1) * j] = xmat[i + j * M];
+            xarr[i + 1 + (Ncols + 1) * j] = xmat[i + j * Ncols];
         }
     }
 
-    memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
-    transpone(xarrT, N, M + 1);
+    memcpy(xarrT, xarr, (Ncols + 1) * Nrows * sizeof(double));
+    transpone(xarrT, Nrows, Ncols + 1);
 
     // multiply by inverse of weigths
-    for (unsigned int j = 0; j < M + 1; j++)
+    for (unsigned int j = 0; j < Ncols + 1; j++)
     {
-        for (unsigned int i = 0; i < N; i++)
+        for (unsigned int i = 0; i < Nrows; i++)
         {
-            xarrT[i + N * j] *= weight[i] * weight[i];
+            xarrT[i + Nrows * j] *= weight[i] * weight[i];
         }
     }
 
-    double* xtwx = mulmat(xarrT, M + 1, N, xarr, N, M + 1);
+    double* xtwx = mulmat(xarrT, Ncols + 1, Nrows, xarr, Nrows, Ncols + 1);
     if (xtwx != NULL)
     {
-        invert(xtwx, M + 1, M + 1);
+        invert(xtwx, Ncols + 1, Ncols + 1);
 
-        memcpy(xarrT, xarr, (M + 1) * N * sizeof(double));
-        transpone(xarrT, N, M + 1);
-        double* pipe = mulmat(xtwx, M + 1, M + 1, xarrT, M + 1, N);
+        memcpy(xarrT, xarr, (Ncols + 1) * Nrows * sizeof(double));
+        transpone(xarrT, Nrows, Ncols + 1);
+        double* pipe =
+            mulmat(xtwx, Ncols + 1, Ncols + 1, xarrT, Ncols + 1, Nrows);
         if (pipe != NULL)
         {
-            for (unsigned int j = 0; j < M + 1; j++)
+            for (unsigned int j = 0; j < Ncols + 1; j++)
             {
-                for (unsigned int i = 0; i < N; i++)
+                for (unsigned int i = 0; i < Nrows; i++)
                 {
-                    pipe[i + N * j] *= weight[i] * weight[i];
+                    pipe[i + Nrows * j] *= weight[i] * weight[i];
                 }
             }
 
-            double* cffs = mulmat(pipe, M + 1, N, vec, N, 1);
+            double* cffs = mulmat(pipe, Ncols + 1, Nrows, vec, Nrows, 1);
             coeffs[0] = cffs[0];
             coeffs[1] = cffs[1];
             free(cffs);
@@ -194,34 +195,34 @@ void matlinreg(double coeffs[2],
 
 void fastlinreg(double coeffs[2],
                 const double* xmat,
-                unsigned int N,
+                unsigned int Npoints,
                 const double* vec,
-                const double* weight)
+                const double* weight_arr)
 {
-    double Sw = 0.0;
-    double Swx = 0.0;
-    double Swy = 0.0;
-    double Swxx = 0.0;
-    double Swxy = 0.0;
+    double Sum_w = 0.0;
+    double Sum_wx = 0.0;
+    double Sum_wy = 0.0;
+    double Sum_wxx = 0.0;
+    double Sum_wxy = 0.0;
 
-    for (unsigned int i = 0; i < N; i++)
+    for (unsigned int i = 0; i < Npoints; i++)
     {
-        double x = xmat[i];
-        double y = vec[i];
-        double w = weight[i] * weight[i];
-        Sw += w;
-        Swx += w * x;
-        Swy += w * y;
-        Swxx += w * x * x;
-        Swxy += w * x * y;
+        const double x_val = xmat[i];
+        const double y_val = vec[i];
+        const double weight = weight_arr[i] * weight_arr[i];
+        Sum_w += weight;
+        Sum_wx += weight * x_val;
+        Sum_wy += weight * y_val;
+        Sum_wxx += weight * x_val * x_val;
+        Sum_wxy += weight * x_val * y_val;
     }
-    double denom = Sw * Swxx - Swx * Swx;
+    double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     coeffs[0] = 0.0;
     coeffs[1] = 0.0;
     if (denom != 0.0)
     {
-        coeffs[1] = (Sw * Swxy - Swx * Swy) / denom;
-        coeffs[0] = (Swy - coeffs[1] * Swx) / Sw;
+        coeffs[1] = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
+        coeffs[0] = (Sum_wy - coeffs[1] * Sum_wx) / Sum_w;
     }
     else
     {
@@ -230,108 +231,103 @@ void fastlinreg(double coeffs[2],
     }
 }
 
-// Accumulate sufficient stats for weighted y = a + b x
+// Accumulate sufficient stats for weighted y = par_a + par_b x
 static int fastlinreg_sufficient_stats(
-    long double* Sw,
-    long double* Swx,
-    long double* Swy,
-    long double* Swxx,
-    long double* Swxy,
-    long double* Sw2,
-    const unsigned int i,
+    long double* Sum_w,
+    long double* Sum_wx,
+    long double* Sum_wy,
+    long double* Sum_wxx,
+    long double* Sum_wxy,
+    long double* Sum_w2,
+    const unsigned int cur_pos,
     const unsigned int fitwindow,
     const struct myarr* maxvals,
     const struct myarr* maxes,
     const struct myarr* subpos,
     int skip_outliers,
-    double a,
-    double b,
+    double par_a,
+    double par_b,
     double stdev_threshold // absolute threshold; compare with residual
 )
 {
-    *Sw = *Swx = *Swy = *Swxx = *Swxy = *Sw2 = 0.0L;
+    *Sum_w = *Sum_wx = *Sum_wy = *Sum_wxx = *Sum_wxy = *Sum_w2 = 0.0L;
 
     for (unsigned int k = 0; k < fitwindow; ++k)
     {
-        unsigned int idx = i - k;
+        unsigned int idx = cur_pos - k;
 
-        // x = k
-        double x = (double)k;
-
-        // y = maxes->arr[idx] + subpos->arrd[idx]
-        double y = (double)maxes->arr[idx] + subpos->arrd[idx];
-
-        // w = maxvals->arrd[idx]
-        double w = maxvals->arrd[idx];
-        if (!(w > 0.0))
+        const double x_val = (double)k;
+        const double y_val = (double)maxes->arr[idx] + subpos->arrd[idx];
+        const double weight = maxvals->arrd[idx];
+        if (!(weight > 0.0))
         {
             continue;
         } // skip non-positive weights
 
         if (skip_outliers)
         {
-            double r = y - (a + b * x);
-            if (fabs(r) > stdev_threshold)
+            double deviation = y_val - (par_a + par_b * x_val);
+            if (fabs(deviation) > stdev_threshold)
             {
                 continue;
             }
         }
 
-        long double wl = (long double)w;
-        long double xl = (long double)x;
-        long double yl = (long double)y;
+        long double w_l = (long double)weight;
+        long double x_l = (long double)x_val;
+        long double y_l = (long double)y_val;
 
-        *Sw += wl;
-        *Swx += wl * xl;
-        *Swy += wl * yl;
-        *Swxx += wl * xl * xl;
-        *Swxy += wl * xl * yl;
-        *Sw2 += wl * wl;
+        *Sum_w += w_l;
+        *Sum_wx += w_l * x_l;
+        *Sum_wy += w_l * y_l;
+        *Sum_wxx += w_l * x_l * x_l;
+        *Sum_wxy += w_l * x_l * y_l;
+        *Sum_w2 += w_l * w_l;
     }
 
     // Return success if we have at least two distinct weighted points
-    return (*Sw > 0.0L) ? 1 : 0;
+    return (*Sum_w > 0.0L) ? 1 : 0;
 }
 
-static int solve_weighted_line(double* a,
-                               double* b,
-                               long double Sw,
-                               long double Swx,
-                               long double Swy,
-                               long double Swxx,
-                               long double Swxy)
+static int solve_weighted_line(double* par_a,
+                               double* par_b,
+                               long double Sum_w,
+                               long double Sum_wx,
+                               long double Sum_wy,
+                               long double Sum_wxx,
+                               long double Sum_wxy)
 {
-    long double denom = Sw * Swxx - Swx * Swx;
+    long double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     const long double eps = 1e-18L;
-    if (fabsl(denom) < eps || Sw <= 0.0L)
+    if (fabsl(denom) < eps || Sum_w <= 0.0L)
     {
         return 0; // degenerate
     }
-    long double bL = (Sw * Swxy - Swx * Swy) / denom;
-    long double aL = (Swy - bL * Swx) / Sw;
-    *a = (double)aL;
-    *b = (double)bL;
+    long double bL = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
+    long double aL = (Sum_wy - bL * Sum_wx) / Sum_w;
+    *par_a = (double)aL;
+    *par_b = (double)bL;
     return 1;
 }
 
-// Compute weighted residual SSE for given (a,b) over the window
-static long double compute_weighted_SSE(double a,
-                                        double b,
-                                        const unsigned int i,
+// Compute weighted residual SSE for given (par_a,par_b) over the window
+static long double compute_weighted_SSE(double par_a,
+                                        double par_b,
+                                        const unsigned int cur_pos,
                                         const unsigned int fitwindow,
                                         const struct myarr* maxvals,
                                         const struct myarr* maxes,
                                         const struct myarr* subpos,
-                                        long double* Sw_out,
-                                        long double* Sw2_out)
+                                        long double* Sum_w_out,
+                                        long double* Sum_w2_out)
 {
     long double SSE = 0.0L;
-    long double Sw = 0.0L;
-    long double Sw2 = 0.0L;
+    long double Sum_w = 0.0L;
+    long double Sum_w2 = 0.0L;
 
     for (unsigned int k = 0; k < fitwindow; ++k)
     {
-        unsigned int idx = i - k;
+        unsigned int idx = cur_pos - k;
         double x = (double)k;
         double y = (double)maxes->arr[idx] + subpos->arrd[idx];
         double w = maxvals->arrd[idx];
@@ -340,123 +336,132 @@ static long double compute_weighted_SSE(double a,
             continue;
         }
 
-        double r = y - (a + b * x);
+        double r = y - (par_a + par_b * x);
         long double wl = (long double)w;
         SSE += wl * (long double)(r * r);
-        Sw += wl;
-        Sw2 += wl * wl;
+        Sum_w += wl;
+        Sum_w2 += wl * wl;
     }
-    if (Sw_out)
+    if (Sum_w_out)
     {
-        *Sw_out = Sw;
+        *Sum_w_out = Sum_w;
     }
-    if (Sw2_out)
+    if (Sum_w2_out)
     {
-        *Sw2_out = Sw2;
+        *Sum_w2_out = Sum_w2;
     }
     return SSE;
 }
 
-void fitNpeaks(double* a,
-               double* b,
-               const unsigned int i,
+void fitNpeaks(double* par_a,
+               double* par_b,
+               const unsigned int cur_pos,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
                const unsigned int npeaks,
                const double SDthreshold)
 {
-    unsigned int fitwindow = (i > npeaks) ? npeaks : i;
+    unsigned int fitwindow = (cur_pos > npeaks) ? npeaks : cur_pos;
 
-    if (fitwindow > 1 && i >= fitwindow && maxvals && maxvals->arrd && maxes &&
-        maxes->arr && subpos && subpos->arrd)
+    if (fitwindow > 1 && cur_pos >= fitwindow && maxvals && maxvals->arrd &&
+        maxes && maxes->arr && subpos && subpos->arrd)
     {
         // Pass 1: fit using all points (positive weights)
-        long double Sw;
-        long double Swx;
-        long double Swy;
-        long double Swxx;
-        long double Swxy;
-        long double Sw2;
-        int ok1 = fastlinreg_sufficient_stats(&Sw,
-                                              &Swx,
-                                              &Swy,
-                                              &Swxx,
-                                              &Swxy,
-                                              &Sw2,
-                                              i,
+        long double Sum_w;
+        long double Sum_wx;
+        long double Sum_wy;
+        long double Sum_wxx;
+        long double Sum_wxy;
+        long double Sum_w2;
+        int ok1 = fastlinreg_sufficient_stats(&Sum_w,
+                                              &Sum_wx,
+                                              &Sum_wy,
+                                              &Sum_wxx,
+                                              &Sum_wxy,
+                                              &Sum_w2,
+                                              cur_pos,
                                               fitwindow,
                                               maxvals,
                                               maxes,
                                               subpos,
                                               /*skip_outliers=*/0,
-                                              /*a=*/0.0,
-                                              /*b=*/0.0,
+                                              /*par_a=*/0.0,
+                                              /*par_b=*/0.0,
                                               /*stdev_threshold=*/0.0);
         if (!ok1)
         {
             // No valid data
-            *a = 0.0;
-            *b = 0.0;
+            *par_a = 0.0;
+            *par_b = 0.0;
             return;
         }
 
-        double a1 = 0.0;
-        double b1 = 0.0;
-        if (!solve_weighted_line(&a1, &b1, Sw, Swx, Swy, Swxx, Swxy))
+        double a_1 = 0.0;
+        double b_1 = 0.0;
+        if (!solve_weighted_line(
+                &a_1, &b_1, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
         {
             (void)fprintf(stderr, "Degenerate data in initial fit\n");
-            *a = 0.0;
-            *b = 0.0;
+            *par_a = 0.0;
+            *par_b = 0.0;
             return;
         }
 
         // Compute weighted residual SSE and sigma
-        long double Sw_res;
-        long double Sw2_res;
-        long double SSE = compute_weighted_SSE(
-            a1, b1, i, fitwindow, maxvals, maxes, subpos, &Sw_res, &Sw2_res);
+        long double Sum_w_res;
+        long double Sum_w2_res;
+        long double SSE = compute_weighted_SSE(a_1,
+                                               b_1,
+                                               cur_pos,
+                                               fitwindow,
+                                               maxvals,
+                                               maxes,
+                                               subpos,
+                                               &Sum_w_res,
+                                               &Sum_w2_res);
 
         const long double two = 2.0L;
         // degrees of freedom
-        long double df = Sw_res - two;
+        long double degFree = Sum_w_res - two;
         double sigma = 0.0;
-        if (df > 0.0L && SSE >= 0.0L)
+        if (degFree > 0.0L && SSE >= 0.0L)
         {
-            sigma = sqrt((double)(SSE / df));
+            sigma = sqrt((double)(SSE / degFree));
         }
 
         double thresh = SDthreshold * sigma;
 
         // Pass 2: re-fit excluding outliers |residual| > thresh
-        ok1 = fastlinreg_sufficient_stats(&Sw,
-                                          &Swx,
-                                          &Swy,
-                                          &Swxx,
-                                          &Swxy,
-                                          &Sw2,
-                                          i,
+        ok1 = fastlinreg_sufficient_stats(&Sum_w,
+                                          &Sum_wx,
+                                          &Sum_wy,
+                                          &Sum_wxx,
+                                          &Sum_wxy,
+                                          &Sum_w2,
+                                          cur_pos,
                                           fitwindow,
                                           maxvals,
                                           maxes,
                                           subpos,
                                           /*skip_outliers=*/(thresh > 0.0),
-                                          a1,
-                                          b1,
+                                          a_1,
+                                          b_1,
                                           thresh);
 
-        double a2 = a1;
-        double b2 = b1;
-        if (ok1 && solve_weighted_line(&a2, &b2, Sw, Swx, Swy, Swxx, Swxy))
+        double a_2 = a_1;
+        double b_2 = b_1;
+        if (ok1 && solve_weighted_line(
+                       &a_2, &b_2, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
         {
-            *a = a2;
-            *b = b2;
+            *par_a = a_2;
+            *par_b = b_2;
         }
         else
         {
             // Fall back to initial fit if second pass degenerates
-            *a = a1;
-            *b = b1;
+            *par_a = a_1;
+            *par_b = b_1;
         }
     }
 }

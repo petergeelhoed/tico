@@ -76,10 +76,12 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         {
             if (j != k)
             {
-                double f = tmp[j + k * doubleNcols] / tmp[j + j * doubleNcols];
+                double factor =
+                    tmp[j + k * doubleNcols] / tmp[j + j * doubleNcols];
                 for (unsigned int i = 0; i < doubleNcols; i++)
                 {
-                    tmp[i + k * doubleNcols] -= tmp[i + j * doubleNcols] * f;
+                    tmp[i + k * doubleNcols] -=
+                        tmp[i + j * doubleNcols] * factor;
                 }
             }
         }

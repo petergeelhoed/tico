@@ -20,11 +20,11 @@ int main(void)
         (void)fprintf(stderr, "Cannot set LC_NUMERIC to C\n");
     };
 
-    unsigned int iN = INIT_N;
-    unsigned int i = 0;
+    unsigned int bufferLength = INIT_N;
+    unsigned int index = 0;
 
-    double* tmpy = calloc(iN, sizeof(double));
-    double* tmpx = calloc(iN, sizeof(double));
+    double* tmpy = calloc(bufferLength, sizeof(double));
+    double* tmpx = calloc(bufferLength, sizeof(double));
     if (!tmpx || !tmpy)
     {
         (void)fprintf(stderr, "Memory allocation failed (initial buffers)\n");
@@ -36,23 +36,23 @@ int main(void)
     double triplet[3];
     for (;;)
     {
-        int k = getDoublesFromStdin(3, triplet);
-        if (k < 0)
+        int nrDoubles = getDoublesFromStdin(3, triplet);
+        if (nrDoubles < 0)
         {
             break;
         }
-        if (k < 3)
+        if (nrDoubles < 3)
         {
             continue;
         }
 
-        tmpx[i] = triplet[1];
-        tmpy[i] = triplet[2];
-        i++;
+        tmpx[index] = triplet[1];
+        tmpy[index] = triplet[2];
+        index++;
 
-        if (i == iN)
+        if (index == bufferLength)
         {
-            unsigned int newN = (iN * 3) / 2;
+            unsigned int newN = (bufferLength * 3) / 2;
 
             double* newTmpy = realloc(tmpy, newN * sizeof(double));
             if (!newTmpy)
@@ -74,11 +74,11 @@ int main(void)
             }
             tmpx = newTmpx;
 
-            iN = newN;
+            bufferLength = newN;
         }
     }
 
-    if (i == 0)
+    if (index == 0)
     {
         (void)fprintf(stderr, "No valid input parsed from stdin\n");
         free(tmpy);
@@ -86,9 +86,9 @@ int main(void)
         return -1;
     }
 
-    unsigned int N = i;
+    unsigned int arrayLength = index;
 
-    fftw_complex* in = fftw_alloc_complex(N);
+    fftw_complex* in = fftw_alloc_complex(arrayLength);
     if (!in)
     {
         (void)fprintf(stderr, "fftw_alloc_complex(in) failed\n");
@@ -96,15 +96,15 @@ int main(void)
         free(tmpx);
         return -2;
     }
-    for (i = 0; i < N; i++)
+    for (index = 0; index < arrayLength; index++)
     {
-        in[i][0] = tmpx[i];
-        in[i][1] = tmpy[i];
+        in[index][0] = tmpx[index];
+        in[index][1] = tmpy[index];
     }
     free(tmpy);
     free(tmpx);
 
-    fftw_complex* out = fftw_alloc_complex(N);
+    fftw_complex* out = fftw_alloc_complex(arrayLength);
     if (!out)
     {
         (void)fprintf(stderr, "fftw_alloc_complex(out) failed\n");
@@ -112,9 +112,9 @@ int main(void)
         return -2;
     }
 
-    fftw_plan p =
-        fftw_plan_dft_1d((int)N, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
-    if (!p)
+    fftw_plan plan = fftw_plan_dft_1d(
+        (int)arrayLength, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    if (!plan)
     {
         (void)fprintf(stderr, "fftw_plan_dft_1d failed\n");
         fftw_free(in);
@@ -122,14 +122,14 @@ int main(void)
         return -2;
     }
 
-    fftw_execute(p);
+    fftw_execute(plan);
 
-    for (i = 0; i < N; i++)
+    for (index = 0; index < arrayLength; index++)
     {
-        printf("%u %g %g\n", i, out[i][0], out[i][1]);
+        printf("%u %g %g\n", index, out[index][0], out[index][1]);
     }
 
-    fftw_destroy_plan(p);
+    fftw_destroy_plan(plan);
     fftw_free(in);
     fftw_free(out);
     fftw_cleanup();

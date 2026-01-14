@@ -192,7 +192,11 @@ void calculateTotal(unsigned int count,
     double par_b = 0.0;
     double par_a = 0.0;
     double par_s = 0.0;
-    double xarr[count];
+    double* xarr = calloc(count, sizeof(double));
+    if (xarr == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
 
     for (unsigned int i = 0; i < count; ++i)
     {
@@ -232,6 +236,7 @@ void calculateTotal(unsigned int count,
                   threshold,
                   -par_b * SECS_DAY / ArrayLength,
                   m);
+    free(xarr);
 }
 
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)

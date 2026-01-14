@@ -71,8 +71,8 @@ Signal read_input()
 void run_fft(Signal sig, Config cfg)
 {
     unsigned int arrayLength = sig.count * cfg.z;
-    double a = 0.0;
-    double b = 0.0;
+    double par_a = 0.0;
+    double par_b = 0.0;
     double s_err = 0.0;
 
     // Linear regression removal
@@ -83,23 +83,24 @@ void run_fft(Signal sig, Config cfg)
         {
             tmpx[i] = i;
         }
-        linreg(tmpx, sig.data, sig.count, &a, &b, &s_err);
-        (void)fprintf(stderr, "a=%lf b=%lf s=%lf\n", a, b, s_err);
+        linreg(tmpx, sig.data, sig.count, &par_a, &par_b, &s_err);
+        (void)fprintf(
+            stderr, "par_a=%lf par_b=%lf s=%lf\n", par_a, par_b, s_err);
         free(tmpx);
     }
 
-    fftw_complex* in = fftw_alloc_complex(arrayLength);
-    fftw_complex* out = fftw_alloc_complex(arrayLength);
+    fftw_complex* data_in = fftw_alloc_complex(arrayLength);
+    fftw_complex* data_out = fftw_alloc_complex(arrayLength);
 
     for (unsigned int i = 0; i < arrayLength; i++)
     {
-        in[i][0] = (i < sig.count) ? (sig.data[i] - a - b * i) : 0;
-        in[i][1] = 0;
+        data_in[i][0] = (i < sig.count) ? (sig.data[i] - par_a - par_b * i) : 0;
+        data_in[i][1] = 0;
     }
 
-    fftw_plan p =
-        fftw_plan_dft_1d(arrayLength, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute(p);
+    fftw_plan plan = fftw_plan_dft_1d(
+        arrayLength, data_in, data_out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(plan);
 
     // Result Printing Logic
     if (cfg.pval)
@@ -109,8 +110,8 @@ void run_fft(Signal sig, Config cfg)
             double freq = cfg.fval ? (double)sig.count / (i * cfg.fval)
                                    : (double)i / sig.count;
             double mag = 2 * cfg.z *
-                         sqrt(pow(out[i][0] / arrayLength, 2) +
-                              pow(out[i][1] / arrayLength, 2));
+                         sqrt(pow(data_out[i][0] / arrayLength, 2) +
+                              pow(data_out[i][1] / arrayLength, 2));
             printf("%g %g\n", freq, mag);
         }
     }
@@ -120,26 +121,26 @@ void run_fft(Signal sig, Config cfg)
         {
             printf("%d %g %g\n",
                    i,
-                   out[i][0] / arrayLength,
-                   out[i][1] / arrayLength);
+                   data_out[i][0] / arrayLength,
+                   data_out[i][1] / arrayLength);
         }
     }
 
-    fftw_destroy_plan(p);
-    fftw_free(in);
-    fftw_free(out);
+    fftw_destroy_plan(plan);
+    fftw_free(data_in);
+    fftw_free(data_out);
 }
 
 int main(int argc, char** argv)
 {
     Config cfg = {1, 0, 0, 0};
-    int c;
+    int flag;
     int errno;
     char* endptr;
 
-    while ((c = getopt(argc, argv, "zplf:")) != -1)
+    while ((flag = getopt(argc, argv, "zplf:")) != -1)
     {
-        switch (c)
+        switch (flag)
         {
         case 'z':
             cfg.z = 2;

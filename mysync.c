@@ -29,17 +29,17 @@ void thread_lock(void) { pthread_mutex_lock(&count_mutex); }
 
 void writearray(int* arr, unsigned int ArrayLength, const char* file)
 {
-    FILE* fp = fopen(file, "w");
-    if (fp == NULL)
+    FILE* filePtr = fopen(file, "w");
+    if (filePtr == NULL)
     {
         perror("Error opening file");
         return;
     }
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        (void)fprintf(fp, "%d %d\n", j, arr[j]);
+        (void)fprintf(filePtr, "%d %d\n", j, arr[j]);
     }
-    if (fclose(fp))
+    if (fclose(filePtr))
     {
         perror("Error closing file");
     }

@@ -63,9 +63,9 @@ static void parse_sd_threshold(const char* arg, double* threshold)
 
 // Hulpfunctie voor bestandshandling
 static void
-handle_file_arg(int opt, FILE** fp, const char* arg, const char* mode)
+handle_file_arg(int opt, FILE** filePtr, const char* arg, const char* mode)
 {
-    if (checkFileArg(opt, fp, arg, mode) != 0)
+    if (checkFileArg(opt, filePtr, arg, mode) != 0)
     {
         exit(-1);
     }

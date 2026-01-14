@@ -358,17 +358,17 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength)
 
 void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
 {
-    FILE* fp = fopen(file, "w");
-    if (fp == NULL)
+    FILE* filePtr = fopen(file, "w");
+    if (filePtr == NULL)
     {
         (void)fprintf(stderr, "File opening failed in writefftw\n");
         return;
     }
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        (void)fprintf(fp, "%d %f %f\n", j, arr[j][0], arr[j][1]);
+        (void)fprintf(filePtr, "%d %f %f\n", j, arr[j][0], arr[j][1]);
     }
-    (void)fclose(fp);
+    (void)fclose(filePtr);
 }
 
 void normalise(unsigned int ArrayLength, fftw_complex* in)

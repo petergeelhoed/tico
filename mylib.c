@@ -115,24 +115,24 @@ void linreg(const double* xarr,
              ArrayLength);
 }
 
-void writefile(FILE* fp, int* array, unsigned int ArrayLength)
+void writefile(FILE* filePtr, int* array, unsigned int ArrayLength)
 {
-    if (fp)
+    if (filePtr)
     {
         for (unsigned int j = 0; j < ArrayLength; j++)
         {
-            (void)fprintf(fp, "%d\n", array[j]);
+            (void)fprintf(filePtr, "%d\n", array[j]);
         }
     }
 }
 
-void writefileDouble(FILE* fp, double* array, unsigned int ArrayLength)
+void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength)
 {
-    if (fp)
+    if (filePtr)
     {
         for (unsigned int j = 0; j < ArrayLength; j++)
         {
-            (void)fprintf(fp, "%f\n", array[j]);
+            (void)fprintf(filePtr, "%f\n", array[j]);
         }
     }
 }
@@ -262,7 +262,7 @@ int checkUIntArg(int name, unsigned int* value, char* optarg)
     return 0;
 }
 
-int checkFileArg(int name, FILE** fp, const char* optarg, const char* mode)
+int checkFileArg(int name, FILE** filePtr, const char* optarg, const char* mode)
 {
     if (*optarg == '-')
     {
@@ -271,8 +271,8 @@ int checkFileArg(int name, FILE** fp, const char* optarg, const char* mode)
         return -1;
     }
 
-    *fp = fopen(optarg, mode);
-    if (*fp == NULL)
+    *filePtr = fopen(optarg, mode);
+    if (*filePtr == NULL)
     {
         (void)fprintf(stderr,
                       "cannot open file -%c '%s' for mode %s\n",

@@ -24,8 +24,8 @@ void printspaces(int maxpos,
                  double avg_pos,
                  unsigned int correlationThreshold);
 
-void writefile(FILE* fp, int* array, unsigned int ArrayLength);
-void writefileDouble(FILE* fp, double* array, unsigned int ArrayLength);
+void writefile(FILE* filePtr, int* array, unsigned int ArrayLength);
+void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength);
 
 void calculateTotalFromFile(unsigned int n,
                             FILE* rawfile,
@@ -41,7 +41,7 @@ double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 
-int checkFileArg(int name, FILE** fp, const char* optarg, const char* mode);
+int checkFileArg(int name, FILE** filePtr, const char* optarg, const char* mode);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);

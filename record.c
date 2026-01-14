@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
         malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) / BITS_IN_BYTE);
     struct myarr rawread = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
 
-    FILE* fp = fopen("recorded", "w");
+    FILE* filePtr = fopen("recorded", "w");
     readBufferRaw(capture_handle, buffer, &rawread);
     readBufferRaw(capture_handle, buffer, &rawread);
     while (length)
@@ -85,14 +85,14 @@ int main(int argc, char* argv[])
         length--;
         readBufferRaw(capture_handle, buffer, &rawread);
 
-        syncAppendMyarr(&rawread, fp);
+        syncAppendMyarr(&rawread, filePtr);
         printf("%d\n", length);
     }
 
     fftw_free(filterFFT);
     wait();
     thread_lock();
-    (void)fclose(fp);
+    (void)fclose(filePtr);
     thread_unlock();
     exit(0);
 }

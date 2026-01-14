@@ -99,10 +99,10 @@ void cleanup_resources(AppResources* res, unsigned int teeth)
 
 void process_logging(CapConfig* cfg,
                      AppResources* res,
-                     unsigned int tt,
+                     unsigned int totalTime,
                      unsigned int writeinterval)
 {
-    if (tt > 0 && tt % writeinterval == 0)
+    if (totalTime > 0 && totalTime % writeinterval == 0)
     {
         if (cfg->fpposition)
         {
@@ -110,8 +110,8 @@ void process_logging(CapConfig* cfg,
             for (unsigned int k = 0; k < writeinterval; ++k)
             {
                 sync->arrd[k] =
-                    res->subpos->arrd[tt - writeinterval + k] +
-                    (double)res->maxpos->arr[tt - writeinterval + k];
+                    res->subpos->arrd[totalTime - writeinterval + k] +
+                    (double)res->maxpos->arr[totalTime - writeinterval + k];
             }
             syncAppendMyarr(sync, cfg->fpposition);
             freemyarr(sync);
@@ -120,7 +120,7 @@ void process_logging(CapConfig* cfg,
         {
             struct myarr* sync = makemyarrd(writeinterval);
             memcpy(sync->arrd,
-                   res->maxvals->arrd + tt - writeinterval,
+                   res->maxvals->arrd + totalTime - writeinterval,
                    writeinterval * sizeof(double));
             syncAppendMyarr(sync, cfg->fpmaxcor);
             freemyarr(sync);
@@ -142,9 +142,9 @@ int main(int argc, char* argv[])
                      .cvalue = DEFAULT_CVALUE};
     parse_arguments(argc, argv, &cfg);
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    columns = w.ws_col;
+    struct winsize windowSize;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
+    columns = windowSize.ws_col;
     set_signal_action();
 
     snd_pcm_t* capture_handle = NULL;
@@ -156,8 +156,9 @@ int main(int argc, char* argv[])
     unsigned int ArrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
     ArrayLength += (ArrayLength % 2);
     unsigned int mod = ArrayLength / cfg.zoom;
-    const unsigned int maxtime =
-        (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / ArrayLength;
+    const unsigned int maxtime = (unsigned int)cfg.rate *
+                                 (cfg.time ? cfg.time : DEFAULT_TIME) /
+                                 ArrayLength;
 
     AppResources res =
         allocate_resources(ArrayLength, ARR_BUFF * 2, cfg.teeth, cfg.evalue);
@@ -202,7 +203,8 @@ int main(int argc, char* argv[])
         for (unsigned int j = 0; j < ArrayLength; ++j)
         {
             res.tmpder->arr[j] =
-                res.derivative->arr[modSigned(totalshift + j + toothshift, ArrayLength)];
+                res.derivative
+                    ->arr[modSigned(totalshift + j + toothshift, ArrayLength)];
         }
         int maxposition =
             shiftHalf(fftfit(*res.tmpder,
@@ -231,17 +233,17 @@ int main(int argc, char* argv[])
 
         process_logging(&cfg, &res, ticktock, DEFAULT_TICKTOCK_WRITE);
 
-        double a = 0.0;
-        double b = 0.0;
-        fitNpeaks(&a,
-                  &b,
+        double par_a = 0.0;
+        double par_b = 0.0;
+        fitNpeaks(&par_a,
+                  &par_b,
                   ticktock,
                   res.maxvals,
                   res.maxpos,
                   res.subpos,
                   cfg.fitN,
                   cfg.SDthreshold);
-        printheader(b * SECS_DAY / ArrayLength,
+        printheader(par_b * SECS_DAY / ArrayLength,
                     cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * ArrayLength / cfg.rate);
@@ -249,7 +251,7 @@ int main(int argc, char* argv[])
                     res.maxvals->arrd[ticktock] * HEXDEC,
                     mod,
                     columns - cfg.everyline,
-                    a,
+                    par_a,
                     cfg.cvalue);
 
         ticktock++;

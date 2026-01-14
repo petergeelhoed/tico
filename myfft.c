@@ -10,7 +10,6 @@
 #include "mylib.h"
 #include "mysync.h"
 
-
 fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
 {
     fftw_complex* filter = fftw_alloc_complex(ArrayLength);
@@ -20,7 +19,7 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
 
     if (filter == NULL || filterFFT == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in makeFilter\n");
+        (void)fprintf(stderr, "Memory allocation failed in_data makeFilter\n");
         return NULL;
     }
 
@@ -40,11 +39,14 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
             filter[j][0] = 0.0;
             filter[j][1] = 0.0;
         }
-        for (unsigned int j = ArrayLength - (evalue * GAUSSPOINTS); j < ArrayLength; j++)
+        for (unsigned int j = ArrayLength - (evalue * GAUSSPOINTS);
+             j < ArrayLength;
+             j++)
         {
-            filter[j][0] = GAUSSIAN_CONST / evalue *
-                           exp(-((double)(ArrayLength - j) * (ArrayLength - j)) /
-                               (double)(evalue * evalue) / 2);
+            filter[j][0] =
+                GAUSSIAN_CONST / evalue *
+                exp(-((double)(ArrayLength - j) * (ArrayLength - j)) /
+                    (double)(evalue * evalue) / 2);
             filter[j][1] = 0.0;
         }
     }
@@ -70,41 +72,41 @@ void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
 {
     const unsigned int freq = 50;
     unsigned int ofj = ArrayLength * freq / rate;
-    fftw_complex* in = fftw_alloc_complex(ArrayLength);
-    fftw_complex* out = fftw_alloc_complex(ArrayLength);
-    fftw_plan forward =
-        fftw_plan_dft_1d((int)ArrayLength, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse =
-        fftw_plan_dft_1d((int)ArrayLength, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_complex* in_data = fftw_alloc_complex(ArrayLength);
+    fftw_complex* out_data = fftw_alloc_complex(ArrayLength);
+    fftw_plan forward = fftw_plan_dft_1d(
+        (int)ArrayLength, in_data, out_data, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(
+        (int)ArrayLength, out_data, in_data, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    if (in == NULL || out == NULL)
+    if (in_data == NULL || out_data == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in remove50hz\n");
+        (void)fprintf(stderr, "Memory allocation failed in_data remove50hz\n");
         return;
     }
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        in[j][0] = (double)array[j];
-        in[j][1] = 0.0;
+        in_data[j][0] = (double)array[j];
+        in_data[j][1] = 0.0;
     }
     fftw_execute(forward);
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        out[j][0] /= ArrayLength;
-        out[j][1] /= ArrayLength;
+        out_data[j][0] /= ArrayLength;
+        out_data[j][1] /= ArrayLength;
     }
 
-    out[ofj + 1][1] = 0.0;
-    out[ofj - 1][0] = 0.0;
-    out[ofj + 1][1] = 0.0;
-    out[ofj - 1][0] = 0.0;
+    out_data[ofj + 1][1] = 0.0;
+    out_data[ofj - 1][0] = 0.0;
+    out_data[ofj + 1][1] = 0.0;
+    out_data[ofj - 1][0] = 0.0;
 
     for (unsigned int j = ofj; j < ArrayLength; j += ofj)
     {
-        out[j][0] = 0.0;
-        out[j][1] = 0.0;
+        out_data[j][0] = 0.0;
+        out_data[j][1] = 0.0;
     }
 
     fftw_execute(reverse);
@@ -113,53 +115,56 @@ void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        array[j] = (int)(in[j][0]);
+        array[j] = (int)(in_data[j][0]);
     }
-    fftw_free(in);
-    fftw_free(out);
+    fftw_free(in_data);
+    fftw_free(out_data);
     fftw_cleanup();
 }
 
 fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
 {
     unsigned int ArrayLength = array.ArrayLength;
-    fftw_complex* in = fftw_alloc_complex(ArrayLength);
-    fftw_complex* out = fftw_alloc_complex(ArrayLength);
-    fftw_plan forward =
-        fftw_plan_dft_1d((int)ArrayLength, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse =
-        fftw_plan_dft_1d((int)ArrayLength, out, in, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_complex* in_data = fftw_alloc_complex(ArrayLength);
+    fftw_complex* out_data = fftw_alloc_complex(ArrayLength);
+    fftw_plan forward = fftw_plan_dft_1d(
+        (int)ArrayLength, in_data, out_data, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d(
+        (int)ArrayLength, out_data, in_data, FFTW_BACKWARD, FFTW_ESTIMATE);
 
-    if (in == NULL || out == NULL)
+    if (in_data == NULL || out_data == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in convolute\n");
+        (void)fprintf(stderr, "Memory allocation failed in_data convolute\n");
         return NULL;
     }
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        in[j][0] = (double)array.arr[j];
-        in[j][1] = 0.0;
+        in_data[j][0] = (double)array.arr[j];
+        in_data[j][1] = 0.0;
     }
     fftw_execute(forward);
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        out[j][0] =
-            (out[j][0] * filterFFT[j][0] - out[j][1] * filterFFT[j][1]) / ArrayLength;
-        out[j][1] =
-            (out[j][0] * filterFFT[j][1] + out[j][1] * filterFFT[j][0]) / ArrayLength;
+        out_data[j][0] = (out_data[j][0] * filterFFT[j][0] -
+                          out_data[j][1] * filterFFT[j][1]) /
+                         ArrayLength;
+        out_data[j][1] = (out_data[j][0] * filterFFT[j][1] +
+                          out_data[j][1] * filterFFT[j][0]) /
+                         ArrayLength;
     }
 
     fftw_execute(reverse);
     fftw_destroy_plan(forward);
     fftw_destroy_plan(reverse);
-    fftw_free(out);
+    fftw_free(out_data);
     fftw_cleanup();
-    return in;
+    return in_data;
 }
 
-fftw_complex* crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref)
+fftw_complex*
+crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref)
 {
     normalise(ArrayLength, array);
     normalise(ArrayLength, ref);
@@ -171,16 +176,16 @@ fftw_complex* crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_compl
 
     if (tmparr == NULL || tmpref == NULL || tmp == NULL || corr == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in crosscor\n");
+        (void)fprintf(stderr, "Memory allocation failed in_data crosscor\n");
         return NULL;
     }
 
-    fftw_plan arrFour =
-        fftw_plan_dft_1d((int)ArrayLength, array, tmparr, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan refFour =
-        fftw_plan_dft_1d((int)ArrayLength, ref, tmpref, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan correverse =
-        fftw_plan_dft_1d((int)ArrayLength, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan arrFour = fftw_plan_dft_1d(
+        (int)ArrayLength, array, tmparr, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan refFour = fftw_plan_dft_1d(
+        (int)ArrayLength, ref, tmpref, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan correverse = fftw_plan_dft_1d(
+        (int)ArrayLength, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     fftw_execute(arrFour);
     fftw_execute(refFour);
@@ -213,25 +218,26 @@ fftw_complex* crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_compl
 int getshift(const struct myarr xarr, const struct myarr yarr)
 {
     unsigned int ArrayLength = xarr.ArrayLength;
-    fftw_complex* Fx = fftw_alloc_complex(ArrayLength);
-    fftw_complex* Fy = fftw_alloc_complex(ArrayLength);
+    fftw_complex* F_x = fftw_alloc_complex(ArrayLength);
+    fftw_complex* F_y = fftw_alloc_complex(ArrayLength);
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        Fx[j][0] = (double)xarr.arr[j];
-        Fx[j][1] = 0.0;
-        Fy[j][0] = (double)yarr.arr[j];
-        Fy[j][1] = 0.0;
+        F_x[j][0] = (double)xarr.arr[j];
+        F_x[j][1] = 0.0;
+        F_y[j][0] = (double)yarr.arr[j];
+        F_y[j][1] = 0.0;
     }
-    fftw_complex* corr = crosscor(ArrayLength, Fx, Fy);
+    fftw_complex* corr = crosscor(ArrayLength, F_x, F_y);
 
     unsigned int poscor = getmaxfftw(corr, ArrayLength);
-    fftw_free(Fx);
+    fftw_free(F_x);
     fftw_free(corr);
-    fftw_free(Fy);
+    fftw_free(F_y);
     fftw_cleanup();
     assert(ArrayLength > 0);
-    return (((int)poscor + (int)ArrayLength / 2) % (int)(ArrayLength)) - (int)(ArrayLength / 2);
+    return (((int)poscor + (int)ArrayLength / 2) % (int)(ArrayLength)) -
+           (int)(ArrayLength / 2);
 }
 
 unsigned int fftfit(const struct myarr input,
@@ -248,7 +254,7 @@ unsigned int fftfit(const struct myarr input,
 
     if (Fbase == NULL || filteredinput == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in fftfit\n");
+        (void)fprintf(stderr, "Memory allocation failed in_data fftfit\n");
         return 0;
     }
 
@@ -282,15 +288,18 @@ unsigned int fftfit(const struct myarr input,
         {
             const int magic = 2000;
             total[j] += (int)(magic * maxcor * maxcor *
-                              filteredinput[(j + poscor + ArrayLength) % ArrayLength][0]);
+                              filteredinput[(j + poscor + ArrayLength) %
+                                            ArrayLength][0]);
         }
     }
 
     const double half = 0.5;
     assert(ArrayLength > 0);
     *subpos = -half *
-              (corr[(poscor - 1 + ArrayLength) % ArrayLength][0] - corr[(poscor + 1) % ArrayLength][0]) /
-              (2 * corr[poscor][0] - corr[(poscor - 1 + ArrayLength) % ArrayLength][0] -
+              (corr[(poscor - 1 + ArrayLength) % ArrayLength][0] -
+               corr[(poscor + 1) % ArrayLength][0]) /
+              (2 * corr[poscor][0] -
+               corr[(poscor - 1 + ArrayLength) % ArrayLength][0] -
                corr[(poscor + 1) % ArrayLength][0]);
 
     fftw_free(filteredinput);
@@ -361,7 +370,7 @@ void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
     FILE* filePtr = fopen(file, "w");
     if (filePtr == NULL)
     {
-        (void)fprintf(stderr, "File opening failed in writefftw\n");
+        (void)fprintf(stderr, "File opening failed in_data writefftw\n");
         return;
     }
     for (unsigned int j = 0; j < ArrayLength; j++)
@@ -371,20 +380,20 @@ void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
     (void)fclose(filePtr);
 }
 
-void normalise(unsigned int ArrayLength, fftw_complex* in)
+void normalise(unsigned int ArrayLength, fftw_complex* in_data)
 {
     double ix = 0.0;
     double ixx = 0.0;
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        in[j][0] = in[j][0];
-        ix += in[j][0];
-        ixx += in[j][0] * in[j][0];
+        in_data[j][0] = in_data[j][0];
+        ix += in_data[j][0];
+        ixx += in_data[j][0] * in_data[j][0];
     }
     double mean = ix / ArrayLength;
     double stdev = sqrt((ixx / ArrayLength) - (mean * mean));
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        in[j][0] = (in[j][0] - mean) / stdev;
+        in_data[j][0] = (in_data[j][0] - mean) / stdev;
     }
 }

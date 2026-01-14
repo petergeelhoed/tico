@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
 void print_usage(void)
 {
     (void)fprintf(stderr,
@@ -81,34 +80,35 @@ static void enforce_uint(int c, unsigned int* target, char* arg)
 
 void parse_arguments(int argc, char* argv[], CapConfig* cfg)
 {
-    int c;
-    while ((c = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:")) != -1)
+    int flag;
+    while ((flag = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:")) !=
+           -1)
     {
-        switch (c)
+        switch (flag)
         {
         // Group 1: Integrated Numeric Parsers
         case 'j':
-            enforce_uint(c, &cfg->teeth, optarg);
+            enforce_uint(flag, &cfg->teeth, optarg);
             break;
         case 'f':
-            enforce_uint(c, &cfg->fitN, optarg);
+            enforce_uint(flag, &cfg->fitN, optarg);
             break;
         case 'e':
-            enforce_uint(c, &cfg->evalue, optarg);
+            enforce_uint(flag, &cfg->evalue, optarg);
             break;
         case 'v':
-            enforce_uint(c, &cfg->verbose, optarg);
+            enforce_uint(flag, &cfg->verbose, optarg);
             break;
         case 't':
-            enforce_uint(c, &cfg->time, optarg);
+            enforce_uint(flag, &cfg->time, optarg);
             break;
         case 'z':
-            enforce_uint(c, &cfg->zoom, optarg);
+            enforce_uint(flag, &cfg->zoom, optarg);
             break;
 
         // Group 2: Special Logic
         case 'b':
-            enforce_uint(c, &cfg->bph, optarg);
+            enforce_uint(flag, &cfg->bph, optarg);
             if (cfg->bph < SECS_HOUR)
             {
                 (void)fprintf(stderr, "refusing bph < 3600\n");
@@ -116,7 +116,7 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             }
             break;
         case 'c':
-            enforce_uint(c, &cfg->cvalue, optarg);
+            enforce_uint(flag, &cfg->cvalue, optarg);
             if (cfg->cvalue > CVAL)
             {
                 cfg->cvalue = CVAL;
@@ -126,7 +126,7 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             parse_sd_threshold(optarg, &cfg->SDthreshold);
             break;
         case 'r':
-            if (checkFloatArg(c, &cfg->rate, optarg) != 0)
+            if (checkFloatArg(flag, &cfg->rate, optarg) != 0)
             {
                 exit(-1);
             }
@@ -134,19 +134,19 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
 
         // Group 3: File Handlers
         case 'I':
-            handle_file_arg(c, &cfg->fpInput, optarg, "r");
+            handle_file_arg(flag, &cfg->fpInput, optarg, "r");
             break;
         case 'm':
-            handle_file_arg(c, &cfg->fpmaxcor, optarg, "w+");
+            handle_file_arg(flag, &cfg->fpmaxcor, optarg, "w+");
             break;
         case 'w':
-            handle_file_arg(c, &cfg->fpposition, optarg, "w+");
+            handle_file_arg(flag, &cfg->fpposition, optarg, "w+");
             break;
         case 'D':
-            handle_file_arg(c, &cfg->fpDefPeak, optarg, "r");
+            handle_file_arg(flag, &cfg->fpDefPeak, optarg, "r");
             break;
         case 'p':
-            handle_file_arg(c, &cfg->fptotal, optarg, "w");
+            handle_file_arg(flag, &cfg->fptotal, optarg, "w");
             break;
 
         // Group 4: Flags & Help

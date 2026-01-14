@@ -15,18 +15,18 @@ int main(int argc, char* argv[])
     unsigned int rate = DEFAULT_RATE;
     unsigned int bph = DEFAULT_BPH;
     unsigned int time = 3;
-    int c;
+    int flag;
     unsigned int evalue = 4;
     char* device = 0;
     // declarations
 
-    while ((c = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
+    while ((flag = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
     {
         int retVal = 0;
-        switch (c)
+        switch (flag)
         {
         case 'e':
-            retVal = checkUIntArg(c, &evalue, optarg);
+            retVal = checkUIntArg(flag, &evalue, optarg);
             if (evalue == 0)
             {
                 printf("invalid integer argument for -e '%s'\n", optarg);
@@ -37,13 +37,13 @@ int main(int argc, char* argv[])
             device = optarg;
             break;
         case 't':
-            retVal = checkUIntArg(c, &time, optarg);
+            retVal = checkUIntArg(flag, &time, optarg);
             break;
         case 'b':
-            retVal = checkUIntArg(c, &bph, optarg);
+            retVal = checkUIntArg(flag, &bph, optarg);
             break;
         case 'r':
-            retVal = checkUIntArg(c, &rate, optarg);
+            retVal = checkUIntArg(flag, &rate, optarg);
             break;
         case 'h':
         default:
@@ -74,7 +74,8 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
     char* buffer =
-        malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) / BITS_IN_BYTE);
+        malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) /
+               BITS_IN_BYTE);
     struct myarr rawread = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
 
     FILE* filePtr = fopen("recorded", "w");

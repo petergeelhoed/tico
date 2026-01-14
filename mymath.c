@@ -56,18 +56,18 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         (void)fprintf(stderr, "Memory allocation failed in invert\n");
         exit(EXIT_FAILURE);
     }
-    unsigned int M2 = Ncols * 2;
+    unsigned int doubleNcols = Ncols * 2;
     for (unsigned int j = 0; j < Nrows; ++j)
     {
         for (unsigned int i = 0; i < Ncols; ++i)
         {
-            tmp[i + j * M2] = arr[i + j * Nrows];
+            tmp[i + j * doubleNcols] = arr[i + j * Nrows];
         }
     }
     // make second part diagonal 1
     for (unsigned int i = 0; i < Ncols; ++i)
     {
-        tmp[i + Ncols + i * M2] = 1.0;
+        tmp[i + Ncols + i * doubleNcols] = 1.0;
     }
 
     for (unsigned int j = 0; j < Nrows; j++)
@@ -76,10 +76,10 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         {
             if (j != k)
             {
-                double f = tmp[j + k * M2] / tmp[j + j * M2];
-                for (unsigned int i = 0; i < M2; i++)
+                double f = tmp[j + k * doubleNcols] / tmp[j + j * doubleNcols];
+                for (unsigned int i = 0; i < doubleNcols; i++)
                 {
-                    tmp[i + k * M2] -= tmp[i + j * M2] * f;
+                    tmp[i + k * doubleNcols] -= tmp[i + j * doubleNcols] * f;
                 }
             }
         }
@@ -88,25 +88,26 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
     {
         for (unsigned int i = 0; i < Ncols; i++)
         {
-            arr[i + j * Ncols] = tmp[i + Ncols + j * M2] / tmp[j + j * M2];
+            arr[i + j * Ncols] =
+                tmp[i + Ncols + j * doubleNcols] / tmp[j + j * doubleNcols];
         }
     }
     free(tmp);
 }
 
-double* mulmat(const double* matrix,
+double* mulmat(const double* matrix0,
                unsigned int Nrows,
                unsigned int Ncols,
-               const double* vector,
-               unsigned int S,
-               unsigned int T)
+               const double* matrix1,
+               unsigned int Mrows,
+               unsigned int Mcols)
 {
-    if (Ncols != S)
+    if (Ncols != Mrows)
     {
         (void)fprintf(stderr, "Matrix multiplication dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
-    double* tmp = (double*)calloc(Nrows * T, sizeof(double));
+    double* tmp = (double*)calloc(Nrows * Mcols, sizeof(double));
     if (tmp == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in mulmat\n");
@@ -114,11 +115,12 @@ double* mulmat(const double* matrix,
     }
     for (unsigned int j = 0; j < Nrows; j++)
     {
-        for (unsigned int l = 0; l < T; l++)
+        for (unsigned int l = 0; l < Mcols; l++)
         {
             for (unsigned int i = 0; i < Ncols; i++)
             {
-                tmp[l + j * T] += matrix[i + Ncols * j] * vector[i * T + l];
+                tmp[l + j * Mcols] +=
+                    matrix0[i + Ncols * j] * matrix1[i * Mcols + l];
             }
         }
     }
@@ -303,10 +305,10 @@ static int solve_weighted_line(double* par_a,
     {
         return 0; // degenerate
     }
-    long double bL = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
-    long double aL = (Sum_wy - bL * Sum_wx) / Sum_w;
-    *par_a = (double)aL;
-    *par_b = (double)bL;
+    long double b_L = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
+    long double a_L = (Sum_wy - b_L * Sum_wx) / Sum_w;
+    *par_a = (double)a_L;
+    *par_b = (double)b_L;
     return 1;
 }
 
@@ -328,19 +330,19 @@ static long double compute_weighted_SSE(double par_a,
     for (unsigned int k = 0; k < fitwindow; ++k)
     {
         unsigned int idx = cur_pos - k;
-        double x = (double)k;
-        double y = (double)maxes->arr[idx] + subpos->arrd[idx];
-        double w = maxvals->arrd[idx];
-        if (!(w > 0.0))
+        double x_val = (double)k;
+        double y_val = (double)maxes->arr[idx] + subpos->arrd[idx];
+        double weight = maxvals->arrd[idx];
+        if (!(weight > 0.0))
         {
             continue;
         }
 
-        double r = y - (par_a + par_b * x);
-        long double wl = (long double)w;
-        SSE += wl * (long double)(r * r);
-        Sum_w += wl;
-        Sum_w2 += wl * wl;
+        double deviation = y_val - (par_a + par_b * x_val);
+        long double w_l = (long double)weight;
+        SSE += w_l * (long double)(deviation * deviation);
+        Sum_w += w_l;
+        Sum_w2 += w_l * w_l;
     }
     if (Sum_w_out)
     {

@@ -2,12 +2,13 @@
 void transpone(double*, unsigned int Nrows, unsigned int Ncols);
 void invert(double*, unsigned int Nrows, unsigned int Ncols);
 
-double* mulmat(const double* matrix,
+double* mulmat(const double* matrix0,
                unsigned int Nrows,
                unsigned int Ncols,
-               const double* vector,
-               unsigned int S,
-               unsigned int T);
+               const double* matrix1,
+               unsigned int Mrows,
+               unsigned int Mcols);
+
 void matlinreg(double coeffs[2],
                const double* xmat,
                unsigned int Nrows,
@@ -17,7 +18,7 @@ void matlinreg(double coeffs[2],
 
 void fitNpeaks(double* par_a,
                double* par_b,
-               unsigned int i,
+               unsigned int cur_pos,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,

@@ -7,22 +7,22 @@
 
 int main(void)
 {
-    const size_t n = 1000000;
+    const size_t initial_size = 1000000;
 
     // Prefer heap to avoid large stack frames
-    double* xarr = (double*)malloc(n * sizeof(double));
-    double* yvec = (double*)malloc(n * sizeof(double));
-    double* wvec = (double*)malloc(n * sizeof(double));
+    double* xarr = (double*)malloc(initial_size * sizeof(double));
+    double* yvec = (double*)malloc(initial_size * sizeof(double));
+    double* wvec = (double*)malloc(initial_size * sizeof(double));
     if (!xarr || !yvec || !wvec)
     {
-        (void)fprintf(stderr, "Memory allocation failed\n");
+        (void)fprintf(stderr, "predictorsemory allocation failed\n");
         free(xarr);
         free(yvec);
         free(wvec);
         return 1;
     }
 
-    size_t N = 0;
+    size_t arrayLength = 0;
     double arr[3];
 
     // Read one line at a time, up to 3 doubles per line
@@ -48,33 +48,33 @@ int main(void)
             continue;
         }
 
-        if (N >= n)
+        if (arrayLength >= initial_size)
         {
             (void)fprintf(
                 stderr,
                 "Capacity reached (%zu). Remaining input will be ignored.\n",
-                n);
+                initial_size);
             break;
         }
 
-        xarr[N] = arr[0];
-        yvec[N] = arr[1];
-        wvec[N] = arr[2];
-        N++;
+        xarr[arrayLength] = arr[0];
+        yvec[arrayLength] = arr[1];
+        wvec[arrayLength] = arr[2];
+        arrayLength++;
     }
 
     // Perform linear regression
-    unsigned int M = 1; // number of predictors
-    unsigned int T = M; // printed terms count control
+    unsigned int predictors = 1;     // number of predictors
+    unsigned int terms = predictors; // printed terms count control
 
     double coeffs[2] = {0.0, 0.0};
-    matlinreg(coeffs, xarr, (unsigned int)N, M, yvec, wvec);
+    matlinreg(coeffs, xarr, (unsigned int)arrayLength, predictors, yvec, wvec);
 
-    for (unsigned int i = 0; i < T + 1; i++)
+    for (unsigned int i = 0; i < terms + 1; i++)
     {
-        printf("%10.6g ", coeffs[i]);
+        (void)printf("%10.6g ", coeffs[i]);
     }
-    printf("\n");
+    (void)printf("\n");
 
     free(xarr);
     free(yvec);

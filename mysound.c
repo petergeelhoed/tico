@@ -10,7 +10,6 @@
 #include "mylib.h"
 #include "mysound.h"
 
-
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void check_alsa_err(int err,
                            const char* msg,
@@ -120,11 +119,11 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
                       snd_strerror(err));
         exit(READ_FAILED);
     }
-    for (unsigned int j = 0; j < 2 * in->ArrayLength; j += 2)
+    for (unsigned int index = 0; index < 2 * in->ArrayLength; index += 2)
     {
-        msb = (signed char)buffer[j + 1];
-        lsb = *(buffer + j);
-        in->arr[j / 2] = (msb << BITS_IN_BYTE) | lsb;
+        msb = (signed char)buffer[index + 1];
+        lsb = *(buffer + index);
+        in->arr[index / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
 }
 
@@ -135,7 +134,8 @@ int readBuffer(snd_pcm_t* capture_handle,
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)ArrayLength);
+    int err =
+        snd_pcm_readi(capture_handle, buffer, (long unsigned int)ArrayLength);
     if (err < 0)
     {
         (void)fprintf(stderr,
@@ -161,17 +161,17 @@ int readBuffer(snd_pcm_t* capture_handle,
             err = (int)ArrayLength;
         }
     }
-    for (unsigned int j = 0; j < ArrayLength * 2; j += 2)
+    for (unsigned int index = 0; index < ArrayLength * 2; index += 2)
     {
-        msb = (signed char)buffer[j + 1];
-        lsb = *(buffer + j);
-        derivative[j / 2] = (msb << BITS_IN_BYTE) | lsb;
+        msb = (signed char)buffer[index + 1];
+        lsb = *(buffer + index);
+        derivative[index / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
     //       remove50hz(ArrayLength,in,48000);
 
-    for (unsigned int j = 0; j < ArrayLength - 1; j++)
+    for (unsigned int index = 0; index < ArrayLength - 1; index++)
     {
-        derivative[j] = abs(derivative[j] - derivative[j + 1]);
+        derivative[index] = abs(derivative[index] - derivative[index + 1]);
     }
     derivative[ArrayLength - 1] = 0;
     return err;
@@ -189,15 +189,15 @@ int readBufferOrFile(int* derivative,
     {
         char* line = NULL;
         size_t len = 0;
-        unsigned int j = 0;
+        unsigned int index = 0;
 
         // Read entire lines until we have ArrayLength numbers
-        while (j < ArrayLength && getline(&line, &len, fpInput) != -1)
+        while (index < ArrayLength && getline(&line, &len, fpInput) != -1)
         {
             char* ptr = line;
             char* endptr;
 
-            while (j < ArrayLength)
+            while (index < ArrayLength)
             {
                 errno = 0;
                 // Use strtol for %d equivalent; use strtod for floating point
@@ -215,14 +215,14 @@ int readBufferOrFile(int* derivative,
                     return INPUT_OVERFLOW;
                 }
 
-                derivative[j++] = (int)val;
+                derivative[index++] = (int)val;
                 ptr = endptr; // Advance to the rest of the string
             }
         }
 
         free(line); // getline allocates memory that must be freed
 
-        if (j < ArrayLength)
+        if (index < ArrayLength)
         {
             return INPUT_FILE_ERROR;
         }
@@ -255,8 +255,11 @@ int getData(FILE* rawfile,
     int err = REINIT_ERROR;
     while (err == REINIT_ERROR)
     {
-        err = readBufferOrFile(
-            derivative.arr, capture_handle, derivative.ArrayLength, buffer, fpInput);
+        err = readBufferOrFile(derivative.arr,
+                               capture_handle,
+                               derivative.ArrayLength,
+                               buffer,
+                               fpInput);
         if (err == REINIT_ERROR)
         {
             (void)fprintf(stderr, "Reinitializing capture_handle");
@@ -266,8 +269,11 @@ int getData(FILE* rawfile,
             }
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, &rate);
-            err = readBufferOrFile(
-                derivative.arr, capture_handle, derivative.ArrayLength, buffer, fpInput);
+            err = readBufferOrFile(derivative.arr,
+                                   capture_handle,
+                                   derivative.ArrayLength,
+                                   buffer,
+                                   fpInput);
         }
         if (err == INPUT_FILE_ERROR)
         {

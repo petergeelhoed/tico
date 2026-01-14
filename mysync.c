@@ -97,7 +97,9 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
             return 0;
         }
 
-        memcpy(info->array->arrd, input->arrd, input->ArrayLength * sizeof(double));
+        memcpy(info->array->arrd,
+               input->arrd,
+               input->ArrayLength * sizeof(double));
     }
 
     info->file = file;
@@ -258,10 +260,10 @@ void printTOD(FILE* out)
         return;
     }
 
-    struct timeval tv; // NOLINT(misc-include-cleaner)
-    gettimeofday(&tv, NULL);
+    struct timeval time; // NOLINT(misc-include-cleaner)
+    gettimeofday(&time, NULL);
 
-    struct tm* today = localtime(&tv.tv_sec); // NOLINT(misc-include-cleaner)
+    struct tm* today = localtime(&time.tv_sec); // NOLINT(misc-include-cleaner)
     if (today == NULL)
     {
         perror("Error getting local time");
@@ -277,7 +279,7 @@ void printTOD(FILE* out)
                   today->tm_hour,
                   today->tm_min,
                   today->tm_sec,
-                  tv.tv_usec,
-                  tv.tv_sec,
-                  tv.tv_usec);
+                  time.tv_usec,
+                  time.tv_sec,
+                  time.tv_usec);
 }

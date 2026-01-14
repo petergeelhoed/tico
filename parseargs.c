@@ -70,9 +70,9 @@ handle_file_arg(int opt, FILE** filePtr, const char* arg, const char* mode)
     }
 }
 
-static void enforce_uint(int c, unsigned int* target, char* arg)
+static void enforce_uint(int flag, unsigned int* target, char* arg)
 {
-    if (checkUIntArg(c, target, arg) != 0)
+    if (checkUIntArg(flag, target, arg) != 0)
     {
         exit(-1);
     }

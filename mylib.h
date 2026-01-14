@@ -6,9 +6,9 @@
 void linreg(const double* xarr,
             const double* yarr,
             unsigned int ArrayLength,
-            double* a,
-            double* b,
-            double* s);
+            double* par_a,
+            double* par_b,
+            double* par_s);
 
 unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
 

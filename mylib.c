@@ -88,9 +88,9 @@ void printspaces(int maxpos,
 void linreg(const double* xarr,
             const double* yarr,
             unsigned int ArrayLength,
-            double* a,
-            double* b,
-            double* s)
+            double* par_a,
+            double* par_b,
+            double* par_s)
 {
     double x = 0;
     double y = 0;
@@ -106,11 +106,13 @@ void linreg(const double* xarr,
         yy += yarr[i] * yarr[i];
     }
 
-    *a = (y * xx - x * xy) / (ArrayLength * xx - x * x);
-    *b = (ArrayLength * xy - x * y) / (ArrayLength * xx - x * x);
-    *s = sqrt((yy - 2 * (*a) * y - 2 * (*b) * xy + 2 * (*a) * (*b) * x +
-               (*a) * (*a) * ArrayLength + (*b) * (*b) * xx) /
-              ArrayLength);
+    *par_a = (y * xx - x * xy) / (ArrayLength * xx - x * x);
+    *par_b = (ArrayLength * xy - x * y) / (ArrayLength * xx - x * x);
+    *par_s =
+        sqrt((yy - 2 * (*par_a) * y - 2 * (*par_b) * xy +
+              2 * (*par_a) * (*par_b) * x + (*par_a) * (*par_a) * ArrayLength +
+              (*par_b) * (*par_b) * xx) /
+             ArrayLength);
 }
 
 void writefile(FILE* fp, int* array, unsigned int ArrayLength)
@@ -186,9 +188,9 @@ void calculateTotal(unsigned int n,
                     unsigned int ArrayLength,
                     double threshold)
 {
-    double b = 0.0;
-    double a = 0.0;
-    double s = 0.0;
+    double par_b = 0.0;
+    double par_a = 0.0;
+    double par_s = 0.0;
     double xarr[n];
 
     for (unsigned int i = 0; i < n; ++i)
@@ -196,23 +198,25 @@ void calculateTotal(unsigned int n,
         xarr[i] = (double)i;
     }
 
-    linreg(xarr, maxpos, n, &a, &b, &s);
+    linreg(xarr, maxpos, n, &par_a, &par_b, &par_s);
 
     /*
-       a /= ArrayLength*ArrayLength;
-       b /= ArrayLength;
-       s /= rate;
+       par_a /= ArrayLength*ArrayLength;
+       par_b /= ArrayLength;
+       par_s /= rate;
      */
 
-    (void)fprintf(
-        stderr, "raw rate: %f s/d, %d samples\n", -b * SECS_DAY / ArrayLength, n);
+    (void)fprintf(stderr,
+                  "raw rate: %f s/d, %d samples\n",
+                  -par_b * SECS_DAY / ArrayLength,
+                  n);
     unsigned int m = 0;
 
     double e;
 
     for (unsigned int i = 0; i < n; ++i)
     {
-        e = fabs((maxpos[i] - (a + xarr[i] * b)) / s);
+        e = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
         if (e < threshold)
         {
             maxpos[m] = maxpos[i];
@@ -220,12 +224,12 @@ void calculateTotal(unsigned int n,
             m++;
         }
     }
-    linreg(xarr, maxpos, m, &a, &b, &s);
+    linreg(xarr, maxpos, m, &par_a, &par_b, &par_s);
 
     (void)fprintf(stderr,
                   "after %.1fσ removal: %.2f s/d, %d samples\n",
                   threshold,
-                  -b * SECS_DAY / ArrayLength,
+                  -par_b * SECS_DAY / ArrayLength,
                   m);
 }
 
@@ -233,7 +237,10 @@ double getBeatError(const struct myarr* totaltick, double rate, int verbose)
 {
     unsigned int ArrayLength = totaltick->ArrayLength;
     int cross[ArrayLength / 2];
-    crosscorint(ArrayLength / 2, totaltick->arr, totaltick->arr + ArrayLength / 2, cross);
+    crosscorint(ArrayLength / 2,
+                totaltick->arr,
+                totaltick->arr + ArrayLength / 2,
+                cross);
     if (verbose)
     {
         syncwrite(cross, ArrayLength / 2, "beaterror");
@@ -303,9 +310,8 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                 }
                 int value = arr[1];
 
-                reference
-                    ->arr[((int)j + (int)reference->ArrayLength) % (int)reference->ArrayLength] =
-                    value;
+                reference->arr[((int)j + (int)reference->ArrayLength) %
+                               (int)reference->ArrayLength] = value;
             }
         }
         (void)fclose(fpDefPeak);
@@ -317,15 +323,18 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 
         for (int i = 0; i < 3; i++)
         {
-            reference->arr[reference->ArrayLength / 4 - peakpos[i]] = peakheight[i];
-            reference->arr[3 * reference->ArrayLength / 4 - peakpos[i]] = peakheight[i];
+            reference->arr[reference->ArrayLength / 4 - peakpos[i]] =
+                peakheight[i];
+            reference->arr[3 * reference->ArrayLength / 4 - peakpos[i]] =
+                peakheight[i];
         }
     }
 }
 
 int shiftHalf(unsigned int value, unsigned int ArrayLength)
 {
-    return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) - (int)(ArrayLength / 2);
+    return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) -
+           (int)(ArrayLength / 2);
 }
 
 // mods an int with a signed int, but makes sure the result is positive

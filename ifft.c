@@ -88,18 +88,18 @@ int main(void)
 
     unsigned int arrayLength = index;
 
-    fftw_complex* in = fftw_alloc_complex(arrayLength);
-    if (!in)
+    fftw_complex* input = fftw_alloc_complex(arrayLength);
+    if (!input)
     {
-        (void)fprintf(stderr, "fftw_alloc_complex(in) failed\n");
+        (void)fprintf(stderr, "fftw_alloc_complex(input) failed\n");
         free(tmpy);
         free(tmpx);
         return -2;
     }
     for (index = 0; index < arrayLength; index++)
     {
-        in[index][0] = tmpx[index];
-        in[index][1] = tmpy[index];
+        input[index][0] = tmpx[index];
+        input[index][1] = tmpy[index];
     }
     free(tmpy);
     free(tmpx);
@@ -108,16 +108,16 @@ int main(void)
     if (!out)
     {
         (void)fprintf(stderr, "fftw_alloc_complex(out) failed\n");
-        fftw_free(in);
+        fftw_free(input);
         return -2;
     }
 
     fftw_plan plan = fftw_plan_dft_1d(
-        (int)arrayLength, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+        (int)arrayLength, input, out, FFTW_BACKWARD, FFTW_ESTIMATE);
     if (!plan)
     {
         (void)fprintf(stderr, "fftw_plan_dft_1d failed\n");
-        fftw_free(in);
+        fftw_free(input);
         fftw_free(out);
         return -2;
     }
@@ -130,7 +130,7 @@ int main(void)
     }
 
     fftw_destroy_plan(plan);
-    fftw_free(in);
+    fftw_free(input);
     fftw_free(out);
     fftw_cleanup();
     return 0;

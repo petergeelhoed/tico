@@ -36,7 +36,7 @@ double* safe_realloc(double* ptr, unsigned int new_size)
 
 Signal read_input()
 {
-    Signal s = {malloc(INIT_N * sizeof(double)), 0};
+    Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
     unsigned int capacity = INIT_N;
     char line[BUFF_SIZE];
     char* ptr;
@@ -48,29 +48,29 @@ Signal read_input()
         while (*ptr)
         {
             errno = 0;
-            double d = strtod(ptr, &endptr);
+            double readDouble = strtod(ptr, &endptr);
             if (ptr == endptr)
             {
                 ptr++;
                 continue;
             }
 
-            if (s.count >= capacity)
+            if (signalStruct.count >= capacity)
             {
                 capacity = (capacity * 3) / 2;
-                s.data = safe_realloc(s.data, capacity);
+                signalStruct.data = safe_realloc(signalStruct.data, capacity);
             }
 
-            s.data[s.count++] = d;
+            signalStruct.data[signalStruct.count++] = readDouble;
             ptr = endptr;
         }
     }
-    return s;
+    return signalStruct;
 }
 
 void run_fft(Signal sig, Config cfg)
 {
-    unsigned int Nz = sig.count * cfg.z;
+    unsigned int arrayLength = sig.count * cfg.z;
     double a = 0.0;
     double b = 0.0;
     double s_err = 0.0;
@@ -88,16 +88,17 @@ void run_fft(Signal sig, Config cfg)
         free(tmpx);
     }
 
-    fftw_complex* in = fftw_alloc_complex(Nz);
-    fftw_complex* out = fftw_alloc_complex(Nz);
+    fftw_complex* in = fftw_alloc_complex(arrayLength);
+    fftw_complex* out = fftw_alloc_complex(arrayLength);
 
-    for (unsigned int i = 0; i < Nz; i++)
+    for (unsigned int i = 0; i < arrayLength; i++)
     {
         in[i][0] = (i < sig.count) ? (sig.data[i] - a - b * i) : 0;
         in[i][1] = 0;
     }
 
-    fftw_plan p = fftw_plan_dft_1d(Nz, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan p =
+        fftw_plan_dft_1d(arrayLength, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(p);
 
     // Result Printing Logic
@@ -108,15 +109,19 @@ void run_fft(Signal sig, Config cfg)
             double freq = cfg.fval ? (double)sig.count / (i * cfg.fval)
                                    : (double)i / sig.count;
             double mag = 2 * cfg.z *
-                         sqrt(pow(out[i][0] / Nz, 2) + pow(out[i][1] / Nz, 2));
+                         sqrt(pow(out[i][0] / arrayLength, 2) +
+                              pow(out[i][1] / arrayLength, 2));
             printf("%g %g\n", freq, mag);
         }
     }
     else
     {
-        for (unsigned int i = 0; i < Nz; i++)
+        for (unsigned int i = 0; i < arrayLength; i++)
         {
-            printf("%d %g %g\n", i, out[i][0] / Nz, out[i][1] / Nz);
+            printf("%d %g %g\n",
+                   i,
+                   out[i][0] / arrayLength,
+                   out[i][1] / arrayLength);
         }
     }
 

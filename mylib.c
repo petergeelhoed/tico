@@ -92,27 +92,29 @@ void linreg(const double* xarr,
             double* par_b,
             double* par_s)
 {
-    double x = 0;
-    double y = 0;
-    double xx = 0;
-    double xy = 0;
-    double yy = 0;
+    double sum_x = 0;
+    double sum_y = 0;
+    double sum_xx = 0;
+    double sum_xy = 0;
+    double sum_yy = 0;
     for (unsigned int i = 0; i < ArrayLength; ++i)
     {
-        y += yarr[i];
-        xx += xarr[i] * xarr[i];
-        x += xarr[i];
-        xy += xarr[i] * yarr[i];
-        yy += yarr[i] * yarr[i];
+        sum_y += yarr[i];
+        sum_xx += xarr[i] * xarr[i];
+        sum_x += xarr[i];
+        sum_xy += xarr[i] * yarr[i];
+        sum_yy += yarr[i] * yarr[i];
     }
 
-    *par_a = (y * xx - x * xy) / (ArrayLength * xx - x * x);
-    *par_b = (ArrayLength * xy - x * y) / (ArrayLength * xx - x * x);
-    *par_s =
-        sqrt((yy - 2 * (*par_a) * y - 2 * (*par_b) * xy +
-              2 * (*par_a) * (*par_b) * x + (*par_a) * (*par_a) * ArrayLength +
-              (*par_b) * (*par_b) * xx) /
-             ArrayLength);
+    *par_a = (sum_y * sum_xx - sum_x * sum_xy) /
+             (ArrayLength * sum_xx - sum_x * sum_x);
+    *par_b = (ArrayLength * sum_xy - sum_x * sum_y) /
+             (ArrayLength * sum_xx - sum_x * sum_x);
+    *par_s = sqrt((sum_yy - 2 * (*par_a) * sum_y - 2 * (*par_b) * sum_xy +
+                   2 * (*par_a) * (*par_b) * sum_x +
+                   (*par_a) * (*par_a) * ArrayLength +
+                   (*par_b) * (*par_b) * sum_xx) /
+                  ArrayLength);
 }
 
 void writefile(FILE* filePtr, int* array, unsigned int ArrayLength)
@@ -152,7 +154,7 @@ unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
     return postick;
 }
 
-void calculateTotalFromFile(unsigned int n,
+void calculateTotalFromFile(unsigned int count,
                             FILE* rawfile,
                             unsigned int ArrayLength,
                             double threshold)
@@ -163,27 +165,26 @@ void calculateTotalFromFile(unsigned int n,
         (void)fprintf(stderr, "fseek fauled with %d\n", errno);
         return;
     }
-    double* all = calloc(n, sizeof(double));
-    unsigned int i = 0;
+    double* all = calloc(count, sizeof(double));
+    unsigned int index = 0;
     if (all)
     {
         size_t bufsize = BUF_SIZE;
         char* buf = malloc(bufsize * sizeof(char));
-        while (getline(&buf, &bufsize, rawfile) > 0 && i < n)
+        while (getline(&buf, &bufsize, rawfile) > 0 && index < count)
         {
             if (buf[0] != '#')
             {
-                all[i] = getDouble(buf);
-                i++;
+                all[index++] = getDouble(buf);
             }
         }
         free(buf);
-        calculateTotal(n, all, ArrayLength, threshold);
+        calculateTotal(count, all, ArrayLength, threshold);
         free(all);
     }
 }
 
-void calculateTotal(unsigned int n,
+void calculateTotal(unsigned int count,
                     double* maxpos,
                     unsigned int ArrayLength,
                     double threshold)
@@ -191,14 +192,14 @@ void calculateTotal(unsigned int n,
     double par_b = 0.0;
     double par_a = 0.0;
     double par_s = 0.0;
-    double xarr[n];
+    double xarr[count];
 
-    for (unsigned int i = 0; i < n; ++i)
+    for (unsigned int i = 0; i < count; ++i)
     {
         xarr[i] = (double)i;
     }
 
-    linreg(xarr, maxpos, n, &par_a, &par_b, &par_s);
+    linreg(xarr, maxpos, count, &par_a, &par_b, &par_s);
 
     /*
        par_a /= ArrayLength*ArrayLength;
@@ -209,12 +210,12 @@ void calculateTotal(unsigned int n,
     (void)fprintf(stderr,
                   "raw rate: %f s/d, %d samples\n",
                   -par_b * SECS_DAY / ArrayLength,
-                  n);
+                  count);
     unsigned int m = 0;
 
     double e;
 
-    for (unsigned int i = 0; i < n; ++i)
+    for (unsigned int i = 0; i < count; ++i)
     {
         e = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
         if (e < threshold)

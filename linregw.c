@@ -28,23 +28,24 @@ int main(void)
     // Read one line at a time, up to 3 doubles per line
     for (;;)
     {
-        int k = getDoublesFromStdin(3, arr);
-        if (k < 0)
+        int nr_doubles = getDoublesFromStdin(3, arr);
+        if (nr_doubles < 0)
         {
             // EOF or read error -> stop
             break;
         }
-        if (k == 0)
+        if (nr_doubles == 0)
         {
             // Blank line or no numbers -> skip to next line
             continue;
         }
-        if (k < 3)
+        if (nr_doubles < 3)
         {
             // Line did not have 3 doubles -> depending on your policy:
             // either skip, or fill defaults, or break. Here we skip.
-            (void)fprintf(
-                stderr, "Warning: line had only %d double(s); skipping\n", k);
+            (void)fprintf(stderr,
+                          "Warning: line had only %d double(s); skipping\n",
+                          nr_doubles);
             continue;
         }
 

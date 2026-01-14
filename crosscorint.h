@@ -1,1 +1,1 @@
-void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross);
+void crosscorint(unsigned int ArrayLength, const int* array, const int* ref, int* cross);

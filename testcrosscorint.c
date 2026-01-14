@@ -9,18 +9,18 @@
 
 int main()
 {
-    unsigned int NN = 20;
-    int peak[NN];
-    int peak2[NN];
-    int cross[NN];
-    for (unsigned int j = 0; j < NN; j++)
+    unsigned int ArrayLength = 20;
+    int peak[ArrayLength];
+    int peak2[ArrayLength];
+    int cross[ArrayLength];
+    for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        peak2[(j + 1) % NN] = ((j == 4) + (j == 7));
+        peak2[(j + 1) % ArrayLength] = ((j == 4) + (j == 7));
         peak[j] = ((j == 4) + (j == 7));
     }
 
-    crosscorint(NN, peak, peak2, cross);
-    for (unsigned int i = 0; i < NN; i++)
+    crosscorint(ArrayLength, peak, peak2, cross);
+    for (unsigned int i = 0; i < ArrayLength; i++)
     {
         printf("%d %d %d %d\n", i, peak[i], peak2[i], cross[i]);
     }

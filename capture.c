@@ -58,7 +58,7 @@ int init_audio_source(CapConfig* cfg,
     return (*handle == NULL && cfg->fpInput == NULL) ? ERROR_NO_SOURCE : 0;
 }
 
-AppResources allocate_resources(unsigned int NN,
+AppResources allocate_resources(unsigned int ArrayLength,
                                 unsigned int ticktockBuffer,
                                 unsigned int teeth,
                                 int evalue)
@@ -67,15 +67,15 @@ AppResources allocate_resources(unsigned int NN,
     res.subpos = makemyarrd(ticktockBuffer);
     res.maxpos = makemyarr(ticktockBuffer);
     res.maxvals = makemyarrd(ticktockBuffer);
-    res.derivative = makemyarr(NN);
-    res.tmpder = makemyarr(NN);
-    res.reference = makemyarr(NN);
-    res.filterFFT = makeFilter(evalue, NN);
-    res.audioBuffer = calloc(NN, 2); // 16-bit depth
+    res.derivative = makemyarr(ArrayLength);
+    res.tmpder = makemyarr(ArrayLength);
+    res.reference = makemyarr(ArrayLength);
+    res.filterFFT = makeFilter(evalue, ArrayLength);
+    res.audioBuffer = calloc(ArrayLength, 2); // 16-bit depth
     res.teethArray = malloc(sizeof(struct myarr*) * teeth);
     for (unsigned int t = 0; t < teeth; t++)
     {
-        res.teethArray[t] = makemyarr(NN);
+        res.teethArray[t] = makemyarr(ArrayLength);
     }
     return res;
 }
@@ -153,14 +153,14 @@ int main(int argc, char* argv[])
     {
         return ERROR_NO_SOURCE;
     }
-    unsigned int NN = (actualRate * 2 * SECS_HOUR / cfg.bph);
-    NN += (NN % 2);
-    unsigned int mod = NN / cfg.zoom;
+    unsigned int ArrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
+    ArrayLength += (ArrayLength % 2);
+    unsigned int mod = ArrayLength / cfg.zoom;
     const unsigned int maxtime =
-        (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / NN;
+        (unsigned int)cfg.rate * (cfg.time ? cfg.time : DEFAULT_TIME) / ArrayLength;
 
     AppResources res =
-        allocate_resources(NN, ARR_BUFF * 2, cfg.teeth, cfg.evalue);
+        allocate_resources(ArrayLength, ARR_BUFF * 2, cfg.teeth, cfg.evalue);
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
 
     sigset_t block;
@@ -199,10 +199,10 @@ int main(int argc, char* argv[])
             toothshift = getshift(*res.teethArray[0],
                                   *res.teethArray[totalTickTock % cfg.teeth]);
         }
-        for (unsigned int j = 0; j < NN; ++j)
+        for (unsigned int j = 0; j < ArrayLength; ++j)
         {
             res.tmpder->arr[j] =
-                res.derivative->arr[modSigned(totalshift + j + toothshift, NN)];
+                res.derivative->arr[modSigned(totalshift + j + toothshift, ArrayLength)];
         }
         int maxposition =
             shiftHalf(fftfit(*res.tmpder,
@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
                              res.filterFFT,
                              totalTickTock == cfg.verbose,
                              res.subpos->arrd + ticktock),
-                      NN);
+                      ArrayLength);
 
         res.maxpos->arr[ticktock] = totalshift + maxposition;
         if (totalTickTock > AUTOCOR_LIMIT &&
@@ -241,10 +241,10 @@ int main(int argc, char* argv[])
                   res.subpos,
                   cfg.fitN,
                   cfg.SDthreshold);
-        printheader(b * SECS_DAY / NN,
+        printheader(b * SECS_DAY / ArrayLength,
                     cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
-                    (double)totalTickTock * NN / cfg.rate);
+                    (double)totalTickTock * ArrayLength / cfg.rate);
         printspaces(res.maxpos->arr[ticktock],
                     res.maxvals->arrd[ticktock] * HEXDEC,
                     mod,
@@ -265,7 +265,7 @@ int main(int argc, char* argv[])
     if (cfg.fpposition)
     {
         calculateTotalFromFile(
-            totalTickTock, cfg.fpposition, NN, cfg.SDthreshold);
+            totalTickTock, cfg.fpposition, ArrayLength, cfg.SDthreshold);
         (void)fclose(cfg.fpposition);
     }
 

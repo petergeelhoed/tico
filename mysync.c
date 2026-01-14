@@ -27,7 +27,7 @@ void thread_unlock(void) { pthread_mutex_unlock(&count_mutex); }
 
 void thread_lock(void) { pthread_mutex_lock(&count_mutex); }
 
-void writearray(int* arr, unsigned int NN, const char* file)
+void writearray(int* arr, unsigned int ArrayLength, const char* file)
 {
     FILE* fp = fopen(file, "w");
     if (fp == NULL)
@@ -35,7 +35,7 @@ void writearray(int* arr, unsigned int NN, const char* file)
         perror("Error opening file");
         return;
     }
-    for (unsigned int j = 0; j < NN; j++)
+    for (unsigned int j = 0; j < ArrayLength; j++)
     {
         (void)fprintf(fp, "%d %d\n", j, arr[j]);
     }
@@ -75,7 +75,7 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
 
     if (input->arr != NULL)
     {
-        info->array->arr = malloc(input->NN * sizeof(int));
+        info->array->arr = malloc(input->ArrayLength * sizeof(int));
         if (info->array->arr == NULL)
         {
             free(info);
@@ -84,11 +84,11 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
             return 0;
         }
 
-        memcpy(info->array->arr, input->arr, input->NN * sizeof(int));
+        memcpy(info->array->arr, input->arr, input->ArrayLength * sizeof(int));
     }
     if (input->arrd != NULL)
     {
-        info->array->arrd = malloc(input->NN * sizeof(double));
+        info->array->arrd = malloc(input->ArrayLength * sizeof(double));
         if (info->array->arrd == NULL)
         {
             free(info);
@@ -97,11 +97,11 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
             return 0;
         }
 
-        memcpy(info->array->arrd, input->arrd, input->NN * sizeof(double));
+        memcpy(info->array->arrd, input->arrd, input->ArrayLength * sizeof(double));
     }
 
     info->file = file;
-    info->array->NN = input->NN;
+    info->array->ArrayLength = input->ArrayLength;
 
     pthread_attr_t attr; // NOLINT(misc-include-cleaner)
     pthread_attr_init(&attr);
@@ -131,7 +131,7 @@ void* threadAppendMyarr(void* inStruct)
     printTOD(mine->file);
     if (mine->array->arr != NULL)
     {
-        for (unsigned int j = 0; j < mine->array->NN; j++)
+        for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
             (void)fprintf(mine->file, "%d\n", mine->array->arr[j]);
         }
@@ -139,7 +139,7 @@ void* threadAppendMyarr(void* inStruct)
 
     if (mine->array->arrd != NULL)
     {
-        for (unsigned int j = 0; j < mine->array->NN; j++)
+        for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
             (void)fprintf(mine->file, "%f\n", mine->array->arrd[j]);
         }
@@ -164,22 +164,22 @@ void* threadAppend(void* inStruct)
     {
         int* array;
         FILE* file;
-        unsigned int NN;
+        unsigned int ArrayLength;
     }* mine = inStruct;
 
-    int* copyarr = malloc(mine->NN * sizeof(int));
+    int* copyarr = malloc(mine->ArrayLength * sizeof(int));
     if (copyarr == NULL)
     {
         perror("Error allocating memory");
         pthread_mutex_unlock(&count_mutex);
         pthread_exit(NULL);
     }
-    memcpy(copyarr, mine->array, mine->NN * sizeof(int));
+    memcpy(copyarr, mine->array, mine->ArrayLength * sizeof(int));
     free(mine->array);
     mine->array = copyarr;
 
     printTOD(mine->file);
-    for (unsigned int j = 0; j < mine->NN; j++)
+    for (unsigned int j = 0; j < mine->ArrayLength; j++)
     {
         (void)fprintf(mine->file, "%d\n", mine->array[j]);
     }
@@ -191,13 +191,13 @@ void* threadAppend(void* inStruct)
     pthread_exit(NULL);
 }
 
-void syncwrite(int* input, unsigned int NN, char* file)
+void syncwrite(int* input, unsigned int ArrayLength, char* file)
 {
     struct mystruct
     {
         int* array;
         char file[FILE_NAME_LENGTH];
-        unsigned int NN;
+        unsigned int ArrayLength;
     };
 
     struct mystruct* info = calloc(1, sizeof *info);
@@ -207,18 +207,18 @@ void syncwrite(int* input, unsigned int NN, char* file)
         return;
     }
 
-    int* copyarr = calloc(NN, sizeof(int));
+    int* copyarr = calloc(ArrayLength, sizeof(int));
     if (copyarr == NULL)
     {
         perror("Error allocating memory");
         free(info);
         return;
     }
-    memcpy(copyarr, input, NN * sizeof(int));
+    memcpy(copyarr, input, ArrayLength * sizeof(int));
     info->array = copyarr;
     strncpy(info->file, file, FILE_NAME_LENGTH - 1);
     info->file[FILE_NAME_LENGTH - 1] = '\0';
-    info->NN = NN;
+    info->ArrayLength = ArrayLength;
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -240,10 +240,10 @@ void* threadWrite(void* inStruct)
     {
         int* array;
         char file[FILE_NAME_LENGTH];
-        unsigned int NN;
+        unsigned int ArrayLength;
     }* mine = inStruct;
 
-    writearray(mine->array, mine->NN, mine->file);
+    writearray(mine->array, mine->ArrayLength, mine->file);
 
     free(mine->array);
     free(mine);

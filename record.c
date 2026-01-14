@@ -69,13 +69,13 @@ int main(int argc, char* argv[])
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device, &rate);
-    unsigned int NN = rate * SECS_HOUR * 2 / bph;
+    unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
     unsigned int length = time * bph / 2 / SECS_HOUR;
 
-    fftw_complex* filterFFT = makeFilter(evalue, NN);
+    fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
     char* buffer =
-        malloc(NN * (unsigned int)snd_pcm_format_width(format) / BITS_IN_BYTE);
-    struct myarr rawread = {calloc(NN, sizeof(int)), 0, NN};
+        malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) / BITS_IN_BYTE);
+    struct myarr rawread = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
 
     FILE* fp = fopen("recorded", "w");
     readBufferRaw(capture_handle, buffer, &rawread);

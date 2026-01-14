@@ -111,8 +111,8 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, in->NN);
-    if (err != (int)in->NN)
+    int err = snd_pcm_readi(capture_handle, buffer, in->ArrayLength);
+    if (err != (int)in->ArrayLength)
     {
         (void)fprintf(stderr,
                       "read from audio interface failed %d (%s)\n",
@@ -120,7 +120,7 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
                       snd_strerror(err));
         exit(READ_FAILED);
     }
-    for (unsigned int j = 0; j < 2 * in->NN; j += 2)
+    for (unsigned int j = 0; j < 2 * in->ArrayLength; j += 2)
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
@@ -129,13 +129,13 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
 }
 
 int readBuffer(snd_pcm_t* capture_handle,
-               unsigned int NN,
+               unsigned int ArrayLength,
                char* buffer,
                int* derivative)
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)NN);
+    int err = snd_pcm_readi(capture_handle, buffer, (long unsigned int)ArrayLength);
     if (err < 0)
     {
         (void)fprintf(stderr,
@@ -144,11 +144,11 @@ int readBuffer(snd_pcm_t* capture_handle,
                       snd_strerror(err));
         return err;
     }
-    if (err != (int)NN)
+    if (err != (int)ArrayLength)
     {
         (void)fprintf(stderr, "reread from audio interface  %d \n", err);
         err = snd_pcm_readi(
-            capture_handle, buffer + err, (long unsigned int)NN - err);
+            capture_handle, buffer + err, (long unsigned int)ArrayLength - err);
         if (err < 0)
         {
             (void)fprintf(stderr,
@@ -158,28 +158,28 @@ int readBuffer(snd_pcm_t* capture_handle,
         }
         else
         {
-            err = (int)NN;
+            err = (int)ArrayLength;
         }
     }
-    for (unsigned int j = 0; j < NN * 2; j += 2)
+    for (unsigned int j = 0; j < ArrayLength * 2; j += 2)
     {
         msb = (signed char)buffer[j + 1];
         lsb = *(buffer + j);
         derivative[j / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
-    //       remove50hz(NN,in,48000);
+    //       remove50hz(ArrayLength,in,48000);
 
-    for (unsigned int j = 0; j < NN - 1; j++)
+    for (unsigned int j = 0; j < ArrayLength - 1; j++)
     {
         derivative[j] = abs(derivative[j] - derivative[j + 1]);
     }
-    derivative[NN - 1] = 0;
+    derivative[ArrayLength - 1] = 0;
     return err;
 }
 
 int readBufferOrFile(int* derivative,
                      snd_pcm_t* capture_handle,
-                     unsigned int NN,
+                     unsigned int ArrayLength,
                      char* buffer,
                      FILE* fpInput)
 {
@@ -191,13 +191,13 @@ int readBufferOrFile(int* derivative,
         size_t len = 0;
         unsigned int j = 0;
 
-        // Read entire lines until we have NN numbers
-        while (j < NN && getline(&line, &len, fpInput) != -1)
+        // Read entire lines until we have ArrayLength numbers
+        while (j < ArrayLength && getline(&line, &len, fpInput) != -1)
         {
             char* ptr = line;
             char* endptr;
 
-            while (j < NN)
+            while (j < ArrayLength)
             {
                 errno = 0;
                 // Use strtol for %d equivalent; use strtod for floating point
@@ -222,22 +222,22 @@ int readBufferOrFile(int* derivative,
 
         free(line); // getline allocates memory that must be freed
 
-        if (j < NN)
+        if (j < ArrayLength)
         {
             return INPUT_FILE_ERROR;
         }
-        ret = (int)NN;
+        ret = (int)ArrayLength;
 
         // Perform derivative calculation
-        for (unsigned int k = 0; k < NN - 1; k++)
+        for (unsigned int k = 0; k < ArrayLength - 1; k++)
         {
             derivative[k] = abs(derivative[k] - derivative[k + 1]);
         }
-        derivative[NN - 1] = 0;
+        derivative[ArrayLength - 1] = 0;
     }
     else
     {
-        ret = readBuffer(capture_handle, NN, buffer, derivative);
+        ret = readBuffer(capture_handle, ArrayLength, buffer, derivative);
     }
     return ret;
 }
@@ -256,7 +256,7 @@ int getData(FILE* rawfile,
     while (err == REINIT_ERROR)
     {
         err = readBufferOrFile(
-            derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
+            derivative.arr, capture_handle, derivative.ArrayLength, buffer, fpInput);
         if (err == REINIT_ERROR)
         {
             (void)fprintf(stderr, "Reinitializing capture_handle");
@@ -267,7 +267,7 @@ int getData(FILE* rawfile,
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, &rate);
             err = readBufferOrFile(
-                derivative.arr, capture_handle, derivative.NN, buffer, fpInput);
+                derivative.arr, capture_handle, derivative.ArrayLength, buffer, fpInput);
         }
         if (err == INPUT_FILE_ERROR)
         {

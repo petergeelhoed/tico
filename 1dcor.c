@@ -10,11 +10,11 @@
 
 int main()
 {
-    unsigned int NN = DEFAULT_NN;
+    unsigned int ArrayLength = DEFAULT_NN;
     double d;
     double d1;
-    double* peak = calloc(NN, sizeof(double));
-    double* peak2 = calloc(NN, sizeof(double));
+    double* peak = calloc(ArrayLength, sizeof(double));
+    double* peak2 = calloc(ArrayLength, sizeof(double));
 
     unsigned int n = 0;
     char line[LINESIZE];
@@ -42,11 +42,11 @@ int main()
         peak[n] = d;
         peak2[n] = d1;
         n++;
-        if (n == NN)
+        if (n == ArrayLength)
         {
-            NN = NN * 3 / 2;
-            double* p = realloc(peak, NN * sizeof(double));
-            double* q = realloc(peak2, NN * sizeof(double));
+            ArrayLength = ArrayLength * 3 / 2;
+            double* p = realloc(peak, ArrayLength * sizeof(double));
+            double* q = realloc(peak2, ArrayLength * sizeof(double));
 
             if (p == NULL || q == NULL)
             {

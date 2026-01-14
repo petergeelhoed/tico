@@ -4,11 +4,11 @@
 #include <stdlib.h>
 
 // Perform cross-correlation using FFT
-void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
+void crosscorint(unsigned int ArrayLength, const int* array, const int* ref, int* cross)
 {
     // Allocate memory for FFTW complex arrays
-    fftw_complex* tmparr = fftw_alloc_complex(NN);
-    fftw_complex* tmpref = fftw_alloc_complex(NN);
+    fftw_complex* tmparr = fftw_alloc_complex(ArrayLength);
+    fftw_complex* tmpref = fftw_alloc_complex(ArrayLength);
     if (!tmparr || !tmpref)
     {
         (void)fprintf(stderr, "Memory allocation failed in crosscorint\n");
@@ -25,7 +25,7 @@ void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
     }
 
     // Initialize FFTW complex arrays with input data
-    for (unsigned int j = 0; j < NN; j++)
+    for (unsigned int j = 0; j < ArrayLength; j++)
     {
         tmparr[j][0] = array[j];
         tmparr[j][1] = 0.0;
@@ -34,7 +34,7 @@ void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
     }
 
     // Perform cross-correlation
-    fftw_complex* coor = crosscor(NN, tmparr, tmpref);
+    fftw_complex* coor = crosscor(ArrayLength, tmparr, tmpref);
     if (!coor)
     {
         (void)fprintf(stderr, "Cross-correlation failed in crosscorint\n");
@@ -45,9 +45,9 @@ void crosscorint(unsigned int NN, const int* array, const int* ref, int* cross)
     }
 
     // Store results in the output array
-    for (unsigned int j = 0; j < NN; j++)
+    for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        cross[j] = (int)(coor[j][0] * NN);
+        cross[j] = (int)(coor[j][0] * ArrayLength);
     }
 
     // Free allocated memory

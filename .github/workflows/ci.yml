@@ -7,17 +7,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Set to "false" to skip clang-tidy in CI
+      CLANG_TIDY: "true"
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfftw3-dev libasound2-dev build-essential cmake
+          sudo apt-get install -y libfftw3-dev libasound2-dev build-essential cmake clang-tidy
 
       - name: Configure (CMake)
-        run: cmake -S . -B build -DENABLE_WERROR=OFF
+        run: cmake -S . -B build -DENABLE_WERROR=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
+      - name: Run clang-tidy
+        # Run after configure so compile_commands.json exists.
+        run: |
+          if [ "${{ env.CLANG_TIDY }}" = "false" ]; then
+            echo "clang-tidy disabled"
+            exit 0
+          fi
+          echo "Finding C translation units..."
+          FILES=$(git ls-files 'src/*.c' || true)
+          if [ -z "$FILES" ]; then
+            echo "No C files found to lint"
+            exit 0
+          fi
+          echo "Running clang-tidy (warnings treated as errors)..."
+          # Run clang-tidy in parallel across files. This step fails the job if any run emits errors.
+          echo "$FILES" | xargs -r -n1 -P$(nproc) -I{} clang-tidy --warnings-as-errors="*" -p build {}
       - name: Build
         run: cmake --build build -- -j$(nproc)
 

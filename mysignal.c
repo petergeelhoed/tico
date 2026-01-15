@@ -18,9 +18,11 @@ void sigint_handler(int signal)
     }
     else if (signal == SIGWINCH)
     {
-        struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w); // NOLINT(misc-include-cleaner)
-        columns = (unsigned int)w.ws_col;
+        struct winsize windowSize;
+        ioctl(STDOUT_FILENO,
+              TIOCGWINSZ,
+              &windowSize); // NOLINT(misc-include-cleaner)
+        columns = (unsigned int)windowSize.ws_col;
         (void)fprintf(stderr, "new width %d\n", columns);
     }
     else

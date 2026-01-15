@@ -106,12 +106,14 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     return capture_handle;
 }
 
-void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
+void readBufferRaw(snd_pcm_t* capture_handle,
+                   char* buffer,
+                   struct myarr* data_in)
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, in->ArrayLength);
-    if (err != (int)in->ArrayLength)
+    int err = snd_pcm_readi(capture_handle, buffer, data_in->ArrayLength);
+    if (err != (int)data_in->ArrayLength)
     {
         (void)fprintf(stderr,
                       "read from audio interface failed %d (%s)\n",
@@ -119,11 +121,11 @@ void readBufferRaw(snd_pcm_t* capture_handle, char* buffer, struct myarr* in)
                       snd_strerror(err));
         exit(READ_FAILED);
     }
-    for (unsigned int index = 0; index < 2 * in->ArrayLength; index += 2)
+    for (unsigned int index = 0; index < 2 * data_in->ArrayLength; index += 2)
     {
         msb = (signed char)buffer[index + 1];
         lsb = *(buffer + index);
-        in->arr[index / 2] = (msb << BITS_IN_BYTE) | lsb;
+        data_in->arr[index / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
 }
 
@@ -167,7 +169,7 @@ int readBuffer(snd_pcm_t* capture_handle,
         lsb = *(buffer + index);
         derivative[index / 2] = (msb << BITS_IN_BYTE) | lsb;
     }
-    //       remove50hz(ArrayLength,in,48000);
+    //       remove50hz(ArrayLength,data_in,48000);
 
     for (unsigned int index = 0; index < ArrayLength - 1; index++)
     {

@@ -27,12 +27,12 @@ void printspaces(int maxpos,
 void writefile(FILE* filePtr, int* array, unsigned int ArrayLength);
 void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength);
 
-void calculateTotalFromFile(unsigned int n,
+void calculateTotalFromFile(unsigned int count,
                             FILE* rawfile,
                             unsigned int ArrayLength,
                             double threshold);
 
-void calculateTotal(unsigned int n,
+void calculateTotal(unsigned int count,
                     double* maxpos,
                     unsigned int ArrayLength,
                     double threshold);
@@ -41,7 +41,10 @@ double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
 int checkUIntArg(int name, unsigned int* value, char* optarg);
 
-int checkFileArg(int name, FILE** filePtr, const char* optarg, const char* mode);
+int checkFileArg(int name,
+                 FILE** filePtr,
+                 const char* optarg,
+                 const char* mode);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);

@@ -299,12 +299,12 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
         {
             for (unsigned int j = 0; j < reference->ArrayLength; j++)
             {
-                int k = getIntsFromStdin(4, arr);
-                if (k < 0)
+                int int_count = getIntsFromStdin(4, arr);
+                if (int_count < 0)
                 {
                     break;
                 }
-                if (k < 3)
+                if (int_count < 3)
                 {
                     (void)fprintf(
                         stderr,

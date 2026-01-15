@@ -3,6 +3,8 @@ project(MyProject C)
 
 # 1. Compiler Flags
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
 add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -pthread -g)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Sanitizer Options (Uncomment one to enable)
@@ -13,6 +15,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_library(ASOUND_LIB asound)
 find_library(FFTW3_LIB fftw3)
 find_library(MATH_LIB m)
+
+include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath)

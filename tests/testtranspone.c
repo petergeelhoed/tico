@@ -3,7 +3,7 @@
 
 #include "mymath.h"
 
-int main()
+int main(void)
 {
     unsigned int M = 3;
     unsigned int N = 2;

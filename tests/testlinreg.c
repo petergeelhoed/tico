@@ -8,7 +8,7 @@
 #include "mylib.h"
 #include "mysync.h"
 
-int main()
+int main(void)
 {
     unsigned int fitwindow = 14;
     double xarr[fitwindow];

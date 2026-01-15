@@ -5,7 +5,7 @@
 
 #include "mylib.h"
 
-int main()
+int main(void)
 {
     FILE* rawfile;
     checkFileArg('r', &rawfile, "raw_nan", "r");

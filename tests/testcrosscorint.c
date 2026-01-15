@@ -7,7 +7,7 @@
 #include "myfft.h"
 #include "mylib.h"
 
-int main()
+int main(void)
 {
     unsigned int ArrayLength = 20;
     int peak[ArrayLength];

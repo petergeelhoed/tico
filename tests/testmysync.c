@@ -6,11 +6,12 @@
 #include "myarr.h"
 #include "mysync.h"
 
-int main()
+int main(void)
 {
     unsigned int ArrayLength = 7;
     struct myarr reference = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
-    struct myarr refdouble = {0, calloc(ArrayLength, sizeof(double)), ArrayLength};
+    struct myarr refdouble = {
+        0, calloc(ArrayLength, sizeof(double)), ArrayLength};
     for (unsigned int i = 0; i < ArrayLength; ++i)
     {
         reference.arr[i] = i;

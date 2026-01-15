@@ -135,7 +135,6 @@ int main(int argc, char** argv)
 {
     Config cfg = {1, 0, 0, 0};
     int flag;
-    int errno;
     char* endptr;
 
     while ((flag = getopt(argc, argv, "zplf:")) != -1)

@@ -1,0 +1,30 @@
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfftw3-dev libasound2-dev build-essential cmake
+
+      - name: Configure (CMake)
+        run: cmake -S . -B build -DENABLE_WERROR=OFF
+
+      - name: Build
+        run: cmake --build build -- -j$(nproc)
+
+      - name: Run tests
+        run: |
+          if [ -d build ]; then
+            ctest --test-dir build --output-on-failure
+          else
+            echo "No build directory; nothing to test"
+          fi

@@ -19,7 +19,7 @@ find_library(MATH_LIB m)
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
-set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath)
+set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath myarr)
 set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
@@ -30,6 +30,7 @@ add_library(mysignal STATIC ${SRC}/mysignal.c)
 add_library(myfft STATIC ${SRC}/myfft.c)
 target_link_libraries(myfft PRIVATE mysync)
 add_library(mymath STATIC ${SRC}/mymath.c)
+add_library(myarr STATIC ${SRC}/myarr.c)
 
 
 foreach(LIB ${INTERNAL_LIBS})
@@ -65,10 +66,11 @@ set(INTERNAL_LIBS
     mysignal 
     myfft 
     mymath
+    myarr
 )
 
 foreach(TEST ${TEST_TARGETS})
-    add_executable(${TEST} tests/${TEST}.c ${SRC}/myarr.c)
+    add_executable(${TEST} tests/${TEST}.c)
     target_link_libraries(${TEST} 
         ${INTERNAL_LIBS} 
         ${ASOUND_LIB} 
@@ -78,7 +80,7 @@ foreach(TEST ${TEST_TARGETS})
 
 endforeach()
 foreach(BIN ${BINARIES})
-    add_executable(${BIN} src/${BIN}.c ${SRC}/myarr.c)
+    add_executable(${BIN} src/${BIN}.c)
     target_link_libraries(${BIN} 
         ${INTERNAL_LIBS} 
         ${ASOUND_LIB} 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(MyProject C)
 
 # 1. Compiler Flags
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 17)
 add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -pthread -g)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Sanitizer Options (Uncomment one to enable)
@@ -14,6 +14,9 @@ find_library(ASOUND_LIB asound)
 find_library(FFTW3_LIB fftw3)
 find_library(MATH_LIB m)
 
+set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath)
+
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
 add_library(mylib STATIC mylib.c crosscorint.c parseargs.c)
@@ -23,6 +26,12 @@ add_library(mysignal STATIC mysignal.c)
 add_library(myfft STATIC myfft.c)
 target_link_libraries(myfft PRIVATE mysync)
 add_library(mymath STATIC mymath.c)
+
+
+foreach(LIB ${INTERNAL_LIBS})
+    target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT})
+endforeach()
+
 
 # 5. Define Test Targets
 set(BINARIES
@@ -34,6 +43,7 @@ set(BINARIES
     linreg
     record
 )
+add_subdirectory(tests)
 
 set(TEST_TARGETS 
     testfft
@@ -53,9 +63,19 @@ set(INTERNAL_LIBS
     mymath
 )
 
-foreach(TEST ${TEST_TARGETS} ${BINARIES})
-    add_executable(${TEST} ${TEST}.c myarr.c)
+foreach(TEST ${TEST_TARGETS})
+    add_executable(${TEST} tests/${TEST}.c myarr.c)
     target_link_libraries(${TEST} 
+        ${INTERNAL_LIBS} 
+        ${ASOUND_LIB} 
+        ${FFTW3_LIB} 
+        ${MATH_LIB}
+    )
+
+endforeach()
+foreach(BIN ${BINARIES})
+    add_executable(${BIN} ${BIN}.c myarr.c)
+    target_link_libraries(${BIN} 
         ${INTERNAL_LIBS} 
         ${ASOUND_LIB} 
         ${FFTW3_LIB} 

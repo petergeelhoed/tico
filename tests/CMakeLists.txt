@@ -1,11 +1,17 @@
 
 # tests/CMakeLists.txt
+set( TESTS
+        testcrosscorint
+        testinvert 
+        )
+foreach(TST ${TESTS})
 
 add_test(
-  NAME testinvert
+  NAME ${TST}
   COMMAND /bin/sh -c
           "set -e; \
-           \"$<TARGET_FILE:testinvert>\" > \"${CMAKE_CURRENT_BINARY_DIR}/actual_testinvert.txt\"; \
-           \"${CMAKE_COMMAND}\" -E compare_files \"${CMAKE_CURRENT_BINARY_DIR}/actual_testinvert.txt\" \"${CMAKE_CURRENT_SOURCE_DIR}/expected_testinvert.txt\""
+           \"$<TARGET_FILE:${TST}>\" > \"${CMAKE_CURRENT_BINARY_DIR}/actual_${TST}.txt\"; \
+           \"${CMAKE_COMMAND}\" -E compare_files \"${CMAKE_CURRENT_BINARY_DIR}/actual_${TST}.txt\" \"${CMAKE_CURRENT_SOURCE_DIR}/expected_${TST}.txt\""
 )
 
+endforeach()

@@ -382,16 +382,16 @@ void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
 
 void normalise(unsigned int ArrayLength, fftw_complex* in_data)
 {
-    double ix = 0.0;
-    double ixx = 0.0;
+    double Sum_x = 0.0;
+    double Sum_xx = 0.0;
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
         in_data[j][0] = in_data[j][0];
-        ix += in_data[j][0];
-        ixx += in_data[j][0] * in_data[j][0];
+        Sum_x += in_data[j][0];
+        Sum_xx += in_data[j][0] * in_data[j][0];
     }
-    double mean = ix / ArrayLength;
-    double stdev = sqrt((ixx / ArrayLength) - (mean * mean));
+    double mean = Sum_x / ArrayLength;
+    double stdev = sqrt((Sum_xx / ArrayLength) - (mean * mean));
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
         in_data[j][0] = (in_data[j][0] - mean) / stdev;

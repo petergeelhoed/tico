@@ -215,27 +215,27 @@ void calculateTotal(unsigned int count,
                   "raw rate: %f s/d, %d samples\n",
                   -par_b * SECS_DAY / ArrayLength,
                   count);
-    unsigned int m = 0;
+    unsigned int maxIndex = 0;
 
-    double e;
+    double deviation;
 
     for (unsigned int i = 0; i < count; ++i)
     {
-        e = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
-        if (e < threshold)
+        deviation = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
+        if (deviation < threshold)
         {
-            maxpos[m] = maxpos[i];
-            xarr[m] = xarr[i];
-            m++;
+            maxpos[maxIndex] = maxpos[i];
+            xarr[maxIndex] = xarr[i];
+            maxIndex++;
         }
     }
-    linreg(xarr, maxpos, m, &par_a, &par_b, &par_s);
+    linreg(xarr, maxpos, maxIndex, &par_a, &par_b, &par_s);
 
     (void)fprintf(stderr,
                   "after %.1fσ removal: %.2f s/d, %d samples\n",
                   threshold,
                   -par_b * SECS_DAY / ArrayLength,
-                  m);
+                  maxIndex);
     free(xarr);
 }
 

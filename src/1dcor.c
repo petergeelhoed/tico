@@ -7,7 +7,7 @@
 #include "myfft.h"
 #include "mylib.h"
 
-int main()
+int main(void)
 {
     unsigned int ArrayLength = DEFAULT_NN;
     double readValue0;

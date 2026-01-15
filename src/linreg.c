@@ -12,7 +12,6 @@ int main(void)
     double Sum_wxx = 0.0;
     double Sum_wxy = 0.0;
     double triplet[3];
-    size_t count = 0;
 
     for (;;)
     {
@@ -34,7 +33,6 @@ int main(void)
         Sum_wy += weight * y_arr;
         Sum_wxx += weight * x_arr * x_arr;
         Sum_wxy += weight * x_arr * y_arr;
-        count++;
     }
 
     // Sum_olve weighted simple linear regression y_arr = par_a + par_b x_arr

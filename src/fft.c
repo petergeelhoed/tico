@@ -34,7 +34,7 @@ double* safe_realloc(double* ptr, unsigned int new_size)
     return next;
 }
 
-Signal read_input()
+Signal read_input(void)
 {
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
     unsigned int capacity = INIT_N;

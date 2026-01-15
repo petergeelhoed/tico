@@ -33,7 +33,7 @@ add_library(mymath STATIC mymath.c)
 
 
 foreach(LIB ${INTERNAL_LIBS})
-    target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT})
+    target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT}/inc)
 endforeach()
 
 

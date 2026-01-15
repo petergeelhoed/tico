@@ -20,16 +20,16 @@ include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath)
-
+set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
-add_library(mylib STATIC mylib.c crosscorint.c parseargs.c)
-add_library(mysound STATIC mysound.c)
-add_library(mysync STATIC mysync.c)
-add_library(mysignal STATIC mysignal.c)
-add_library(myfft STATIC myfft.c)
+add_library(mylib STATIC ${SRC}/mylib.c ${SRC}/crosscorint.c ${SRC}/parseargs.c)
+add_library(mysound STATIC ${SRC}/mysound.c)
+add_library(mysync STATIC ${SRC}/mysync.c)
+add_library(mysignal STATIC ${SRC}/mysignal.c)
+add_library(myfft STATIC ${SRC}/myfft.c)
 target_link_libraries(myfft PRIVATE mysync)
-add_library(mymath STATIC mymath.c)
+add_library(mymath STATIC ${SRC}/mymath.c)
 
 
 foreach(LIB ${INTERNAL_LIBS})
@@ -68,7 +68,7 @@ set(INTERNAL_LIBS
 )
 
 foreach(TEST ${TEST_TARGETS})
-    add_executable(${TEST} tests/${TEST}.c myarr.c)
+    add_executable(${TEST} tests/${TEST}.c ${SRC}/myarr.c)
     target_link_libraries(${TEST} 
         ${INTERNAL_LIBS} 
         ${ASOUND_LIB} 
@@ -78,7 +78,7 @@ foreach(TEST ${TEST_TARGETS})
 
 endforeach()
 foreach(BIN ${BINARIES})
-    add_executable(${BIN} ${BIN}.c myarr.c)
+    add_executable(${BIN} src/${BIN}.c ${SRC}/myarr.c)
     target_link_libraries(${BIN} 
         ${INTERNAL_LIBS} 
         ${ASOUND_LIB} 

@@ -1,0 +1,105 @@
+
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base-config",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_C_STANDARD": "99",
+        "CMAKE_C_STANDARD_REQUIRED": "ON",
+        "CMAKE_C_EXTENSIONS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug configure",
+      "inherits": "base-config",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release configure",
+      "inherits": "base-config",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "base-build",
+      "hidden": true,
+      "jobs": 3
+    },
+    {
+      "name": "debug",
+      "displayName": "Build Debug (all)",
+      "inherits": "base-build",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "displayName": "Build Release (all)",
+      "inherits": "base-build",
+      "configurePreset": "release"
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "base-test",
+      "hidden": true,
+      "execution": {
+        "jobs": 3,
+        "stopOnFailure": true
+      },
+      "output": {
+        "shortProgress": true,
+        "verbosity": "default"
+      }
+    },
+    {
+      "name": "debug_ctest",
+      "displayName": "Run CTest (Debug, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release_ctest",
+      "displayName": "Run CTest (Release, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "release"
+    }
+  ],
+
+  "workflowPresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug: configure + build + test",
+      "steps": [
+        { "type": "configure", "name": "debug" },
+        { "type": "build",     "name": "debug" },
+        { "type": "test",      "name": "debug_ctest" }
+      ]
+    },
+    {
+      "name": "release",
+      "displayName": "Release: configure + build + test",
+      "steps": [
+        { "type": "configure", "name": "release" },
+        { "type": "build",     "name": "release" },
+        { "type": "test",      "name": "release_ctest" }
+      ]
+    }
+  ]
+}
+

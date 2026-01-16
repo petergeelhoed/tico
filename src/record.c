@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     unsigned int time = 3;
     int flag;
     unsigned int evalue = 4;
-    char* device = 0;
+    const char* device = NULL;
     // declarations
 
     while ((flag = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
@@ -65,10 +65,21 @@ int main(int argc, char* argv[])
         }
     }
 
-    device = device == 0 ? "default:1" : device;
+    if (device == 0)
+    {
+        device = "default:1";
+    }
+
+    size_t device_len = strlen(device);
+    char* device_mutable = (char*)malloc(device_len);
+    if (device_mutable == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    memcpy(device_mutable, device, device_len);
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = initAudio(format, device, &rate);
+    snd_pcm_t* capture_handle = initAudio(format, device_mutable, &rate);
     unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
     unsigned int length = time * bph / 2 / SECS_HOUR;
 

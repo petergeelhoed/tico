@@ -15,12 +15,12 @@ add_compile_options(
     -Wcast-qual
     -Wcast-align
     -Wmissing-prototypes
-#    -Wstrict-prototypes
+    -Wstrict-prototypes
 #    -Wconversion
 #    -Wsign-conversion
 #    -Wformat=2
-#    -Wundef
-#    -Wwrite-strings
+    -Wundef
+    -Wwrite-strings
 )
 
 

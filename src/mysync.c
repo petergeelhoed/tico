@@ -193,7 +193,7 @@ void* threadAppend(void* inStruct)
     pthread_exit(NULL);
 }
 
-void syncwrite(int* input, unsigned int ArrayLength, char* file)
+void syncwrite(int* input, unsigned int ArrayLength, const char* file)
 {
     struct mystruct
     {

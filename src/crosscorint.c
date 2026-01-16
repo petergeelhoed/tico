@@ -1,10 +1,14 @@
 #include "mydefs.h"
 #include "myfft.h"
 
+#include <math.h>
 #include <stdlib.h>
 
 // Perform cross-correlation using FFT
-void crosscorint(unsigned int ArrayLength, const int* array, const int* ref, int* cross)
+void crosscorint(unsigned int ArrayLength,
+                 const int* array,
+                 const int* ref,
+                 int* cross)
 {
     // Allocate memory for FFTW complex arrays
     fftw_complex* tmparr = fftw_alloc_complex(ArrayLength);
@@ -47,7 +51,7 @@ void crosscorint(unsigned int ArrayLength, const int* array, const int* ref, int
     // Store results in the output array
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        cross[j] = (int)(coor[j][0] * ArrayLength);
+        cross[j] = (int)round(coor[j][0] * ArrayLength);
     }
 
     // Free allocated memory

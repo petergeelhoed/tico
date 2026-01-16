@@ -17,13 +17,34 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
+
+    {
+      "name": "base-config-clang15",
+      "hidden": true,
+      "inherits": "base-config",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang-15"
+      },
+      "binaryDir": "${sourceDir}/build/clang15"
+    },
+    {
+      "name": "base-config-gcc",
+      "hidden": true,
+      "inherits": "base-config",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/gcc"
+      },
+      "binaryDir": "${sourceDir}/build/gcc"
+    },
+
     {
       "name": "debug",
       "displayName": "Debug configure",
       "inherits": "base-config",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
-      }
+      },
+      "binaryDir": "${sourceDir}/build/clang15-debug"
     },
     {
       "name": "release",
@@ -31,7 +52,46 @@
       "inherits": "base-config",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
-      }
+      },
+      "binaryDir": "${sourceDir}/build/clang15-release"
+    },
+
+    {
+      "name": "debug-clang15",
+      "displayName": "Debug configure (clang-15)",
+      "inherits": "base-config-clang15",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "binaryDir": "${sourceDir}/build/clang15-debug"
+    },
+    {
+      "name": "release-clang15",
+      "displayName": "Release configure (clang-15)",
+      "inherits": "base-config-clang15",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "binaryDir": "${sourceDir}/build/clang15-release"
+    },
+
+    {
+      "name": "debug-gcc",
+      "displayName": "Debug configure (gcc)",
+      "inherits": "base-config-gcc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "binaryDir": "${sourceDir}/build/gcc-debug"
+    },
+    {
+      "name": "release-gcc",
+      "displayName": "Release configure (gcc)",
+      "inherits": "base-config-gcc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "binaryDir": "${sourceDir}/build/gcc-release"
     }
   ],
 
@@ -41,17 +101,44 @@
       "hidden": true,
       "jobs": 3
     },
+
     {
       "name": "debug",
-      "displayName": "Build Debug (all)",
+      "displayName": "Build Debug (clang-15, all)",
       "inherits": "base-build",
       "configurePreset": "debug"
     },
     {
       "name": "release",
-      "displayName": "Build Release (all)",
+      "displayName": "Build Release (clang-15, all)",
       "inherits": "base-build",
       "configurePreset": "release"
+    },
+
+    {
+      "name": "debug-clang15",
+      "displayName": "Build Debug (clang-15, all)",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang15"
+    },
+    {
+      "name": "release-clang15",
+      "displayName": "Build Release (clang-15, all)",
+      "inherits": "base-build",
+      "configurePreset": "release-clang15"
+    },
+
+    {
+      "name": "debug-gcc",
+      "displayName": "Build Debug (gcc, all)",
+      "inherits": "base-build",
+      "configurePreset": "debug-gcc"
+    },
+    {
+      "name": "release-gcc",
+      "displayName": "Build Release (gcc, all)",
+      "inherits": "base-build",
+      "configurePreset": "release-gcc"
     }
   ],
 
@@ -68,24 +155,51 @@
         "verbosity": "default"
       }
     },
+
     {
       "name": "debug_ctest",
-      "displayName": "Run CTest (Debug, all tests)",
+      "displayName": "Run CTest (Debug, clang-15, all tests)",
       "inherits": "base-test",
       "configurePreset": "debug"
     },
     {
       "name": "release_ctest",
-      "displayName": "Run CTest (Release, all tests)",
+      "displayName": "Run CTest (Release, clang-15, all tests)",
       "inherits": "base-test",
       "configurePreset": "release"
+    },
+
+    {
+      "name": "debug_ctest-clang15",
+      "displayName": "Run CTest (Debug, clang-15, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "debug-clang15"
+    },
+    {
+      "name": "release_ctest-clang15",
+      "displayName": "Run CTest (Release, clang-15, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "release-clang15"
+    },
+
+    {
+      "name": "debug_ctest-gcc",
+      "displayName": "Run CTest (Debug, gcc, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "debug-gcc"
+    },
+    {
+      "name": "release_ctest-gcc",
+      "displayName": "Run CTest (Release, gcc, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "release-gcc"
     }
   ],
 
   "workflowPresets": [
     {
       "name": "debug",
-      "displayName": "Debug: configure + build + test",
+      "displayName": "Debug: configure + build + test (clang-15)",
       "steps": [
         { "type": "configure", "name": "debug" },
         { "type": "build",     "name": "debug" },
@@ -94,11 +208,49 @@
     },
     {
       "name": "release",
-      "displayName": "Release: configure + build + test",
+      "displayName": "Release: configure + build + test (clang-15)",
       "steps": [
         { "type": "configure", "name": "release" },
         { "type": "build",     "name": "release" },
         { "type": "test",      "name": "release_ctest" }
+      ]
+    },
+
+    {
+      "name": "debug-clang15",
+      "displayName": "Debug: configure + build + test (clang-15)",
+      "steps": [
+        { "type": "configure", "name": "debug-clang15" },
+        { "type": "build",     "name": "debug-clang15" },
+        { "type": "test",      "name": "debug_ctest-clang15" }
+      ]
+    },
+    {
+      "name": "release-clang15",
+      "displayName": "Release: configure + build + test (clang-15)",
+      "steps": [
+        { "type": "configure", "name": "release-clang15" },
+        { "type": "build",     "name": "release-clang15" },
+        { "type": "test",      "name": "release_ctest-clang15" }
+      ]
+    },
+
+    {
+      "name": "debug-gcc",
+      "displayName": "Debug: configure + build + test (gcc)",
+      "steps": [
+        { "type": "configure", "name": "debug-gcc" },
+        { "type": "build",     "name": "debug-gcc" },
+        { "type": "test",      "name": "debug_ctest-gcc" }
+      ]
+    },
+    {
+      "name": "release-gcc",
+      "displayName": "Release: configure + build + test (gcc)",
+      "steps": [
+        { "type": "configure", "name": "release-gcc" },
+        { "type": "build",     "name": "release-gcc" },
+        { "type": "test",      "name": "release_ctest-gcc" }
       ]
     }
   ]

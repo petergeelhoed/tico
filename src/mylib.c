@@ -42,12 +42,12 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 unsigned int mod,
+                 int mod,
                  unsigned int columns,
                  double avg_pos,
                  unsigned int correlationThreshold)
 {
-    while (maxpos < (int)mod)
+    while (maxpos < mod)
     {
         maxpos += mod;
     }
@@ -257,33 +257,36 @@ double getBeatError(const struct myarr* totaltick, double rate, int verbose)
     return shiftHalf(postick, ArrayLength / 2) * THOUSAND / rate;
 }
 
-int checkUIntArg(int name, unsigned int* value, char* optarg)
+int checkUIntArg(int name, unsigned int* value, char* opt_arg)
 {
-    *value = (unsigned int)getInt(optarg);
+    *value = (unsigned int)getInt(opt_arg);
     if (*value == 0)
     {
-        printf("invalid integer argument for -%c: '%s'\n", (char)name, optarg);
+        printf("invalid integer argument for -%c: '%s'\n", (char)name, opt_arg);
         return -1;
     }
     return 0;
 }
 
-int checkFileArg(int name, FILE** filePtr, const char* optarg, const char* mode)
+int checkFileArg(int name,
+                 FILE** filePtr,
+                 const char* opt_arg,
+                 const char* mode)
 {
-    if (*optarg == '-')
+    if (*opt_arg == '-')
     {
         (void)fprintf(
-            stderr, "expecting -%c <file>\n got -w %s\n", (char)name, optarg);
+            stderr, "expecting -%c <file>\n got -w %s\n", (char)name, opt_arg);
         return -1;
     }
 
-    *filePtr = fopen(optarg, mode);
+    *filePtr = fopen(opt_arg, mode);
     if (*filePtr == NULL)
     {
         (void)fprintf(stderr,
                       "cannot open file -%c '%s' for mode %s\n",
                       (char)name,
-                      optarg,
+                      opt_arg,
                       mode);
         return -4;
     }

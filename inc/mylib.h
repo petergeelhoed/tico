@@ -19,7 +19,7 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 unsigned int mod,
+                 int mod,
                  unsigned int columns,
                  double avg_pos,
                  unsigned int correlationThreshold);
@@ -39,11 +39,11 @@ void calculateTotal(unsigned int count,
 
 double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
-int checkUIntArg(int name, unsigned int* value, char* optarg);
+int checkUIntArg(int name, unsigned int* value, char* opt_arg);
 
 int checkFileArg(int name,
                  FILE** filePtr,
-                 const char* optarg,
+                 const char* opt_arg,
                  const char* mode);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,

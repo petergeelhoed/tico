@@ -6,7 +6,23 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
-add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -g)
+add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror) 
+
+
+add_compile_options(
+    -Wshadow
+#    -Wpointer-arith
+#    -Wcast-qual
+#    -Wcast-align
+#    -Wmissing-prototypes
+#    -Wstrict-prototypes
+#    -Wconversion
+#    -Wsign-conversion
+#    -Wformat=2
+#    -Wundef
+#    -Wwrite-strings
+)
+
 
 # Prefer portable thread discovery; this also adds the correct link flags.
 find_package(Threads REQUIRED)

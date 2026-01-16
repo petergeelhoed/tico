@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     }
     unsigned int ArrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
     ArrayLength += (ArrayLength % 2);
-    unsigned int mod = ArrayLength / cfg.zoom;
+    int mod = ArrayLength / cfg.zoom;
     const unsigned int maxtime = (unsigned int)cfg.rate *
                                  (cfg.time ? cfg.time : DEFAULT_TIME) /
                                  ArrayLength;

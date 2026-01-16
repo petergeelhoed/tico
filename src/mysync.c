@@ -18,7 +18,7 @@ void wait(void)
 {
     while (count > 0)
     {
-        const int WAIT = 10000;
+        const unsigned int WAIT = 10000;
         usleep(WAIT);
     }
 }

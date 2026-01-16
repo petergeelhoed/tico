@@ -19,7 +19,17 @@ find_library(MATH_LIB m)
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
-set(INTERNAL_LIBS mylib mysound mysync mysignal myfft mymath myarr)
+# Define the internal libraries group
+set(INTERNAL_LIBS
+    mylib
+    mysound
+    mysync
+    mysignal
+    myfft
+    mymath
+    myarr
+)
+
 set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
@@ -50,35 +60,6 @@ set(BINARIES
 )
 add_subdirectory(tests)
 
-set(TEST_TARGETS 
-    testfft
-    testgetdoubles
-    testmysync testfilter testremove50 testlinreg 
-    testinvert testmulmat testmatlinreg testmatlinregquad 
-    testcalculateall testcrosscorint testtranspone
-    testgetinput
-)
-# Define the internal libraries group
-set(INTERNAL_LIBS 
-    mylib 
-    mysound 
-    mysync 
-    mysignal 
-    myfft 
-    mymath
-    myarr
-)
-
-foreach(TEST ${TEST_TARGETS})
-    add_executable(${TEST} tests/${TEST}.c)
-    target_link_libraries(${TEST} 
-        ${INTERNAL_LIBS} 
-        ${ASOUND_LIB} 
-        ${FFTW3_LIB} 
-        ${MATH_LIB}
-    )
-
-endforeach()
 foreach(BIN ${BINARIES})
     add_executable(${BIN} src/${BIN}.c)
     target_link_libraries(${BIN} 

@@ -1,5 +1,24 @@
 
 # tests/CMakeLists.txt
+
+set(TEST_TARGETS 
+    testfft
+    testgetdoubles
+    testmysync testfilter testremove50 testlinreg 
+    testinvert testmulmat testmatlinreg testmatlinregquad 
+    testcalculateall testcrosscorint testtranspone
+    testgetinput
+)
+foreach(TEST ${TEST_TARGETS})
+    add_executable(${TEST} ${TEST}.c)
+    target_link_libraries(${TEST} 
+        ${INTERNAL_LIBS} 
+        ${ASOUND_LIB} 
+        ${FFTW3_LIB} 
+        ${MATH_LIB}
+    )
+endforeach()
+
 set( TESTS
         testcrosscorint
         testinvert 

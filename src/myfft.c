@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
@@ -218,6 +217,11 @@ crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref)
 int getshift(const struct myarr xarr, const struct myarr yarr)
 {
     unsigned int ArrayLength = xarr.ArrayLength;
+    if (ArrayLength == 0)
+    {
+        return 0;
+    }
+
     fftw_complex* F_x = fftw_alloc_complex(ArrayLength);
     fftw_complex* F_y = fftw_alloc_complex(ArrayLength);
 
@@ -235,7 +239,6 @@ int getshift(const struct myarr xarr, const struct myarr yarr)
     fftw_free(corr);
     fftw_free(F_y);
     fftw_cleanup();
-    assert(ArrayLength > 0);
     return (((int)poscor + (int)ArrayLength / 2) % (int)(ArrayLength)) -
            (int)(ArrayLength / 2);
 }
@@ -249,6 +252,11 @@ unsigned int fftfit(const struct myarr input,
                     double* subpos)
 {
     unsigned int ArrayLength = input.ArrayLength;
+    if (ArrayLength == 0)
+    {
+        return 0;
+    }
+
     fftw_complex* Fbase = fftw_alloc_complex(ArrayLength);
     fftw_complex* filteredinput = convolute(input, filterFFT);
 
@@ -294,7 +302,6 @@ unsigned int fftfit(const struct myarr input,
     }
 
     const double half = 0.5;
-    assert(ArrayLength > 0);
     *subpos = -half *
               (corr[(poscor - 1 + ArrayLength) % ArrayLength][0] -
                corr[(poscor + 1) % ArrayLength][0]) /

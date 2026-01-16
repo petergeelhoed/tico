@@ -48,8 +48,9 @@ init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
     *actualRate = (unsigned int)(cfg->rate + HALF);
     if (cfg->fpInput == NULL)
     {
-        printf("Casting inputrate %f to soundcard rate %d\n",
+        printf("Casting inputrate %f to soundcard(%s) rate %d\n",
                cfg->rate,
+               cfg->device,
                *actualRate);
         *handle = initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
         printf("Actual rate %d, calculating with %f\n", *actualRate, cfg->rate);

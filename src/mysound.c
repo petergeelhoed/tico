@@ -12,13 +12,18 @@
 
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void check_alsa_err(int err,
+                           const char* device,
                            const char* msg,
                            snd_pcm_t* handle,
                            snd_pcm_hw_params_t* params)
 {
     if (err < 0)
     {
-        (void)fprintf(stderr, "%s (%s)\n", msg, snd_strerror((int)err));
+        (void)fprintf(stderr,
+                      "Device %s: %s (%s)\n",
+                      device,
+                      msg,
+                      snd_strerror((int)err));
         if (params)
         {
             snd_pcm_hw_params_free(params);
@@ -41,17 +46,20 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     // 1. Open Device
     check_alsa_err(
         snd_pcm_open(&capture_handle, device, SND_PCM_STREAM_CAPTURE, 0),
+        device,
         "cannot open audio device",
         NULL,
         NULL);
 
     // 2. Allocate and Init Params
     check_alsa_err(snd_pcm_hw_params_malloc(&hw_params),
+                   device,
                    "cannot allocate hardware parameter structure",
                    capture_handle,
                    NULL);
 
     check_alsa_err(snd_pcm_hw_params_any(capture_handle, hw_params),
+                   device,
                    "cannot initialize hardware parameter structure",
                    capture_handle,
                    hw_params);
@@ -60,29 +68,34 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     check_alsa_err(snd_pcm_hw_params_set_access(capture_handle,
                                                 hw_params,
                                                 SND_PCM_ACCESS_RW_INTERLEAVED),
+                   device,
                    "cannot set access type",
                    capture_handle,
                    hw_params);
 
     check_alsa_err(
         snd_pcm_hw_params_set_format(capture_handle, hw_params, format),
+        device,
         "cannot set sample format",
         capture_handle,
         hw_params);
 
     check_alsa_err(
         snd_pcm_hw_params_set_rate_near(capture_handle, hw_params, rate, 0),
+        device,
         "cannot set sample rate",
         capture_handle,
         hw_params);
 
     check_alsa_err(snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1),
+                   device,
                    "cannot set channel count",
                    capture_handle,
                    hw_params);
 
     // 4. Apply Params and Prepare
     check_alsa_err(snd_pcm_hw_params(capture_handle, hw_params),
+                   device,
                    "cannot set parameters",
                    capture_handle,
                    hw_params);
@@ -90,6 +103,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     snd_pcm_hw_params_free(hw_params);
 
     check_alsa_err(snd_pcm_prepare(capture_handle),
+                   device,
                    "cannot prepare audio interface",
                    capture_handle,
                    NULL);

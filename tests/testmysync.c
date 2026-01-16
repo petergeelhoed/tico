@@ -12,7 +12,7 @@ int main(void)
     struct myarr reference = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
     struct myarr refdouble = {
         0, calloc(ArrayLength, sizeof(double)), ArrayLength};
-    for (unsigned int i = 0; i < ArrayLength; ++i)
+    for (int i = 0; i < (int)ArrayLength; ++i)
     {
         reference.arr[i] = i;
         refdouble.arrd[i] = (double)i * i;

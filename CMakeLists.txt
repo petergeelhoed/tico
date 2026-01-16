@@ -17,8 +17,8 @@ add_compile_options(
     -Wmissing-prototypes
     -Wstrict-prototypes
 #    -Wconversion
-#    -Wsign-conversion
-#    -Wformat=2
+    -Wsign-conversion
+    -Wformat=2
     -Wundef
     -Wwrite-strings
 )

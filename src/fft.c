@@ -99,7 +99,7 @@ static void run_fft(Signal sig, Config cfg)
     }
 
     fftw_plan plan = fftw_plan_dft_1d(
-        arrayLength, data_in, data_out, FFTW_FORWARD, FFTW_ESTIMATE);
+        (int)arrayLength, data_in, data_out, FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(plan);
 
     // Result Printing Logic
@@ -107,8 +107,9 @@ static void run_fft(Signal sig, Config cfg)
     {
         for (unsigned int i = (cfg.lval ? 1 : 0); i < (sig.count + 2) / 2; i++)
         {
-            double freq = cfg.fval ? (double)sig.count / (i * cfg.fval)
-                                   : (double)i / sig.count;
+            double freq = cfg.fval
+                              ? (double)sig.count / (i * (unsigned int)cfg.fval)
+                              : (double)i / sig.count;
             double mag = 2 * cfg.z *
                          sqrt(pow(data_out[i][0] / arrayLength, 2) +
                               pow(data_out[i][1] / arrayLength, 2));

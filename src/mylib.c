@@ -42,12 +42,12 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 int mod,
+                 unsigned int mod,
                  unsigned int columns,
                  double avg_pos,
                  unsigned int correlationThreshold)
 {
-    while (maxpos < mod)
+    while (maxpos < (int)mod)
     {
         maxpos += mod;
     }
@@ -296,10 +296,11 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 
         for (int i = 0; i < 3; i++)
         {
-            reference->arr[reference->ArrayLength / 4 - peakpos[i]] =
+            reference
+                ->arr[reference->ArrayLength / 4 - (unsigned int)peakpos[i]] =
                 peakheight[i];
-            reference->arr[3 * reference->ArrayLength / 4 - peakpos[i]] =
-                peakheight[i];
+            reference->arr[3 * reference->ArrayLength / 4 -
+                           (unsigned int)peakpos[i]] = peakheight[i];
         }
     }
 }

@@ -149,8 +149,10 @@ int readBuffer(snd_pcm_t* capture_handle,
     if (err != (int)ArrayLength)
     {
         (void)fprintf(stderr, "reread from audio interface  %d \n", err);
-        err = snd_pcm_readi(
-            capture_handle, buffer + err, (long unsigned int)ArrayLength - err);
+        err = snd_pcm_readi(capture_handle,
+                            buffer + err,
+                            (long unsigned int)ArrayLength -
+                                (long unsigned int)err);
         if (err < 0)
         {
             (void)fprintf(stderr,

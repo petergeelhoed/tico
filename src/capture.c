@@ -60,7 +60,7 @@ init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
 static AppResources allocate_resources(unsigned int ArrayLength,
                                        unsigned int ticktockBuffer,
                                        unsigned int teeth,
-                                       int evalue)
+                                       unsigned int evalue)
 {
     AppResources res;
     res.subpos = makemyarrd(ticktockBuffer);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     }
     unsigned int ArrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
     ArrayLength += (ArrayLength % 2);
-    int mod = ArrayLength / cfg.zoom;
+    unsigned int mod = ArrayLength / cfg.zoom;
     const unsigned int maxtime = (unsigned int)cfg.rate *
                                  (cfg.time ? cfg.time : DEFAULT_TIME) /
                                  ArrayLength;
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
             toothshift = getshift(*res.teethArray[0],
                                   *res.teethArray[totalTickTock % cfg.teeth]);
         }
-        for (unsigned int j = 0; j < ArrayLength; ++j)
+        for (int j = 0; j < (int)ArrayLength; ++j)
         {
             res.tmpder->arr[j] =
                 res.derivative

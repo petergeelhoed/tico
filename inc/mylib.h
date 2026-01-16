@@ -19,7 +19,7 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 int mod,
+                 unsigned int mod,
                  unsigned int columns,
                  double avg_pos,
                  unsigned int correlationThreshold);

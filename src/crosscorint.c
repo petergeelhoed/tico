@@ -1,3 +1,5 @@
+#include "crosscorint.h"
+
 #include "mydefs.h"
 #include "myfft.h"
 

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void print_usage(void)
+static void print_usage(void)
 {
     (void)fprintf(stderr,
                   "usage: capture\n"
@@ -71,7 +71,7 @@ int checkFileArg(int name,
     return 0;
 }
 
-int checkFloatArg(int name, double* value, char* opt_arg)
+static int checkFloatArg(int name, double* value, char* opt_arg)
 {
 
     char* endp = NULL;

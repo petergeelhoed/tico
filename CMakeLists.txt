@@ -14,7 +14,7 @@ add_compile_options(
     -Wpointer-arith
     -Wcast-qual
     -Wcast-align
-#    -Wmissing-prototypes
+    -Wmissing-prototypes
 #    -Wstrict-prototypes
 #    -Wconversion
 #    -Wsign-conversion

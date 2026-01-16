@@ -14,20 +14,6 @@ struct mymat
     unsigned int Nrows;
 };
 
-void printmat(double* arr, unsigned int Nrows, unsigned int Ncols)
-{
-    printf("\n");
-    for (unsigned int j = 0; j < Nrows; j++)
-    {
-        for (unsigned int i = 0; i < Ncols; i++)
-        {
-            printf("%8.2g", arr[i + Ncols * j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
     double* tmp = (double*)calloc(Nrows * Ncols, sizeof(double));

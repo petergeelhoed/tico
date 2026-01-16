@@ -31,10 +31,10 @@ typedef struct
     char* audioBuffer;
 } AppResources;
 
-void shift_buffer_data(unsigned int* ticktock,
-                       struct myarr* subpos,
-                       struct myarr* maxpos,
-                       struct myarr* maxvals)
+static void shift_buffer_data(unsigned int* ticktock,
+                              struct myarr* subpos,
+                              struct myarr* maxpos,
+                              struct myarr* maxvals)
 {
     memmove(subpos->arrd, subpos->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
     memmove(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
@@ -42,9 +42,8 @@ void shift_buffer_data(unsigned int* ticktock,
     *ticktock -= ARR_BUFF;
 }
 
-int init_audio_source(CapConfig* cfg,
-                      snd_pcm_t** handle,
-                      unsigned int* actualRate)
+static int
+init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
 {
     *actualRate = (unsigned int)(cfg->rate + HALF);
     if (cfg->fpInput == NULL)
@@ -58,10 +57,10 @@ int init_audio_source(CapConfig* cfg,
     return (*handle == NULL && cfg->fpInput == NULL) ? ERROR_NO_SOURCE : 0;
 }
 
-AppResources allocate_resources(unsigned int ArrayLength,
-                                unsigned int ticktockBuffer,
-                                unsigned int teeth,
-                                int evalue)
+static AppResources allocate_resources(unsigned int ArrayLength,
+                                       unsigned int ticktockBuffer,
+                                       unsigned int teeth,
+                                       int evalue)
 {
     AppResources res;
     res.subpos = makemyarrd(ticktockBuffer);
@@ -80,7 +79,7 @@ AppResources allocate_resources(unsigned int ArrayLength,
     return res;
 }
 
-void cleanup_resources(AppResources* res, unsigned int teeth)
+static void cleanup_resources(AppResources* res, unsigned int teeth)
 {
     free(res->audioBuffer);
     freemyarr(res->subpos);
@@ -97,10 +96,10 @@ void cleanup_resources(AppResources* res, unsigned int teeth)
     free(res->teethArray);
 }
 
-void process_logging(CapConfig* cfg,
-                     AppResources* res,
-                     unsigned int totalTime,
-                     unsigned int writeinterval)
+static void process_logging(CapConfig* cfg,
+                            AppResources* res,
+                            unsigned int totalTime,
+                            unsigned int writeinterval)
 {
     if (totalTime > 0 && totalTime % writeinterval == 0)
     {
@@ -127,8 +126,6 @@ void process_logging(CapConfig* cfg,
         }
     }
 }
-
-// --- Main Program ---
 
 int main(int argc, char* argv[])
 {

@@ -22,7 +22,7 @@ typedef struct
     unsigned int count;
 } Signal;
 
-double* safe_realloc(double* ptr, unsigned int new_size)
+static double* safe_realloc(double* ptr, unsigned int new_size)
 {
     double* next = realloc(ptr, new_size * sizeof(double));
     if (!next)
@@ -34,7 +34,7 @@ double* safe_realloc(double* ptr, unsigned int new_size)
     return next;
 }
 
-Signal read_input(void)
+static Signal read_input(void)
 {
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
     unsigned int capacity = INIT_N;
@@ -68,7 +68,7 @@ Signal read_input(void)
     return signalStruct;
 }
 
-void run_fft(Signal sig, Config cfg)
+static void run_fft(Signal sig, Config cfg)
 {
     unsigned int arrayLength = sig.count * cfg.z;
     double par_a = 0.0;

@@ -10,7 +10,7 @@
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang-15",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_C_STANDARD": "17",
         "CMAKE_C_STANDARD_REQUIRED": "ON",
         "CMAKE_C_EXTENSIONS": "ON",
@@ -199,7 +199,7 @@
   "workflowPresets": [
     {
       "name": "debug",
-      "displayName": "Debug: configure + build + test (clang-15)",
+      "displayName": "Debug: configure + build + test (gcc)",
       "steps": [
         { "type": "configure", "name": "debug" },
         { "type": "build",     "name": "debug" },
@@ -208,7 +208,7 @@
     },
     {
       "name": "release",
-      "displayName": "Release: configure + build + test (clang-15)",
+      "displayName": "Release: configure + build + test (gcc)",
       "steps": [
         { "type": "configure", "name": "release" },
         { "type": "build",     "name": "release" },

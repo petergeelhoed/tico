@@ -1,3 +1,5 @@
+name: CI
+
 on:
   push:
     branches: [ main ]
@@ -7,9 +9,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+
     env:
       # Set to "false" to skip clang-tidy in CI
       CLANG_TIDY: "true"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,18 +27,42 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfftw3-dev libasound2-dev build-essential cmake clang-tidy
+          # gcc, g++, clang, clang-tidy, cmake, and project deps
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            gcc g++ \
+            clang clang-tidy \
+            libfftw3-dev \
+            libasound2-dev
+
+      - name: Show toolchain versions
+        run: |
+          echo "Compiler: ${{ matrix.compiler }}"
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            gcc --version
+            g++ --version
+          else
+            clang --version
+            clang++ --version
+          fi
+          cmake --version
 
       - name: Configure (CMake)
-        run: cmake -S . -B build -DENABLE_WERROR=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        env:
+          CC: ${{ matrix.compiler == 'gcc' && 'gcc' || 'clang' }}
+          CXX: ${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}
+        run: |
+          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
+          cmake -S . -B "${BUILD_DIR}" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DENABLE_WERROR=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
-        # Run after configure so compile_commands.json exists.
+        if: ${{ env.CLANG_TIDY != 'false' && matrix.compiler == 'clang' }}
         run: |
-          if [ "${{ env.CLANG_TIDY }}" = "false" ]; then
-            echo "clang-tidy disabled"
-            exit 0
-          fi
+          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
           echo "Finding C translation units..."
           FILES=$(git ls-files 'src/*.c' || true)
           if [ -z "$FILES" ]; then
@@ -36,15 +70,21 @@ jobs:
             exit 0
           fi
           echo "Running clang-tidy (warnings treated as errors)..."
-          # Run clang-tidy in parallel across files. This step fails the job if any run emits errors.
-          echo "$FILES" | xargs -r -n1 -P$(nproc) -I{} clang-tidy --warnings-as-errors="*" -p build {}
+          # Use compile_commands.json from the build dir created in this job
+          echo "$FILES" | xargs -r -n1 -P"$(nproc)" -I{} \
+            clang-tidy --warnings-as-errors="*" -p "${BUILD_DIR}" {}
+
       - name: Build
-        run: cmake --build build -- -j$(nproc)
+        run: |
+          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
+          cmake --build "${BUILD_DIR}" -- -j"$(nproc)"
 
       - name: Run tests
         run: |
-          if [ -d build ]; then
-            ctest --test-dir build --output-on-failure
+          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
+          if [ -d "${BUILD_DIR}" ]; then
+            ctest --test-dir "${BUILD_DIR}" --output-on-failure
           else
             echo "No build directory; nothing to test"
           fi
+

@@ -29,7 +29,7 @@ print_result(const char* label, int n, const double* vals, size_t max_count)
  * If fmemopen is not available, falls back to writing the string to a temp file
  * and freopen'ing stdin.
  */
-static void run_auto_test(const char* input, size_t max_count)
+static void run_auto_test(char* input, size_t max_count)
 {
     double vals[BUF_SIZE];
     if (max_count > BUF_SIZE)

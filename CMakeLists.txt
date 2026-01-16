@@ -12,8 +12,8 @@ add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror)
 add_compile_options(
     -Wshadow
     -Wpointer-arith
-#    -Wcast-qual
-#    -Wcast-align
+    -Wcast-qual
+    -Wcast-align
 #    -Wmissing-prototypes
 #    -Wstrict-prototypes
 #    -Wconversion

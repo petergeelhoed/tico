@@ -1,11 +1,12 @@
 #include "mysignal.h"
+
+#include "mydefs.h"
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-
-#include "mydefs.h"
 
 extern int keepRunning;
 extern unsigned int columns;

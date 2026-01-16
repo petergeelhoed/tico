@@ -40,13 +40,16 @@ set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
 add_library(mylib STATIC ${SRC}/mylib.c ${SRC}/crosscorint.c ${SRC}/parseargs.c)
+target_link_libraries(mylib PUBLIC myarr )
 add_library(mysound STATIC ${SRC}/mysound.c)
+target_link_libraries(mysound PUBLIC myarr )
 add_library(mysync STATIC ${SRC}/mysync.c)
 target_link_libraries(mysync PUBLIC myarr )
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 add_library(myfft STATIC ${SRC}/myfft.c)
-target_link_libraries(myfft PUBLIC mysync )
+target_link_libraries(myfft PUBLIC mysync myarr )
 add_library(mymath STATIC ${SRC}/mymath.c)
+target_link_libraries(mymath PUBLIC myarr )
 add_library(myarr STATIC ${SRC}/myarr.c)
 
 

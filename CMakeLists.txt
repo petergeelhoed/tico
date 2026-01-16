@@ -5,7 +5,13 @@ project(MyProject C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
-add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -pthread -g)
+
+add_compile_options(-Wall -Wpedantic -Wextra -Wsign-compare -Werror -g)
+
+# Prefer portable thread discovery; this also adds the correct link flags.
+find_package(Threads REQUIRED)
+
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Sanitizer Options (Uncomment one to enable)
 # add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
@@ -36,15 +42,17 @@ set(SRC ${PROJECT_ROOT}/src)
 add_library(mylib STATIC ${SRC}/mylib.c ${SRC}/crosscorint.c ${SRC}/parseargs.c)
 add_library(mysound STATIC ${SRC}/mysound.c)
 add_library(mysync STATIC ${SRC}/mysync.c)
+target_link_libraries(mysync PUBLIC myarr )
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 add_library(myfft STATIC ${SRC}/myfft.c)
-target_link_libraries(myfft PRIVATE mysync)
+target_link_libraries(myfft PUBLIC mysync )
 add_library(mymath STATIC ${SRC}/mymath.c)
 add_library(myarr STATIC ${SRC}/myarr.c)
 
 
 foreach(LIB ${INTERNAL_LIBS})
     target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT}/inc)
+    target_link_libraries(${LIB} PUBLIC Threads::Threads)
 endforeach()
 
 
@@ -72,5 +80,5 @@ endforeach()
 
 
 # 6. Install (Moves binaries to a bin folder)
-install(TARGETS ${TARGETS} DESTINATION bin)
+install(TARGETS ${BINARIES} DESTINATION bin)
 

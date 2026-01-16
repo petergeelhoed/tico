@@ -39,19 +39,9 @@ void calculateTotal(unsigned int count,
 
 double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
-int checkUIntArg(int name, unsigned int* value, char* opt_arg);
-
-int checkFileArg(int name,
-                 FILE** filePtr,
-                 const char* opt_arg,
-                 const char* mode);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);
 
 int shiftHalf(unsigned int value, unsigned int ArrayLength);
 int modSigned(int value, unsigned int ArrayLength);
-int getInt(char* ptr);
-double getDouble(char* ptr);
-int getDoublesFromStdin(size_t max_count, double* arr);
-int getIntsFromStdin(size_t max_count, int* arr);

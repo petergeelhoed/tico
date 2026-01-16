@@ -49,7 +49,7 @@ void printspaces(int maxpos,
 {
     while (maxpos < (int)mod)
     {
-        maxpos += mod;
+        maxpos += (int)mod;
     }
     while (avg_pos < (double)mod)
     {
@@ -58,7 +58,8 @@ void printspaces(int maxpos,
     const unsigned int default_columns = 80;
     columns = columns > MAX_COLUMNS ? default_columns : columns;
     size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
-    size_t widtha = (size_t)modSigned(lround(avg_pos), mod) * columns / mod;
+    size_t widtha =
+        (size_t)modSigned((int)lround(avg_pos), mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
     memset(spaces, ' ', width);

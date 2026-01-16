@@ -169,6 +169,7 @@ int main(int argc, char* argv[])
     int toothshift = 0;
     unsigned int ticktock = 0;
     unsigned int totalTickTock = 0;
+    unsigned int rate = (unsigned int)cfg.rate;
 
     while (keepRunning && !(totalTickTock > maxtime && cfg.time))
     {
@@ -182,7 +183,7 @@ int main(int argc, char* argv[])
                           capture_handle,
                           SND_PCM_FORMAT_S16_LE,
                           cfg.device,
-                          cfg.rate,
+                          rate,
                           res.audioBuffer,
                           *res.derivative);
         unblock_signal(&non_block);

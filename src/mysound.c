@@ -18,7 +18,7 @@ static void check_alsa_err(int err,
 {
     if (err < 0)
     {
-        (void)fprintf(stderr, "%s (%s)\n", msg, snd_strerror(err));
+        (void)fprintf(stderr, "%s (%s)\n", msg, snd_strerror((int)err));
         if (params)
         {
             snd_pcm_hw_params_free(params);
@@ -112,13 +112,13 @@ void readBufferRaw(snd_pcm_t* capture_handle,
 {
     unsigned char lsb;
     signed char msb;
-    int err = snd_pcm_readi(capture_handle, buffer, data_in->ArrayLength);
-    if (err != (int)data_in->ArrayLength)
+    long err = snd_pcm_readi(capture_handle, buffer, data_in->ArrayLength);
+    if (err != (long)data_in->ArrayLength)
     {
         (void)fprintf(stderr,
-                      "read from audio interface failed %d (%s)\n",
+                      "read from audio interface failed %ld (%s)\n",
                       err,
-                      snd_strerror(err));
+                      snd_strerror((int)err));
         exit(READ_FAILED);
     }
     for (unsigned int index = 0; index < 2 * data_in->ArrayLength; index += 2)
@@ -136,19 +136,19 @@ int readBuffer(snd_pcm_t* capture_handle,
 {
     unsigned char lsb;
     signed char msb;
-    int err =
+    long err =
         snd_pcm_readi(capture_handle, buffer, (long unsigned int)ArrayLength);
     if (err < 0)
     {
         (void)fprintf(stderr,
-                      "read from audio interface failed %d (%s)\n",
+                      "read from audio interface failed %ld (%s)\n",
                       err,
-                      snd_strerror(err));
-        return err;
+                      snd_strerror((int)err));
+        return (int)err;
     }
     if (err != (int)ArrayLength)
     {
-        (void)fprintf(stderr, "reread from audio interface  %d \n", err);
+        (void)fprintf(stderr, "reread from audio interface  %ld \n", err);
         err = snd_pcm_readi(capture_handle,
                             buffer + err,
                             (long unsigned int)ArrayLength -
@@ -156,9 +156,9 @@ int readBuffer(snd_pcm_t* capture_handle,
         if (err < 0)
         {
             (void)fprintf(stderr,
-                          "reread from audio interface failed %d (%s)\n",
+                          "reread from audio interface failed %ld (%s)\n",
                           err,
-                          snd_strerror(err));
+                          snd_strerror((int)err));
         }
         else
         {
@@ -178,7 +178,7 @@ int readBuffer(snd_pcm_t* capture_handle,
         derivative[index] = abs(derivative[index] - derivative[index + 1]);
     }
     derivative[ArrayLength - 1] = 0;
-    return err;
+    return (int)err;
 }
 
 int readBufferOrFile(int* derivative,

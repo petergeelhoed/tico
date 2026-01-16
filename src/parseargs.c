@@ -170,7 +170,6 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
                 exit(-1);
             }
             break;
-
         // Group 3: File Handlers
         case 'I':
             handle_file_arg(flag, &cfg->fpInput, optarg, "r");
@@ -307,14 +306,14 @@ int getIntsFromStdin(size_t max_count, int* arr)
     while (*ptr != '\0' && parsed < max_count)
     {
         errno = 0;
-        int val = strtol(ptr, &endptr, DECIMAL);
+        long val = strtol(ptr, &endptr, DECIMAL);
         if (endptr == ptr)
         {
             // No number at current position; skip one char
             ptr++;
             continue;
         }
-        arr[parsed++] = val;
+        arr[parsed++] = (int)val;
         ptr = endptr;
     }
 

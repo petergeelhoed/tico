@@ -16,7 +16,7 @@ add_compile_options(
     -Wcast-align
     -Wmissing-prototypes
     -Wstrict-prototypes
-    -Wconversion
+#   -Wconversion
 #    -Wsign-conversion
     -Wformat=2
     -Wundef

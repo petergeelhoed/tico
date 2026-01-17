@@ -19,11 +19,8 @@ static void check_alsa_err(int err,
 {
     if (err < 0)
     {
-        (void)fprintf(stderr,
-                      "Device %s: %s (%s)\n",
-                      device,
-                      msg,
-                      snd_strerror((int)err));
+        (void)fprintf(
+            stderr, "Device %s: %s (%s)\n", device, msg, snd_strerror(err));
         if (params)
         {
             snd_pcm_hw_params_free(params);

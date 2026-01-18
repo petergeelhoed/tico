@@ -1,6 +1,7 @@
 #define ARR_BUFF 512
 #define AUTOCOR_LIMIT 1
 #define BEAT_WIDTH 5
+#define DOUBLE_BUF 319
 #define BITS_IN_BYTE 8
 #define BUFF_SIZE 256
 #define BUF_SIZE 256

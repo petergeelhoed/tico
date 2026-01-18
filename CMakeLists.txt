@@ -49,7 +49,7 @@ add_compile_options(
   -Walloca-larger-than=1024
   -Wformat-security
   -Wformat-overflow=2
-#  -Wformat-truncation=2
+  -Wformat-truncation=2
   -Wdate-time
   # Optional / more noisy:
   # -Wpadded

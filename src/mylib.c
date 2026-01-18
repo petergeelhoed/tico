@@ -21,13 +21,13 @@ void printheader(double fittedRate,
 {
     if (everyline)
     {
-        char line[EVERY_WIDTH + 1];
-        memset(line, ' ', EVERY_WIDTH);
-        (void)snprintf(line, BEAT_WIDTH, "%4.2f", beatError);
-        (void)snprintf(
-            line + BEAT_WIDTH - 1, RATE_WIDTH + 1, "ms%+5.1f", fittedRate);
-        (void)sprintf(line + BEAT_WIDTH + RATE_WIDTH - 2, "s/d");
-        (void)fprintf(stderr, "%s", line);
+        char tmp[DOUBLE_BUF];
+
+        (void)sprintf(tmp, "%4.2f", beatError);
+        (void)sprintf(tmp + BEAT_WIDTH - 1, "ms%+5.1f", fittedRate);
+        (void)sprintf(tmp + BEAT_WIDTH + RATE_WIDTH - 2, "s/d");
+        tmp[EVERY_WIDTH] = '\0';
+        (void)fprintf(stderr, "%s", tmp);
     }
     else
     {

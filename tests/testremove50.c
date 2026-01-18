@@ -15,8 +15,9 @@ int main(void)
     int orig[ArrayLength];
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        blah[j] = (int)(1000 * sin((float)(3.1415926 * 2 * j * 50. / 48000.))) +
-                  (int)(800 * sin((float)(3.1415926 * 2 * j * 52. / 48000.)));
+        blah[j] =
+            (int)(1000 * sin((double)(3.1415926 * 2 * j * 50. / 48000.))) +
+            (int)(800 * sin((double)(3.1415926 * 2 * j * 52. / 48000.)));
         orig[j] = blah[j];
     }
 

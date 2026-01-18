@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 struct exp
 {
     char input[BUF_SIZE];
@@ -19,7 +18,8 @@ int main(void)
     // NOLINTBEGIN(readability-magic-numbers)
     array[0] = (struct exp){.input = " 34", .integer = 34, .dbl = 34};
     array[1] = (struct exp){.input = " 34.1", .integer = 34, .dbl = 34.1};
-    array[2] = (struct exp){.input = "", .integer = INT_MIN, .dbl = NAN};
+    array[2] =
+        (struct exp){.input = "", .integer = INT_MIN, .dbl = (double)NAN};
     array[3] = (struct exp){.input = " -1.7 ", .integer = -1, .dbl = -1.7};
     array[4] = (struct exp){.input = " 1111111111111111",
                             .integer = INT_MIN,

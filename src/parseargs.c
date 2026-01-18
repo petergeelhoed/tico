@@ -231,7 +231,7 @@ double getDouble(char* ptr)
     if (ptr == endptr || errno == ERANGE)
     {
         (void)fprintf(stderr, "Invalid double or out of range\n");
-        val = NAN;
+        val = (double)NAN;
     }
 
     return val;

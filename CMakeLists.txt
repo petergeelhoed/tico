@@ -10,7 +10,6 @@ add_compile_options(
         -Wall
         -Wpedantic
         -Wextra 
-        -Wsign-compare
         -Werror
     -Wshadow
     -Wpointer-arith
@@ -31,30 +30,35 @@ add_compile_options(
   -Wimplicit-fallthrough
   -Wmissing-field-initializers
   -Wnull-dereference
-  -Warray-bounds=2
-  -Wstringop-overflow=4
-  -Wstringop-truncation
-  -Wrestrict
   -Wdouble-promotion
-  -Wstrict-overflow=3
-  -Wshift-overflow=2
   -Wold-style-definition
   -Wmissing-declarations
   -Wredundant-decls
   -Wbad-function-cast
   -Wnested-externs
-  -Wvla
-  -Wvla-larger-than=8192
-  -Walloca
-  -Walloca-larger-than=1024
   -Wformat-security
-  -Wformat-overflow=2
-  -Wformat-truncation=2
   -Wdate-time
-  # Optional / more noisy:
-  # -Wpadded
-  # -Wstrict-aliasing=2
+
+  )
+
+# ===== GCC-specific warnings =====
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  add_compile_options(
+    -Wsign-compare
+    -Wrestrict
+    -Warray-bounds=2
+    -Wstringop-overflow=4
+    -Wstringop-truncation
+    -Wformat-overflow=2
+    -Wformat-truncation=2
+    -Wshift-overflow=2
+    -Wvla
+    -Wvla-larger-than=8192
+    -Walloca
+    -Walloca-larger-than=1024
+    -Wstrict-overflow=3
 )
+endif()
 
 
 

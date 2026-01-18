@@ -2,11 +2,10 @@
 #include <stdlib.h>
 
 #include "mymath.h"
-
+#define M 3
+#define N 2
 int main(void)
 {
-    unsigned int M = 3;
-    unsigned int N = 2;
     double xarr[N * M];
 
     for (unsigned int j = 0; j < N; j++)

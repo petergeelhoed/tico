@@ -6,9 +6,9 @@
 #include "mylib.h"
 #include "mysync.h"
 
+#define ArrayLength 20
 int main(void)
 {
-    const unsigned int ArrayLength = 20;
     unsigned int evalue = 1;
     int ipeak[ArrayLength];
 

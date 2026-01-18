@@ -243,7 +243,7 @@ void calculateTotal(unsigned int count,
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)
 {
     unsigned int ArrayLength = totaltick->ArrayLength;
-    int cross[ArrayLength / 2];
+    int* cross = malloc(ArrayLength / 2 * sizeof(int));
     crosscorint(ArrayLength / 2,
                 totaltick->arr,
                 totaltick->arr + ArrayLength / 2,
@@ -255,6 +255,7 @@ double getBeatError(const struct myarr* totaltick, double rate, int verbose)
         syncwrite(totaltick->arr + ArrayLength / 2, ArrayLength / 2, "t2");
     }
     unsigned int postick = getmaxpos(cross, ArrayLength / 2);
+    free(cross);
     return shiftHalf(postick, ArrayLength / 2) * THOUSAND / rate;
 }
 

@@ -7,9 +7,9 @@
 #include "myfft.h"
 #include "mylib.h"
 
+#define ArrayLength 48000
 int main(void)
 {
-    unsigned int ArrayLength = 48000;
 
     int blah[ArrayLength];
     int orig[ArrayLength];

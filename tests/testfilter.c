@@ -7,9 +7,10 @@
 #include "myfft.h"
 #include "mylib.h"
 
+#define ArrayLength 20
+
 int main(void)
 {
-    unsigned int ArrayLength = 20;
     unsigned int evalue = 2;
 
     fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);

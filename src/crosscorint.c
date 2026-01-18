@@ -3,6 +3,7 @@
 #include "mydefs.h"
 #include "myfft.h"
 
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 
@@ -53,7 +54,18 @@ void crosscorint(unsigned int ArrayLength,
     // Store results in the output array
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        cross[j] = (int)round(coor[j][0] * ArrayLength);
+
+        long tmp = lround(coor[j][0] * ArrayLength);
+
+        if (tmp > INT_MAX)
+        {
+            tmp = INT_MAX;
+        }
+        else if (tmp < INT_MIN)
+        {
+            tmp = INT_MIN;
+        }
+        cross[j] = (int)tmp;
     }
 
     // Free allocated memory

@@ -25,7 +25,38 @@ add_compile_options(
     -Wwrite-strings
     -funsigned-char
 
-    )
+
+  -Wswitch-enum
+  -Wswitch-default
+  -Wimplicit-fallthrough
+  -Wmissing-field-initializers
+  -Wnull-dereference
+  -Warray-bounds=2
+  -Wstringop-overflow=4
+  -Wstringop-truncation
+  -Wrestrict
+  -Wdouble-promotion
+  -Wstrict-overflow=3
+  -Wshift-overflow=2
+  -Wold-style-definition
+  -Wmissing-declarations
+  -Wredundant-decls
+  -Wbad-function-cast
+  -Wnested-externs
+  -Wvla
+  -Wvla-larger-than=8192
+  -Walloca
+  -Walloca-larger-than=1024
+  -Wformat-security
+  -Wformat-overflow=2
+#  -Wformat-truncation=2
+  -Wdate-time
+  # Optional / more noisy:
+  # -Wpadded
+  # -Wstrict-aliasing=2
+)
+
+
 
 
 # Prefer portable thread discovery; this also adds the correct link flags.

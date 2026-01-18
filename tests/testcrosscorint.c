@@ -6,10 +6,9 @@
 
 #include "myfft.h"
 #include "mylib.h"
-
+#define ArrayLength 20
 int main(void)
 {
-    unsigned int ArrayLength = 20;
     int peak[ArrayLength];
     int peak2[ArrayLength];
     int cross[ArrayLength];

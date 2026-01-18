@@ -8,9 +8,9 @@
 #include "mylib.h"
 #include "mysync.h"
 
+#define fitwindow 14
 int main(void)
 {
-    unsigned int fitwindow = 14;
     double xarr[fitwindow];
     double yarr[fitwindow];
     double a = 0;

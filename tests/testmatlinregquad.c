@@ -2,11 +2,10 @@
 #include <stdlib.h>
 
 #include "mymath.h"
-
+#define M 2
+#define N 4
 int main(void)
 {
-    unsigned int M = 2;
-    unsigned int N = 4;
     // 1+2x-0.5x^2
     double xarr[8] = {1.0, 1.0, 2.0, 4.0, 3.0, 9.0, 4.0, 16.0};
 

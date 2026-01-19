@@ -1,4 +1,6 @@
 #include "mylib.h"
+#include "mymath.h"
+
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -31,7 +33,7 @@ int main(void)
         struct exp test1 = array[i];
         int a = getInt(test1.input);
         double b = getDouble(test1.input);
-        if (b != test1.dbl)
+        if (!nearly_equal(b, test1.dbl))
         {
             if (isnan(b) && isnan(test1.dbl))
             {

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "myarr.h"
+#include "mydefs.h"
 #include "mymath.h"
 
 struct mymat
@@ -209,7 +210,7 @@ void fastlinreg(double coeffs[2],
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     coeffs[0] = 0.0;
     coeffs[1] = 0.0;
-    if (denom != 0.0)
+    if (fabs(denom) > DOUBLE_LIMIT)
     {
         coeffs[1] = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
         coeffs[0] = (Sum_wy - coeffs[1] * Sum_wx) / Sum_w;
@@ -454,4 +455,28 @@ void fitNpeaks(double* par_a,
             *par_b = b_1;
         }
     }
+}
+
+int nearly_equal(double number0, double number1)
+{
+    if (isnan(number0) || isnan(number1))
+    {
+        return 0; // NaNs are never equal
+    }
+    if (isinf(number0) || isinf(number1))
+    {
+        return 0;
+    }
+
+    const double abs_eps = DOUBLE_LIMIT;
+    const double rel_eps = DOUBLE_LIMIT;
+
+    const double diff = fabs(number0 - number1);
+    if (diff <= abs_eps)
+    {
+        return 1;
+    }
+
+    const double maxab = fmax(fabs(number0), fabs(number1));
+    return diff <= rel_eps * maxab;
 }

@@ -30,3 +30,5 @@ void fastlinreg(double coeffs[2],
                 unsigned int Npoints,
                 const double* vec,
                 const double* weight);
+
+int nearly_equal(double number0, double number1);

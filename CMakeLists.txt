@@ -7,18 +7,23 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
 
-# Base: portable across Clang & GCC
+
+# =========================================
+# Base: portable across Clang & GCC (C/C++)
+# =========================================
 add_compile_options(
     -Wall
-    -Wpedantic
     -Wextra
+    -Wpedantic
     -Werror
+
+    # Your existing set
     -Wshadow
     -Wpointer-arith
     -Wcast-qual
     -Wcast-align
-    -Wmissing-prototypes
-    -Wstrict-prototypes
+    -Wmissing-prototypes          # C only
+    -Wstrict-prototypes           # C only
     -Wconversion
     -Wsign-conversion
     -Wformat=2
@@ -31,29 +36,54 @@ add_compile_options(
     -Wmissing-field-initializers
     -Wnull-dereference
     -Wdouble-promotion
-    -Wold-style-definition
+    -Wold-style-definition        # C only
     -Wmissing-declarations
     -Wredundant-decls
-    -Wbad-function-cast
-    -Wnested-externs
+    -Wbad-function-cast           # C only (GCC/Clang both accept)
+    -Wnested-externs              # C only
     -Wformat-security
     -Wdate-time
     -Wsign-compare
-    -Warray-bounds
+    -Warray-bounds                # (no "=2" in Clang)
     -Wvla
     -Walloca
+    -Wfloat-equal                 # NaN/precision foot-guns
+    -Wtautological-compare        # obvious always true/false
+    -Woverlength-strings          # extremely long string literals
 )
 
-# ===== Clang-specific / Clang-strong warnings =====
+# ======================================================
+# Clang-specific / Clang-strong warnings (Clang 15+)
+# ======================================================
 if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   add_compile_options(
+    # You had these:
     -Wdocumentation
     -Wunreachable-code
     -Wformat-nonliteral
+
+    # More Clang goodness:
+    -Wcomma                               # comma used where logical ops intended
+    -Wbitwise-instead-of-logical          # a | b used instead of a || b
+    -Wlogical-not-parentheses             # ! applied without parentheses
+    -Wimplicit-int                        # C: missing type defaults to int (now error-prone in Clang 15)
+    -Wimplicit-function-declaration       # C: implicit decls (tightened in Clang 15)
+    -Wdeprecated-non-prototype            # C: decls without prototype (C2x semantics)
+    -Wreserved-identifier                 # identifiers starting with _ or __
+    -Wnewline-eof                         # final newline hygiene
+    -Warray-parameter                     # array-to-pointer decay surprises in prototypes
+    -Warray-bounds-pointer-arithmetic     # pointer arithmetic going past arrays
+    -Wassign-enum                         # assigning ints to enums etc.
+    -Wswitch-bool                         # switch on boolean suspicious
+    -Wshadow-uncaptured-local     # C++ lambdas; harmless on C
+    -Wconditional-uninitialized   # uninit via conditionals (Clang strong)
   )
 endif()
 
-# ===== GCC-specific warnings =====
+
+# ==========================
+# GCC-specific (your list)
+# ==========================
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   add_compile_options(
     -Wrestrict
@@ -66,6 +96,9 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     -Walloca-larger-than=1024
     -Wstrict-overflow=3
     -Warray-bounds=2
+    -Wlogical-op                        # GCC’s version of logical-op pitfalls
+    -Wduplicated-cond                   # duplicated conditions in if/else if
+    -Wduplicated-branches               # duplicated branches
   )
 endif()
 

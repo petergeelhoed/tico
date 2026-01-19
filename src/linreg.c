@@ -1,5 +1,7 @@
-
+#include "mydefs.h"
 #include "mylib.h"
+
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 // this gives par_a liniar weight , not par_a squared one like gnuplot or
@@ -39,7 +41,7 @@ int main(void)
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     double par_a = 0.0;
     double par_b = 0.0;
-    if (denom != 0.0)
+    if (fabs(denom) > DOUBLE_LIMIT)
     {
         par_b = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
         par_a = (Sum_wy - par_b * Sum_wx) / Sum_w;

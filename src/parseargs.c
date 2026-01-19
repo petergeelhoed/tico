@@ -76,7 +76,7 @@ static int checkFloatArg(int name, double* value, char* opt_arg)
 
     char* endp = NULL;
     *value = strtod(opt_arg, &endp);
-    if (*value == 0 || opt_arg == endp)
+    if (opt_arg == endp || fabs(*value) < DOUBLE_LIMIT)
     {
         printf("invalid float argument for -%c: '%s'\n", (char)name, opt_arg);
         return -1;

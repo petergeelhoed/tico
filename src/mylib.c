@@ -290,6 +290,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
             }
         }
         (void)fclose(fpDefPeak);
+        fpDefPeak = NULL;
     }
     else
     {

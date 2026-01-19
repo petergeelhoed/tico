@@ -88,14 +88,21 @@ static AppResources allocate_resources(unsigned int ArrayLength,
 
 static void cleanup_resources(AppResources* res, CapConfig* cfg)
 {
+    if (cfg->fpposition)
+    {
+        (void)fclose(cfg->fpposition);
+    }
     if (cfg->fpInput)
     {
-        fclose(cfg->fpInput);
+        (void)fclose(cfg->fpInput);
     }
     if (cfg->fpmaxcor)
     {
-        printTOD(cfg->fpmaxcor);
         (void)fclose(cfg->fpmaxcor);
+    }
+    if (cfg->fptotal)
+    {
+        (void)fclose(cfg->fptotal);
     }
     free(res->audioBuffer);
     freemyarr(res->subpos);
@@ -284,7 +291,10 @@ int main(int argc, char* argv[])
     {
         calculateTotalFromFile(
             totalTickTock, cfg.fpposition, ArrayLength, cfg.SDthreshold);
-        (void)fclose(cfg.fpposition);
+    }
+    if (cfg.fpmaxcor)
+    {
+        printTOD(cfg.fpmaxcor);
     }
 
     if (cfg.fptotal)
@@ -295,16 +305,15 @@ int main(int argc, char* argv[])
             toothshift = getshift(*res.teethArray[0], cumulativeTick);
             for (unsigned int j = 0; j < ArrayLength; ++j)
             {
-                fprintf(cfg.fptotal,
-                        "%d %d %u %d\n",
-                        (int)j + toothshift,
-                        cumulativeTick.arr[j],
-                        t,
-                        toothshift);
+                (void)fprintf(cfg.fptotal,
+                              "%d %d %u %d\n",
+                              (int)j + toothshift,
+                              cumulativeTick.arr[j],
+                              t,
+                              toothshift);
             }
-            fprintf(cfg.fptotal, "\n\n");
+            (void)fprintf(cfg.fptotal, "\n\n");
         }
-        fclose(cfg.fptotal);
     }
 
     cleanup_resources(&res, &cfg);

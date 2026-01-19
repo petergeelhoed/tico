@@ -144,7 +144,13 @@ int main(int argc, char* argv[])
                      .teeth = DEFAULT_TEETH,
                      .SDthreshold = DEFAULT_SDTHRESHOLD,
                      .device = "default:2",
-                     .cvalue = DEFAULT_CVALUE};
+                     .cvalue = DEFAULT_CVALUE,
+                     .fpposition = NULL,
+                     .fpmaxcor = NULL,
+                     .fptotal = NULL,
+                     .fpDefPeak = NULL,
+                     .fpInput = NULL};
+
     parse_arguments(argc, argv, &cfg);
 
     struct winsize windowSize;

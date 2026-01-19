@@ -6,11 +6,13 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
+
+# Base: portable across Clang & GCC
 add_compile_options(
-        -Wall
-        -Wpedantic
-        -Wextra 
-        -Werror
+    -Wall
+    -Wpedantic
+    -Wextra
+    -Werror
     -Wshadow
     -Wpointer-arith
     -Wcast-qual
@@ -23,41 +25,48 @@ add_compile_options(
     -Wundef
     -Wwrite-strings
     -funsigned-char
+    -Wswitch-enum
+    -Wswitch-default
+    -Wimplicit-fallthrough
+    -Wmissing-field-initializers
+    -Wnull-dereference
+    -Wdouble-promotion
+    -Wold-style-definition
+    -Wmissing-declarations
+    -Wredundant-decls
+    -Wbad-function-cast
+    -Wnested-externs
+    -Wformat-security
+    -Wdate-time
+    -Wsign-compare
+    -Warray-bounds
+    -Wvla
+    -Walloca
+)
 
-
-  -Wswitch-enum
-  -Wswitch-default
-  -Wimplicit-fallthrough
-  -Wmissing-field-initializers
-  -Wnull-dereference
-  -Wdouble-promotion
-  -Wold-style-definition
-  -Wmissing-declarations
-  -Wredundant-decls
-  -Wbad-function-cast
-  -Wnested-externs
-  -Wformat-security
-  -Wdate-time
-
+# ===== Clang-specific / Clang-strong warnings =====
+if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  add_compile_options(
+    -Wdocumentation
+    -Wunreachable-code
+    -Wformat-nonliteral
   )
+endif()
 
 # ===== GCC-specific warnings =====
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   add_compile_options(
-    -Wsign-compare
     -Wrestrict
-    -Warray-bounds=2
     -Wstringop-overflow=4
     -Wstringop-truncation
     -Wformat-overflow=2
     -Wformat-truncation=2
     -Wshift-overflow=2
-    -Wvla
     -Wvla-larger-than=8192
-    -Walloca
     -Walloca-larger-than=1024
     -Wstrict-overflow=3
-)
+    -Warray-bounds=2
+  )
 endif()
 
 

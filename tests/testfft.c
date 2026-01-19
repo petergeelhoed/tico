@@ -46,7 +46,6 @@ int main(void)
     fprintf(stderr, "========croscor ===\n");
     for (unsigned int j = 0; j < ArrayLength; j++)
         fprintf(stderr, "%6d %f\n", j, cor[j][0]);
-    exit(0);
     fprintf(stderr, "========filter ===\n");
     for (unsigned int j = 0; j < ArrayLength; j++)
         fprintf(stderr, "%6d %f\n", j, filter[j][0]);

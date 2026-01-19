@@ -283,6 +283,31 @@ int main(int argc, char* argv[])
         (void)fclose(cfg.fpposition);
     }
 
+    if (cfg.fptotal)
+    {
+        for (unsigned int t = 0; t < cfg.teeth; ++t)
+        {
+            struct myarr cumulativeTick = *res.teethArray[t];
+            toothshift = getshift(*res.teethArray[0], cumulativeTick);
+            for (unsigned int j = 0; j < ArrayLength; ++j)
+            {
+                fprintf(cfg.fptotal,
+                        "%d %d %u %d\n",
+                        (int)j + toothshift,
+                        cumulativeTick.arr[j],
+                        t,
+                        toothshift);
+            }
+            fprintf(cfg.fptotal, "\n\n");
+        }
+        fclose(cfg.fptotal);
+    }
+
+    if (cfg.fpInput)
+    {
+        fclose(cfg.fpInput);
+    }
+
     cleanup_resources(&res, cfg.teeth);
     if (capture_handle)
     {

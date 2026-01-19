@@ -132,11 +132,18 @@ void readBufferRaw(snd_pcm_t* capture_handle,
                       snd_strerror((int)err));
         exit(READ_FAILED);
     }
+    int overflow = 0;
     for (unsigned int index = 0; index < 2 * data_in->ArrayLength; index += 2)
     {
         msb = (signed char)buffer[index + 1];
         lsb = *(buffer + index);
         data_in->arr[index / 2] = (msb << BITS_IN_BYTE) | lsb;
+        overflow += (data_in->arr[index / 2] == SHRT_MAX);
+        overflow += (data_in->arr[index / 2] == SHRT_MIN);
+    }
+    if (overflow > 1)
+    {
+        (void)fprintf(stderr, "%d audio 16bit overflows\n", overflow);
     }
 }
 
@@ -176,11 +183,18 @@ int readBuffer(snd_pcm_t* capture_handle,
             err = (int)ArrayLength;
         }
     }
+    int overflow = 0;
     for (unsigned int index = 0; index < ArrayLength * 2; index += 2)
     {
         msb = (signed char)buffer[index + 1];
         lsb = *(buffer + index);
         derivative[index / 2] = (msb << BITS_IN_BYTE) | lsb;
+        overflow += (derivative[index / 2] == SHRT_MAX);
+        overflow += (derivative[index / 2] == SHRT_MIN);
+    }
+    if (overflow > 1)
+    {
+        (void)fprintf(stderr, "%d audio 16bit overflows\n", overflow);
     }
     //       remove50hz(ArrayLength,data_in,48000);
 

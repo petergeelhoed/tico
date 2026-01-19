@@ -100,13 +100,15 @@ static void parse_sd_threshold(const char* arg, double* threshold)
     }
 }
 
-// Hulpfunctie voor bestandshandling
 static void
 handle_file_arg(int opt, FILE** filePtr, const char* arg, const char* mode)
 {
-    if (checkFileArg(opt, filePtr, arg, mode) != 0)
+    if (*filePtr == NULL)
     {
-        exit(-1);
+        if (checkFileArg(opt, filePtr, arg, mode) != 0)
+        {
+            exit(-1);
+        }
     }
 }
 

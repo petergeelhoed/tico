@@ -86,8 +86,17 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     return res;
 }
 
-static void cleanup_resources(AppResources* res, unsigned int teeth)
+static void cleanup_resources(AppResources* res, CapConfig* cfg)
 {
+    if (cfg->fpInput)
+    {
+        fclose(cfg->fpInput);
+    }
+    if (cfg->fpmaxcor)
+    {
+        printTOD(cfg->fpmaxcor);
+        (void)fclose(cfg->fpmaxcor);
+    }
     free(res->audioBuffer);
     freemyarr(res->subpos);
     freemyarr(res->maxpos);
@@ -96,7 +105,7 @@ static void cleanup_resources(AppResources* res, unsigned int teeth)
     freemyarr(res->tmpder);
     freemyarr(res->reference);
     fftw_free(res->filterFFT);
-    for (unsigned int t = 0; t < teeth; t++)
+    for (unsigned int t = 0; t < cfg->teeth; t++)
     {
         freemyarr(res->teethArray[t]);
     }
@@ -271,11 +280,6 @@ int main(int argc, char* argv[])
     }
 
     // Post-run cleanup and final file writes
-    if (cfg.fpmaxcor)
-    {
-        printTOD(cfg.fpmaxcor);
-        (void)fclose(cfg.fpmaxcor);
-    }
     if (cfg.fpposition)
     {
         calculateTotalFromFile(
@@ -303,12 +307,7 @@ int main(int argc, char* argv[])
         fclose(cfg.fptotal);
     }
 
-    if (cfg.fpInput)
-    {
-        fclose(cfg.fpInput);
-    }
-
-    cleanup_resources(&res, cfg.teeth);
+    cleanup_resources(&res, &cfg);
     if (capture_handle)
     {
         snd_pcm_close(capture_handle);

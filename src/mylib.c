@@ -21,7 +21,7 @@ void printheader(double fittedRate,
 {
     if (everyline)
     {
-        char tmp[DOUBLE_BUF];
+        static char tmp[DOUBLE_BUF];
 
         (void)sprintf(tmp, "%4.2f", beatError);
         (void)sprintf(tmp + BEAT_WIDTH - 1, "ms%+5.1f", fittedRate);

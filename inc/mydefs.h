@@ -36,6 +36,7 @@
 #define INPUT_OVERFLOW -4
 #define KILO 1000.
 #define LINESIZE 256
+#define MAX_DEVICE_LENGTH 80
 #define MAX_COLUMNS 1024
 #define MEGA 1000000.
 #define NR_TESTS 5

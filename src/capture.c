@@ -45,6 +45,12 @@ static void shift_buffer_data(unsigned int* ticktock,
 static int
 init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
 {
+    if (cfg->fpInput == NULL && *cfg->device == '\0')
+    {
+        printf("device and file are NULL\n");
+        exit(EXIT_FAILURE);
+    }
+
     *actualRate = (unsigned int)(cfg->rate + HALF);
     if (cfg->fpInput == NULL)
     {
@@ -137,6 +143,7 @@ int main(int argc, char* argv[])
                      .fitN = DEFAULT_FITN,
                      .teeth = DEFAULT_TEETH,
                      .SDthreshold = DEFAULT_SDTHRESHOLD,
+                     .device = "default:2",
                      .cvalue = DEFAULT_CVALUE};
     parse_arguments(argc, argv, &cfg);
 

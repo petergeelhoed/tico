@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 static void print_usage(void)
@@ -189,7 +190,14 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
 
         // Group 4: Flags & Help
         case 'd':
-            cfg->device = optarg;
+            if (strlen(optarg) >= MAX_DEVICE_LENGTH)
+            {
+                (void)fprintf(stderr,
+                              "truncating device length to %d\n",
+                              MAX_DEVICE_LENGTH - 1);
+            }
+            strncpy(cfg->device, optarg, MAX_DEVICE_LENGTH - 1);
+            cfg->device[MAX_DEVICE_LENGTH - 1] = '\n';
             break;
         case 'l':
             cfg->everyline = EVERY_WIDTH;

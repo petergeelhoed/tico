@@ -9,7 +9,7 @@ typedef struct
     unsigned int bph, evalue, zoom, time, everyline, cvalue, verbose, fitN,
         teeth;
     double SDthreshold;
-    char* device;
+    char device[MAX_DEVICE_LENGTH];
     FILE *fpposition, *fpmaxcor, *fptotal, *fpDefPeak, *fpInput;
 } CapConfig;
 

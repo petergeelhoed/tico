@@ -78,7 +78,7 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.reference = makemyarr(ArrayLength);
     res.filterFFT = makeFilter(evalue, ArrayLength);
     res.audioBuffer = calloc(ArrayLength, 2); // 16-bit depth
-    res.teethArray = malloc(sizeof(struct myarr*) * teeth);
+    res.teethArray = calloc(teeth, sizeof(*res.teethArray));
     for (unsigned int t = 0; t < teeth; t++)
     {
         res.teethArray[t] = makemyarr(ArrayLength);

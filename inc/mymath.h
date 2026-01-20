@@ -16,8 +16,8 @@ void matlinreg(double coeffs[2],
                double* vec,
                const double* weight);
 
-void fitNpeaks(double* par_a,
-               double* par_b,
+void fitNpeaks(double* intercept,
+               double* slope,
                unsigned int cur_pos,
                const struct myarr* maxvals,
                const struct myarr* maxes,

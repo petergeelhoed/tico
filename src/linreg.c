@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-// this gives par_a liniar weight , not par_a squared one like gnuplot or
+// this gives intercept liniar weight , not intercept squared one like gnuplot or
 // matlinreg from mymath
 int main(void)
 {
@@ -38,14 +38,14 @@ int main(void)
         Sum_wxy += weight * x_arr * y_arr;
     }
 
-    // Sum_olve weighted simple linear regression y_arr = par_a + par_b x_arr
+    // Sum_olve weighted simple linear regression y_arr = intercept + slope x_arr
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
-    double par_a = 0.0;
-    double par_b = 0.0;
+    double intercept = 0.0;
+    double slope = 0.0;
     if (fabs(denom) > DOUBLE_LIMIT)
     {
-        par_b = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
-        par_a = (Sum_wy - par_b * Sum_wx) / Sum_w;
+        slope = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
+        intercept = (Sum_wy - slope * Sum_wx) / Sum_w;
     }
     else
     {
@@ -53,6 +53,6 @@ int main(void)
                       "Degenerate data: cannot regress (denominator zero)\n");
     }
 
-    (void)printf("%10.6g %10.6g\n", par_a, par_b);
+    (void)printf("%10.6g %10.6g\n", intercept, slope);
     return 0;
 }

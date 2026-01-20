@@ -89,9 +89,9 @@ void printspaces(int maxpos,
 void linreg(const double* xarr,
             const double* yarr,
             unsigned int ArrayLength,
-            double* par_a,
-            double* par_b,
-            double* par_s)
+            double* intercept,
+            double* slope,
+            double* stdev)
 {
     double sum_x = 0;
     double sum_y = 0;
@@ -107,14 +107,14 @@ void linreg(const double* xarr,
         sum_yy += yarr[i] * yarr[i];
     }
 
-    *par_a = (sum_y * sum_xx - sum_x * sum_xy) /
+    *intercept = (sum_y * sum_xx - sum_x * sum_xy) /
              (ArrayLength * sum_xx - sum_x * sum_x);
-    *par_b = (ArrayLength * sum_xy - sum_x * sum_y) /
+    *slope = (ArrayLength * sum_xy - sum_x * sum_y) /
              (ArrayLength * sum_xx - sum_x * sum_x);
-    *par_s = sqrt((sum_yy - 2 * (*par_a) * sum_y - 2 * (*par_b) * sum_xy +
-                   2 * (*par_a) * (*par_b) * sum_x +
-                   (*par_a) * (*par_a) * ArrayLength +
-                   (*par_b) * (*par_b) * sum_xx) /
+    *stdev = sqrt((sum_yy - 2 * (*intercept) * sum_y - 2 * (*slope) * sum_xy +
+                   2 * (*intercept) * (*slope) * sum_x +
+                   (*intercept) * (*intercept) * ArrayLength +
+                   (*slope) * (*slope) * sum_xx) /
                   ArrayLength);
 }
 
@@ -161,9 +161,9 @@ static void calculateTotal(unsigned int count,
                            double threshold,
                            double rate)
 {
-    double par_b = 0.0;
-    double par_a = 0.0;
-    double par_s = 0.0;
+    double slope = 0.0;
+    double intercept = 0.0;
+    double stdev = 0.0;
     double* xarr = calloc(count, sizeof(double));
     if (xarr == NULL)
     {
@@ -175,19 +175,19 @@ static void calculateTotal(unsigned int count,
         xarr[i] = (double)i;
     }
 
-    linreg(xarr, maxpos, count, &par_a, &par_b, &par_s);
+    linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
     /*
-       par_a /= ArrayLength*ArrayLength;
-       par_b /= ArrayLength;
-       par_s /= rate;
+       intercept /= ArrayLength*ArrayLength;
+       slope /= ArrayLength;
+       stdev /= rate;
      */
 
     (void)fprintf(stderr,
                   "unweighted raw rate: %f s/d, %d samples σ=%.2gms\n",
-                  -par_b * SECS_DAY / ArrayLength,
+                  -slope * SECS_DAY / ArrayLength,
                   count,
-                  par_s * THOUSAND / rate);
+                  stdev * THOUSAND / rate);
     unsigned int maxIndex = 0;
 
     double deviation;
@@ -196,7 +196,7 @@ static void calculateTotal(unsigned int count,
     {
         for (unsigned int i = 0; i < count; ++i)
         {
-            deviation = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
+            deviation = fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
             if (deviation < threshold)
             {
                 maxpos[maxIndex] = maxpos[i];
@@ -207,13 +207,13 @@ static void calculateTotal(unsigned int count,
         count = maxIndex;
         maxIndex = 0;
 
-        linreg(xarr, maxpos, count, &par_a, &par_b, &par_s);
+        linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
         (void)fprintf(stderr,
                       "after %.1fσ (%.2gms) removal: %.2f s/d, %d samples\n",
                       threshold,
-                      par_s * THOUSAND / rate,
-                      -par_b * SECS_DAY / ArrayLength,
+                      stdev * THOUSAND / rate,
+                      -slope * SECS_DAY / ArrayLength,
                       count);
         threshold /= 2;
     }

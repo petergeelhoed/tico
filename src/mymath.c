@@ -222,7 +222,7 @@ void fastlinreg(double coeffs[2],
     }
 }
 
-// Accumulate sufficient stats for weighted y = par_a + par_b x
+// Accumulate sufficient stats for weighted y = intercept + slope x
 static int fastlinreg_sufficient_stats(
     long double* Sum_w,
     long double* Sum_wx,
@@ -236,8 +236,8 @@ static int fastlinreg_sufficient_stats(
     const struct myarr* maxes,
     const struct myarr* subpos,
     int skip_outliers,
-    double par_a,
-    double par_b,
+    double intercept,
+    double slope,
     double stdev_threshold // absolute threshold; compare with residual
 )
 {
@@ -257,7 +257,7 @@ static int fastlinreg_sufficient_stats(
 
         if (skip_outliers)
         {
-            double deviation = y_val - (par_a + par_b * x_val);
+            double deviation = y_val - (intercept + slope * x_val);
             if (fabs(deviation) > stdev_threshold)
             {
                 continue;
@@ -280,8 +280,8 @@ static int fastlinreg_sufficient_stats(
     return (*Sum_w > 0.0L) ? 1 : 0;
 }
 
-static int solve_weighted_line(double* par_a,
-                               double* par_b,
+static int solve_weighted_line(double* intercept,
+                               double* slope,
                                long double Sum_w,
                                long double Sum_wx,
                                long double Sum_wy,
@@ -296,14 +296,14 @@ static int solve_weighted_line(double* par_a,
     }
     long double b_L = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
     long double a_L = (Sum_wy - b_L * Sum_wx) / Sum_w;
-    *par_a = (double)a_L;
-    *par_b = (double)b_L;
+    *intercept = (double)a_L;
+    *slope = (double)b_L;
     return 1;
 }
 
-// Compute weighted residual SSE for given (par_a,par_b) over the window
-static long double compute_weighted_SSE(double par_a,
-                                        double par_b,
+// Compute weighted residual SSE for given (intercept,slope) over the window
+static long double compute_weighted_SSE(double intercept,
+                                        double slope,
                                         const unsigned int cur_pos,
                                         const unsigned int fitwindow,
                                         const struct myarr* maxvals,
@@ -327,7 +327,7 @@ static long double compute_weighted_SSE(double par_a,
             continue;
         }
 
-        double deviation = y_val - (par_a + par_b * x_val);
+        double deviation = y_val - (intercept + slope * x_val);
         long double w_l = (long double)weight;
         SSE += w_l * (long double)(deviation * deviation);
         Sum_w += w_l;
@@ -344,8 +344,8 @@ static long double compute_weighted_SSE(double par_a,
     return SSE;
 }
 
-void fitNpeaks(double* par_a,
-               double* par_b,
+void fitNpeaks(double* intercept,
+               double* slope,
                const unsigned int cur_pos,
                const struct myarr* maxvals,
                const struct myarr* maxes,
@@ -377,14 +377,14 @@ void fitNpeaks(double* par_a,
                                               maxes,
                                               subpos,
                                               /*skip_outliers=*/0,
-                                              /*par_a=*/0.0,
-                                              /*par_b=*/0.0,
+                                              /*intercept=*/0.0,
+                                              /*slope=*/0.0,
                                               /*stdev_threshold=*/0.0);
         if (!ok1)
         {
             // No valid data
-            *par_a = 0.0;
-            *par_b = 0.0;
+            *intercept = 0.0;
+            *slope = 0.0;
             return;
         }
 
@@ -394,8 +394,8 @@ void fitNpeaks(double* par_a,
                 &a_1, &b_1, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
         {
             (void)fprintf(stderr, "Degenerate data in initial fit\n");
-            *par_a = 0.0;
-            *par_b = 0.0;
+            *intercept = 0.0;
+            *slope = 0.0;
             return;
         }
 
@@ -445,14 +445,14 @@ void fitNpeaks(double* par_a,
         if (ok1 && solve_weighted_line(
                        &a_2, &b_2, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
         {
-            *par_a = a_2;
-            *par_b = b_2;
+            *intercept = a_2;
+            *slope = b_2;
         }
         else
         {
             // Fall back to initial fit if second pass degenerates
-            *par_a = a_1;
-            *par_b = b_1;
+            *intercept = a_1;
+            *slope = b_1;
         }
     }
 }

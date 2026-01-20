@@ -71,8 +71,8 @@ static Signal read_input(void)
 static void run_fft(Signal sig, Config cfg)
 {
     unsigned int arrayLength = sig.count * cfg.z;
-    double par_a = 0.0;
-    double par_b = 0.0;
+    double intercept = 0.0;
+    double slope = 0.0;
     double s_err = 0.0;
 
     // Linear regression removal
@@ -83,9 +83,9 @@ static void run_fft(Signal sig, Config cfg)
         {
             tmpx[i] = i;
         }
-        linreg(tmpx, sig.data, sig.count, &par_a, &par_b, &s_err);
+        linreg(tmpx, sig.data, sig.count, &intercept, &slope, &s_err);
         (void)fprintf(
-            stderr, "par_a=%lf par_b=%lf s=%lf\n", par_a, par_b, s_err);
+            stderr, "intercept=%lf slope=%lf s=%lf\n", intercept, slope, s_err);
         free(tmpx);
     }
 
@@ -94,7 +94,7 @@ static void run_fft(Signal sig, Config cfg)
 
     for (unsigned int i = 0; i < arrayLength; i++)
     {
-        data_in[i][0] = (i < sig.count) ? (sig.data[i] - par_a - par_b * i) : 0;
+        data_in[i][0] = (i < sig.count) ? (sig.data[i] - intercept - slope * i) : 0;
         data_in[i][1] = 0;
     }
 

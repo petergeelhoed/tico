@@ -306,17 +306,17 @@ int main(int argc, char* argv[])
 
         process_logging(&cfg, &res, ticktock, DEFAULT_TICKTOCK_WRITE);
 
-        double par_a = 0.0;
-        double par_b = 0.0;
-        fitNpeaks(&par_a,
-                  &par_b,
+        double intercept = 0.0;
+        double slope = 0.0;
+        fitNpeaks(&intercept,
+                  &slope,
                   ticktock,
                   res.maxvals,
                   res.maxpos,
                   res.subpos,
                   cfg.fitN,
                   cfg.SDthreshold);
-        printheader(par_b * SECS_DAY / ArrayLength,
+        printheader(slope * SECS_DAY / ArrayLength,
                     cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * ArrayLength / cfg.rate);
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
                     res.maxvals->arrd[ticktock] * HEXDEC,
                     mod,
                     columns - cfg.everyline,
-                    par_a,
+                    intercept,
                     cfg.cvalue);
 
         ticktock++;

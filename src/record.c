@@ -116,9 +116,7 @@ int main(int argc, char* argv[])
     free(device_mutable);
     fftw_free(filterFFT);
     fftw_cleanup();
-    wait();
-
-    (void)fclose(filePtr);
+    wait_close(filePtr);
     if (capture_handle)
     {
         snd_pcm_close(capture_handle);

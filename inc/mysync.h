@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+void wait_close(FILE* file);
 void wait(void);
 int syncwrite(int* input, unsigned int ArrayLength, const char* file);
 void writearray(int* arr, unsigned int ArrayLength, const char* file);

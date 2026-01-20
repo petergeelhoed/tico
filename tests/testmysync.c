@@ -22,7 +22,6 @@ int main(void)
 
     syncAppendMyarr(&refdouble, file);
 
-    wait();
-    fclose(file);
+    wait_close(file);
     return 0;
 }

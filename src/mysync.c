@@ -38,6 +38,11 @@ struct append_task
     FILE* file; /* not owned by worker; must stay open until worker finishes */
 };
 
+void wait_close(FILE* file)
+{
+    wait();
+    (void)fclose(file);
+}
 void wait(void)
 {
     thread_ctr_lock();
@@ -324,14 +329,14 @@ void printTOD(FILE* out)
 
     const int nineteenhundred = 1900;
     (void)fprintf(out,
-                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lu.%06lu\n",
+                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
                   today->tm_year + nineteenhundred,
                   today->tm_mon + 1,
                   today->tm_mday,
                   today->tm_hour,
                   today->tm_min,
                   today->tm_sec,
-                  time.tv_usec,
-                  time.tv_sec,
-                  time.tv_usec);
+                  (long)time.tv_usec,
+                  (long long)time.tv_sec,
+                  (long)time.tv_usec);
 }

@@ -18,7 +18,6 @@ int main(void)
         syncAppendMyarr(test, filePtr);
     }
     freemyarr(test);
-    wait();
-    (void)fclose(filePtr);
+    wait_close(filePtr);
     exit(0);
 }

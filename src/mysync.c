@@ -33,6 +33,16 @@ static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
 static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
 static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
 
+static void decr_count(void)
+{
+    thread_ctr_lock();
+    count--;
+    if (count == 0)
+    {
+        pthread_cond_broadcast(&ctr_zero);
+    }
+    thread_ctr_unlock();
+}
 /* -----------------------------------------------------------------------------
  * Task payload passed to worker thread
  * Define once at file scope to avoid UB from multiple anonymous struct tags.
@@ -56,9 +66,6 @@ void wait(void) /* keep the original name/signature for compatibility */
     thread_ctr_unlock();
 }
 
-/* -----------------------------------------------------------------------------
- * Utility: write an array to a new file (format-specifier fixed for 'j')
- * -------------------------------------------------------------------------- */
 void writearray(int* arr, unsigned int ArrayLength, const char* file)
 {
     FILE* filePtr = fopen(file, "w");
@@ -70,8 +77,7 @@ void writearray(int* arr, unsigned int ArrayLength, const char* file)
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        (void)fprintf(
-            filePtr, "%u %d\n", j, arr[j]); /* %u for unsigned int j */
+        (void)fprintf(filePtr, "%u %d\n", j, arr[j]);
     }
 
     if (fclose(filePtr))
@@ -117,15 +123,7 @@ void* threadAppendMyarr(void* inStruct)
     free(mine->array);
     free(mine);
 
-    /* Decrement worker count and signal if we reached zero */
-    thread_ctr_lock();
-    count--;
-    if (count == 0)
-    {
-        (void)pthread_cond_broadcast(&ctr_zero);
-    }
-    thread_ctr_unlock();
-
+    decr_count();
     return NULL; /* no need to call pthread_exit(NULL) explicitly */
 }
 
@@ -137,12 +135,12 @@ void* threadAppendMyarr(void* inStruct)
  * If you rely on the returned value, consider changing the signature to return
  * 'pthread_t' or simply 'int' for success/failure.
  * -------------------------------------------------------------------------- */
-long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
+void syncAppendMyarr(struct myarr* input, FILE* file)
 {
     if (input == NULL || file == NULL)
     {
         errno = EINVAL;
-        return 0;
+        return;
     }
 
     /* Allocate and deep-copy the payload for the worker thread */
@@ -150,46 +148,26 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
     if (info == NULL)
     {
         perror("Error allocating task");
-        return 0;
+        return;
     }
 
-    struct myarr* local = malloc(sizeof(*local));
+    struct myarr* local = input->arr != NULL ? makemyarr(input->ArrayLength)
+                                             : makemyarrd(input->ArrayLength);
     if (local == NULL)
     {
         perror("Error allocating myarr");
         free(info);
-        return 0;
+        return;
     }
-    local->arr = NULL;
-    local->arrd = NULL;
-    local->ArrayLength = input->ArrayLength;
-
     /* Copy int array if present and length > 0 */
     if (input->arr != NULL && input->ArrayLength > 0)
     {
-        local->arr = malloc(input->ArrayLength * sizeof(int));
-        if (local->arr == NULL)
-        {
-            perror("Error allocating arr");
-            free(local);
-            free(info);
-            return 0;
-        }
         memcpy(local->arr, input->arr, input->ArrayLength * sizeof(int));
     }
 
     /* Copy double array if present and length > 0 */
     if (input->arrd != NULL && input->ArrayLength > 0)
     {
-        local->arrd = malloc(input->ArrayLength * sizeof(double));
-        if (local->arrd == NULL)
-        {
-            perror("Error allocating arrd");
-            free(local->arr); /* OK if NULL */
-            free(local);
-            free(info);
-            return 0;
-        }
         memcpy(local->arrd, input->arrd, input->ArrayLength * sizeof(double));
     }
 
@@ -207,72 +185,45 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
     {
         perror("pthread_attr_init failed");
 
-        /* Roll back count */
-        thread_ctr_lock();
-        count--;
-        if (count == 0)
-        {
-            pthread_cond_broadcast(&ctr_zero);
-        }
-        thread_ctr_unlock();
+        decr_count();
 
         free(local->arrd);
         free(local->arr);
         free(local);
         free(info);
-        return 0;
+        return;
     }
     if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0)
     {
         perror("pthread_attr_setdetachstate failed");
 
-        (void)pthread_attr_destroy(&attr); /* clean up attributes */
+        (void)pthread_attr_destroy(&attr);
 
-        /* Roll back count */
-        thread_ctr_lock();
-        count--;
-        if (count == 0)
-        {
-            pthread_cond_broadcast(&ctr_zero);
-        }
-        thread_ctr_unlock();
+        decr_count();
 
         free(local->arrd);
         free(local->arr);
         free(local);
         free(info);
-        return 0;
+        return;
     }
 
     pthread_t tid;
     const int succes = pthread_create(&tid, &attr, threadAppendMyarr, info);
-
-    /* Attributes are no longer needed after pthread_create (success or failure)
-     */
     (void)pthread_attr_destroy(&attr);
 
     if (succes != 0)
     {
         perror("Error creating thread");
 
-        /* Roll back count */
-        thread_ctr_lock();
-        count--;
-        if (count == 0)
-        {
-            pthread_cond_broadcast(&ctr_zero);
-        }
-        thread_ctr_unlock();
+        decr_count();
 
         /* Free payload */
         free(local->arrd);
         free(local->arr);
         free(local);
         free(info);
-        return 0;
     }
-
-    return (long unsigned int)tid;
 }
 
 void* threadAppend(void* inStruct)

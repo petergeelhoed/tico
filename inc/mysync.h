@@ -9,5 +9,5 @@ void* threadAppend(void* inStruct);
 void writearray(int* arr, unsigned int ArrayLength, const char* file);
 void printTOD(FILE* out);
 
-unsigned long int syncAppendMyarr(struct myarr* input, FILE* file);
+void syncAppendMyarr(struct myarr* input, FILE* file);
 void* threadAppendMyarr(void* inStruct);

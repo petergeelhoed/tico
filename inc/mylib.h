@@ -30,12 +30,8 @@ void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength);
 void calculateTotalFromFile(unsigned int count,
                             FILE* rawfile,
                             unsigned int ArrayLength,
-                            double threshold);
-
-void calculateTotal(unsigned int count,
-                    double* maxpos,
-                    unsigned int ArrayLength,
-                    double threshold);
+                            double threshold,
+                            double rate);
 
 double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 

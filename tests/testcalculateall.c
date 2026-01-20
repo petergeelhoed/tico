@@ -12,7 +12,7 @@ int main(void)
 
     if (rawfile)
     {
-        calculateTotalFromFile(7, rawfile, 16000, 3.0);
+        calculateTotalFromFile(7, rawfile, 16000, 3.0, 48000);
         fclose(rawfile);
     }
     exit(0);

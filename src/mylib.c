@@ -155,40 +155,11 @@ unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
     return postick;
 }
 
-void calculateTotalFromFile(unsigned int count,
-                            FILE* rawfile,
-                            unsigned int ArrayLength,
-                            double threshold)
-{
-    errno = 0;
-    if (fseek(rawfile, 0, SEEK_SET) == -1)
-    {
-        (void)fprintf(stderr, "fseek fauled with %d\n", errno);
-        return;
-    }
-    double* all = calloc(count, sizeof(double));
-    unsigned int index = 0;
-    if (all)
-    {
-        size_t bufsize = BUF_SIZE;
-        char* buf = malloc(bufsize * sizeof(char));
-        while (getline(&buf, &bufsize, rawfile) > 0 && index < count)
-        {
-            if (buf[0] != '#')
-            {
-                all[index++] = getDouble(buf);
-            }
-        }
-        free(buf);
-        calculateTotal(count, all, ArrayLength, threshold);
-        free(all);
-    }
-}
-
-void calculateTotal(unsigned int count,
-                    double* maxpos,
-                    unsigned int ArrayLength,
-                    double threshold)
+static void calculateTotal(unsigned int count,
+                           double* maxpos,
+                           unsigned int ArrayLength,
+                           double threshold,
+                           double rate)
 {
     double par_b = 0.0;
     double par_a = 0.0;
@@ -213,31 +184,72 @@ void calculateTotal(unsigned int count,
      */
 
     (void)fprintf(stderr,
-                  "raw rate: %f s/d, %d samples\n",
+                  "unweighted raw rate: %f s/d, %d samples σ=%.2gms\n",
                   -par_b * SECS_DAY / ArrayLength,
-                  count);
+                  count,
+                  par_s * THOUSAND / rate);
     unsigned int maxIndex = 0;
 
     double deviation;
 
-    for (unsigned int i = 0; i < count; ++i)
+    for (unsigned int j = 0; j < 3; ++j)
     {
-        deviation = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
-        if (deviation < threshold)
+        for (unsigned int i = 0; i < count; ++i)
         {
-            maxpos[maxIndex] = maxpos[i];
-            xarr[maxIndex] = xarr[i];
-            maxIndex++;
+            deviation = fabs((maxpos[i] - (par_a + xarr[i] * par_b)) / par_s);
+            if (deviation < threshold)
+            {
+                maxpos[maxIndex] = maxpos[i];
+                xarr[maxIndex] = xarr[i];
+                maxIndex++;
+            }
         }
-    }
-    linreg(xarr, maxpos, maxIndex, &par_a, &par_b, &par_s);
+        count = maxIndex;
+        maxIndex = 0;
 
-    (void)fprintf(stderr,
-                  "after %.1fσ removal: %.2f s/d, %d samples\n",
-                  threshold,
-                  -par_b * SECS_DAY / ArrayLength,
-                  maxIndex);
+        linreg(xarr, maxpos, count, &par_a, &par_b, &par_s);
+
+        (void)fprintf(stderr,
+                      "after %.1fσ (%.2gms) removal: %.2f s/d, %d samples\n",
+                      threshold,
+                      par_s * THOUSAND / rate,
+                      -par_b * SECS_DAY / ArrayLength,
+                      count);
+        threshold /= 2;
+    }
+
     free(xarr);
+}
+
+void calculateTotalFromFile(unsigned int count,
+                            FILE* rawfile,
+                            unsigned int ArrayLength,
+                            double threshold,
+                            double rate)
+{
+    errno = 0;
+    if (fseek(rawfile, 0, SEEK_SET) == -1)
+    {
+        (void)fprintf(stderr, "fseek fauled with %d\n", errno);
+        return;
+    }
+    double* all = calloc(count, sizeof(double));
+    unsigned int index = 0;
+    if (all)
+    {
+        size_t bufsize = BUF_SIZE;
+        char* buf = malloc(bufsize * sizeof(char));
+        while (getline(&buf, &bufsize, rawfile) > 0 && index < count)
+        {
+            if (buf[0] != '#')
+            {
+                all[index++] = getDouble(buf);
+            }
+        }
+        free(buf);
+        calculateTotal(count, all, ArrayLength, threshold, rate);
+        free(all);
+    }
 }
 
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)

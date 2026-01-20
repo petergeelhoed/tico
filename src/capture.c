@@ -50,8 +50,11 @@ static void print_finals(CapConfig* cfg,
 {
     if (cfg->fpposition)
     {
-        calculateTotalFromFile(
-            totalTickTock, cfg->fpposition, ArrayLength, cfg->SDthreshold);
+        calculateTotalFromFile(totalTickTock,
+                               cfg->fpposition,
+                               ArrayLength,
+                               cfg->SDthreshold,
+                               cfg->rate);
     }
     if (cfg->fpmaxcor)
     {

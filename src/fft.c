@@ -8,6 +8,7 @@
 
 #include "myfft.h"
 #include "mylib.h"
+#include "mymath.h"
 typedef struct
 {
     unsigned int z;
@@ -94,7 +95,8 @@ static void run_fft(Signal sig, Config cfg)
 
     for (unsigned int i = 0; i < arrayLength; i++)
     {
-        data_in[i][0] = (i < sig.count) ? (sig.data[i] - intercept - slope * i) : 0;
+        data_in[i][0] =
+            (i < sig.count) ? (sig.data[i] - intercept - slope * i) : 0;
         data_in[i][1] = 0;
     }
 

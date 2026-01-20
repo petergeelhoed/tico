@@ -32,3 +32,10 @@ void fastlinreg(double coeffs[2],
                 const double* weight);
 
 int nearly_equal(double number0, double number1);
+
+void linreg(const double* xarr,
+            const double* yarr,
+            unsigned int ArrayLength,
+            double* intercept,
+            double* slope,
+            double* stdev);

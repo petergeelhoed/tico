@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "myfft.h"
-#include "mylib.h"
+#include "mymath.h"
 #include "mysync.h"
 
 #define fitwindow 14

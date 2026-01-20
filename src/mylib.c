@@ -10,6 +10,7 @@
 #include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
+#include "mymath.h"
 #include "mysync.h"
 #include "parseargs.h"
 
@@ -84,38 +85,6 @@ void printspaces(int maxpos,
         (void)fprintf(stderr, "%s", spaces);
     }
     (void)fprintf(stderr, "\n");
-}
-
-void linreg(const double* xarr,
-            const double* yarr,
-            unsigned int ArrayLength,
-            double* intercept,
-            double* slope,
-            double* stdev)
-{
-    double sum_x = 0;
-    double sum_y = 0;
-    double sum_xx = 0;
-    double sum_xy = 0;
-    double sum_yy = 0;
-    for (unsigned int i = 0; i < ArrayLength; ++i)
-    {
-        sum_y += yarr[i];
-        sum_xx += xarr[i] * xarr[i];
-        sum_x += xarr[i];
-        sum_xy += xarr[i] * yarr[i];
-        sum_yy += yarr[i] * yarr[i];
-    }
-
-    *intercept = (sum_y * sum_xx - sum_x * sum_xy) /
-             (ArrayLength * sum_xx - sum_x * sum_x);
-    *slope = (ArrayLength * sum_xy - sum_x * sum_y) /
-             (ArrayLength * sum_xx - sum_x * sum_x);
-    *stdev = sqrt((sum_yy - 2 * (*intercept) * sum_y - 2 * (*slope) * sum_xy +
-                   2 * (*intercept) * (*slope) * sum_x +
-                   (*intercept) * (*intercept) * ArrayLength +
-                   (*slope) * (*slope) * sum_xx) /
-                  ArrayLength);
 }
 
 void writefile(FILE* filePtr, int* array, unsigned int ArrayLength)
@@ -196,7 +165,8 @@ static void calculateTotal(unsigned int count,
     {
         for (unsigned int i = 0; i < count; ++i)
         {
-            deviation = fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
+            deviation =
+                fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
             if (deviation < threshold)
             {
                 maxpos[maxIndex] = maxpos[i];

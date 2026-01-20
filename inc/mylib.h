@@ -3,13 +3,6 @@
 #include "myarr.h"
 #include <stdio.h>
 
-void linreg(const double* xarr,
-            const double* yarr,
-            unsigned int ArrayLength,
-            double* intercept,
-            double* slope,
-            double* stdev);
-
 unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
 
 void printheader(double fittedRate,

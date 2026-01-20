@@ -3,6 +3,7 @@
 
 set(TEST_TARGETS 
     testfft
+    testsync
     testgetdoubles
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 

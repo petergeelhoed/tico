@@ -113,6 +113,7 @@ int main(int argc, char* argv[])
     free(buffer);
     free(device_mutable);
     fftw_free(filterFFT);
+    fftw_cleanup();
     wait();
     thread_lock();
     (void)fclose(filePtr);

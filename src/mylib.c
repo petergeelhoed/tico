@@ -185,15 +185,21 @@ void calculateTotalFromFile(unsigned int count,
     errno = 0;
     if (fseek(rawfile, 0, SEEK_SET) == -1)
     {
-        (void)fprintf(stderr, "fseek fauled with %d\n", errno);
+        (void)fprintf(stderr, "fseek failed with %d\n", errno);
         return;
     }
-    double* all = calloc(count, sizeof(double));
     unsigned int index = 0;
+    double* all = (double*)calloc(count, sizeof(double));
     if (all)
     {
         size_t bufsize = BUF_SIZE;
-        char* buf = malloc(bufsize * sizeof(char));
+        char* buf = (char*)malloc(bufsize * sizeof(char));
+        if (buf == NULL)
+        {
+            (void)fprintf(stderr, "Cannot allocate memory for totalFromFile\n");
+            free(all);
+            return;
+        }
         while (getline(&buf, &bufsize, rawfile) > 0 && index < count)
         {
             if (buf[0] != '#')
@@ -205,12 +211,21 @@ void calculateTotalFromFile(unsigned int count,
         calculateTotal(count, all, ArrayLength, threshold, rate);
         free(all);
     }
+    else
+    {
+        (void)fprintf(stderr, "Cannot allocate memory for totalFromFile\n");
+    }
 }
 
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)
 {
     unsigned int ArrayLength = totaltick->ArrayLength;
     int* cross = malloc(ArrayLength / 2 * sizeof(int));
+    if (cross == NULL)
+    {
+        (void)fprintf(stderr, "Cannot allocate memory for getBeatError\n");
+        exit(EXIT_FAILURE);
+    }
     crosscorint(ArrayLength / 2,
                 totaltick->arr,
                 totaltick->arr + ArrayLength / 2,

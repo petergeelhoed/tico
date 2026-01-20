@@ -30,7 +30,7 @@ static double* safe_realloc(double* ptr, unsigned int new_size)
     {
         (void)fprintf(stderr, "Memory allocation failed\n");
         free(ptr);
-        exit(-2);
+        exit(EXIT_FAILURE);
     }
     return next;
 }
@@ -38,6 +38,12 @@ static double* safe_realloc(double* ptr, unsigned int new_size)
 static Signal read_input(void)
 {
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
+    if (signalStruct.data == NULL)
+    {
+        (void)fprintf(stderr, "Initial memory allocation failed\n");
+        free(signalStruct.data);
+        exit(EXIT_FAILURE);
+    }
     unsigned int capacity = INIT_N;
     char line[BUFF_SIZE];
     char* ptr;

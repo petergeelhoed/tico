@@ -75,6 +75,7 @@ int main(int argc, char* argv[])
     char* device_mutable = (char*)malloc(device_len);
     if (device_mutable == NULL)
     {
+        (void)fprintf(stderr, "devive memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
     memcpy(device_mutable, device, device_len);
@@ -86,8 +87,14 @@ int main(int argc, char* argv[])
 
     fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
     char* buffer =
-        malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) /
-               BITS_IN_BYTE);
+        (char*)malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) /
+                      BITS_IN_BYTE);
+    if (buffer == NULL)
+    {
+        (void)fprintf(stderr, "buffer mamory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     struct myarr rawread = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
 
     FILE* filePtr = fopen("recorded", "w");

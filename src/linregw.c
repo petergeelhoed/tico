@@ -16,7 +16,7 @@ int main(void)
     double* wvec = (double*)malloc(initial_size * sizeof(double));
     if (!xarr || !yvec || !wvec)
     {
-        (void)fprintf(stderr, "predictorsemory allocation failed\n");
+        (void)fprintf(stderr, "memory allocation failed\n");
         free(xarr);
         free(yvec);
         free(wvec);

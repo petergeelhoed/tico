@@ -42,6 +42,46 @@ static void shift_buffer_data(unsigned int* ticktock,
     *ticktock -= ARR_BUFF;
 }
 
+static void print_finals(CapConfig* cfg,
+                         AppResources* res,
+                         unsigned int ArrayLength,
+                         unsigned int totalTickTock,
+                         int toothshift)
+{
+    if (cfg->fpposition)
+    {
+        calculateTotalFromFile(
+            totalTickTock, cfg->fpposition, ArrayLength, cfg->SDthreshold);
+    }
+    if (cfg->fpmaxcor)
+    {
+        printTOD(cfg->fpmaxcor);
+    }
+
+    if (cfg->fptotal)
+    {
+        for (unsigned int t = 0; t < cfg->teeth; ++t)
+        {
+            struct myarr* tmp = res->teethArray[t];
+            if (tmp != NULL)
+            {
+                struct myarr cumulativeTick = *tmp;
+                toothshift = getshift(*res->teethArray[0], cumulativeTick);
+                for (unsigned int j = 0; j < ArrayLength; ++j)
+                {
+                    (void)fprintf(cfg->fptotal,
+                                  "%d %d %u %d\n",
+                                  (int)j + toothshift,
+                                  cumulativeTick.arr[j],
+                                  t,
+                                  toothshift);
+                }
+            }
+            (void)fprintf(cfg->fptotal, "\n\n");
+        }
+    }
+}
+
 static int
 init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
 {
@@ -78,7 +118,7 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.reference = makemyarr(ArrayLength);
     res.filterFFT = makeFilter(evalue, ArrayLength);
     res.audioBuffer = calloc(ArrayLength, 2); // 16-bit depth
-    res.teethArray = calloc(teeth, sizeof(*res.teethArray));
+    res.teethArray = calloc(teeth, sizeof(struct myarr*));
     for (unsigned int t = 0; t < teeth; t++)
     {
         res.teethArray[t] = makemyarr(ArrayLength);
@@ -286,36 +326,7 @@ int main(int argc, char* argv[])
         totalTickTock++;
     }
 
-    // Post-run cleanup and final file writes
-    if (cfg.fpposition)
-    {
-        calculateTotalFromFile(
-            totalTickTock, cfg.fpposition, ArrayLength, cfg.SDthreshold);
-    }
-    if (cfg.fpmaxcor)
-    {
-        printTOD(cfg.fpmaxcor);
-    }
-
-    if (cfg.fptotal)
-    {
-        for (unsigned int t = 0; t < cfg.teeth; ++t)
-        {
-            struct myarr cumulativeTick = *res.teethArray[t];
-            toothshift = getshift(*res.teethArray[0], cumulativeTick);
-            for (unsigned int j = 0; j < ArrayLength; ++j)
-            {
-                (void)fprintf(cfg.fptotal,
-                              "%d %d %u %d\n",
-                              (int)j + toothshift,
-                              cumulativeTick.arr[j],
-                              t,
-                              toothshift);
-            }
-            (void)fprintf(cfg.fptotal, "\n\n");
-        }
-    }
-
+    print_finals(&cfg, &res, ArrayLength, totalTickTock, toothshift);
     cleanup_resources(&res, &cfg);
     if (capture_handle)
     {

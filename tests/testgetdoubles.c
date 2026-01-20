@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mylib.h"
+#include "parseargs.h"
 
 static void
 print_result(const char* label, int n, const double* vals, size_t max_count)

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "config.h"
 #include "mylib.h"
 #include "mysound.h"
 

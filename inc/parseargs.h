@@ -1,17 +1,5 @@
 #pragma once
-#include <stdio.h>
-
-#include "mydefs.h"
-
-typedef struct
-{
-    double rate;
-    unsigned int bph, evalue, zoom, time, everyline, cvalue, verbose, fitN,
-        teeth;
-    double SDthreshold;
-    char device[MAX_DEVICE_LENGTH];
-    FILE *fpposition, *fpmaxcor, *fptotal, *fpDefPeak, *fpInput;
-} CapConfig;
+#include "config.h"
 
 int checkFileArg(int name,
                  FILE** filePtr,

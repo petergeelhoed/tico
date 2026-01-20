@@ -1,6 +1,6 @@
+#include "config.h"
 #include "crosscorint.h"
 #include "myarr.h"
-#include "parseargs.h"
 #include <stdio.h>
 
 void linreg(const double* xarr,

@@ -9,6 +9,7 @@
 #include "mylib.h"
 #include "mysound.h"
 #include "mysync.h"
+#include "parseargs.h"
 
 int main(int argc, char* argv[])
 {

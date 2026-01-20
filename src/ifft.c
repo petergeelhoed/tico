@@ -12,6 +12,7 @@
 #include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
+#include "parseargs.h"
 
 int main(void)
 {

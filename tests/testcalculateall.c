@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "mylib.h"
+#include "parseargs.h"
 
 int main(void)
 {

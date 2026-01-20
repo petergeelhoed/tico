@@ -1,5 +1,6 @@
 #include "mydefs.h"
 #include "mylib.h"
+#include "parseargs.h"
 
 #include <math.h>
 #include <stdio.h>

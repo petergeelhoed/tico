@@ -1,4 +1,5 @@
 #include "parseargs.h"
+#include "config.h"
 
 #include <errno.h>
 #include <getopt.h>

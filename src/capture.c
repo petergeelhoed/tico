@@ -1,3 +1,4 @@
+#include "config.h"
 #include "myarr.h"
 #include "myfft.h"
 #include "mylib.h"
@@ -5,6 +6,7 @@
 #include "mysignal.h"
 #include "mysound.h"
 #include "mysync.h"
+#include "parseargs.h"
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 #include <limits.h>

@@ -72,13 +72,13 @@ int main(int argc, char* argv[])
     }
 
     size_t device_len = strlen(device);
-    char* device_mutable = (char*)malloc(device_len);
+    char* device_mutable = (char*)malloc(device_len + 1);
     if (device_mutable == NULL)
     {
         (void)fprintf(stderr, "devive memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    memcpy(device_mutable, device, device_len);
+    strcpy(device_mutable, device);
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device_mutable, &rate);
@@ -91,28 +91,36 @@ int main(int argc, char* argv[])
                       BITS_IN_BYTE);
     if (buffer == NULL)
     {
+        free(device_mutable);
         (void)fprintf(stderr, "buffer mamory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
-    struct myarr rawread = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
+    struct myarr* rawread = makemyarr(ArrayLength);
 
     FILE* filePtr = fopen("recorded", "w");
-    readBufferRaw(capture_handle, buffer, &rawread);
-    readBufferRaw(capture_handle, buffer, &rawread);
+    readBufferRaw(capture_handle, buffer, rawread);
+    readBufferRaw(capture_handle, buffer, rawread);
     while (length)
     {
         length--;
-        readBufferRaw(capture_handle, buffer, &rawread);
+        readBufferRaw(capture_handle, buffer, rawread);
 
-        syncAppendMyarr(&rawread, filePtr);
+        syncAppendMyarr(rawread, filePtr);
         printf("%d\n", length);
     }
 
+    free(buffer);
+    free(device_mutable);
     fftw_free(filterFFT);
     wait();
     thread_lock();
     (void)fclose(filePtr);
     thread_unlock();
+    if (capture_handle)
+    {
+        snd_pcm_close(capture_handle);
+    }
+    freemyarr(rawread);
     exit(0);
 }

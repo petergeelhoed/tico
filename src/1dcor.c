@@ -15,6 +15,11 @@ int main(void)
     double* peak = calloc(ArrayLength, sizeof(double));
     double* peak2 = calloc(ArrayLength, sizeof(double));
 
+    if (!peak || !peak2)
+    {
+        (void)fprintf(stderr, "Failed memory allocation\n");
+        exit(EXIT_FAILURE);
+    }
     unsigned int length = 0;
     char line[LINESIZE];
     char* endptr;

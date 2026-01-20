@@ -124,6 +124,14 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.filterFFT = makeFilter(evalue, ArrayLength);
     res.audioBuffer = calloc(ArrayLength, 2); // 16-bit depth
     res.teethArray = calloc(teeth, sizeof(struct myarr*));
+    if (res.audioBuffer == NULL || res.teethArray == NULL)
+    {
+        free(res.audioBuffer);
+        free(res.teethArray);
+        (void)fprintf(stderr, "Failed memory allocation\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (unsigned int t = 0; t < teeth; t++)
     {
         res.teethArray[t] = makemyarr(ArrayLength);

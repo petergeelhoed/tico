@@ -205,14 +205,14 @@ void syncwrite(int* input, unsigned int ArrayLength, const char* file)
     struct mystruct* info = calloc(1, sizeof *info);
     if (info == NULL)
     {
-        perror("Error allocating memory");
+        perror("Error allocating info memory");
         return;
     }
 
     int* copyarr = calloc(ArrayLength, sizeof(int));
     if (copyarr == NULL)
     {
-        perror("Error allocating memory");
+        perror("Error allocating copyarr memory");
         free(info);
         return;
     }

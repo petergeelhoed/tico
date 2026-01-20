@@ -109,21 +109,6 @@ void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength)
     }
 }
 
-unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
-{
-    int maxtick = -INT_MAX;
-    unsigned int postick = 0;
-    for (unsigned int j = 0; j < ArrayLength; j++)
-    {
-        if (array[j] > maxtick)
-        {
-            maxtick = array[j];
-            postick = j;
-        }
-    }
-    return postick;
-}
-
 static void calculateTotal(unsigned int count,
                            double* maxpos,
                            unsigned int ArrayLength,

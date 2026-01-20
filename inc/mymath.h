@@ -33,6 +33,7 @@ void fastlinreg(double coeffs[2],
 
 int nearly_equal(double number0, double number1);
 
+unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
 void linreg(const double* xarr,
             const double* yarr,
             unsigned int ArrayLength,

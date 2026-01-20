@@ -3,8 +3,6 @@
 #include "myarr.h"
 #include <stdio.h>
 
-unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
-
 void printheader(double fittedRate,
                  unsigned int everyline,
                  double beatError,

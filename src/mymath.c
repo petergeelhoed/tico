@@ -15,6 +15,21 @@ struct mymat
     unsigned int Nrows;
 };
 
+unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
+{
+    int maxtick = -INT_MAX;
+    unsigned int postick = 0;
+    for (unsigned int j = 0; j < ArrayLength; j++)
+    {
+        if (array[j] > maxtick)
+        {
+            maxtick = array[j];
+            postick = j;
+        }
+    }
+    return postick;
+}
+
 void linreg(const double* xarr,
             const double* yarr,
             unsigned int ArrayLength,

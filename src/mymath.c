@@ -527,3 +527,15 @@ int nearly_equal(double number0, double number1)
     const double maxab = fmax(fabs(number0), fabs(number1));
     return diff <= rel_eps * maxab;
 }
+
+int shiftHalf(unsigned int value, unsigned int ArrayLength)
+{
+    return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) -
+           (int)(ArrayLength / 2);
+}
+
+// mods an int with a signed int, but makes sure the result is positive
+int modSigned(int value, unsigned int ArrayLength)
+{
+    return (value % (int)ArrayLength + (int)ArrayLength) % (int)ArrayLength;
+}

@@ -29,6 +29,3 @@ double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);
-
-int shiftHalf(unsigned int value, unsigned int ArrayLength);
-int modSigned(int value, unsigned int ArrayLength);

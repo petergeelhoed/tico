@@ -274,15 +274,3 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
         }
     }
 }
-
-int shiftHalf(unsigned int value, unsigned int ArrayLength)
-{
-    return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) -
-           (int)(ArrayLength / 2);
-}
-
-// mods an int with a signed int, but makes sure the result is positive
-int modSigned(int value, unsigned int ArrayLength)
-{
-    return (value % (int)ArrayLength + (int)ArrayLength) % (int)ArrayLength;
-}

@@ -1,6 +1,3 @@
-
-// mysync.c (refactored)
-
 #include <errno.h>
 #include <limits.h>
 #include <pthread.h>
@@ -14,15 +11,7 @@
 #include "mydefs.h"
 #include "mysync.h"
 
-/* -----------------------------------------------------------------------------
- * Synchronization primitives
- * -------------------------------------------------------------------------- */
-
-/* Serialize writes to FILE* so output from multiple threads doesn't interleave
- */
 static pthread_mutex_t io_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-/* Protect the worker count and provide a way to wait efficiently for "drain" */
 static pthread_mutex_t ctr_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t ctr_zero = PTHREAD_COND_INITIALIZER;
 
@@ -43,20 +32,13 @@ static void decr_count(void)
     }
     thread_ctr_unlock();
 }
-/* -----------------------------------------------------------------------------
- * Task payload passed to worker thread
- * Define once at file scope to avoid UB from multiple anonymous struct tags.
- * -------------------------------------------------------------------------- */
 struct append_task
 {
     struct myarr* array; /* deep copy of input->arr / input->arrd */
     FILE* file; /* not owned by worker; must stay open until worker finishes */
 };
 
-/* -----------------------------------------------------------------------------
- * Blocking wait for all outstanding workers to finish (no busy-wait)
- * -------------------------------------------------------------------------- */
-void wait(void) /* keep the original name/signature for compatibility */
+void wait(void)
 {
     thread_ctr_lock();
     while (count > 0)
@@ -86,9 +68,6 @@ void writearray(int* arr, unsigned int ArrayLength, const char* file)
     }
 }
 
-/* -----------------------------------------------------------------------------
- * Worker thread: serialize writes, flush, free payload, and signal drain
- * -------------------------------------------------------------------------- */
 void* threadAppendMyarr(void* inStruct)
 {
     struct append_task* mine = (struct append_task*)inStruct;
@@ -109,7 +88,7 @@ void* threadAppendMyarr(void* inStruct)
     {
         for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
-            (void)fprintf(mine->file, "%file\n", mine->array->arrd[j]);
+            (void)fprintf(mine->file, "%f\n", mine->array->arrd[j]);
         }
     }
 
@@ -124,17 +103,9 @@ void* threadAppendMyarr(void* inStruct)
     free(mine);
 
     decr_count();
-    return NULL; /* no need to call pthread_exit(NULL) explicitly */
+    return NULL;
 }
 
-/* -----------------------------------------------------------------------------
- * Launch a detached worker that appends 'input' to 'file' safely.
- * Returns: 0 on failure; non-zero token on success (casts pthread_t).
- *
- * NOTE: Casting pthread_t to 'unsigned long' is not fully portable.
- * If you rely on the returned value, consider changing the signature to return
- * 'pthread_t' or simply 'int' for success/failure.
- * -------------------------------------------------------------------------- */
 void syncAppendMyarr(struct myarr* input, FILE* file)
 {
     if (input == NULL || file == NULL)
@@ -143,7 +114,6 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         return;
     }
 
-    /* Allocate and deep-copy the payload for the worker thread */
     struct append_task* info = malloc(sizeof(*info));
     if (info == NULL)
     {
@@ -159,13 +129,11 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         free(info);
         return;
     }
-    /* Copy int array if present and length > 0 */
     if (input->arr != NULL && input->ArrayLength > 0)
     {
         memcpy(local->arr, input->arr, input->ArrayLength * sizeof(int));
     }
 
-    /* Copy double array if present and length > 0 */
     if (input->arrd != NULL && input->ArrayLength > 0)
     {
         memcpy(local->arrd, input->arrd, input->ArrayLength * sizeof(double));
@@ -174,12 +142,10 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     info->array = local;
     info->file = file;
 
-    /* Bump worker count before creating the thread */
     thread_ctr_lock();
     count++;
     thread_ctr_unlock();
 
-    /* Create a detached thread */
     pthread_attr_t attr;
     if (pthread_attr_init(&attr) != 0)
     {
@@ -301,7 +267,6 @@ int syncwrite(int* input, unsigned int ArrayLength, const char* file)
     strncpy(task->file, file, FILE_NAME_LENGTH - 1);
     task->file[FILE_NAME_LENGTH - 1] = '\0';
 
-    /* increment before launching thread */
     pthread_mutex_lock(&ctr_mutex);
     count++;
     pthread_mutex_unlock(&ctr_mutex);

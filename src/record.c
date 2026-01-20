@@ -78,7 +78,9 @@ int main(int argc, char* argv[])
         (void)fprintf(stderr, "devive memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(device_mutable, device);
+
+    strncpy(device_mutable, device, device_len + 1);
+    device_mutable[device_len] = '\0';
 
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device_mutable, &rate);
@@ -115,9 +117,8 @@ int main(int argc, char* argv[])
     fftw_free(filterFFT);
     fftw_cleanup();
     wait();
-    thread_lock();
+
     (void)fclose(filePtr);
-    thread_unlock();
     if (capture_handle)
     {
         snd_pcm_close(capture_handle);

@@ -3,9 +3,7 @@
 #include <stdio.h>
 
 void wait(void);
-void syncwrite(int* input, unsigned int ArrayLength, const char* file);
-void* threadWrite(void* inStruct);
-void* threadAppend(void* inStruct);
+int syncwrite(int* input, unsigned int ArrayLength, const char* file);
 void writearray(int* arr, unsigned int ArrayLength, const char* file);
 void printTOD(FILE* out);
 

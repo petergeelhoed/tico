@@ -109,7 +109,7 @@ void* threadAppendMyarr(void* inStruct)
     {
         for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
-            (void)fprintf(mine->file, "%f\n", mine->array->arrd[j]);
+            (void)fprintf(mine->file, "%file\n", mine->array->arrd[j]);
         }
     }
 
@@ -226,99 +226,118 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     }
 }
 
-void* threadAppend(void* inStruct)
+struct write_task
 {
-    thread_ctr_lock();
+    int* array;
+    unsigned int len;
+    char file[FILE_NAME_LENGTH];
+};
 
-    struct mystruct
+static void* threadWrite(void* arg)
+{
+    struct write_task* task = (struct write_task*)arg;
+    if (task == NULL)
     {
-        int* array;
-        FILE* file;
-        unsigned int ArrayLength;
-    }* mine = inStruct;
-
-    int* copyarr = malloc(mine->ArrayLength * sizeof(int));
-    if (copyarr == NULL)
-    {
-        perror("Error allocating memory");
-        thread_ctr_unlock();
-        pthread_exit(NULL);
+        decr_count();
+        return NULL;
     }
-    memcpy(copyarr, mine->array, mine->ArrayLength * sizeof(int));
-    free(mine->array);
-    mine->array = copyarr;
-
-    printTOD(mine->file);
-    for (unsigned int j = 0; j < mine->ArrayLength; j++)
+    FILE* file = fopen(task->file, "w");
+    if (file)
     {
-        (void)fprintf(mine->file, "%d\n", mine->array[j]);
-    }
-    (void)fflush(mine->file);
 
-    free(mine->array);
-    free(mine);
-    thread_ctr_unlock();
-    pthread_exit(NULL);
+        for (unsigned int i = 0; i < task->len; ++i)
+        {
+            if (fprintf(file, "%d\n", task->array[i]) < 0)
+            {
+                perror("threadWrite: fprintf failed");
+                break;
+            }
+        }
+
+        if (fflush(file) != 0)
+        {
+            perror("threadWrite: fflush failed");
+        }
+        if (fclose(file) != 0)
+        {
+            perror("threadWrite: fclose failed");
+        }
+    }
+    free(task ? task->array : NULL);
+    free(task);
+    decr_count();
+    return NULL;
 }
 
-void syncwrite(int* input, unsigned int ArrayLength, const char* file)
+int syncwrite(int* input, unsigned int ArrayLength, const char* file)
 {
-    struct mystruct
+    if (!input || !file)
     {
-        int* array;
-        char file[FILE_NAME_LENGTH];
-        unsigned int ArrayLength;
-    };
-
-    struct mystruct* info = calloc(1, sizeof *info);
-    if (info == NULL)
-    {
-        perror("Error allocating info memory");
-        return;
+        errno = EINVAL;
+        return -1;
     }
 
-    int* copyarr = calloc(ArrayLength, sizeof(int));
-    if (copyarr == NULL)
+    struct write_task* task = calloc(1, sizeof *task);
+    if (!task)
     {
-        perror("Error allocating copyarr memory");
-        free(info);
-        return;
+        perror("alloc task");
+        return -1;
     }
-    memcpy(copyarr, input, ArrayLength * sizeof(int));
-    info->array = copyarr;
-    strncpy(info->file, file, FILE_NAME_LENGTH - 1);
-    info->file[FILE_NAME_LENGTH - 1] = '\0';
-    info->ArrayLength = ArrayLength;
+
+    int* copyarr = NULL;
+    if (ArrayLength > 0)
+    {
+        copyarr = calloc(ArrayLength, sizeof *copyarr);
+        if (!copyarr)
+        {
+            perror("alloc copyarr");
+            free(task);
+            return -1;
+        }
+        memcpy(copyarr, input, ArrayLength * sizeof *copyarr);
+    }
+    task->array = copyarr;
+    task->len = ArrayLength;
+    strncpy(task->file, file, FILE_NAME_LENGTH - 1);
+    task->file[FILE_NAME_LENGTH - 1] = '\0';
+
+    /* increment before launching thread */
+    pthread_mutex_lock(&ctr_mutex);
+    count++;
+    pthread_mutex_unlock(&ctr_mutex);
 
     pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t tid = 0;
-    if (pthread_create(&tid, &attr, threadWrite, info) != 0)
+    if (pthread_attr_init(&attr) != 0)
     {
-        perror("Error creating thread");
+        perror("attr_init");
+        decr_count();
         free(copyarr);
-        free(info);
+        free(task);
+        return -1;
     }
-}
-
-void* threadWrite(void* inStruct)
-{
-    thread_ctr_lock();
-
-    struct mystruct
+    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0)
     {
-        int* array;
-        char file[FILE_NAME_LENGTH];
-        unsigned int ArrayLength;
-    }* mine = inStruct;
+        perror("setdetach");
+        pthread_attr_destroy(&attr);
+        decr_count();
+        free(copyarr);
+        free(task);
+        return -1;
+    }
 
-    writearray(mine->array, mine->ArrayLength, mine->file);
+    pthread_t tid;
+    int success = pthread_create(&tid, &attr, threadWrite, task);
+    pthread_attr_destroy(&attr);
 
-    free(mine->array);
-    free(mine);
-    thread_ctr_unlock();
-    pthread_exit(NULL);
+    if (success != 0)
+    {
+        perror("pthread_create");
+        decr_count();
+        free(copyarr);
+        free(task);
+        return -1;
+    }
+    return 0;
 }
 
 void printTOD(FILE* out)

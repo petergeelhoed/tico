@@ -23,8 +23,6 @@ int main(void)
     syncAppendMyarr(&refdouble, file);
 
     wait();
-    thread_lock();
     fclose(file);
-    thread_unlock();
     return 0;
 }

@@ -28,9 +28,10 @@ static pthread_cond_t ctr_zero = PTHREAD_COND_INITIALIZER;
 
 static int count = 0;
 
-/* Optional: convenience wrappers (if other code relies on these symbols) */
-void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
-void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
+static void thread_ctr_lock(void) { (void)pthread_mutex_lock(&ctr_mutex); }
+static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
+static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
+static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
 
 /* -----------------------------------------------------------------------------
  * Task payload passed to worker thread
@@ -47,12 +48,12 @@ struct append_task
  * -------------------------------------------------------------------------- */
 void wait(void) /* keep the original name/signature for compatibility */
 {
-    (void)pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
     while (count > 0)
     {
         (void)pthread_cond_wait(&ctr_zero, &ctr_mutex);
     }
-    (void)pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
 }
 
 /* -----------------------------------------------------------------------------
@@ -87,7 +88,7 @@ void* threadAppendMyarr(void* inStruct)
     struct append_task* mine = (struct append_task*)inStruct;
 
     /* Serialize all writes to the FILE* to prevent interleaving */
-    (void)pthread_mutex_lock(&io_mutex);
+    thread_lock();
 
     printTOD(mine->file);
 
@@ -108,7 +109,7 @@ void* threadAppendMyarr(void* inStruct)
 
     (void)fflush(mine->file);
 
-    (void)pthread_mutex_unlock(&io_mutex);
+    thread_unlock();
 
     /* Free deep copies and task struct */
     free(mine->array->arr);
@@ -117,13 +118,13 @@ void* threadAppendMyarr(void* inStruct)
     free(mine);
 
     /* Decrement worker count and signal if we reached zero */
-    (void)pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
     count--;
     if (count == 0)
     {
         (void)pthread_cond_broadcast(&ctr_zero);
     }
-    (void)pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
 
     return NULL; /* no need to call pthread_exit(NULL) explicitly */
 }
@@ -196,9 +197,9 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
     info->file = file;
 
     /* Bump worker count before creating the thread */
-    (void)pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
     count++;
-    (void)pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
 
     /* Create a detached thread */
     pthread_attr_t attr;
@@ -207,13 +208,13 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
         perror("pthread_attr_init failed");
 
         /* Roll back count */
-        (void)pthread_mutex_lock(&ctr_mutex);
+        thread_ctr_lock();
         count--;
         if (count == 0)
         {
             pthread_cond_broadcast(&ctr_zero);
         }
-        (void)pthread_mutex_unlock(&ctr_mutex);
+        thread_ctr_unlock();
 
         free(local->arrd);
         free(local->arr);
@@ -228,13 +229,13 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
         (void)pthread_attr_destroy(&attr); /* clean up attributes */
 
         /* Roll back count */
-        (void)pthread_mutex_lock(&ctr_mutex);
+        thread_ctr_lock();
         count--;
         if (count == 0)
         {
             pthread_cond_broadcast(&ctr_zero);
         }
-        (void)pthread_mutex_unlock(&ctr_mutex);
+        thread_ctr_unlock();
 
         free(local->arrd);
         free(local->arr);
@@ -255,13 +256,13 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
         perror("Error creating thread");
 
         /* Roll back count */
-        (void)pthread_mutex_lock(&ctr_mutex);
+        thread_ctr_lock();
         count--;
         if (count == 0)
         {
             pthread_cond_broadcast(&ctr_zero);
         }
-        (void)pthread_mutex_unlock(&ctr_mutex);
+        thread_ctr_unlock();
 
         /* Free payload */
         free(local->arrd);
@@ -276,7 +277,7 @@ long unsigned int syncAppendMyarr(struct myarr* input, FILE* file)
 
 void* threadAppend(void* inStruct)
 {
-    pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
 
     struct mystruct
     {
@@ -289,7 +290,7 @@ void* threadAppend(void* inStruct)
     if (copyarr == NULL)
     {
         perror("Error allocating memory");
-        pthread_mutex_unlock(&ctr_mutex);
+        thread_ctr_unlock();
         pthread_exit(NULL);
     }
     memcpy(copyarr, mine->array, mine->ArrayLength * sizeof(int));
@@ -305,7 +306,7 @@ void* threadAppend(void* inStruct)
 
     free(mine->array);
     free(mine);
-    pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
     pthread_exit(NULL);
 }
 
@@ -352,7 +353,7 @@ void syncwrite(int* input, unsigned int ArrayLength, const char* file)
 
 void* threadWrite(void* inStruct)
 {
-    pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
 
     struct mystruct
     {
@@ -365,7 +366,7 @@ void* threadWrite(void* inStruct)
 
     free(mine->array);
     free(mine);
-    pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
     pthread_exit(NULL);
 }
 

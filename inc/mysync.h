@@ -3,8 +3,6 @@
 #include <stdio.h>
 
 void wait(void);
-void thread_lock(void);
-void thread_unlock(void);
 void syncwrite(int* input, unsigned int ArrayLength, const char* file);
 void* threadWrite(void* inStruct);
 void* threadAppend(void* inStruct);

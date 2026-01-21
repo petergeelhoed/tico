@@ -178,11 +178,11 @@ static void calculateTotal(unsigned int count,
     free(xarr);
 }
 
-void calculateTotalFromFile(unsigned int count,
-                            FILE* rawfile,
-                            unsigned int ArrayLength,
-                            double threshold,
-                            double rate)
+static void calculateTotalFromFile(unsigned int count,
+                                   FILE* rawfile,
+                                   unsigned int ArrayLength,
+                                   double threshold,
+                                   double rate)
 {
     errno = 0;
     if (fseek(rawfile, 0, SEEK_SET) == -1)

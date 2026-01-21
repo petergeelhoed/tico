@@ -19,12 +19,6 @@ void printspaces(int maxpos,
 void writefile(FILE* filePtr, int* array, unsigned int ArrayLength);
 void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength);
 
-void calculateTotalFromFile(unsigned int count,
-                            FILE* rawfile,
-                            unsigned int ArrayLength,
-                            double threshold,
-                            double rate);
-
 double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
 void fillReference(FILE* fpDefPeak,

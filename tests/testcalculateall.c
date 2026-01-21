@@ -3,7 +3,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "mylib.h"
+#include "../src/mylib.c"
 #include "parseargs.h"
 
 int main(void)

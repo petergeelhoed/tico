@@ -30,3 +30,7 @@ void print_finals(CapConfig* cfg,
                   unsigned int ArrayLength,
                   unsigned int totalTickTock,
                   int toothshift);
+void shift_buffer_data(unsigned int* ticktock,
+                       struct myarr* subpos,
+                       struct myarr* maxpos,
+                       struct myarr* maxvals);

@@ -334,3 +334,14 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
         }
     }
 }
+
+void shift_buffer_data(unsigned int* ticktock,
+                       struct myarr* subpos,
+                       struct myarr* maxpos,
+                       struct myarr* maxvals)
+{
+    memmove(subpos->arrd, subpos->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
+    memmove(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
+    memmove(maxvals->arrd, maxvals->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
+    *ticktock -= ARR_BUFF;
+}

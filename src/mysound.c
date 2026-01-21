@@ -1,17 +1,27 @@
+#include "mysound.h"
+#include "config.h"
+#include "myarr.h"
+#include "mydefs.h"
+#include "myfft.h"
+#include "mylib.h"
+#include "mysound.h"
+#include "mysync.h"
+#include "parseargs.h"
+
 #include <alsa/asoundlib.h>
 #include <errno.h>
 #include <fftw3.h>
-#include <limits.h> // INT16_MAX/INT16_MIN
 #include <limits.h>
 #include <math.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "config.h"
-#include "mylib.h"
-#include "mysound.h"
+#include <string.h> // strlen, strncpy
+#include <sys/timerfd.h>
+#include <time.h>
+#include <unistd.h> // getopt, read
 
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void check_alsa_err(int err,
@@ -337,10 +347,9 @@ int readBuffer(snd_pcm_t* capture_handle,
 }
 
 int readBufferOrFile(int* derivative,
-                     snd_pcm_t* capture_handle,
                      unsigned int ArrayLength,
-                     char* buffer,
-                     FILE* fpInput)
+                     FILE* fpInput,
+                     CaptureCtx* ctx)
 {
     int ret = READ_FAILED;
 
@@ -396,7 +405,21 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        ret = readBuffer(capture_handle, ArrayLength, buffer, derivative);
+        // ret = readBuffer(capture_handle, ArrayLength, buffer, derivative);
+        //  change to new read.
+        const int POLL_TIMEOUT_MS = 2000;
+        struct myarr* filled = capture_next_block(ctx, POLL_TIMEOUT_MS);
+        if (!filled)
+        {
+            (void)fprintf(stderr, "capture_next_block failed; stopping\n");
+            return ret;
+        }
+        for (unsigned int k = 0; k < filled->ArrayLength - 1; k++)
+        {
+            derivative[k] = abs(filled->arr[k] - filled->arr[k + 1]);
+        }
+        derivative[ArrayLength - 1] = 0;
+        ret = (int)ArrayLength;
     }
     return ret;
 }
@@ -408,17 +431,16 @@ int getData(FILE* rawfile,
             snd_pcm_format_t format,
             char* device,
             unsigned int rate,
-            char* buffer,
-            struct myarr derivative)
+            struct myarr derivative,
+            CaptureCtx* ctx)
 {
     int err = REINIT_ERROR;
     while (err == REINIT_ERROR)
     {
         err = readBufferOrFile(derivative.arr,
-                               capture_handle,
                                derivative.ArrayLength,
-                               buffer,
-                               fpInput);
+                               fpInput,
+                               ctx);
         if (err == REINIT_ERROR)
         {
             (void)fprintf(stderr, "Reinitializing capture_handle");
@@ -429,10 +451,9 @@ int getData(FILE* rawfile,
             snd_pcm_close(capture_handle);
             capture_handle = initAudio(format, device, &rate);
             err = readBufferOrFile(derivative.arr,
-                                   capture_handle,
                                    derivative.ArrayLength,
-                                   buffer,
-                                   fpInput);
+                                   fpInput,
+                                   ctx);
         }
         if (err == INPUT_FILE_ERROR)
         {
@@ -442,29 +463,6 @@ int getData(FILE* rawfile,
     }
     return err;
 }
-
-//=========================
-
-// main.c
-#include <alsa/asoundlib.h>
-#include <errno.h>
-#include <fftw3.h>
-#include <poll.h>
-#include <stdint.h> // uint64_t
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h> // strlen, strncpy
-#include <sys/timerfd.h>
-#include <time.h>
-#include <unistd.h> // getopt, read
-
-#include "myarr.h"
-#include "mydefs.h"
-#include "myfft.h"
-#include "mylib.h"
-#include "mysound.h"
-#include "mysync.h"
-#include "parseargs.h"
 
 /* -------------------- Helpers -------------------- */
 

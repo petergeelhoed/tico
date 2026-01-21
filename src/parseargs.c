@@ -55,8 +55,10 @@ int checkFileArg(int name,
 {
     if (*opt_arg == '-')
     {
-        (void)fprintf(
-            stderr, "expecting -%c <file>\n got -w %s\n", (char)name, opt_arg);
+        (void)fprintf(stderr,
+                      "expecting -%c <file>\n got -w %s\n",
+                      (char)name,
+                      opt_arg);
         return -1;
     }
 
@@ -101,8 +103,10 @@ static void parse_sd_threshold(const char* arg, double* threshold)
     }
 }
 
-static void
-handle_file_arg(int opt, FILE** filePtr, const char* arg, const char* mode)
+static void handle_file_arg(int opt,
+                            FILE** filePtr,
+                            const char* arg,
+                            const char* mode)
 {
     if (*filePtr == NULL)
     {

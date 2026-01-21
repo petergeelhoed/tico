@@ -91,8 +91,11 @@ static void run_fft(Signal sig, Config cfg)
             tmpx[i] = i;
         }
         linreg(tmpx, sig.data, sig.count, &intercept, &slope, &s_err);
-        (void)fprintf(
-            stderr, "intercept=%lf slope=%lf s=%lf\n", intercept, slope, s_err);
+        (void)fprintf(stderr,
+                      "intercept=%lf slope=%lf s=%lf\n",
+                      intercept,
+                      slope,
+                      s_err);
         free(tmpx);
     }
 
@@ -106,8 +109,11 @@ static void run_fft(Signal sig, Config cfg)
         data_in[i][1] = 0;
     }
 
-    fftw_plan plan = fftw_plan_dft_1d(
-        (int)arrayLength, data_in, data_out, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan plan = fftw_plan_dft_1d((int)arrayLength,
+                                      data_in,
+                                      data_out,
+                                      FFTW_FORWARD,
+                                      FFTW_ESTIMATE);
     fftw_execute(plan);
 
     // Result Printing Logic

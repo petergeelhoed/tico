@@ -13,8 +13,9 @@ unsigned int fftfit(struct myarr input,
 fftw_complex* convolute(struct myarr array, fftw_complex* filter);
 
 unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength);
-fftw_complex*
-crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref);
+fftw_complex* crosscor(unsigned int ArrayLength,
+                       fftw_complex* array,
+                       fftw_complex* ref);
 void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file);
 
 void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate);

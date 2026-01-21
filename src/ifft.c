@@ -113,8 +113,11 @@ int main(void)
         return -2;
     }
 
-    fftw_plan plan = fftw_plan_dft_1d(
-        (int)arrayLength, input, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan plan = fftw_plan_dft_1d((int)arrayLength,
+                                      input,
+                                      out,
+                                      FFTW_BACKWARD,
+                                      FFTW_ESTIMATE);
     if (!plan)
     {
         (void)fprintf(stderr, "fftw_plan_dft_1d failed\n");

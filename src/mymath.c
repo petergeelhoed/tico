@@ -437,8 +437,13 @@ void fitNpeaks(double* intercept,
 
         double a_1 = 0.0;
         double b_1 = 0.0;
-        if (!solve_weighted_line(
-                &a_1, &b_1, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
+        if (!solve_weighted_line(&a_1,
+                                 &b_1,
+                                 Sum_w,
+                                 Sum_wx,
+                                 Sum_wy,
+                                 Sum_wxx,
+                                 Sum_wxy))
         {
             (void)fprintf(stderr, "Degenerate data in initial fit\n");
             *intercept = 0.0;
@@ -489,8 +494,13 @@ void fitNpeaks(double* intercept,
 
         double a_2 = a_1;
         double b_2 = b_1;
-        if (ok1 && solve_weighted_line(
-                       &a_2, &b_2, Sum_w, Sum_wx, Sum_wy, Sum_wxx, Sum_wxy))
+        if (ok1 && solve_weighted_line(&a_2,
+                                       &b_2,
+                                       Sum_w,
+                                       Sum_wx,
+                                       Sum_wy,
+                                       Sum_wxx,
+                                       Sum_wxy))
         {
             *intercept = a_2;
             *slope = b_2;

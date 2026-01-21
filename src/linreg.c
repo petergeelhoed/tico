@@ -5,8 +5,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-// this gives intercept liniar weight , not intercept squared one like gnuplot or
-// matlinreg from mymath
+// this gives intercept liniar weight , not intercept squared one like gnuplot
+// or matlinreg from mymath
 int main(void)
 {
     double Sum_w = 0.0;
@@ -38,7 +38,7 @@ int main(void)
         Sum_wxy += weight * x_arr * y_arr;
     }
 
-    // Sum_olve weighted simple linear regression y_arr = intercept + slope x_arr
+    // Solve weighted simple linear regression y_arr = intercept + slope x_arr
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     double intercept = 0.0;
     double slope = 0.0;

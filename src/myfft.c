@@ -13,8 +13,11 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
 {
     fftw_complex* filter = fftw_alloc_complex(ArrayLength);
     fftw_complex* filterFFT = fftw_alloc_complex(ArrayLength);
-    fftw_plan makefilter = fftw_plan_dft_1d(
-        (int)ArrayLength, filter, filterFFT, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan makefilter = fftw_plan_dft_1d((int)ArrayLength,
+                                            filter,
+                                            filterFFT,
+                                            FFTW_FORWARD,
+                                            FFTW_ESTIMATE);
 
     if (filter == NULL || filterFFT == NULL)
     {
@@ -73,10 +76,16 @@ void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
     unsigned int ofj = ArrayLength * freq / rate;
     fftw_complex* in_data = fftw_alloc_complex(ArrayLength);
     fftw_complex* out_data = fftw_alloc_complex(ArrayLength);
-    fftw_plan forward = fftw_plan_dft_1d(
-        (int)ArrayLength, in_data, out_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse = fftw_plan_dft_1d(
-        (int)ArrayLength, out_data, in_data, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan forward = fftw_plan_dft_1d((int)ArrayLength,
+                                         in_data,
+                                         out_data,
+                                         FFTW_FORWARD,
+                                         FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d((int)ArrayLength,
+                                         out_data,
+                                         in_data,
+                                         FFTW_BACKWARD,
+                                         FFTW_ESTIMATE);
 
     if (in_data == NULL || out_data == NULL)
     {
@@ -126,10 +135,16 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
     unsigned int ArrayLength = array.ArrayLength;
     fftw_complex* in_data = fftw_alloc_complex(ArrayLength);
     fftw_complex* out_data = fftw_alloc_complex(ArrayLength);
-    fftw_plan forward = fftw_plan_dft_1d(
-        (int)ArrayLength, in_data, out_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reverse = fftw_plan_dft_1d(
-        (int)ArrayLength, out_data, in_data, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan forward = fftw_plan_dft_1d((int)ArrayLength,
+                                         in_data,
+                                         out_data,
+                                         FFTW_FORWARD,
+                                         FFTW_ESTIMATE);
+    fftw_plan reverse = fftw_plan_dft_1d((int)ArrayLength,
+                                         out_data,
+                                         in_data,
+                                         FFTW_BACKWARD,
+                                         FFTW_ESTIMATE);
 
     if (in_data == NULL || out_data == NULL)
     {
@@ -162,8 +177,9 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
     return in_data;
 }
 
-fftw_complex*
-crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref)
+fftw_complex* crosscor(unsigned int ArrayLength,
+                       fftw_complex* array,
+                       fftw_complex* ref)
 {
     normalise(ArrayLength, array);
     normalise(ArrayLength, ref);
@@ -179,12 +195,21 @@ crosscor(unsigned int ArrayLength, fftw_complex* array, fftw_complex* ref)
         return NULL;
     }
 
-    fftw_plan arrFour = fftw_plan_dft_1d(
-        (int)ArrayLength, array, tmparr, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan refFour = fftw_plan_dft_1d(
-        (int)ArrayLength, ref, tmpref, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan correverse = fftw_plan_dft_1d(
-        (int)ArrayLength, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan arrFour = fftw_plan_dft_1d((int)ArrayLength,
+                                         array,
+                                         tmparr,
+                                         FFTW_FORWARD,
+                                         FFTW_ESTIMATE);
+    fftw_plan refFour = fftw_plan_dft_1d((int)ArrayLength,
+                                         ref,
+                                         tmpref,
+                                         FFTW_FORWARD,
+                                         FFTW_ESTIMATE);
+    fftw_plan correverse = fftw_plan_dft_1d((int)ArrayLength,
+                                            tmp,
+                                            corr,
+                                            FFTW_BACKWARD,
+                                            FFTW_ESTIMATE);
 
     fftw_execute(arrFour);
     fftw_execute(refFour);

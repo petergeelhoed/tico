@@ -20,8 +20,11 @@ static void check_alsa_err(int err,
 {
     if (err < 0)
     {
-        (void)fprintf(
-            stderr, "Device %s: %s (%s)\n", device, msg, snd_strerror(err));
+        (void)fprintf(stderr,
+                      "Device %s: %s (%s)\n",
+                      device,
+                      msg,
+                      snd_strerror(err));
         if (params)
         {
             snd_pcm_hw_params_free(params);
@@ -168,10 +171,10 @@ int readBuffer(snd_pcm_t* capture_handle,
     if (err != (int)ArrayLength)
     {
         (void)fprintf(stderr, "reread from audio interface  %ld \n", err);
-        err = snd_pcm_readi(capture_handle,
-                            buffer + err,
-                            (long unsigned int)ArrayLength -
-                                (long unsigned int)err);
+        err = snd_pcm_readi(
+            capture_handle,
+            buffer + err,
+            (long unsigned int)ArrayLength - (long unsigned int)err);
         if (err < 0)
         {
             (void)fprintf(stderr,

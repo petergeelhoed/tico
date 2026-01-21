@@ -33,8 +33,9 @@ static void shift_buffer_data(unsigned int* ticktock,
     *ticktock -= ARR_BUFF;
 }
 
-static int
-init_audio_source(CapConfig* cfg, snd_pcm_t** handle, unsigned int* actualRate)
+static int init_audio_source(CapConfig* cfg,
+                             snd_pcm_t** handle,
+                             unsigned int* actualRate)
 {
     if (cfg->fpInput == NULL && *cfg->device == '\0')
     {
@@ -68,7 +69,8 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.tmpder = makemyarr(ArrayLength);
     res.reference = makemyarr(ArrayLength);
     res.filterFFT = makeFilter(evalue, ArrayLength);
-    res.audioBuffer = calloc(ArrayLength, 2 * sizeof(*res.audioBuffer)); // 16bit
+    res.audioBuffer =
+        calloc(ArrayLength, 2 * sizeof(*res.audioBuffer)); // 16bit
     res.teethArray = calloc(teeth, sizeof(*res.teethArray));
     if (res.audioBuffer == NULL || res.teethArray == NULL)
     {

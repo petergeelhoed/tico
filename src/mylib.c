@@ -257,6 +257,10 @@ void print_finals(CapConfig* cfg,
                                   toothshift);
                 }
             }
+            else
+            {
+                break;
+            }
             (void)fprintf(cfg->fptotal, "\n\n");
         }
     }

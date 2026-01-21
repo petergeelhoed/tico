@@ -1,9 +1,11 @@
 #include <alsa/asoundlib.h>
 #include <errno.h>
 #include <fftw3.h>
+#include <limits.h> // INT16_MAX/INT16_MIN
 #include <limits.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -151,63 +153,144 @@ void readBufferRaw(snd_pcm_t* capture_handle,
     }
 }
 
-int readBuffer(snd_pcm_t* capture_handle,
-               unsigned int ArrayLength,
-               char* buffer,
-               int* derivative)
-{
-    unsigned char lsb;
-    signed char msb;
-    long err =
-        snd_pcm_readi(capture_handle, buffer, (long unsigned int)ArrayLength);
-    if (err < 0)
-    {
-        (void)fprintf(stderr,
-                      "read from audio interface failed %ld (%s)\n",
-                      err,
-                      snd_strerror((int)err));
-        return (int)err;
-    }
-    if (err != (int)ArrayLength)
-    {
-        (void)fprintf(stderr, "reread from audio interface  %ld \n", err);
-        err = snd_pcm_readi(
-            capture_handle,
-            buffer + err,
-            (long unsigned int)ArrayLength - (long unsigned int)err);
-        if (err < 0)
-        {
-            (void)fprintf(stderr,
-                          "reread from audio interface failed %ld (%s)\n",
-                          err,
-                          snd_strerror((int)err));
-        }
-        else
-        {
-            err = (int)ArrayLength;
-        }
-    }
-    int overflow = 0;
-    for (unsigned int index = 0; index < ArrayLength * 2; index += 2)
-    {
-        msb = (signed char)buffer[index + 1];
-        lsb = *(buffer + index);
-        derivative[index / 2] = (msb << BITS_IN_BYTE) | lsb;
-        overflow += (derivative[index / 2] == SHRT_MAX);
-        overflow += (derivative[index / 2] == SHRT_MIN);
-    }
-    if (overflow > 1)
-    {
-        (void)fprintf(stderr, "%d audio 16bit overflows\n", overflow);
-    }
-    //       remove50hz(ArrayLength,data_in,48000);
+// Complete function with a small helper to read exactly N frames.
 
-    for (unsigned int index = 0; index < ArrayLength - 1; index++)
+// Helper: read exactly `frames` frames into `buf` or recover from xruns.
+// Returns 0 on success, negative ALSA error on failure.
+static int read_exact_frames(snd_pcm_t* h,
+                             char* buf,
+                             snd_pcm_uframes_t frames,
+                             unsigned bytes_per_frame)
+{
+    snd_pcm_uframes_t total = 0;
+
+    while (total < frames)
     {
-        derivative[index] = abs(derivative[index] - derivative[index + 1]);
+        snd_pcm_sframes_t r =
+            snd_pcm_readi(h, buf + (total * bytes_per_frame), frames - total);
+
+        if (r == -EAGAIN)
+        {
+            // Non-blocking mode: try again.
+            continue;
+        }
+        else if (r == -EPIPE || r == -ESTRPIPE)
+        {
+            // Overrun or stream suspended: attempt recovery.
+            int rr = snd_pcm_recover(h, (int)r, /*silent=*/1);
+            if (rr < 0)
+            {
+                fprintf(stderr,
+                        "snd_pcm_recover failed: %s\n",
+                        snd_strerror(rr));
+                return rr;
+            }
+            // After successful recover, try again.
+            continue;
+        }
+        else if (r < 0)
+        {
+            // Other error
+            fprintf(stderr, "snd_pcm_readi failed: %s\n", snd_strerror((int)r));
+            return (int)r;
+        }
+
+        total += (snd_pcm_uframes_t)r;
+    }
+
+    return 0;
+}
+
+int readBuffer(snd_pcm_t* capture_handle,
+               unsigned int ArrayLength, // frames
+               char* buffer, // raw PCM bytes: must hold ArrayLength * 2 bytes
+                             // (S16_LE mono)
+               int* derivative) // length >= ArrayLength
+{
+    if (ArrayLength == 0)
+    {
+        return 0;
+    }
+
+    // --- Format assumptions: S16_LE, mono ---
+    const unsigned int BYTES_PER_SAMPLE = 2; // 16-bit
+    const unsigned int CHANNELS = 1;         // mono
+    const unsigned int BYTES_PER_FRAME = BYTES_PER_SAMPLE * CHANNELS;
+
+    // 1) Read exactly ArrayLength frames (blocking until filled or error)
+    int rc = read_exact_frames(capture_handle,
+                               buffer,
+                               (snd_pcm_uframes_t)ArrayLength,
+                               BYTES_PER_FRAME);
+    if (rc < 0)
+    {
+        // Already logged; return ALSA error code.
+        return rc;
+    }
+
+    // 2) Optional: Check ALSA status (XRUN state, overrange)
+    {
+        snd_pcm_status_t* status;
+        snd_pcm_status_alloca(&status);
+        if (snd_pcm_status(capture_handle, status) == 0)
+        {
+            snd_pcm_state_t st = snd_pcm_status_get_state(status);
+            if (st == SND_PCM_STATE_XRUN)
+            {
+                fprintf(stderr,
+                        "ALSA: XRUN detected (post-read); recovering...\n");
+                (void)snd_pcm_prepare(capture_handle);
+            }
+
+            // Some drivers/plugins report ADC overrange count here
+            unsigned long over = snd_pcm_status_get_overrange(status);
+            if (over > 0)
+            {
+                fprintf(stderr,
+                        "ALSA: ADC overrange reported %lu time(s)\n",
+                        over);
+            }
+        }
+    }
+
+    // 3) Convert bytes -> int16_t (S16_LE) and detect clipping.
+    //    We first store the sample values into derivative[]; then reuse the
+    //    same array to hold |x[n] - x[n+1]|.
+    int clip_overflow_count = 0;
+
+    for (unsigned int i = 0; i < ArrayLength; ++i)
+    {
+        const uint8_t lsb = (uint8_t)buffer[2 * i + 0];
+        const int8_t msb = (int8_t)buffer[2 * i + 1];
+        // Combine as little-endian 16-bit
+        const int16_t sample = (int16_t)(((int)msb << 8) | lsb);
+
+        derivative[i] = (int)sample;
+
+        // Clipping detection
+        if (sample == INT16_MAX || sample == INT16_MIN)
+        {
+            clip_overflow_count++;
+        }
+    }
+
+    if (clip_overflow_count > 1)
+    {
+        fprintf(stderr,
+                "%d audio 16-bit clipping event(s)\n",
+                clip_overflow_count);
+    }
+
+    // 4) Compute derivative: |x[n] - x[n+1]|, last sample = 0
+    for (unsigned int i = 0; i + 1 < ArrayLength; ++i)
+    {
+        int d = derivative[i] - derivative[i + 1];
+        derivative[i] = (d < 0) ? -d : d;
     }
     derivative[ArrayLength - 1] = 0;
-    return (int)err;
+
+    // Success: we read exactly ArrayLength frames
+    return (int)ArrayLength;
 }
 
 int readBufferOrFile(int* derivative,

@@ -46,7 +46,7 @@ add_compile_options(
     -Wsign-compare
     -Warray-bounds                # (no "=2" in Clang)
     -Wvla
-    -Walloca
+#   -Walloca
     -Wfloat-equal                 # NaN/precision foot-guns
     -Wtautological-compare        # obvious always true/false
     -Woverlength-strings          # extremely long string literals

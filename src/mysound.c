@@ -158,15 +158,6 @@ int readBuffer(snd_pcm_t* capture_handle,
                char* buffer,
                int* derivative)
 {
-    // --- Make stderr unbuffered once so prints are visible even if redirected
-    // ---
-    static int stderr_unbuffered = 0;
-    if (!stderr_unbuffered)
-    {
-        setvbuf(stderr, NULL, _IONBF, 0);
-        stderr_unbuffered = 1;
-    }
-
     if (ArrayLength == 0)
     {
         return 0;
@@ -450,4 +441,396 @@ int getData(FILE* rawfile,
         }
     }
     return err;
+}
+
+//=========================
+
+// main.c
+#include <alsa/asoundlib.h>
+#include <errno.h>
+#include <fftw3.h>
+#include <poll.h>
+#include <stdint.h> // uint64_t
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> // strlen, strncpy
+#include <sys/timerfd.h>
+#include <time.h>
+#include <unistd.h> // getopt, read
+
+#include "myarr.h"
+#include "mydefs.h"
+#include "myfft.h"
+#include "mylib.h"
+#include "mysound.h"
+#include "mysync.h"
+#include "parseargs.h"
+
+/* -------------------- Helpers -------------------- */
+
+int build_alsa_pollfds(snd_pcm_t* h, struct pollfd** fds_out, nfds_t* nfds_out)
+{
+    int count = snd_pcm_poll_descriptors_count(h);
+    if (count <= 0)
+    {
+        fprintf(stderr, "ALSA: invalid poll descriptors count: %d\n", count);
+        return -1;
+    }
+    struct pollfd* fds = (struct pollfd*)calloc((size_t)count, sizeof(*fds));
+    if (!fds)
+    {
+        fprintf(stderr, "alloc failed for alsa fds\n");
+        return -1;
+    }
+    int err = snd_pcm_poll_descriptors(h, fds, (unsigned)count);
+    if (err < 0)
+    {
+        fprintf(stderr,
+                "ALSA: snd_pcm_poll_descriptors failed: %s\n",
+                snd_strerror(err));
+        free(fds);
+        return -1;
+    }
+    *fds_out = fds;
+    *nfds_out = (nfds_t)count;
+    return 0;
+}
+
+int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
+{
+    int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    if (tfd < 0)
+    {
+        perror("timerfd_create");
+        return -1;
+    }
+    struct itimerspec its;
+    memset(&its, 0, sizeof(its));
+    its.it_value.tv_sec = initial_ms / 1000;
+    its.it_value.tv_nsec = (long)(initial_ms % 1000) * 1000000L;
+    its.it_interval.tv_sec = interval_ms / 1000;
+    its.it_interval.tv_nsec = (long)(interval_ms % 1000) * 1000000L;
+
+    if (timerfd_settime(tfd, 0, &its, NULL) < 0)
+    {
+        perror("timerfd_settime");
+        close(tfd);
+        return -1;
+    }
+    return tfd;
+}
+
+/* -------------------- API: setup / next_block / teardown --------------------
+ */
+
+/**
+ * capture_setup
+ * - Accepts an already-opened/initialized ALSA handle (from initAudio).
+ * - Computes ArrayLength = rate * SECS_HOUR * 2 / bph
+ * - Queries period_size and builds poll descriptors.
+ * - Allocates buffers and creates a 1Hz timerfd if countdown > 0.
+ */
+int capture_setup(CaptureCtx* ctx,
+                  snd_pcm_t* cap,
+                  unsigned int rate,
+                  unsigned int bph,
+                  unsigned int countdown_seconds,
+                  snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */)
+{
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->cap = cap;
+    ctx->rate = rate;
+    ctx->tfd = -1;
+    ctx->countdown = countdown_seconds;
+
+    // Geometry
+    ctx->ArrayLength =
+        rate * SECS_HOUR * 2 / bph; // e.g., ~16000 @ 48k/21600bph
+    const unsigned bytes_per_sample =
+        (unsigned)snd_pcm_format_width(fmt) / 8; // 2
+    const unsigned channels = 1; // you configure mono in initAudio
+    ctx->bytes_per_frame = bytes_per_sample * channels;
+
+    // Query ALSA buffer/period sizes (read per period)
+    if (snd_pcm_get_params(cap, &ctx->buffer_size, &ctx->period_size) < 0)
+    {
+        fprintf(
+            stderr,
+            "ALSA: snd_pcm_get_params failed; defaulting period_size=1024\n");
+        ctx->period_size = 1024;
+    }
+    if (ctx->period_size == 0)
+        ctx->period_size = 1024;
+    if (ctx->period_size > ctx->ArrayLength)
+        ctx->period_size = ctx->ArrayLength;
+
+    // Buffers
+    ctx->block_buf =
+        (char*)malloc((size_t)ctx->ArrayLength * ctx->bytes_per_frame);
+    if (!ctx->block_buf)
+    {
+        fprintf(stderr, "alloc failed for block_buf\n");
+        return -1;
+    }
+    ctx->rawread = makemyarr(ctx->ArrayLength);
+    if (!ctx->rawread)
+    {
+        fprintf(stderr, "alloc failed for rawread\n");
+        free(ctx->block_buf);
+        ctx->block_buf = NULL;
+        return -1;
+    }
+
+    // Warm-up reads to settle the pipeline
+    readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
+    readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
+
+    // Build ALSA poll fds
+    if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
+    {
+        fprintf(stderr, "failed to build ALSA pollfds\n");
+        freemyarr(ctx->rawread);
+        ctx->rawread = NULL;
+        free(ctx->block_buf);
+        ctx->block_buf = NULL;
+        return -1;
+    }
+
+    // Add timerfd if a countdown is requested
+    if (ctx->countdown > 0)
+    {
+        ctx->tfd = make_timerfd_ms(/*initial*/ 1000, /*interval*/ 1000);
+        if (ctx->tfd < 0)
+        {
+            fprintf(stderr,
+                    "warning: timerfd not available; countdown disabled\n");
+            ctx->countdown = 0;
+        }
+    }
+
+    // Combine fds (ALSA + optional timerfd)
+    ctx->nfds = ctx->alsa_nfds + ((ctx->countdown > 0) ? 1 : 0);
+    if (ctx->nfds == ctx->alsa_nfds)
+    {
+        // ALSA-only; ctx->fds is already set
+        return 0;
+    }
+
+    struct pollfd* combined =
+        (struct pollfd*)calloc(ctx->nfds, sizeof(*combined));
+    if (!combined)
+    {
+        fprintf(stderr, "alloc failed for combined fds\n");
+        free(ctx->fds);
+        ctx->fds = NULL;
+        ctx->alsa_nfds = 0;
+        freemyarr(ctx->rawread);
+        ctx->rawread = NULL;
+        free(ctx->block_buf);
+        ctx->block_buf = NULL;
+        return -1;
+    }
+    for (nfds_t i = 0; i < ctx->alsa_nfds; ++i)
+        combined[i] = ctx->fds[i];
+    combined[ctx->alsa_nfds].fd = ctx->tfd;
+    combined[ctx->alsa_nfds].events = POLLIN;
+
+    free(ctx->fds);
+    ctx->fds = combined;
+
+    return 0;
+}
+
+/**
+ * capture_next_block
+ * - Single-threaded event loop step: polls ALSA (and timerfd if enabled),
+ *   reads per period until a full block is collected, then returns
+ * ctx->rawread.
+ * - Returns NULL on unrecoverable error.
+ * - Does NOT write to file — caller owns persistence/processing.
+ */
+struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
+{
+    ctx->frames_collected = 0;
+    ctx->byte_off = 0;
+    ctx->samp_off = 0;
+
+    for (;;)
+    {
+        int pr = poll(ctx->fds, ctx->nfds, poll_timeout_ms);
+        if (pr == 0)
+        {
+            fprintf(stderr, "poll: timeout\n");
+            continue;
+        }
+        else if (pr < 0)
+        {
+            if (errno == EINTR)
+                continue;
+            perror("poll");
+            return NULL;
+        }
+
+        // 1) Handle ALSA events (only pass ALSA fds to revents helper)
+        unsigned short revents = 0;
+        if (snd_pcm_poll_descriptors_revents(ctx->cap,
+                                             ctx->fds,
+                                             (unsigned)ctx->alsa_nfds,
+                                             &revents) < 0)
+        {
+            fprintf(stderr, "ALSA: revents failed\n");
+        }
+        else
+        {
+            if (revents & POLLERR)
+            {
+                // Recover and rebuild ALSA descriptors in the combined array
+                fprintf(stderr, "ALSA: POLLERR → recover\n");
+                if (snd_pcm_recover(ctx->cap, -EPIPE, 1) < 0)
+                {
+                    fprintf(stderr, "ALSA: recover failed\n");
+                    return NULL;
+                }
+                struct pollfd* new_alsa = NULL;
+                nfds_t new_n = 0;
+                if (build_alsa_pollfds(ctx->cap, &new_alsa, &new_n) < 0)
+                {
+                    fprintf(stderr, "ALSA: rebuild pollfds failed\n");
+                    return NULL;
+                }
+                // Rebuild combined fds
+                nfds_t new_total = new_n + ((ctx->countdown > 0) ? 1 : 0);
+                struct pollfd* tmp =
+                    (struct pollfd*)calloc(new_total, sizeof(*tmp));
+                if (!tmp)
+                {
+                    free(new_alsa);
+                    return NULL;
+                }
+                for (nfds_t i = 0; i < new_n; ++i)
+                    tmp[i] = new_alsa[i];
+                if (ctx->countdown > 0)
+                {
+                    // timerfd is at old index ctx->alsa_nfds; move it to the
+                    // last
+                    tmp[new_n] = ctx->fds[ctx->alsa_nfds];
+                }
+                free(new_alsa);
+                free(ctx->fds);
+                ctx->fds = tmp;
+                ctx->alsa_nfds = new_n;
+                ctx->nfds = new_total;
+            }
+            if (revents & POLLIN)
+            {
+                // Read one period or the final remainder of the block
+                unsigned frames_left_in_block =
+                    ctx->ArrayLength - ctx->frames_collected;
+                unsigned chunk = (frames_left_in_block > ctx->period_size)
+                                     ? (unsigned)ctx->period_size
+                                     : frames_left_in_block;
+
+                int got = readBuffer(ctx->cap,
+                                     chunk,
+                                     ctx->block_buf + ctx->byte_off,
+                                     ctx->rawread->arr + ctx->samp_off);
+                if (got < 0)
+                {
+                    // Try additional recovery and continue
+                    int rr = snd_pcm_recover(ctx->cap, got, 1);
+                    if (rr < 0)
+                    {
+                        fprintf(
+                            stderr,
+                            "ALSA: readBuffer failed & recover failed: %s\n",
+                            snd_strerror(rr));
+                        return NULL;
+                    }
+                    // After recover, ALSA fds may change; rebuild as above
+                    struct pollfd* new_alsa = NULL;
+                    nfds_t new_n = 0;
+                    if (build_alsa_pollfds(ctx->cap, &new_alsa, &new_n) == 0)
+                    {
+                        nfds_t new_total =
+                            new_n + ((ctx->countdown > 0) ? 1 : 0);
+                        struct pollfd* tmp =
+                            (struct pollfd*)calloc(new_total, sizeof(*tmp));
+                        if (tmp)
+                        {
+                            for (nfds_t i = 0; i < new_n; ++i)
+                                tmp[i] = new_alsa[i];
+                            if (ctx->countdown > 0)
+                                tmp[new_n] = ctx->fds[ctx->alsa_nfds];
+                            free(ctx->fds);
+                            ctx->fds = tmp;
+                            ctx->alsa_nfds = new_n;
+                            ctx->nfds = new_total;
+                        }
+                        free(new_alsa);
+                    }
+                    continue; // retry next poll
+                }
+
+                // Advance offsets
+                ctx->byte_off += (size_t)got * ctx->bytes_per_frame;
+                ctx->samp_off += (size_t)got;
+                ctx->frames_collected += (unsigned)got;
+
+                // Finished one full block → return it to caller
+                if (ctx->frames_collected >= ctx->ArrayLength)
+                {
+                    // Clear revents before returning to keep consistent state
+                    for (nfds_t i = 0; i < ctx->nfds; ++i)
+                        ctx->fds[i].revents = 0;
+                    return ctx->rawread;
+                }
+            }
+        }
+
+        // 2) Handle timerfd (countdown) — only if enabled
+        if (ctx->countdown > 0)
+        {
+            struct pollfd* t = &ctx->fds[ctx->alsa_nfds];
+            if (t->revents & POLLIN)
+            {
+                uint64_t expirations = 0;
+                ssize_t rd = read(t->fd, &expirations, sizeof(expirations));
+                if (rd == (ssize_t)sizeof(expirations))
+                {
+                    while (expirations-- && ctx->countdown > 0)
+                    {
+                        --ctx->countdown;
+                        printf("%u\n", ctx->countdown);
+                        fflush(stdout);
+                    }
+                    if (ctx->countdown == 0)
+                    {
+                        // Disarm timer; keep fd but with events=0
+                        struct itimerspec its = {0};
+                        timerfd_settime(t->fd, 0, &its, NULL);
+                        t->events = 0;
+                    }
+                }
+            }
+        }
+
+        // Clear revents each loop
+        for (nfds_t i = 0; i < ctx->nfds; ++i)
+            ctx->fds[i].revents = 0;
+    }
+}
+
+void capture_teardown(CaptureCtx* ctx)
+{
+    if (!ctx)
+        return;
+    if (ctx->fds)
+        free(ctx->fds);
+    if (ctx->tfd >= 0)
+        close(ctx->tfd);
+    if (ctx->block_buf)
+        free(ctx->block_buf);
+    if (ctx->rawread)
+        freemyarr(ctx->rawread);
+    memset(ctx, 0, sizeof(*ctx));
 }

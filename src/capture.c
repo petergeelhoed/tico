@@ -171,13 +171,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     CaptureCtx ctx;
-    unsigned int countdown = 0; // show countdown concurrently with capture
-    if (capture_setup(&ctx,
-                      capture_handle,
-                      actualRate,
-                      cfg.bph,
-                      countdown,
-                      format) < 0)
+    if (capture_setup(&ctx, capture_handle, actualRate, cfg.bph, format) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         snd_pcm_close(capture_handle);

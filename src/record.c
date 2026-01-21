@@ -30,9 +30,6 @@ int main(int argc, char* argv[])
     unsigned int evalue = 4;          // filter param
     const char* device = NULL;
 
-    unsigned int countdown = 0; // show countdown concurrently with capture
-
-    // Parse args (added -c for countdown)
     int flag;
     while ((flag = getopt(argc, argv, "b:r:ht:d:e:c:")) != -1)
     {
@@ -54,9 +51,6 @@ int main(int argc, char* argv[])
         case 'r':
             retVal = checkUIntArg(flag, &rate, optarg);
             break;
-        case 'c':
-            retVal = checkUIntArg(flag, &countdown, optarg);
-            break;
         case 'h':
         default:
             (void)fprintf(
@@ -69,7 +63,6 @@ int main(int argc, char* argv[])
                 " -r sampling rate (default: %u Hz)\n"
                 " -t time to record in seconds (default: 3)\n"
                 " -e envelope level (default: 4)\n"
-                " -c countdown seconds shown concurrently with capture "
                 "(default: 0)\n",
                 DEFAULT_BPH,
                 DEFAULT_RATE);
@@ -116,7 +109,7 @@ int main(int argc, char* argv[])
 
     // Setup capture context (poll + timerfd, buffers, etc.)
     CaptureCtx ctx;
-    if (capture_setup(&ctx, cap, rate, bph, countdown, format) < 0)
+    if (capture_setup(&ctx, cap, rate, bph, format) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         fftw_free(filterFFT);

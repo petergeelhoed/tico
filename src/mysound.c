@@ -287,8 +287,8 @@ int readBuffer(snd_pcm_t* capture_handle,
 
                     // Tolerance: one ALSA period if known, else ~1 ms of audio
                     double tol_frames = (period_size > 0)
-                                            ? 1.5 * (double)period_size
-                                            : (double)sample_rate * 0.003;
+                                            ? (double)period_size
+                                            : (double)sample_rate * 0.001;
 
                     double gap = expected_frames - actual_frames;
                     if (gap > tol_frames)
@@ -499,20 +499,17 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
  * - Accepts an already-opened/initialized ALSA handle (from initAudio).
  * - Computes ArrayLength = rate * SECS_HOUR * 2 / bph
  * - Queries period_size and builds poll descriptors.
- * - Allocates buffers and creates a 1Hz timerfd if countdown > 0.
  */
 int capture_setup(CaptureCtx* ctx,
                   snd_pcm_t* cap,
                   unsigned int rate,
                   unsigned int bph,
-                  unsigned int countdown_seconds,
                   snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */)
 {
     memset(ctx, 0, sizeof(*ctx));
     ctx->cap = cap;
     ctx->rate = rate;
     ctx->tfd = -1;
-    ctx->countdown = countdown_seconds;
 
     // Geometry
     ctx->ArrayLength =
@@ -567,20 +564,8 @@ int capture_setup(CaptureCtx* ctx,
         return -1;
     }
 
-    // Add timerfd if a countdown is requested
-    if (ctx->countdown > 0)
-    {
-        ctx->tfd = make_timerfd_ms(/*initial*/ 1000, /*interval*/ 1000);
-        if (ctx->tfd < 0)
-        {
-            fprintf(stderr,
-                    "warning: timerfd not available; countdown disabled\n");
-            ctx->countdown = 0;
-        }
-    }
-
     // Combine fds (ALSA + optional timerfd)
-    ctx->nfds = ctx->alsa_nfds + ((ctx->countdown > 0) ? 1 : 0);
+    ctx->nfds = ctx->alsa_nfds;
     if (ctx->nfds == ctx->alsa_nfds)
     {
         // ALSA-only; ctx->fds is already set
@@ -620,7 +605,6 @@ int capture_setup(CaptureCtx* ctx,
  * - Returns NULL on unrecoverable error.
  * - Does NOT write to file — caller owns persistence/processing.
  */
-
 struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
 {
     ctx->frames_collected = 0;
@@ -670,7 +654,7 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                     fprintf(stderr, "ALSA: rebuild pollfds failed\n");
                     return NULL;
                 }
-                nfds_t new_total = new_n + ((ctx->countdown > 0) ? 1 : 0);
+                nfds_t new_total = new_n;
                 struct pollfd* tmp =
                     (struct pollfd*)calloc(new_total, sizeof(*tmp));
                 if (!tmp)
@@ -680,8 +664,6 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                 }
                 for (nfds_t i = 0; i < new_n; ++i)
                     tmp[i] = new_alsa[i];
-                if (ctx->countdown > 0)
-                    tmp[new_n] = ctx->fds[ctx->alsa_nfds];
                 free(new_alsa);
                 free(ctx->fds);
                 ctx->fds = tmp;
@@ -690,8 +672,6 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
             }
             if (revents & POLLIN)
             {
-                // 🔽 NEW: Drain loop — read as many available frames as possible
-                // now
                 for (;;)
                 {
                     unsigned frames_left_in_block =
@@ -759,16 +739,13 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                         if (build_alsa_pollfds(ctx->cap, &new_alsa, &new_n) ==
                             0)
                         {
-                            nfds_t new_total =
-                                new_n + ((ctx->countdown > 0) ? 1 : 0);
+                            nfds_t new_total = new_n;
                             struct pollfd* tmp =
                                 (struct pollfd*)calloc(new_total, sizeof(*tmp));
                             if (tmp)
                             {
                                 for (nfds_t i = 0; i < new_n; ++i)
                                     tmp[i] = new_alsa[i];
-                                if (ctx->countdown > 0)
-                                    tmp[new_n] = ctx->fds[ctx->alsa_nfds];
                                 free(ctx->fds);
                                 ctx->fds = tmp;
                                 ctx->alsa_nfds = new_n;
@@ -796,35 +773,11 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
             }
         }
 
-        // 2) Handle timerfd (countdown)
-        if (ctx->countdown > 0)
-        {
-            struct pollfd* t = &ctx->fds[ctx->alsa_nfds];
-            if (t->revents & POLLIN)
-            {
-                uint64_t expirations = 0;
-                ssize_t rd = read(t->fd, &expirations, sizeof(expirations));
-                if (rd == (ssize_t)sizeof(expirations))
-                {
-                    while (expirations-- && ctx->countdown > 0)
-                    {
-                        --ctx->countdown;
-                        printf("%u\n", ctx->countdown);
-                        fflush(stdout);
-                    }
-                    if (ctx->countdown == 0)
-                    {
-                        struct itimerspec its = {0};
-                        timerfd_settime(t->fd, 0, &its, NULL);
-                        t->events = 0;
-                    }
-                }
-            }
-        }
-
         // Clear revents
         for (nfds_t i = 0; i < ctx->nfds; ++i)
+        {
             ctx->fds[i].revents = 0;
+        }
     }
 }
 

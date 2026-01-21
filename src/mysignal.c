@@ -34,20 +34,20 @@ void sigint_handler(int signal)
 
 void set_signal_action(void)
 {
-    struct sigaction act;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    act.sa_handler = sigint_handler;
+    struct sigaction sact;
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags = 0;
+    sact.sa_handler = sigint_handler;
 
     // Set signal handlers
-    if (sigaction(SIGWINCH, &act, NULL) == -1)
+    if (sigaction(SIGWINCH, &sact, NULL) == -1)
     {
-        perror("sigaction");
+        perror("failed sigaction SIGWINCH");
         exit(ERROR_SIGNAL);
     }
-    if (sigaction(SIGINT, &act, NULL) == -1)
+    if (sigaction(SIGINT, &sact, NULL) == -1)
     {
-        perror("sigaction");
+        perror("failed sigaction SIGINT");
         exit(ERROR_SIGNAL);
     }
 }

@@ -7,10 +7,12 @@
 #include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"
+
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -114,7 +116,7 @@ static AppResources allocate_resources(unsigned int ArrayLength,
                                        unsigned int teeth,
                                        unsigned int evalue)
 {
-    AppResources res;
+    AppResources res = {0};
     res.subpos = makemyarrd(ticktockBuffer);
     res.maxpos = makemyarr(ticktockBuffer);
     res.maxvals = makemyarrd(ticktockBuffer);
@@ -122,8 +124,8 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.tmpder = makemyarr(ArrayLength);
     res.reference = makemyarr(ArrayLength);
     res.filterFFT = makeFilter(evalue, ArrayLength);
-    res.audioBuffer = calloc(ArrayLength, 2); // 16-bit depth
-    res.teethArray = calloc(teeth, sizeof(struct myarr*));
+    res.audioBuffer = calloc(ArrayLength, 2 * sizeof(*res.audioBuffer)); // 16bit
+    res.teethArray = calloc(teeth, sizeof(*res.teethArray));
     if (res.audioBuffer == NULL || res.teethArray == NULL)
     {
         free(res.audioBuffer);
@@ -316,6 +318,7 @@ int main(int argc, char* argv[])
 
         double intercept = 0.0;
         double slope = 0.0;
+
         fitNpeaks(&intercept,
                   &slope,
                   ticktock,
@@ -324,10 +327,12 @@ int main(int argc, char* argv[])
                   res.subpos,
                   cfg.fitN,
                   cfg.SDthreshold);
+
         printheader(slope * SECS_DAY / ArrayLength,
                     cfg.everyline,
                     getBeatError(cumulativeTick, cfg.rate, 0),
                     (double)totalTickTock * ArrayLength / cfg.rate);
+
         printspaces(res.maxpos->arr[ticktock],
                     res.maxvals->arrd[ticktock] * HEXDEC,
                     mod,

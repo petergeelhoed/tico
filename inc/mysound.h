@@ -36,6 +36,26 @@ typedef struct CaptureCtx
     /* Countdown (optional, via timerfd) */
     int tfd;                // timerfd or -1
     unsigned int countdown; // seconds remaining; 0 disables
+
+    // Continuity tracking
+    uint64_t frames_total;      // total frames we've consumed since t0
+    int have_t0;                // 0 until we set t0
+    snd_htimestamp_t t0_pcm;    // ALSA hardware timestamp "time zero"
+    double last_deficit_frames; // deficit computed at last block
+    int last_block_had_gap;     // 1 if last block exceeded threshold
+
+    // (Optional) boundary correlation guard
+    int* prev_tail;    // tail samples from previous block (int)
+    unsigned tail_len; // number of samples stored in prev_tail
+
+    // timing calibration
+    double rate_est;   // estimated device capture rate (Hz)
+    double rate_alpha; // smoothing factor (e.g., 0.02)
+
+    int last_boundary_lag;   // best lag at last boundary (frames, +right/-left)
+    int apply_boundary_snap; // 1 to rotate the block by -best_lag, 0 to just
+                             // log
+
 } CaptureCtx;
 
 // NOLINTNEXTLINE(misc-include-cleaner)

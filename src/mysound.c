@@ -112,6 +112,17 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
                    "cannot set parameters",
                    capture_handle,
                    hw_params);
+    // Choose period target (e.g., 1024) and larger buffer (e.g., 8192 = 8×)
+    snd_pcm_uframes_t period_size = 1024;
+    snd_pcm_uframes_t buffer_size = period_size * 12;
+
+    snd_pcm_hw_params_set_period_size_near(capture_handle,
+                                           hw_params,
+                                           &period_size,
+                                           0);
+    snd_pcm_hw_params_set_buffer_size_near(capture_handle,
+                                           hw_params,
+                                           &buffer_size);
 
     snd_pcm_hw_params_free(hw_params);
 
@@ -414,6 +425,17 @@ int readBufferOrFile(int* derivative,
             (void)fprintf(stderr, "capture_next_block failed; stopping\n");
             return ret;
         }
+
+        // Report any continuity warning for this block
+        if (ctx->last_block_had_gap)
+        {
+            double ms = 1000.0 * ctx->last_deficit_frames / (double)ctx->rate;
+            fprintf(stderr,
+                    "CONTINUITY (block): gap ~%.0f frames (~%.2f ms)\n",
+                    ctx->last_deficit_frames,
+                    ms);
+        }
+
         for (unsigned int k = 0; k < filled->ArrayLength - 1; k++)
         {
             derivative[k] = abs(filled->arr[k] - filled->arr[k + 1]);
@@ -494,6 +516,28 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
 /* -------------------- API: setup / next_block / teardown --------------------
  */
 
+static void rotate_int_block(int* a, unsigned n, int shift)
+{
+    if (n == 0)
+        return;
+    // Normalize to [-n+1, n-1]
+    int s = shift % (int)n;
+    if (s == 0)
+        return;
+    if (s < 0)
+        s += (int)n; // convert negative to positive left-rotate amount
+
+    // Rotate-left by s: [s..n-1] + [0..s-1]
+    // Use temporary buffer for simplicity (n is ~16000 -> OK)
+    int* tmp = (int*)malloc(n * sizeof(int));
+    if (!tmp)
+        return; // fail silently (no snap) if OOM
+    memcpy(tmp, a + s, (n - (unsigned)s) * sizeof(int));
+    memcpy(tmp + (n - (unsigned)s), a, (unsigned)s * sizeof(int));
+    memcpy(a, tmp, n * sizeof(int));
+    free(tmp);
+}
+
 /**
  * capture_setup
  * - Accepts an already-opened/initialized ALSA handle (from initAudio).
@@ -513,6 +557,22 @@ int capture_setup(CaptureCtx* ctx,
     ctx->rate = rate;
     ctx->tfd = -1;
     ctx->countdown = countdown_seconds;
+
+    ctx->frames_total = 0;
+    ctx->have_t0 = 0;
+    ctx->rate_est = (double)ctx->rate; // start from nominal
+    ctx->rate_alpha = 0.02;            // ~2% update per block
+
+    ctx->last_boundary_lag = 0;
+    ctx->apply_boundary_snap = 1; // turn on "snap" by default
+
+    snd_htimestamp_t ts;
+    snd_pcm_uframes_t dummy = 0;
+    if (snd_pcm_htimestamp(ctx->cap, &dummy, &ts) == 0)
+    {
+        ctx->t0_pcm = ts;
+        ctx->have_t0 = 1;
+    }
 
     // Geometry
     ctx->ArrayLength =
@@ -555,6 +615,28 @@ int capture_setup(CaptureCtx* ctx,
     // Warm-up reads to settle the pipeline
     readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
     readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
+
+    // After warm-up reads
+    ctx->frames_total = 0;
+    ctx->have_t0 = 0;
+    ctx->last_deficit_frames = 0.0;
+    ctx->last_block_had_gap = 0;
+
+    // Set t0 from the device's hardware timestamp
+    {
+        snd_htimestamp_t ts1;
+        snd_pcm_uframes_t avail_dummy = 0;
+        if (snd_pcm_htimestamp(ctx->cap, &avail_dummy, &ts1) == 0)
+        {
+            ctx->t0_pcm = ts1;
+            ctx->have_t0 = 1;
+        }
+    }
+
+    // Optional: allocate a tail window for correlation (e.g., 512 samples)
+    ctx->tail_len =
+        (ctx->period_size >= 512) ? 512u : (unsigned)ctx->period_size;
+    ctx->prev_tail = (int*)calloc(ctx->tail_len, sizeof(int));
 
     // Build ALSA poll fds
     if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
@@ -612,20 +694,37 @@ int capture_setup(CaptureCtx* ctx,
     return 0;
 }
 
-/**
- * capture_next_block
- * - Single-threaded event loop step: polls ALSA (and timerfd if enabled),
- *   reads per period until a full block is collected, then returns
- * ctx->rawread.
- * - Returns NULL on unrecoverable error.
- * - Does NOT write to file — caller owns persistence/processing.
- */
+void capture_teardown(CaptureCtx* ctx)
+{
+    if (!ctx)
+        return;
+    if (ctx->fds)
+        free(ctx->fds);
+    if (ctx->tfd >= 0)
+        close(ctx->tfd);
+    if (ctx->block_buf)
+        free(ctx->block_buf);
+    if (ctx->rawread)
+        freemyarr(ctx->rawread);
+    memset(ctx, 0, sizeof(*ctx));
+}
 
 struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
 {
+    // Per-block reset
     ctx->frames_collected = 0;
     ctx->byte_off = 0;
     ctx->samp_off = 0;
+    ctx->last_block_had_gap = 0;
+    ctx->last_deficit_frames = 0.0;
+    ctx->last_boundary_lag = 0;
+
+    // Tunables
+    const double MIN_CORR_MS = 2.0; // ignore corr shifts < 2 ms
+    const double GAP_MIN_MS = 3.0; // block gap must exceed 3 ms and 1.5×period
+    const double GAP_MULT_PER = 1.5; // block gap must exceed 1.5×period
+    const double NCC_MIN =
+        0.80; // zero-lag NCC must be below this to consider shift
 
     for (;;)
     {
@@ -643,7 +742,7 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
             return NULL;
         }
 
-        // 1) Handle ALSA events
+        // ALSA events
         unsigned short revents = 0;
         if (snd_pcm_poll_descriptors_revents(ctx->cap,
                                              ctx->fds,
@@ -656,7 +755,6 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
         {
             if (revents & POLLERR)
             {
-                // Recover and rebuild ALSA descriptors in the combined array
                 fprintf(stderr, "ALSA: POLLERR → recover\n");
                 if (snd_pcm_recover(ctx->cap, -EPIPE, 1) < 0)
                 {
@@ -688,13 +786,13 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                 ctx->alsa_nfds = new_n;
                 ctx->nfds = new_total;
             }
+
             if (revents & POLLIN)
             {
-                // 🔽 NEW: Drain loop — read as many available frames as possible
-                // now
+                // Drain as many whole periods as fit the block remainder
                 for (;;)
                 {
-                    unsigned frames_left_in_block =
+                    const unsigned frames_left_in_block =
                         ctx->ArrayLength - ctx->frames_collected;
                     if (frames_left_in_block == 0)
                         break;
@@ -710,27 +808,19 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                                     snd_strerror(rr));
                             return NULL;
                         }
-                        // After recover, let poll() fetch the next event
-                        break;
+                        break; // back to poll
                     }
-
                     if ((snd_pcm_uframes_t)avail < ctx->period_size)
                     {
-                        // Not enough frames yet to read another period — go
-                        // back to poll()
-                        break;
+                        break; // wait for next period
                     }
 
-                    // Read up to what's available, but not more than the
-                    // remainder of the block.
                     unsigned chunk =
                         (unsigned)((avail <
                                     (snd_pcm_sframes_t)frames_left_in_block)
                                        ? avail
                                        : (snd_pcm_sframes_t)
                                              frames_left_in_block);
-                    // Optionally cap chunk to multiples of period_size to keep
-                    // cadence:
                     if (chunk > ctx->period_size)
                     {
                         chunk -= (chunk % (unsigned)ctx->period_size);
@@ -753,7 +843,6 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                                     snd_strerror(rr));
                             return NULL;
                         }
-                        // After recover, descriptors may change; rebuild
                         struct pollfd* new_alsa = NULL;
                         nfds_t new_n = 0;
                         if (build_alsa_pollfds(ctx->cap, &new_alsa, &new_n) ==
@@ -776,27 +865,211 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                             }
                             free(new_alsa);
                         }
-                        // Go back to poll() and continue
-                        break;
+                        break; // back to poll
                     }
 
-                    // Advance offsets
+                    // Advance counters
                     ctx->byte_off += (size_t)got * ctx->bytes_per_frame;
                     ctx->samp_off += (size_t)got;
                     ctx->frames_collected += (unsigned)got;
+                    ctx->frames_total += (uint64_t)got;
 
                     if (ctx->frames_collected >= ctx->ArrayLength)
                     {
-                        // Completed a full block
+                        // ---- Block boundary ----
+                        // (A) Block-level continuity (PLL-smoothed)
+                        if (ctx->have_t0)
+                        {
+                            snd_htimestamp_t ts_now;
+                            snd_pcm_uframes_t dummy2 = 0;
+                            if (snd_pcm_htimestamp(ctx->cap,
+                                                   &dummy2,
+                                                   &ts_now) == 0)
+                            {
+                                const double dt =
+                                    (double)(ts_now.tv_sec -
+                                             ctx->t0_pcm.tv_sec) +
+                                    1e-9 * (double)(ts_now.tv_nsec -
+                                                    ctx->t0_pcm.tv_nsec);
+                                if (dt > 0.0)
+                                {
+                                    const double rate_meas =
+                                        (double)ctx->frames_total / dt;
+                                    ctx->rate_est = (1.0 - ctx->rate_alpha) *
+                                                        ctx->rate_est +
+                                                    ctx->rate_alpha * rate_meas;
+
+                                    const double expected_frames =
+                                        dt * ctx->rate_est;
+                                    const double deficit =
+                                        expected_frames -
+                                        (double)ctx->frames_total;
+
+                                    const double ms_min_frames =
+                                        (GAP_MIN_MS / 1000.0) * ctx->rate_est;
+                                    const double gap_thr = fmax(
+                                        GAP_MULT_PER * (double)ctx->period_size,
+                                        ms_min_frames);
+
+                                    ctx->last_deficit_frames = deficit;
+                                    ctx->last_block_had_gap =
+                                        (deficit > gap_thr) ? 1 : 0;
+
+                                    if (ctx->last_block_had_gap)
+                                    {
+                                        const double ms =
+                                            1000.0 * deficit / ctx->rate_est;
+                                        fprintf(stderr,
+                                                "CONTINUITY (block): deficit "
+                                                "~%.0f frames (~%.2f ms)\n",
+                                                deficit,
+                                                ms);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            snd_pcm_htimestamp(ctx->cap,
+                                               (snd_pcm_uframes_t[]){0},
+                                               &ctx->t0_pcm);
+                            ctx->have_t0 = 1;
+                        }
+
+                        // (B) Boundary correlation (normalized) + optional
+                        // "snap"
+                        if (ctx->prev_tail && ctx->tail_len > 0)
+                        {
+                            const unsigned W = ctx->tail_len;
+                            const int* tail = ctx->prev_tail;
+                            const int* head = ctx->rawread->arr;
+
+                            // Zero-lag NCC
+                            long long sumt2 = 0, sumh2_0 = 0, dot0 = 0;
+                            for (unsigned i = 0; i < W; ++i)
+                            {
+                                sumt2 += (long long)tail[i] * tail[i];
+                                sumh2_0 += (long long)head[i] * head[i];
+                                dot0 += (long long)tail[i] * head[i];
+                            }
+                            const double normt = sqrt((double)sumt2);
+                            const double normh0 = sqrt((double)sumh2_0);
+                            const double ncc0 =
+                                (normt > 0.0 && normh0 > 0.0)
+                                    ? ((double)dot0 / (normt * normh0))
+                                    : 0.0;
+
+                            // Best lag NCC over ±period/2
+                            const int maxlag = (int)(ctx->period_size / 2);
+                            double best_ncc = -1.0;
+                            int best_lag = 0;
+                            for (int lag = -maxlag; lag <= maxlag; ++lag)
+                            {
+                                long long dot = 0, sumh2 = 0;
+                                for (unsigned i = 0; i < W; ++i)
+                                {
+                                    const int hi = (int)i + lag;
+                                    if (hi < 0 || hi >= (int)W)
+                                        continue;
+                                    dot += (long long)tail[i] * head[hi];
+                                    sumh2 += (long long)head[hi] * head[hi];
+                                }
+                                const double normh = sqrt((double)sumh2);
+                                const double ncc =
+                                    (normt > 0.0 && normh > 0.0)
+                                        ? ((double)dot / (normt * normh))
+                                        : -1.0;
+                                if (ncc > best_ncc)
+                                {
+                                    best_ncc = ncc;
+                                    best_lag = lag;
+                                }
+                            }
+
+                            // Convert min lag in ms to frames, and combine with
+                            // period fraction
+                            double lag_ms_frames_d =
+                                (MIN_CORR_MS / 1000.0) * ctx->rate_est;
+                            if (lag_ms_frames_d < 0.0)
+                                lag_ms_frames_d = 0.0;
+                            if (lag_ms_frames_d > (double)INT_MAX)
+                                lag_ms_frames_d = (double)INT_MAX;
+                            const int lag_min_frames_ms = (int)lag_ms_frames_d;
+                            const int lag_min_frames_per =
+                                (int)(ctx->period_size / 8);
+                            const int LAG_MIN =
+                                (lag_min_frames_ms > lag_min_frames_per)
+                                    ? lag_min_frames_ms
+                                    : lag_min_frames_per;
+
+                            // Decide: only if zero-lag similarity is low AND
+                            // lag is significant
+                            if (ncc0 < NCC_MIN && abs(best_lag) >= LAG_MIN)
+                            {
+                                ctx->last_boundary_lag = best_lag;
+
+                                if (ctx->apply_boundary_snap)
+                                {
+                                    // Rotate current block by -best_lag so head
+                                    // aligns to prev tail
+                                    rotate_int_block(ctx->rawread->arr,
+                                                     ctx->ArrayLength,
+                                                     -best_lag);
+                                    // Also rotate PCM bytes if you need them
+                                    // phase-aligned elsewhere:
+                                    // rotate_bytes(ctx->block_buf,
+                                    // ctx->ArrayLength, ctx->bytes_per_frame,
+                                    // -best_lag);
+
+                                    // Update prev_tail from the *aligned*
+                                    // block's tail
+                                    memcpy(ctx->prev_tail,
+                                           ctx->rawread->arr +
+                                               (ctx->ArrayLength - W),
+                                           W * sizeof(int));
+                                }
+                                else
+                                {
+                                    // No snap: still update prev_tail from
+                                    // current block
+                                    memcpy(ctx->prev_tail,
+                                           ctx->rawread->arr +
+                                               (ctx->ArrayLength - W),
+                                           W * sizeof(int));
+                                    // And log once
+                                    const double ms = 1000.0 *
+                                                      (double)best_lag /
+                                                      ctx->rate_est;
+                                    fprintf(stderr,
+                                            "CONTINUITY (corr): boundary "
+                                            "offset ~%d frames (~%.2f ms), "
+                                            "ncc0=%.2f best=%.2f\n",
+                                            best_lag,
+                                            ms,
+                                            ncc0,
+                                            best_ncc);
+                                }
+                            }
+                            else
+                            {
+                                // Already aligned; update prev_tail normally
+                                memcpy(
+                                    ctx->prev_tail,
+                                    ctx->rawread->arr + (ctx->ArrayLength - W),
+                                    W * sizeof(int));
+                            }
+                        }
+
+                        // Return the (possibly snapped) block
                         for (nfds_t i = 0; i < ctx->nfds; ++i)
                             ctx->fds[i].revents = 0;
                         return ctx->rawread;
                     }
-                }
+                } // drain loop
             }
         }
 
-        // 2) Handle timerfd (countdown)
+        // timerfd countdown (optional)
         if (ctx->countdown > 0)
         {
             struct pollfd* t = &ctx->fds[ctx->alsa_nfds];
@@ -822,23 +1095,7 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
             }
         }
 
-        // Clear revents
         for (nfds_t i = 0; i < ctx->nfds; ++i)
             ctx->fds[i].revents = 0;
     }
-}
-
-void capture_teardown(CaptureCtx* ctx)
-{
-    if (!ctx)
-        return;
-    if (ctx->fds)
-        free(ctx->fds);
-    if (ctx->tfd >= 0)
-        close(ctx->tfd);
-    if (ctx->block_buf)
-        free(ctx->block_buf);
-    if (ctx->rawread)
-        freemyarr(ctx->rawread);
-    memset(ctx, 0, sizeof(*ctx));
 }

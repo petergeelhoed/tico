@@ -187,6 +187,11 @@ int readBuffer(snd_pcm_t* capture_handle,
 
         if (r == -EAGAIN)
         {
+            (void)fprintf(stderr,
+                          "EAGAIN%d %s %s\n",
+                          __LINE__,
+                          __func__,
+                          __FILE__);
             // Non-blocking mode: try again
             continue;
         }

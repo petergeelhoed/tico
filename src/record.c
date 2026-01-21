@@ -1,7 +1,9 @@
+
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h> // OPTION A: for sleep()
 
 #include "myarr.h"
 #include "mydefs.h"
@@ -19,9 +21,13 @@ int main(int argc, char* argv[])
     int flag;
     unsigned int evalue = 4;
     const char* device = NULL;
-    // declarations
 
-    while ((flag = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
+    unsigned int countdown =
+        0; // OPTION A: seconds to count down before capture
+
+    // Parse args
+    while ((flag = getopt(argc, argv, "b:r:ht:d:e:c:")) !=
+           -1) // OPTION A: added 'c:'
     {
         int retVal = 0;
         switch (flag)
@@ -46,17 +52,24 @@ int main(int argc, char* argv[])
         case 'r':
             retVal = checkUIntArg(flag, &rate, optarg);
             break;
+        case 'c': // OPTION A: countdown seconds
+            retVal = checkUIntArg(flag, &countdown, optarg);
+            break;
         case 'h':
         default:
-            (void)fprintf(
-                stderr,
-                "usage: capture \n"
-                "capture reads from the microphone and timegraphs your watch\n"
-                "options:\n"
-                " -d <capture device> (default: 'default:1')\n"
-                " -b bph of the watch (default: 21600/h) \n"
-                " -r sampling rate (default: 48000Hz)\n"
-                " -t time to record (default: 30s )\n");
+            (void)fprintf(stderr,
+                          "usage: capture \n"
+                          "capture reads from the microphone and timegraphs "
+                          "your watch\n"
+                          "options:\n"
+                          " -d <capture device> (default: 'default:1')\n"
+                          " -b bph of the watch (default: 21600/h)\n"
+                          " -r sampling rate (default: 48000Hz)\n"
+                          " -t time to record (default: 30s)\n"
+                          " -e envelope level (default: 4)\n"
+                          " -c countdown seconds before starting capture "
+                          "(default: 0)\n" // OPTION A
+            );
             exit(0);
             break;
         }
@@ -68,7 +81,7 @@ int main(int argc, char* argv[])
 
     if (device == 0)
     {
-        device = "default:1";
+        device = "default:2";
     }
 
     size_t device_len = strlen(device);
@@ -82,12 +95,34 @@ int main(int argc, char* argv[])
     strncpy(device_mutable, device, device_len + 1);
     device_mutable[device_len] = '\0';
 
+    // Init ALSA
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     snd_pcm_t* capture_handle = initAudio(format, device_mutable, &rate);
+
+    // OPTION A: Do a blocking countdown BEFORE any reads so capture isn't
+    // starved
+    if (countdown > 0)
+    {
+        for (int i = (int)countdown; i > 0; --i)
+        {
+            printf("%d\n", i);
+            fflush(stdout);
+            sleep(1);
+        }
+        // Ensure fresh start after countdown (discard any pending data if the
+        // device auto-ran)
+        if (snd_pcm_prepare(capture_handle) < 0)
+        {
+            fprintf(stderr, "ALSA: re-prepare after countdown failed\n");
+            // Not fatal—continue, recover will happen later if needed
+        }
+    }
+
     unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
     unsigned int length = time * bph / 2 / SECS_HOUR;
 
     fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
+
     char* buffer =
         (char*)malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) /
                       BITS_IN_BYTE);
@@ -101,15 +136,19 @@ int main(int argc, char* argv[])
     struct myarr* rawread = makemyarr(ArrayLength);
 
     FILE* filePtr = fopen("recorded", "w");
+
+    // Prime the stream (now that countdown is done)
     readBufferRaw(capture_handle, buffer, rawread);
     readBufferRaw(capture_handle, buffer, rawread);
+
     while (length)
     {
         length--;
-        readBufferRaw(capture_handle, buffer, rawread);
+        readBuffer(capture_handle, ArrayLength, buffer, rawread->arr);
 
         syncAppendMyarr(rawread, filePtr);
         printf("%d\n", length);
+        fflush(stdout);
     }
 
     free(buffer);

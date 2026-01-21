@@ -53,14 +53,7 @@ int readBufferOrFile(int* derivative,
                      FILE* fpInput,
                      CaptureCtx* ctx);
 
-int getData(FILE* rawfile,
-            FILE* fpInput,
-            snd_pcm_t* capture_handle,
-            snd_pcm_format_t format,
-            char* device,
-            unsigned int rate,
-            struct myarr derivative,
-            CaptureCtx* ctx);
+int getData(FILE* fpInput, struct myarr derivative, CaptureCtx* ctx);
 //=====
 void capture_teardown(CaptureCtx* ctx);
 struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms);

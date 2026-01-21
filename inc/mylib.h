@@ -1,6 +1,7 @@
 #include "config.h"
 #include "crosscorint.h"
 #include "myarr.h"
+#include "resources.h"
 #include <stdio.h>
 
 void printheader(double fittedRate,
@@ -29,3 +30,9 @@ double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);
+
+void print_finals(CapConfig* cfg,
+                  AppResources* res,
+                  unsigned int ArrayLength,
+                  unsigned int totalTickTock,
+                  int toothshift);

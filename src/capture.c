@@ -7,6 +7,7 @@
 #include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"
+#include "resources.h"
 
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
@@ -21,20 +22,6 @@
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
 
-// Struct to hold application resources for cleaner function signatures
-typedef struct
-{
-    struct myarr* subpos;
-    struct myarr* maxpos;
-    struct myarr* maxvals;
-    struct myarr* derivative;
-    struct myarr* tmpder;
-    struct myarr* reference;
-    struct myarr** teethArray;
-    fftw_complex* filterFFT;
-    char* audioBuffer;
-} AppResources;
-
 static void shift_buffer_data(unsigned int* ticktock,
                               struct myarr* subpos,
                               struct myarr* maxpos,
@@ -44,49 +31,6 @@ static void shift_buffer_data(unsigned int* ticktock,
     memmove(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
     memmove(maxvals->arrd, maxvals->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
     *ticktock -= ARR_BUFF;
-}
-
-static void print_finals(CapConfig* cfg,
-                         AppResources* res,
-                         unsigned int ArrayLength,
-                         unsigned int totalTickTock,
-                         int toothshift)
-{
-    if (cfg->fpposition)
-    {
-        calculateTotalFromFile(totalTickTock,
-                               cfg->fpposition,
-                               ArrayLength,
-                               cfg->SDthreshold,
-                               cfg->rate);
-    }
-    if (cfg->fpmaxcor)
-    {
-        printTOD(cfg->fpmaxcor);
-    }
-
-    if (cfg->fptotal)
-    {
-        for (unsigned int t = 0; t < cfg->teeth; ++t)
-        {
-            struct myarr* tmp = res->teethArray[t];
-            if (tmp != NULL)
-            {
-                struct myarr cumulativeTick = *tmp;
-                toothshift = getshift(*res->teethArray[0], cumulativeTick);
-                for (unsigned int j = 0; j < ArrayLength; ++j)
-                {
-                    (void)fprintf(cfg->fptotal,
-                                  "%d %d %u %d\n",
-                                  (int)j + toothshift,
-                                  cumulativeTick.arr[j],
-                                  t,
-                                  toothshift);
-                }
-            }
-            (void)fprintf(cfg->fptotal, "\n\n");
-        }
-    }
 }
 
 static int

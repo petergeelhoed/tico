@@ -7,12 +7,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
 #include "mymath.h"
 #include "mysync.h"
 #include "parseargs.h"
+#include "resources.h"
 
 /* Prints header on line or at the top */
 void printheader(double fittedRate,
@@ -214,6 +216,49 @@ void calculateTotalFromFile(unsigned int count,
     else
     {
         (void)fprintf(stderr, "Cannot allocate memory for totalFromFile\n");
+    }
+}
+
+void print_finals(CapConfig* cfg,
+                  AppResources* res,
+                  unsigned int ArrayLength,
+                  unsigned int totalTickTock,
+                  int toothshift)
+{
+    if (cfg->fpposition)
+    {
+        calculateTotalFromFile(totalTickTock,
+                               cfg->fpposition,
+                               ArrayLength,
+                               cfg->SDthreshold,
+                               cfg->rate);
+    }
+    if (cfg->fpmaxcor)
+    {
+        printTOD(cfg->fpmaxcor);
+    }
+
+    if (cfg->fptotal)
+    {
+        for (unsigned int t = 0; t < cfg->teeth; ++t)
+        {
+            struct myarr* tmp = res->teethArray[t];
+            if (tmp != NULL)
+            {
+                struct myarr cumulativeTick = *tmp;
+                toothshift = getshift(*res->teethArray[0], cumulativeTick);
+                for (unsigned int j = 0; j < ArrayLength; ++j)
+                {
+                    (void)fprintf(cfg->fptotal,
+                                  "%d %d %u %d\n",
+                                  (int)j + toothshift,
+                                  cumulativeTick.arr[j],
+                                  t,
+                                  toothshift);
+                }
+            }
+            (void)fprintf(cfg->fptotal, "\n\n");
+        }
     }
 }
 

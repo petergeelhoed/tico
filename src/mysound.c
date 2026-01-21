@@ -153,96 +153,85 @@ void readBufferRaw(snd_pcm_t* capture_handle,
     }
 }
 
-// Complete function with a small helper to read exactly N frames.
-
-// Helper: read exactly `frames` frames into `buf` or recover from xruns.
-// Returns 0 on success, negative ALSA error on failure.
-static int read_exact_frames(snd_pcm_t* h,
-                             char* buf,
-                             snd_pcm_uframes_t frames,
-                             unsigned bytes_per_frame)
+int readBuffer(snd_pcm_t* capture_handle,
+               unsigned int ArrayLength,
+               char* buffer,
+               int* derivative)
 {
-    snd_pcm_uframes_t total = 0;
-
-    while (total < frames)
+    // --- Make stderr unbuffered once so prints are visible even if redirected
+    // ---
+    static int stderr_unbuffered = 0;
+    if (!stderr_unbuffered)
     {
-        snd_pcm_sframes_t r =
-            snd_pcm_readi(h, buf + (total * bytes_per_frame), frames - total);
-
-        if (r == -EAGAIN)
-        {
-            // Non-blocking mode: try again.
-            continue;
-        }
-        else if (r == -EPIPE || r == -ESTRPIPE)
-        {
-            // Overrun or stream suspended: attempt recovery.
-            int rr = snd_pcm_recover(h, (int)r, /*silent=*/1);
-            if (rr < 0)
-            {
-                fprintf(stderr,
-                        "snd_pcm_recover failed: %s\n",
-                        snd_strerror(rr));
-                return rr;
-            }
-            // After successful recover, try again.
-            continue;
-        }
-        else if (r < 0)
-        {
-            // Other error
-            fprintf(stderr, "snd_pcm_readi failed: %s\n", snd_strerror((int)r));
-            return (int)r;
-        }
-
-        total += (snd_pcm_uframes_t)r;
+        setvbuf(stderr, NULL, _IONBF, 0);
+        stderr_unbuffered = 1;
     }
 
-    return 0;
-}
-
-int readBuffer(snd_pcm_t* capture_handle,
-               unsigned int ArrayLength, // frames
-               char* buffer, // raw PCM bytes: must hold ArrayLength * 2 bytes
-                             // (S16_LE mono)
-               int* derivative) // length >= ArrayLength
-{
     if (ArrayLength == 0)
     {
         return 0;
     }
 
-    // --- Format assumptions: S16_LE, mono ---
+    // --- Format assumptions: S16_LE mono ---
     const unsigned int BYTES_PER_SAMPLE = 2; // 16-bit
     const unsigned int CHANNELS = 1;         // mono
     const unsigned int BYTES_PER_FRAME = BYTES_PER_SAMPLE * CHANNELS;
 
-    // 1) Read exactly ArrayLength frames (blocking until filled or error)
-    int rc = read_exact_frames(capture_handle,
-                               buffer,
-                               (snd_pcm_uframes_t)ArrayLength,
-                               BYTES_PER_FRAME);
-    if (rc < 0)
+    // --- Read exactly ArrayLength frames, handling xruns and short reads ---
+    snd_pcm_uframes_t remaining = (snd_pcm_uframes_t)ArrayLength;
+    char* write_ptr = buffer;
+    while (remaining > 0)
     {
-        // Already logged; return ALSA error code.
-        return rc;
+        snd_pcm_sframes_t r =
+            snd_pcm_readi(capture_handle, write_ptr, remaining);
+
+        if (r == -EAGAIN)
+        {
+            // Non-blocking mode: try again
+            continue;
+        }
+        else if (r == -EPIPE || r == -ESTRPIPE)
+        {
+            // Overrun (capture) or suspend: recover and continue
+            fprintf(stderr,
+                    "ALSA: overrun/suspend detected (%s)\n",
+                    snd_strerror((int)r));
+            int rr = snd_pcm_recover(capture_handle, (int)r, /*silent=*/1);
+            if (rr < 0)
+            {
+                fprintf(stderr, "ALSA: recover failed: %s\n", snd_strerror(rr));
+                return rr;
+            }
+            // After recover, try reading again
+            continue;
+        }
+        else if (r < 0)
+        {
+            // Other fatal error
+            fprintf(stderr,
+                    "ALSA: snd_pcm_readi failed: %s\n",
+                    snd_strerror((int)r));
+            return (int)r;
+        }
+
+        // Successful short/long read
+        write_ptr += (size_t)r * BYTES_PER_FRAME;
+        remaining -= (snd_pcm_uframes_t)r;
     }
 
-    // 2) Optional: Check ALSA status (XRUN state, overrange)
+    // --- Post-read ALSA status snapshot: XRUN/overrange reporting ---
     {
         snd_pcm_status_t* status;
         snd_pcm_status_alloca(&status);
         if (snd_pcm_status(capture_handle, status) == 0)
         {
-            snd_pcm_state_t st = snd_pcm_status_get_state(status);
-            if (st == SND_PCM_STATE_XRUN)
+            if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN)
             {
                 fprintf(stderr,
-                        "ALSA: XRUN detected (post-read); recovering...\n");
+                        "ALSA: XRUN detected in status (post-read). "
+                        "Recovering...\n");
                 (void)snd_pcm_prepare(capture_handle);
             }
-
-            // Some drivers/plugins report ADC overrange count here
             unsigned long over = snd_pcm_status_get_overrange(status);
             if (over > 0)
             {
@@ -253,35 +242,93 @@ int readBuffer(snd_pcm_t* capture_handle,
         }
     }
 
-    // 3) Convert bytes -> int16_t (S16_LE) and detect clipping.
-    //    We first store the sample values into derivative[]; then reuse the
-    //    same array to hold |x[n] - x[n+1]|.
-    int clip_overflow_count = 0;
+    // --- Timestamp-based discontinuity detection (no signature change) ---
+    // We query the current hardware rate/period once and then use
+    // snd_pcm_htimestamp() to check for unexpected gaps.
+    {
+        static int rate_inited = 0;
+        static unsigned int sample_rate = 0;
+        static int period_inited = 0;
+        static snd_pcm_uframes_t period_size = 0;
+        static int have_prev_ts = 0;
+        static snd_htimestamp_t prev_ts = {0};
 
+        if (!rate_inited || !period_inited)
+        {
+            snd_pcm_hw_params_t* hw;
+            snd_pcm_hw_params_alloca(&hw);
+            if (snd_pcm_hw_params_current(capture_handle, hw) == 0)
+            {
+                int dir = 0;
+                (void)snd_pcm_hw_params_get_rate(hw, &sample_rate, &dir);
+                (void)snd_pcm_hw_params_get_period_size(hw, &period_size, &dir);
+            }
+            rate_inited = period_inited = 1;
+        }
+
+        if (sample_rate > 0)
+        {
+            snd_htimestamp_t ts;
+            snd_pcm_uframes_t avail_hw = 0;
+            if (snd_pcm_htimestamp(capture_handle, &avail_hw, &ts) == 0)
+            {
+                if (have_prev_ts)
+                {
+                    double dt = (double)(ts.tv_sec - prev_ts.tv_sec) +
+                                (double)(ts.tv_nsec - prev_ts.tv_nsec) * 1e-9;
+                    double expected_frames = dt * (double)sample_rate;
+                    double actual_frames = (double)ArrayLength;
+
+                    // Tolerance: one ALSA period if known, else ~1 ms of audio
+                    double tol_frames = (period_size > 0)
+                                            ? (double)period_size
+                                            : (double)sample_rate * 0.001;
+
+                    double gap = expected_frames - actual_frames;
+                    if (gap > tol_frames)
+                    {
+                        fprintf(stderr,
+                                "ALSA: discontinuity suspected: ts advanced by "
+                                "~%.0f frames, "
+                                "but read %.0f (gap ~%.0f, tol ~%.0f)\n",
+                                expected_frames,
+                                actual_frames,
+                                gap,
+                                tol_frames);
+                    }
+                }
+                prev_ts = ts;
+                have_prev_ts = 1;
+            }
+        }
+    }
+
+    // --- Convert bytes -> int16 samples; detect clipping; compute derivative
+    // ---
+    int clip_overflow = 0;
+
+    // First store samples into derivative[] (int) then reuse for |x[n]-x[n+1]|
     for (unsigned int i = 0; i < ArrayLength; ++i)
     {
         const uint8_t lsb = (uint8_t)buffer[2 * i + 0];
         const int8_t msb = (int8_t)buffer[2 * i + 1];
-        // Combine as little-endian 16-bit
-        const int16_t sample = (int16_t)(((int)msb << 8) | lsb);
+        const int16_t sample = (int16_t)(((int)msb << 8) | lsb); // S16_LE
 
         derivative[i] = (int)sample;
 
-        // Clipping detection
+        // Clipping check (ADC full-scale, not XRUN)
         if (sample == INT16_MAX || sample == INT16_MIN)
         {
-            clip_overflow_count++;
+            clip_overflow++;
         }
     }
 
-    if (clip_overflow_count > 1)
+    if (clip_overflow > 1)
     {
-        fprintf(stderr,
-                "%d audio 16-bit clipping event(s)\n",
-                clip_overflow_count);
+        fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clip_overflow);
     }
 
-    // 4) Compute derivative: |x[n] - x[n+1]|, last sample = 0
+    // Compute derivative: |x[n] - x[n+1]|; last sample = 0
     for (unsigned int i = 0; i + 1 < ArrayLength; ++i)
     {
         int d = derivative[i] - derivative[i + 1];
@@ -289,7 +336,7 @@ int readBuffer(snd_pcm_t* capture_handle,
     }
     derivative[ArrayLength - 1] = 0;
 
-    // Success: we read exactly ArrayLength frames
+    // Success: exactly ArrayLength frames were read
     return (int)ArrayLength;
 }
 

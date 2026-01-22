@@ -1,6 +1,5 @@
 #include <alsa/asoundlib.h>
 #include <errno.h>
-#include <fftw3.h>
 #include <poll.h>
 #include <stdint.h> // uint64_t
 #include <stdio.h>
@@ -99,20 +98,11 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Build filter for your pipeline (kept for parity)
-    // (You can move this below if you only need it after capture.)
-    // `ArrayLength` depends on rate & bph; capture_setup computes it and
-    // allocates rawread accordingly. If your filter needs ArrayLength now,
-    // compute it locally first:
-    unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
-    fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
-
     // Setup capture context (poll + timerfd, buffers, etc.)
     CaptureCtx ctx;
     if (capture_setup(&ctx, cap, rate, bph, format) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
-        fftw_free(filterFFT);
         free(device_mutable);
         snd_pcm_close(cap);
         return EXIT_FAILURE;
@@ -132,6 +122,7 @@ int main(int argc, char* argv[])
 
     while (blocks_left > 0)
     {
+        //       printTOD(filePtr);
         struct myarr* filled = capture_next_block(&ctx, POLL_TIMEOUT_MS);
         if (!filled)
         {
@@ -144,8 +135,6 @@ int main(int argc, char* argv[])
 
         // Progress print (once per block)
         printf("%u\n", blocks_left - 1);
-        (void)fflush(stdout);
-
         --blocks_left;
     }
 
@@ -163,10 +152,5 @@ int main(int argc, char* argv[])
     {
         free(device_mutable);
     }
-    if (filterFFT)
-    {
-        fftw_free(filterFFT);
-    }
-    fftw_cleanup();
     return 0;
 }

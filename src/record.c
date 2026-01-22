@@ -1,7 +1,14 @@
 #include <alsa/asoundlib.h>
+#include <errno.h>
 #include <fftw3.h>
+#include <poll.h>
+#include <stdint.h> // uint64_t
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // strlen, strncpy
+#include <sys/timerfd.h>
+#include <time.h>
+#include <unistd.h> // getopt, read
 
 #include "myarr.h"
 #include "mydefs.h"
@@ -11,28 +18,26 @@
 #include "mysync.h"
 #include "parseargs.h"
 
+/* -------------------- Capture Context -------------------- */
+
+/* -------------------- Main -------------------- */
+
 int main(int argc, char* argv[])
 {
-    unsigned int rate = DEFAULT_RATE;
-    unsigned int bph = DEFAULT_BPH;
-    unsigned int time = 3;
-    int flag;
-    unsigned int evalue = 4;
+    unsigned int rate = DEFAULT_RATE; // e.g., 48000
+    unsigned int bph = DEFAULT_BPH;   // e.g., 21600
+    unsigned int time = 3;            // seconds to record (as blocks)
+    unsigned int evalue = 4;          // filter param
     const char* device = NULL;
-    // declarations
 
-    while ((flag = getopt(argc, argv, "b:r:ht:d:e:")) != -1)
+    int flag;
+    while ((flag = getopt(argc, argv, "b:r:ht:d:e:c:")) != -1)
     {
         int retVal = 0;
         switch (flag)
         {
         case 'e':
             retVal = checkUIntArg(flag, &evalue, optarg);
-            if (evalue == 0)
-            {
-                printf("invalid integer argument for -e '%s'\n", optarg);
-                return -1;
-            }
             break;
         case 'd':
             device = optarg;
@@ -50,15 +55,18 @@ int main(int argc, char* argv[])
         default:
             (void)fprintf(
                 stderr,
-                "usage: capture \n"
+                "usage: capture\n"
                 "capture reads from the microphone and timegraphs your watch\n"
                 "options:\n"
-                " -d <capture device> (default: 'default:1')\n"
-                " -b bph of the watch (default: 21600/h) \n"
-                " -r sampling rate (default: 48000Hz)\n"
-                " -t time to record (default: 30s )\n");
-            exit(0);
-            break;
+                " -d <capture device> (default: 'default:2')\n"
+                " -b bph of the watch (default: %u/h)\n"
+                " -r sampling rate (default: %u Hz)\n"
+                " -t time to record in seconds (default: 3)\n"
+                " -e envelope level (default: 4)\n"
+                "(default: 0)\n",
+                DEFAULT_BPH,
+                DEFAULT_RATE);
+            return 0;
         }
         if (retVal != 0)
         {
@@ -66,61 +74,99 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (device == 0)
+    if (device == NULL)
     {
-        device = "default:1";
+        device = "default:2";
     }
 
+    // Mutable device string
     size_t device_len = strlen(device);
     char* device_mutable = (char*)malloc(device_len + 1);
-    if (device_mutable == NULL)
+    if (!device_mutable)
     {
-        (void)fprintf(stderr, "devive memory allocation failed\n");
-        exit(EXIT_FAILURE);
+        (void)fprintf(stderr, "device memory allocation failed\n");
+        return EXIT_FAILURE;
     }
-
     strncpy(device_mutable, device, device_len + 1);
     device_mutable[device_len] = '\0';
 
+    // Init ALSA (your function)
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* capture_handle = initAudio(format, device_mutable, &rate);
-    unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
-    unsigned int length = time * bph / 2 / SECS_HOUR;
-
-    fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
-    char* buffer =
-        (char*)malloc(ArrayLength * (unsigned int)snd_pcm_format_width(format) /
-                      BITS_IN_BYTE);
-    if (buffer == NULL)
+    snd_pcm_t* cap = initAudio(format, device_mutable, &rate);
+    if (!cap)
     {
         free(device_mutable);
-        (void)fprintf(stderr, "buffer mamory allocation failed\n");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
-    struct myarr* rawread = makemyarr(ArrayLength);
+    // Build filter for your pipeline (kept for parity)
+    // (You can move this below if you only need it after capture.)
+    // `ArrayLength` depends on rate & bph; capture_setup computes it and
+    // allocates rawread accordingly. If your filter needs ArrayLength now,
+    // compute it locally first:
+    unsigned int ArrayLength = rate * SECS_HOUR * 2 / bph;
+    fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
 
+    // Setup capture context (poll + timerfd, buffers, etc.)
+    CaptureCtx ctx;
+    if (capture_setup(&ctx, cap, rate, bph, format) < 0)
+    {
+        (void)fprintf(stderr, "capture_setup failed\n");
+        fftw_free(filterFFT);
+        free(device_mutable);
+        snd_pcm_close(cap);
+        return EXIT_FAILURE;
+    }
+
+    // Open output file (buffered) — optional
     FILE* filePtr = fopen("recorded", "w");
-    readBufferRaw(capture_handle, buffer, rawread);
-    readBufferRaw(capture_handle, buffer, rawread);
-    while (length)
+    if (!filePtr)
     {
-        length--;
-        readBufferRaw(capture_handle, buffer, rawread);
-
-        syncAppendMyarr(rawread, filePtr);
-        printf("%d\n", length);
+        (void)fprintf(stderr,
+                      "warning: could not open output file 'recorded'\n");
     }
 
-    free(buffer);
-    free(device_mutable);
-    fftw_free(filterFFT);
+    // Number of blocks to capture in total
+    unsigned int blocks_left = time * bph / 2 / SECS_HOUR;
+    const int POLL_TIMEOUT_MS = 2000;
+
+    while (blocks_left > 0)
+    {
+        struct myarr* filled = capture_next_block(&ctx, POLL_TIMEOUT_MS);
+        if (!filled)
+        {
+            (void)fprintf(stderr, "capture_next_block failed; stopping\n");
+            break;
+        }
+
+        // Your existing persist/processing step
+        syncAppendMyarr(filled, filePtr);
+
+        // Progress print (once per block)
+        printf("%u\n", blocks_left - 1);
+        (void)fflush(stdout);
+
+        --blocks_left;
+    }
+
+    // Cleanup
+    if (filePtr)
+    {
+        wait_close(filePtr);
+        capture_teardown(&ctx);
+    }
+    if (cap)
+    {
+        snd_pcm_close(cap);
+    }
+    if (device_mutable)
+    {
+        free(device_mutable);
+    }
+    if (filterFFT)
+    {
+        fftw_free(filterFFT);
+    }
     fftw_cleanup();
-    wait_close(filePtr);
-    if (capture_handle)
-    {
-        snd_pcm_close(capture_handle);
-    }
-    freemyarr(rawread);
-    exit(0);
+    return 0;
 }

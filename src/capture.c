@@ -165,10 +165,19 @@ int main(int argc, char* argv[])
 
     snd_pcm_t* capture_handle = NULL;
     unsigned int actualRate;
-    if (init_audio_source(&cfg, &capture_handle, &actualRate) != 0)
+    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+    if (init_audio_source(&cfg, &capture_handle, &actualRate))
     {
-        return ERROR_NO_SOURCE;
+        return EXIT_FAILURE;
     }
+    CaptureCtx ctx;
+    if (capture_setup(&ctx, capture_handle, actualRate, cfg.bph, format) < 0)
+    {
+        (void)fprintf(stderr, "capture_setup failed\n");
+        snd_pcm_close(capture_handle);
+        return EXIT_FAILURE;
+    }
+
     unsigned int ArrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
     ArrayLength += (ArrayLength % 2);
     unsigned int mod = ArrayLength / cfg.zoom;
@@ -181,14 +190,13 @@ int main(int argc, char* argv[])
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
 
     sigset_t block;
-    sigset_t non_block;
+    // sigset_t non_block;
     setup_block_signals(&block);
 
     int totalshift = 0;
     int toothshift = 0;
     unsigned int ticktock = 0;
     unsigned int totalTickTock = 0;
-    unsigned int rate = (unsigned int)cfg.rate;
 
     while (keepRunning && !(totalTickTock > maxtime && cfg.time))
     {
@@ -196,16 +204,9 @@ int main(int argc, char* argv[])
         {
             shift_buffer_data(&ticktock, res.subpos, res.maxpos, res.maxvals);
         }
-        block_signal(&block, &non_block);
-        int err = getData(cfg.fpposition,
-                          cfg.fpInput,
-                          capture_handle,
-                          SND_PCM_FORMAT_S16_LE,
-                          cfg.device,
-                          rate,
-                          res.audioBuffer,
-                          *res.derivative);
-        unblock_signal(&non_block);
+        //  block_signal(&block, &non_block);
+        int err = getData(cfg.fpInput, *res.derivative, &ctx);
+        //  unblock_signal(&non_block);
         if (err < 0)
         {
             break;
@@ -252,7 +253,6 @@ int main(int argc, char* argv[])
 
         double intercept = 0.0;
         double slope = 0.0;
-
         fitNpeaks(&intercept,
                   &slope,
                   ticktock,
@@ -273,7 +273,6 @@ int main(int argc, char* argv[])
                     columns - cfg.everyline,
                     intercept,
                     cfg.cvalue);
-
         ticktock++;
         totalTickTock++;
     }

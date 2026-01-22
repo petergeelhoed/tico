@@ -1,3 +1,4 @@
+#pragma once
 #include "config.h"
 #include "crosscorint.h"
 #include "myarr.h"

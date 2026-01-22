@@ -21,6 +21,7 @@
 #define DEFAULT_TICKTOCK_WRITE 30
 #define DEFAULT_TIME 30
 #define DEFAULT_ZOOM 10
+#define DEFAULT_PERIOD 1024
 #define ERROR_ALLOCATE_MEM -5
 #define ERROR_NO_SOURCE -6
 #define ERROR_SIGNAL -6
@@ -50,6 +51,9 @@
 #define SECS_HOUR 3600
 
 #define THOUSAND 1000
+#define MILLION 1000000L
+#define NANO 1e-9
+#define MILLI 1e-3
 
 #define FALSE 0
 #define TRUE 1

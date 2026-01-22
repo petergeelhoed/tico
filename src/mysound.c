@@ -48,6 +48,82 @@ static void check_alsa_err(int err,
     }
 }
 
+/* Initialize from current hw params (safe even if not all fields are available)
+ */
+static inline void missdet_init(MissDet* md, snd_pcm_t* pcm)
+{
+    memset(md, 0, sizeof(*md));
+
+    snd_pcm_hw_params_t* hw;
+    snd_pcm_hw_params_alloca(&hw);
+    if (snd_pcm_hw_params_current(pcm, hw) == 0)
+    {
+        int dir = 0;
+        (void)snd_pcm_hw_params_get_rate(hw, &md->sample_rate, &dir);
+        (void)snd_pcm_hw_params_get_period_size(hw, &md->period_size, &dir);
+    }
+
+    /* Build a practical tolerance:
+       - If we know period_size: allow one period worth of jitter
+       - Else: allow ~1 ms worth of frames
+    */
+    if (md->period_size > 0)
+    {
+        md->tol_frames = (double)md->period_size;
+    }
+    else if (md->sample_rate > 0)
+    {
+        md->tol_frames = 0.001 * (double)md->sample_rate; /* ~1 ms */
+    }
+    else
+    {
+        md->tol_frames = 64.0; /* conservative fallback */
+    }
+}
+
+/* Call AFTER each successful read() that returned 'got' frames.
+   Returns:
+     >0  suspected missing data (gap larger than tolerance)
+      0  OK (no gap)
+     <0  not enough info (e.g., sample_rate unknown or timestamp unavailable)
+*/
+static inline int missdet_check(MissDet* md, snd_pcm_t* pcm, unsigned got)
+{
+    if (!md || md->sample_rate == 0)
+        return -1;
+
+    snd_htimestamp_t ts = {0, 0};
+    snd_pcm_uframes_t avail_hw = 0; /* not used, but required by API */
+    if (snd_pcm_htimestamp(pcm, &avail_hw, &ts) != 0)
+    {
+        return -1;
+    }
+
+    if (md->inited)
+    {
+        /* Compute elapsed wallclock time between reads */
+        double dt = (double)(ts.tv_sec - md->prev_ts.tv_sec) +
+                    (double)(ts.tv_nsec - md->prev_ts.tv_nsec) * NANO;
+        if (dt > 0.0)
+        {
+            double expected = dt * (double)md->sample_rate;
+            double actual = (double)got;
+            double gap = expected - actual;
+
+            if (gap > md->tol_frames)
+            {
+                /* Missing data suspected */
+                md->prev_ts = ts;
+                return 1;
+            }
+        }
+    }
+
+    md->prev_ts = ts;
+    md->inited = 1;
+    return 0;
+}
+
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
@@ -480,6 +556,7 @@ int capture_setup(CaptureCtx* ctx,
         ctx->block_buf = NULL;
         return -1;
     }
+    missdet_init(&ctx->missdet, ctx->cap);
 
     // Warm-up reads to settle the pipeline
     readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
@@ -652,7 +729,22 @@ static int read_one_burst(CaptureCtx* ctx)
         }
         return 0; // recovered; let poll drive the next attempt
     }
+
     log_xrun_if_any(ctx->cap);
+
+    if (got > 0)
+    {
+        int md_flag = missdet_check(&ctx->missdet, ctx->cap, (unsigned)got);
+        if (md_flag > 0)
+        {
+            ctx->lost_events++;
+            (void)fprintf(
+                stderr,
+                "MISSING DATA suspected: time advanced >> frames read "
+                "(event #%lu)\n",
+                ctx->lost_events);
+        }
+    }
 
     // Advance offsets
     ctx->byte_off += (size_t)got * ctx->bytes_per_frame;

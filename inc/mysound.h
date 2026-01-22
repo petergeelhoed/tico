@@ -5,6 +5,15 @@
 #include <stdio.h>
 #include <sys/timerfd.h>
 
+/* Missing-data detector state (per PCM handle / stream) */
+typedef struct
+{
+    int inited;
+    unsigned int sample_rate;      /* Hz */
+    snd_pcm_uframes_t period_size; /* frames (optional, improves tolerance) */
+    snd_htimestamp_t prev_ts;      /* previous ALSA high-res timestamp */
+    double tol_frames;             /* tolerance in frames (derived) */
+} MissDet;
 /* -------------------- Capture Context -------------------- */
 
 typedef struct CaptureCtx
@@ -36,6 +45,10 @@ typedef struct CaptureCtx
     /* Countdown (optional, via timerfd) */
     int tfd;                // timerfd or -1
     unsigned int countdown; // seconds remaining; 0 disables
+
+    MissDet missdet;
+    unsigned long lost_events; /* optional counter */
+
 } CaptureCtx;
 
 // NOLINTNEXTLINE(misc-include-cleaner)

@@ -43,8 +43,7 @@ typedef struct CaptureCtx
     nfds_t alsa_nfds;   // number of ALSA fds at head of fds[]
 
     /* Countdown (optional, via timerfd) */
-    int tfd;                // timerfd or -1
-    unsigned int countdown; // seconds remaining; 0 disables
+    int tfd; // timerfd or -1
 
     MissDet missdet;
     unsigned long lost_events; /* optional counter */

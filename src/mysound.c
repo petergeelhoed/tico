@@ -48,36 +48,50 @@ static void check_alsa_err(int err,
     }
 }
 
-/* Initialize from current hw params (safe even if not all fields are available)
+/* Initialize from current hw_param params (safe even if not all fields are
+ * available)
  */
-static inline void missdet_init(MissDet* md, snd_pcm_t* pcm)
+static inline void missdet_init(MissDet* missdet, snd_pcm_t* pcm)
 {
-    memset(md, 0, sizeof(*md));
+    memset(missdet, 0, sizeof(*missdet));
 
-    snd_pcm_hw_params_t* hw;
-    snd_pcm_hw_params_alloca(&hw);
-    if (snd_pcm_hw_params_current(pcm, hw) == 0)
+    snd_pcm_hw_params_t* hw_param = NULL;
+    int err = snd_pcm_hw_params_malloc(&hw_param);
+
+    if (err < 0 || !hw_param)
+    {
+        // handle allocation failure
+        (void)fprintf(stderr,
+                      "snd_pcm_hw_params_malloc failed: %s\n",
+                      snd_strerror(err));
+        exit(err ? err : -ENOMEM);
+    }
+
+    if (snd_pcm_hw_params_current(pcm, hw_param) == 0)
     {
         int dir = 0;
-        (void)snd_pcm_hw_params_get_rate(hw, &md->sample_rate, &dir);
-        (void)snd_pcm_hw_params_get_period_size(hw, &md->period_size, &dir);
+        (void)snd_pcm_hw_params_get_rate(hw_param, &missdet->sample_rate, &dir);
+        (void)snd_pcm_hw_params_get_period_size(hw_param,
+                                                &missdet->period_size,
+                                                &dir);
     }
+    snd_pcm_hw_params_free(hw_param);
 
     /* Build a practical tolerance:
        - If we know period_size: allow one period worth of jitter
        - Else: allow ~1 ms worth of frames
     */
-    if (md->period_size > 0)
+    if (missdet->period_size > 0)
     {
-        md->tol_frames = (double)md->period_size;
+        missdet->tol_frames = (double)missdet->period_size;
     }
-    else if (md->sample_rate > 0)
+    else if (missdet->sample_rate > 0)
     {
-        md->tol_frames = 0.001 * (double)md->sample_rate; /* ~1 ms */
+        missdet->tol_frames = MILLI * (double)missdet->sample_rate; /* ~1 ms */
     }
     else
     {
-        md->tol_frames = 64.0; /* conservative fallback */
+        missdet->tol_frames = FRAME_FALLBACK; /* conservative fallback */
     }
 }
 
@@ -87,40 +101,43 @@ static inline void missdet_init(MissDet* md, snd_pcm_t* pcm)
       0  OK (no gap)
      <0  not enough info (e.g., sample_rate unknown or timestamp unavailable)
 */
-static inline int missdet_check(MissDet* md, snd_pcm_t* pcm, unsigned got)
+static inline int missdet_check(MissDet* missdet, snd_pcm_t* pcm, unsigned got)
 {
-    if (!md || md->sample_rate == 0)
-        return -1;
-
-    snd_htimestamp_t ts = {0, 0};
-    snd_pcm_uframes_t avail_hw = 0; /* not used, but required by API */
-    if (snd_pcm_htimestamp(pcm, &avail_hw, &ts) != 0)
+    if (!missdet || missdet->sample_rate == 0)
     {
         return -1;
     }
 
-    if (md->inited)
+    snd_htimestamp_t timestmp = {0, 0};
+    snd_pcm_uframes_t avail_hw = 0; /* not used, but required by API */
+    if (snd_pcm_htimestamp(pcm, &avail_hw, &timestmp) != 0)
+    {
+        return -1;
+    }
+
+    if (missdet->inited)
     {
         /* Compute elapsed wallclock time between reads */
-        double dt = (double)(ts.tv_sec - md->prev_ts.tv_sec) +
-                    (double)(ts.tv_nsec - md->prev_ts.tv_nsec) * NANO;
-        if (dt > 0.0)
+        double delta_t =
+            (double)(timestmp.tv_sec - missdet->prev_ts.tv_sec) +
+            (double)(timestmp.tv_nsec - missdet->prev_ts.tv_nsec) * NANO;
+        if (delta_t > 0.0)
         {
-            double expected = dt * (double)md->sample_rate;
+            double expected = delta_t * (double)missdet->sample_rate;
             double actual = (double)got;
             double gap = expected - actual;
 
-            if (gap > md->tol_frames)
+            if (gap > missdet->tol_frames)
             {
                 /* Missing data suspected */
-                md->prev_ts = ts;
+                missdet->prev_ts = timestmp;
                 return 1;
             }
         }
     }
 
-    md->prev_ts = ts;
-    md->inited = 1;
+    missdet->prev_ts = timestmp;
+    missdet->inited = 1;
     return 0;
 }
 
@@ -683,16 +700,26 @@ static int recover_and_rebuild(CaptureCtx* ctx, int err)
 
 static inline void log_xrun_if_any(snd_pcm_t* cap)
 {
-    snd_pcm_status_t* st;
-    snd_pcm_status_alloca(&st);
-    if (snd_pcm_status(cap, st) == 0)
+    snd_pcm_status_t* status = NULL;
+    int err = snd_pcm_status_malloc(&status);
+    if (err < 0 || !status)
     {
-        if (snd_pcm_status_get_state(st) == SND_PCM_STATE_XRUN)
+        (void)fprintf(stderr,
+                      "snd_pcm_status_malloc failed: %s\n",
+                      snd_strerror(err));
+        return;
+    }
+
+    if (snd_pcm_status(cap, status) == 0)
+    {
+        if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN)
         {
-            fprintf(stderr, "MISSING DATA: XRUN state reported (post-read)\n");
+            (void)fprintf(stderr,
+                          "MISSING DATA: XRUN state reported (post-read)\n");
             (void)snd_pcm_prepare(cap); // best effort; ignore errors here
         }
     }
+    snd_pcm_status_free(status);
 }
 
 /* Read a single burst worth of frames (<= period_size, also <= remaining).

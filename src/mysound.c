@@ -604,6 +604,20 @@ static int recover_and_rebuild(CaptureCtx* ctx, int err)
     return rebuild_alsa_pollfds(ctx);
 }
 
+static inline void log_xrun_if_any(snd_pcm_t* cap)
+{
+    snd_pcm_status_t* st;
+    snd_pcm_status_alloca(&st);
+    if (snd_pcm_status(cap, st) == 0)
+    {
+        if (snd_pcm_status_get_state(st) == SND_PCM_STATE_XRUN)
+        {
+            fprintf(stderr, "MISSING DATA: XRUN state reported (post-read)\n");
+            (void)snd_pcm_prepare(cap); // best effort; ignore errors here
+        }
+    }
+}
+
 /* Read a single burst worth of frames (<= period_size, also <= remaining).
    Returns:
      1  = block complete after this read
@@ -638,6 +652,7 @@ static int read_one_burst(CaptureCtx* ctx)
         }
         return 0; // recovered; let poll drive the next attempt
     }
+    log_xrun_if_any(ctx->cap);
 
     // Advance offsets
     ctx->byte_off += (size_t)got * ctx->bytes_per_frame;

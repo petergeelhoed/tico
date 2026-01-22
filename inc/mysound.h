@@ -63,4 +63,6 @@ int capture_setup(CaptureCtx* ctx,
                   unsigned int bph,
                   snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */);
 int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms);
-int build_alsa_pollfds(snd_pcm_t* h, struct pollfd** fds_out, nfds_t* nfds_out);
+int build_alsa_pollfds(snd_pcm_t* handle,
+                       struct pollfd** fds_out,
+                       nfds_t* nfds_out);

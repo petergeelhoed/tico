@@ -4,7 +4,6 @@
 #include "mydefs.h"
 #include "myfft.h"
 #include "mylib.h"
-#include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"
 
@@ -183,10 +182,10 @@ int readBuffer(snd_pcm_t* capture_handle,
     char* write_ptr = buffer;
     while (remaining > 0)
     {
-        snd_pcm_sframes_t r =
+        snd_pcm_sframes_t frames_got =
             snd_pcm_readi(capture_handle, write_ptr, remaining);
 
-        if (r == -EAGAIN)
+        if (frames_got == -EAGAIN)
         {
             (void)fprintf(stderr,
                           "EAGAIN%d %s %s\n",
@@ -196,33 +195,38 @@ int readBuffer(snd_pcm_t* capture_handle,
             // Non-blocking mode: try again
             continue;
         }
-        else if (r == -EPIPE || r == -ESTRPIPE)
+
+        if (frames_got == -EPIPE || frames_got == -ESTRPIPE)
         {
             // Overrun (capture) or suspend: recover and continue
-            fprintf(stderr,
-                    "ALSA: overrun/suspend detected (%s)\n",
-                    snd_strerror((int)r));
-            int rr = snd_pcm_recover(capture_handle, (int)r, /*silent=*/1);
-            if (rr < 0)
+            (void)fprintf(stderr,
+                          "ALSA: overrun/suspend detected (%s)\n",
+                          snd_strerror((int)frames_got));
+            int recoverRetVal =
+                snd_pcm_recover(capture_handle, (int)frames_got, /*silent=*/1);
+            if (recoverRetVal < 0)
             {
-                fprintf(stderr, "ALSA: recover failed: %s\n", snd_strerror(rr));
-                return rr;
+                (void)fprintf(stderr,
+                              "ALSA: recover failed: %s\n",
+                              snd_strerror(recoverRetVal));
+                return recoverRetVal;
             }
             // After recover, try reading again
             continue;
         }
-        else if (r < 0)
+
+        if (frames_got < 0)
         {
             // Other fatal error
-            fprintf(stderr,
-                    "ALSA: snd_pcm_readi failed: %s\n",
-                    snd_strerror((int)r));
-            return (int)r;
+            (void)fprintf(stderr,
+                          "ALSA: snd_pcm_readi failed: %s\n",
+                          snd_strerror((int)frames_got));
+            return (int)frames_got;
         }
 
         // Successful short/long read
-        write_ptr += (size_t)r * BYTES_PER_FRAME;
-        remaining -= (snd_pcm_uframes_t)r;
+        write_ptr += (size_t)frames_got * BYTES_PER_FRAME;
+        remaining -= (snd_pcm_uframes_t)frames_got;
     }
 
     // --- Post-read ALSA status snapshot: XRUN/overrange reporting ---
@@ -233,17 +237,17 @@ int readBuffer(snd_pcm_t* capture_handle,
         {
             if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN)
             {
-                fprintf(stderr,
-                        "ALSA: XRUN detected in status (post-read). "
-                        "Recovering...\n");
+                (void)fprintf(stderr,
+                              "ALSA: XRUN detected in status (post-read). "
+                              "Recovering...\n");
                 (void)snd_pcm_prepare(capture_handle);
             }
             unsigned long over = snd_pcm_status_get_overrange(status);
             if (over > 0)
             {
-                fprintf(stderr,
-                        "ALSA: ADC overrange reported %lu time(s)\n",
-                        over);
+                (void)fprintf(stderr,
+                              "ALSA: ADC overrange reported %lu time(s)\n",
+                              over);
             }
         }
     }
@@ -261,49 +265,53 @@ int readBuffer(snd_pcm_t* capture_handle,
 
         if (!rate_inited || !period_inited)
         {
-            snd_pcm_hw_params_t* hw;
-            snd_pcm_hw_params_alloca(&hw);
-            if (snd_pcm_hw_params_current(capture_handle, hw) == 0)
+            snd_pcm_hw_params_t* hw_par;
+            snd_pcm_hw_params_alloca(&hw_par);
+            if (snd_pcm_hw_params_current(capture_handle, hw_par) == 0)
             {
                 int dir = 0;
-                (void)snd_pcm_hw_params_get_rate(hw, &sample_rate, &dir);
-                (void)snd_pcm_hw_params_get_period_size(hw, &period_size, &dir);
+                (void)snd_pcm_hw_params_get_rate(hw_par, &sample_rate, &dir);
+                (void)snd_pcm_hw_params_get_period_size(hw_par,
+                                                        &period_size,
+                                                        &dir);
             }
             rate_inited = period_inited = 1;
         }
 
         if (sample_rate > 0)
         {
-            snd_htimestamp_t ts;
+            snd_htimestamp_t timestmp;
             snd_pcm_uframes_t avail_hw = 0;
-            if (snd_pcm_htimestamp(capture_handle, &avail_hw, &ts) == 0)
+            if (snd_pcm_htimestamp(capture_handle, &avail_hw, &timestmp) == 0)
             {
                 if (have_prev_ts)
                 {
-                    double dt = (double)(ts.tv_sec - prev_ts.tv_sec) +
-                                (double)(ts.tv_nsec - prev_ts.tv_nsec) * 1e-9;
-                    double expected_frames = dt * (double)sample_rate;
+                    double delta_t =
+                        (double)(timestmp.tv_sec - prev_ts.tv_sec) +
+                        (double)(timestmp.tv_nsec - prev_ts.tv_nsec) * NANO;
+                    double expected_frames = delta_t * (double)sample_rate;
                     double actual_frames = (double)ArrayLength;
 
                     // Tolerance: one ALSA period if known, else ~1 ms of audio
                     double tol_frames = (period_size > 0)
                                             ? (double)period_size
-                                            : (double)sample_rate * 0.001;
+                                            : (double)sample_rate * MILLI;
 
                     double gap = expected_frames - actual_frames;
                     if (gap > tol_frames)
                     {
-                        fprintf(stderr,
-                                "ALSA: discontinuity suspected: ts advanced by "
-                                "~%.0f frames, "
-                                "but read %.0f (gap ~%.0f, tol ~%.0f)\n",
-                                expected_frames,
-                                actual_frames,
-                                gap,
-                                tol_frames);
+                        (void)fprintf(stderr,
+                                      "ALSA: discontinuity suspected: timestmp "
+                                      "advanced by "
+                                      "~%.0f frames, "
+                                      "but read %.0f (gap ~%.0f, tol ~%.0f)\n",
+                                      expected_frames,
+                                      actual_frames,
+                                      gap,
+                                      tol_frames);
                     }
                 }
-                prev_ts = ts;
+                prev_ts = timestmp;
                 have_prev_ts = 1;
             }
         }
@@ -331,14 +339,15 @@ int readBuffer(snd_pcm_t* capture_handle,
 
     if (clip_overflow > 1)
     {
-        fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clip_overflow);
+        (void)fprintf(stderr,
+                      "%d audio 16-bit clipping event(s)\n",
+                      clip_overflow);
     }
 
     // Compute derivative: |x[n] - x[n+1]|; last sample = 0
     for (unsigned int i = 0; i + 1 < ArrayLength; ++i)
     {
-        int d = derivative[i] - derivative[i + 1];
-        derivative[i] = (d < 0) ? -d : d;
+        derivative[i] = abs(derivative[i] - derivative[i + 1]);
     }
     derivative[ArrayLength - 1] = 0;
 
@@ -439,26 +448,30 @@ int getData(FILE* fpInput, struct myarr derivative, CaptureCtx* ctx)
 
 /* -------------------- Helpers -------------------- */
 
-int build_alsa_pollfds(snd_pcm_t* h, struct pollfd** fds_out, nfds_t* nfds_out)
+int build_alsa_pollfds(snd_pcm_t* handle,
+                       struct pollfd** fds_out,
+                       nfds_t* nfds_out)
 {
-    int count = snd_pcm_poll_descriptors_count(h);
+    int count = snd_pcm_poll_descriptors_count(handle);
     if (count <= 0)
     {
-        fprintf(stderr, "ALSA: invalid poll descriptors count: %d\n", count);
+        (void)fprintf(stderr,
+                      "ALSA: invalid poll descriptors count: %d\n",
+                      count);
         return -1;
     }
     struct pollfd* fds = (struct pollfd*)calloc((size_t)count, sizeof(*fds));
     if (!fds)
     {
-        fprintf(stderr, "alloc failed for alsa fds\n");
+        (void)fprintf(stderr, "alloc failed for alsa fds\n");
         return -1;
     }
-    int err = snd_pcm_poll_descriptors(h, fds, (unsigned)count);
+    int err = snd_pcm_poll_descriptors(handle, fds, (unsigned)count);
     if (err < 0)
     {
-        fprintf(stderr,
-                "ALSA: snd_pcm_poll_descriptors failed: %s\n",
-                snd_strerror(err));
+        (void)fprintf(stderr,
+                      "ALSA: snd_pcm_poll_descriptors failed: %s\n",
+                      snd_strerror(err));
         free(fds);
         return -1;
     }
@@ -477,10 +490,10 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
     }
     struct itimerspec its;
     memset(&its, 0, sizeof(its));
-    its.it_value.tv_sec = initial_ms / 1000;
-    its.it_value.tv_nsec = (long)(initial_ms % 1000) * 1000000L;
-    its.it_interval.tv_sec = interval_ms / 1000;
-    its.it_interval.tv_nsec = (long)(interval_ms % 1000) * 1000000L;
+    its.it_value.tv_sec = initial_ms / THOUSAND;
+    its.it_value.tv_nsec = (long)(initial_ms % THOUSAND) * MILLION;
+    its.it_interval.tv_sec = interval_ms / THOUSAND;
+    its.it_interval.tv_nsec = (long)(interval_ms % THOUSAND) * MILLION;
 
     if (timerfd_settime(tfd, 0, &its, NULL) < 0)
     {
@@ -515,35 +528,40 @@ int capture_setup(CaptureCtx* ctx,
     ctx->ArrayLength =
         rate * SECS_HOUR * 2 / bph; // e.g., ~16000 @ 48k/21600bph
     const unsigned bytes_per_sample =
-        (unsigned)snd_pcm_format_width(fmt) / 8; // 2
+        (unsigned)snd_pcm_format_width(fmt) / BITS_IN_BYTE; // 2
     const unsigned channels = 1; // you configure mono in initAudio
     ctx->bytes_per_frame = bytes_per_sample * channels;
 
     // Query ALSA buffer/period sizes (read per period)
     if (snd_pcm_get_params(cap, &ctx->buffer_size, &ctx->period_size) < 0)
     {
-        fprintf(
+        (void)fprintf(
             stderr,
-            "ALSA: snd_pcm_get_params failed; defaulting period_size=1024\n");
-        ctx->period_size = 1024;
+            "ALSA: snd_pcm_get_params failed; defaulting period_size=%d\n",
+            DEFAULT_PERIOD);
+        ctx->period_size = DEFAULT_PERIOD;
     }
     if (ctx->period_size == 0)
-        ctx->period_size = 1024;
+    {
+        ctx->period_size = DEFAULT_PERIOD;
+    }
     if (ctx->period_size > ctx->ArrayLength)
+    {
         ctx->period_size = ctx->ArrayLength;
+    }
 
     // Buffers
     ctx->block_buf =
         (char*)malloc((size_t)ctx->ArrayLength * ctx->bytes_per_frame);
     if (!ctx->block_buf)
     {
-        fprintf(stderr, "alloc failed for block_buf\n");
+        (void)fprintf(stderr, "alloc failed for block_buf\n");
         return -1;
     }
     ctx->rawread = makemyarr(ctx->ArrayLength);
     if (!ctx->rawread)
     {
-        fprintf(stderr, "alloc failed for rawread\n");
+        (void)fprintf(stderr, "alloc failed for rawread\n");
         free(ctx->block_buf);
         ctx->block_buf = NULL;
         return -1;
@@ -556,7 +574,7 @@ int capture_setup(CaptureCtx* ctx,
     // Build ALSA poll fds
     if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
     {
-        fprintf(stderr, "failed to build ALSA pollfds\n");
+        (void)fprintf(stderr, "failed to build ALSA pollfds\n");
         freemyarr(ctx->rawread);
         ctx->rawread = NULL;
         free(ctx->block_buf);
@@ -576,7 +594,7 @@ int capture_setup(CaptureCtx* ctx,
         (struct pollfd*)calloc(ctx->nfds, sizeof(*combined));
     if (!combined)
     {
-        fprintf(stderr, "alloc failed for combined fds\n");
+        (void)fprintf(stderr, "alloc failed for combined fds\n");
         free(ctx->fds);
         ctx->fds = NULL;
         ctx->alsa_nfds = 0;
@@ -587,7 +605,9 @@ int capture_setup(CaptureCtx* ctx,
         return -1;
     }
     for (nfds_t i = 0; i < ctx->alsa_nfds; ++i)
+    {
         combined[i] = ctx->fds[i];
+    }
     combined[ctx->alsa_nfds].fd = ctx->tfd;
     combined[ctx->alsa_nfds].events = POLLIN;
 
@@ -613,16 +633,18 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
 
     for (;;)
     {
-        int pr = poll(ctx->fds, ctx->nfds, poll_timeout_ms);
-        if (pr == 0)
+        int poll_return = poll(ctx->fds, ctx->nfds, poll_timeout_ms);
+        if (poll_return == 0)
         {
-            fprintf(stderr, "poll: timeout\n");
+            (void)fprintf(stderr, "poll: timeout\n");
             continue;
         }
-        else if (pr < 0)
+        if (poll_return < 0)
         {
             if (errno == EINTR)
+            {
                 continue;
+            }
             perror("poll");
             return NULL;
         }
@@ -634,24 +656,24 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                                              (unsigned)ctx->alsa_nfds,
                                              &revents) < 0)
         {
-            fprintf(stderr, "ALSA: revents failed\n");
+            (void)fprintf(stderr, "ALSA: revents failed\n");
         }
         else
         {
             if (revents & POLLERR)
             {
                 // Recover and rebuild ALSA descriptors in the combined array
-                fprintf(stderr, "ALSA: POLLERR → recover\n");
+                (void)fprintf(stderr, "ALSA: POLLERR → recover\n");
                 if (snd_pcm_recover(ctx->cap, -EPIPE, 1) < 0)
                 {
-                    fprintf(stderr, "ALSA: recover failed\n");
+                    (void)fprintf(stderr, "ALSA: recover failed\n");
                     return NULL;
                 }
                 struct pollfd* new_alsa = NULL;
                 nfds_t new_n = 0;
                 if (build_alsa_pollfds(ctx->cap, &new_alsa, &new_n) < 0)
                 {
-                    fprintf(stderr, "ALSA: rebuild pollfds failed\n");
+                    (void)fprintf(stderr, "ALSA: rebuild pollfds failed\n");
                     return NULL;
                 }
                 nfds_t new_total = new_n;
@@ -663,7 +685,9 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                     return NULL;
                 }
                 for (nfds_t i = 0; i < new_n; ++i)
+                {
                     tmp[i] = new_alsa[i];
+                }
                 free(new_alsa);
                 free(ctx->fds);
                 ctx->fds = tmp;
@@ -677,17 +701,21 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                     unsigned frames_left_in_block =
                         ctx->ArrayLength - ctx->frames_collected;
                     if (frames_left_in_block == 0)
+                    {
                         break;
+                    }
 
                     snd_pcm_sframes_t avail = snd_pcm_avail_update(ctx->cap);
                     if (avail < 0)
                     {
-                        int rr = snd_pcm_recover(ctx->cap, (int)avail, 1);
-                        if (rr < 0)
+                        int recoverRetVal =
+                            snd_pcm_recover(ctx->cap, (int)avail, 1);
+                        if (recoverRetVal < 0)
                         {
-                            fprintf(stderr,
-                                    "ALSA: avail_update recover failed: %s\n",
-                                    snd_strerror(rr));
+                            (void)fprintf(
+                                stderr,
+                                "ALSA: avail_update recover failed: %s\n",
+                                snd_strerror(recoverRetVal));
                             return NULL;
                         }
                         // After recover, let poll() fetch the next event
@@ -715,7 +743,9 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                     {
                         chunk -= (chunk % (unsigned)ctx->period_size);
                         if (chunk == 0)
+                        {
                             chunk = (unsigned)ctx->period_size;
+                        }
                     }
 
                     int got = readBuffer(ctx->cap,
@@ -724,13 +754,14 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                                          ctx->rawread->arr + ctx->samp_off);
                     if (got < 0)
                     {
-                        int rr = snd_pcm_recover(ctx->cap, got, 1);
-                        if (rr < 0)
+                        int recoverRetVal = snd_pcm_recover(ctx->cap, got, 1);
+                        if (recoverRetVal < 0)
                         {
-                            fprintf(stderr,
-                                    "ALSA: readBuffer failed & recover failed: "
-                                    "%s\n",
-                                    snd_strerror(rr));
+                            (void)fprintf(
+                                stderr,
+                                "ALSA: readBuffer failed & recover failed: "
+                                "%s\n",
+                                snd_strerror(recoverRetVal));
                             return NULL;
                         }
                         // After recover, descriptors may change; rebuild
@@ -745,7 +776,9 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                             if (tmp)
                             {
                                 for (nfds_t i = 0; i < new_n; ++i)
+                                {
                                     tmp[i] = new_alsa[i];
+                                }
                                 free(ctx->fds);
                                 ctx->fds = tmp;
                                 ctx->alsa_nfds = new_n;
@@ -766,7 +799,9 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
                     {
                         // Completed a full block
                         for (nfds_t i = 0; i < ctx->nfds; ++i)
+                        {
                             ctx->fds[i].revents = 0;
+                        }
                         return ctx->rawread;
                     }
                 }
@@ -784,14 +819,24 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
 void capture_teardown(CaptureCtx* ctx)
 {
     if (!ctx)
+    {
         return;
+    }
     if (ctx->fds)
+    {
         free(ctx->fds);
+    }
     if (ctx->tfd >= 0)
+    {
         close(ctx->tfd);
+    }
     if (ctx->block_buf)
+    {
         free(ctx->block_buf);
+    }
     if (ctx->rawread)
+    {
         freemyarr(ctx->rawread);
+    }
     memset(ctx, 0, sizeof(*ctx));
 }

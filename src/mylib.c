@@ -222,8 +222,7 @@ static void calculateTotalFromFile(unsigned int count,
 void print_finals(CapConfig* cfg,
                   AppResources* res,
                   unsigned int ArrayLength,
-                  unsigned int totalTickTock,
-                  int toothshift)
+                  unsigned int totalTickTock)
 {
     if (cfg->fpposition)
     {
@@ -246,12 +245,12 @@ void print_finals(CapConfig* cfg,
             if (tmp != NULL)
             {
                 struct myarr cumulativeTick = *tmp;
-                toothshift = getshift(*res->teethArray[0], cumulativeTick);
+                int toothshift = getshift(*res->teethArray[0], cumulativeTick);
                 for (unsigned int j = 0; j < ArrayLength; ++j)
                 {
                     (void)fprintf(cfg->fptotal,
                                   "%d %d %u %d\n",
-                                  (int)j + toothshift,
+                                  (int)j,
                                   cumulativeTick.arr[j],
                                   t,
                                   toothshift);

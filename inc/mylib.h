@@ -29,8 +29,8 @@ void fillReference(FILE* fpDefPeak,
 void print_finals(CapConfig* cfg,
                   AppResources* res,
                   unsigned int ArrayLength,
-                  unsigned int totalTickTock,
-                  int toothshift);
+                  unsigned int totalTickTock);
+
 void shift_buffer_data(unsigned int* ticktock,
                        struct myarr* subpos,
                        struct myarr* maxpos,

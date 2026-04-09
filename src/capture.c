@@ -194,7 +194,6 @@ int main(int argc, char* argv[])
     setup_block_signals(&block);
 
     int totalshift = 0;
-    int toothshift = 0;
     unsigned int ticktock = 0;
     unsigned int totalTickTock = 0;
 
@@ -213,16 +212,10 @@ int main(int argc, char* argv[])
         }
         struct myarr* cumulativeTick =
             res.teethArray[totalTickTock % cfg.teeth];
-        if (cfg.teeth > 1 && totalTickTock >= AUTOCOR_LIMIT * cfg.teeth)
-        {
-            toothshift = getshift(*res.teethArray[0],
-                                  *res.teethArray[totalTickTock % cfg.teeth]);
-        }
         for (int j = 0; j < (int)ArrayLength; ++j)
         {
             res.tmpder->arr[j] =
-                res.derivative
-                    ->arr[modSigned(totalshift + j + toothshift, ArrayLength)];
+                res.derivative->arr[modSigned(totalshift + j, ArrayLength)];
         }
         int maxposition =
             shiftHalf(fftfit(*res.tmpder,
@@ -277,7 +270,7 @@ int main(int argc, char* argv[])
         totalTickTock++;
     }
 
-    print_finals(&cfg, &res, ArrayLength, totalTickTock, toothshift);
+    print_finals(&cfg, &res, ArrayLength, totalTickTock);
     cleanup_resources(&res, &cfg);
     if (capture_handle)
     {

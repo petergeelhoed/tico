@@ -17,7 +17,7 @@
       }
     },
 
-    {
+  {
       "name": "base-config-clang15",
       "hidden": true,
       "inherits": "base-config",
@@ -25,6 +25,15 @@
         "CMAKE_C_COMPILER": "/usr/bin/clang-15"
       },
       "binaryDir": "${sourceDir}/build/clang15"
+    },
+    {
+      "name": "base-config-clang19",
+      "hidden": true,
+      "inherits": "base-config",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang-19"
+      },
+      "binaryDir": "${sourceDir}/build/clang19"
     },
     {
       "name": "base-config-gcc",
@@ -72,6 +81,24 @@
         "CMAKE_BUILD_TYPE": "Release"
       },
       "binaryDir": "${sourceDir}/build/clang15-release"
+    },
+    {
+      "name": "debug-clang19",
+      "displayName": "Debug configure (clang-19)",
+      "inherits": "base-config-clang19",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "binaryDir": "${sourceDir}/build/clang19-debug"
+    },
+    {
+      "name": "release-clang19",
+      "displayName": "Release configure (clang-19)",
+      "inherits": "base-config-clang19",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "binaryDir": "${sourceDir}/build/clang19-release"
     },
 
     {
@@ -126,6 +153,18 @@
       "inherits": "base-build",
       "configurePreset": "release-clang15"
     },
+    {
+      "name": "debug-clang19",
+      "displayName": "Build Debug (clang-19, all)",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang19"
+    },
+    {
+      "name": "release-clang19",
+      "displayName": "Build Release (clang-19, all)",
+      "inherits": "base-build",
+      "configurePreset": "release-clang19"
+    },
 
     {
       "name": "debug-gcc",
@@ -154,21 +193,7 @@
         "verbosity": "default"
       }
     },
-
-    {
-      "name": "debug_ctest",
-      "displayName": "Run CTest (Debug, clang-15, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "debug"
-    },
-    {
-      "name": "release_ctest",
-      "displayName": "Run CTest (Release, clang-15, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "release"
-    },
-
-    {
+  {
       "name": "debug_ctest-clang15",
       "displayName": "Run CTest (Debug, clang-15, all tests)",
       "inherits": "base-test",
@@ -179,6 +204,31 @@
       "displayName": "Run CTest (Release, clang-15, all tests)",
       "inherits": "base-test",
       "configurePreset": "release-clang15"
+    },
+    {
+      "name": "debug_ctest",
+      "displayName": "Run CTest (Debug, clang-19, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release_ctest",
+      "displayName": "Run CTest (Release, clang-19, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "release"
+    },
+
+    {
+      "name": "debug_ctest-clang19",
+      "displayName": "Run CTest (Debug, clang-19, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "debug-clang19"
+    },
+    {
+      "name": "release_ctest-clang19",
+      "displayName": "Run CTest (Release, clang-19, all tests)",
+      "inherits": "base-test",
+      "configurePreset": "release-clang19"
     },
 
     {
@@ -231,6 +281,25 @@
         { "type": "configure", "name": "release-clang15" },
         { "type": "build",     "name": "release-clang15" },
         { "type": "test",      "name": "release_ctest-clang15" }
+      ]
+    },
+
+    {
+      "name": "debug-clang19",
+      "displayName": "Debug: configure + build + test (clang-19)",
+      "steps": [
+        { "type": "configure", "name": "debug-clang19" },
+        { "type": "build",     "name": "debug-clang19" },
+        { "type": "test",      "name": "debug_ctest-clang19" }
+      ]
+    },
+    {
+      "name": "release-clang19",
+      "displayName": "Release: configure + build + test (clang-19)",
+      "steps": [
+        { "type": "configure", "name": "release-clang19" },
+        { "type": "build",     "name": "release-clang19" },
+        { "type": "test",      "name": "release_ctest-clang19" }
       ]
     },
 

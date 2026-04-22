@@ -1,4 +1,5 @@
 #pragma once
+#include "config.h"
 #include "myarr.h"
 #include <alsa/asoundlib.h> // IWYU pragma: export
 #include <poll.h>
@@ -71,6 +72,7 @@ void capture_teardown(CaptureCtx* ctx);
 struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms);
 int capture_setup(CaptureCtx* ctx,
                   snd_pcm_t* cap,
+                  CapConfig* cfg,
                   unsigned int rate,
                   unsigned int bph,
                   snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */);

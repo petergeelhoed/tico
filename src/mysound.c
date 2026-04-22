@@ -522,6 +522,7 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
  */
 int capture_setup(CaptureCtx* ctx,
                   snd_pcm_t* cap,
+                  CapConfig* cfg,
                   unsigned int rate,
                   unsigned int bph,
                   snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */)
@@ -540,7 +541,8 @@ int capture_setup(CaptureCtx* ctx,
     ctx->bytes_per_frame = bytes_per_sample * channels;
 
     // Query ALSA buffer/period sizes (read per period)
-    if (snd_pcm_get_params(cap, &ctx->buffer_size, &ctx->period_size) < 0)
+    if (cfg->fpInput == 0 &&
+        snd_pcm_get_params(cap, &ctx->buffer_size, &ctx->period_size) < 0)
     {
         (void)fprintf(
             stderr,
@@ -573,55 +575,57 @@ int capture_setup(CaptureCtx* ctx,
         ctx->block_buf = NULL;
         return -1;
     }
-    missdet_init(&ctx->missdet, ctx->cap);
-
-    // Warm-up reads to settle the pipeline
-    readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
-    readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
-
-    // Build ALSA poll fds
-    if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
+    if (cfg->fpInput == 0)
     {
-        (void)fprintf(stderr, "failed to build ALSA pollfds\n");
-        freemyarr(ctx->rawread);
-        ctx->rawread = NULL;
-        free(ctx->block_buf);
-        ctx->block_buf = NULL;
-        return -1;
-    }
+        missdet_init(&ctx->missdet, ctx->cap);
 
-    // Combine fds (ALSA + optional timerfd)
-    ctx->nfds = ctx->alsa_nfds;
-    if (ctx->nfds == ctx->alsa_nfds)
-    {
-        // ALSA-only; ctx->fds is already set
-        return 0;
-    }
+        // Warm-up reads to settle the pipeline
+        readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
+        readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
 
-    struct pollfd* combined =
-        (struct pollfd*)calloc(ctx->nfds, sizeof(*combined));
-    if (!combined)
-    {
-        (void)fprintf(stderr, "alloc failed for combined fds\n");
+        // Build ALSA poll fds
+        if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
+        {
+            (void)fprintf(stderr, "failed to build ALSA pollfds\n");
+            freemyarr(ctx->rawread);
+            ctx->rawread = NULL;
+            free(ctx->block_buf);
+            ctx->block_buf = NULL;
+            return -1;
+        }
+
+        // Combine fds (ALSA + optional timerfd)
+        ctx->nfds = ctx->alsa_nfds;
+        if (ctx->nfds == ctx->alsa_nfds)
+        {
+            // ALSA-only; ctx->fds is already set
+            return 0;
+        }
+
+        struct pollfd* combined =
+            (struct pollfd*)calloc(ctx->nfds, sizeof(*combined));
+        if (!combined)
+        {
+            (void)fprintf(stderr, "alloc failed for combined fds\n");
+            free(ctx->fds);
+            ctx->fds = NULL;
+            ctx->alsa_nfds = 0;
+            freemyarr(ctx->rawread);
+            ctx->rawread = NULL;
+            free(ctx->block_buf);
+            ctx->block_buf = NULL;
+            return -1;
+        }
+        for (nfds_t i = 0; i < ctx->alsa_nfds; ++i)
+        {
+            combined[i] = ctx->fds[i];
+        }
+        combined[ctx->alsa_nfds].fd = ctx->tfd;
+        combined[ctx->alsa_nfds].events = POLLIN;
+
         free(ctx->fds);
-        ctx->fds = NULL;
-        ctx->alsa_nfds = 0;
-        freemyarr(ctx->rawread);
-        ctx->rawread = NULL;
-        free(ctx->block_buf);
-        ctx->block_buf = NULL;
-        return -1;
+        ctx->fds = combined;
     }
-    for (nfds_t i = 0; i < ctx->alsa_nfds; ++i)
-    {
-        combined[i] = ctx->fds[i];
-    }
-    combined[ctx->alsa_nfds].fd = ctx->tfd;
-    combined[ctx->alsa_nfds].events = POLLIN;
-
-    free(ctx->fds);
-    ctx->fds = combined;
-
     return 0;
 }
 

@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
+#include "config.h"
 #include "myarr.h"
 #include "mydefs.h"
 #include "myfft.h"
@@ -100,7 +101,22 @@ int main(int argc, char* argv[])
 
     // Setup capture context (poll + timerfd, buffers, etc.)
     CaptureCtx ctx;
-    if (capture_setup(&ctx, cap, rate, bph, format) < 0)
+    CapConfig cfg = {.rate = rate,
+                     .bph = bph,
+                     .evalue = DEFAULT_EVALUE,
+                     .zoom = DEFAULT_ZOOM,
+                     .fitN = DEFAULT_FITN,
+                     .teeth = DEFAULT_TEETH,
+                     .SDthreshold = DEFAULT_SDTHRESHOLD,
+                     .device = "default:2",
+                     .cvalue = DEFAULT_CVALUE,
+                     .fpposition = NULL,
+                     .fpmaxcor = NULL,
+                     .fptotal = NULL,
+                     .fpDefPeak = NULL,
+                     .fpInput = NULL};
+
+    if (capture_setup(&ctx, cap, &cfg, rate, bph, format) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         free(device_mutable);

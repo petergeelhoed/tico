@@ -80,3 +80,5 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms);
 int build_alsa_pollfds(snd_pcm_t* handle,
                        struct pollfd** fds_out,
                        nfds_t* nfds_out);
+
+int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out);

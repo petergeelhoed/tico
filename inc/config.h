@@ -1,5 +1,6 @@
 #pragma once
 #include "mydefs.h"
+#include <alsa/asoundlib.h>
 #include <stdio.h>
 
 typedef struct
@@ -21,4 +22,6 @@ typedef struct
     FILE* fptotal;
     FILE* fpDefPeak;
     FILE* fpInput;
+    snd_pcm_t* capture_handle;
+
 } CapConfig;

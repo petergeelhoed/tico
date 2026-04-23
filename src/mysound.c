@@ -421,20 +421,14 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        // ret = readBuffer(capture_handle, ArrayLength, buffer, derivative);
-        //  change to new read.
-        const int POLL_TIMEOUT_MS = 2000;
-        struct myarr* filled = capture_next_block(ctx, POLL_TIMEOUT_MS);
-        if (!filled)
+        ret = read_samples(ctx->cap, ArrayLength, derivative);
+        if (ret < 0)
         {
-            (void)fprintf(stderr, "capture_next_block failed; stopping\n");
             return ret;
         }
-        assert(ctx->frames_collected == ctx->ArrayLength);
-
-        for (unsigned int k = 0; k < filled->ArrayLength - 1; k++)
+        for (unsigned int k = 0; k < ArrayLength - 1; k++)
         {
-            derivative[k] = abs(filled->arr[k] - filled->arr[k + 1]);
+            derivative[k] = abs(derivative[k] - derivative[k + 1]);
         }
         derivative[ArrayLength - 1] = 0;
         ret = (int)ArrayLength;
@@ -860,4 +854,44 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
 
         clear_revents(ctx->fds, ctx->nfds);
     }
+}
+
+int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
+{
+    const unsigned TARGET = ArrayLength;
+    unsigned collected = 0;
+
+    while (collected < TARGET)
+    {
+        snd_pcm_sframes_t got =
+            snd_pcm_readi(cap, out + collected, TARGET - collected);
+
+        if (got == -EAGAIN)
+        {
+            continue;
+        }
+
+        if (got == -EPIPE || got == -ESTRPIPE)
+        {
+            /* XRUN or suspend: recover and retry */
+            if (snd_pcm_recover(cap, (int)got, 1) < 0)
+            {
+                return -1;
+            }
+            continue;
+        }
+
+        if (got < 0)
+        {
+            /* Fatal ALSA error */
+            (void)fprintf(stderr,
+                          "ALSA read failed: %s\n",
+                          snd_strerror((int)got));
+            return -1;
+        }
+
+        collected += (unsigned)got;
+    }
+
+    return (int)TARGET;
 }

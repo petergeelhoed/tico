@@ -430,6 +430,8 @@ int readBufferOrFile(int* derivative,
             (void)fprintf(stderr, "capture_next_block failed; stopping\n");
             return ret;
         }
+        assert(ctx->frames_collected == ctx->ArrayLength);
+
         for (unsigned int k = 0; k < filled->ArrayLength - 1; k++)
         {
             derivative[k] = abs(filled->arr[k] - filled->arr[k + 1]);

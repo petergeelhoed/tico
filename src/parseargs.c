@@ -31,7 +31,6 @@ static void print_usage(void)
                   " -c 7 cross-correlation limit\n"
                   " -f 30 fit n points for local rate\n"
                   " -e 4 Gaussian convolution over input\n"
-                  " -n 60 number of points to fit in local rate\n"
                   " -l print beat error and rate on each line\n"
                   " -j 1 number of ratched wheel teeth\n"
                   " -v <peak> write files for this peak\n");

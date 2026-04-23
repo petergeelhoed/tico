@@ -868,14 +868,16 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
 
         if (got == -EAGAIN)
         {
+            /* Try again */
             continue;
         }
 
         if (got == -EPIPE || got == -ESTRPIPE)
         {
-            /* XRUN or suspend: recover and retry */
+            /* XRUN or suspend */
             if (snd_pcm_recover(cap, (int)got, 1) < 0)
             {
+                (void)fprintf(stderr, "ALSA recover failed\n");
                 return -1;
             }
             continue;
@@ -893,5 +895,9 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
         collected += (unsigned)got;
     }
 
+    for (unsigned int k = 0; k < ArrayLength - 1; k++)
+    {
+        fprintf(stderr, "%d\n", out[k]);
+    }
     return (int)TARGET;
 }

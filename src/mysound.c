@@ -421,14 +421,16 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        ret = read_samples(ctx->cap, ArrayLength, derivative);
+        int16_t samples[16000];
+
+        ret = read_samples(ctx->cap, ArrayLength, samples);
         if (ret < 0)
         {
             return ret;
         }
         for (unsigned int k = 0; k < ArrayLength - 1; k++)
         {
-            derivative[k] = abs(derivative[k] - derivative[k + 1]);
+            derivative[k] = abs(samples[k] - samples[k + 1]);
         }
         derivative[ArrayLength - 1] = 0;
         ret = (int)ArrayLength;
@@ -856,7 +858,7 @@ struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms)
     }
 }
 
-int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
+int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
 {
     const unsigned TARGET = ArrayLength;
     unsigned collected = 0;
@@ -868,7 +870,9 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
 
         if (got == -EAGAIN)
         {
-            /* Try again */
+            /* No data available right now */
+            /* Yield or sleep very briefly */
+            usleep(1000); /* 1 ms */
             continue;
         }
 
@@ -877,7 +881,6 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
             /* XRUN or suspend */
             if (snd_pcm_recover(cap, (int)got, 1) < 0)
             {
-                (void)fprintf(stderr, "ALSA recover failed\n");
                 return -1;
             }
             continue;
@@ -885,7 +888,6 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
 
         if (got < 0)
         {
-            /* Fatal ALSA error */
             (void)fprintf(stderr,
                           "ALSA read failed: %s\n",
                           snd_strerror((int)got));
@@ -894,10 +896,5 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out)
 
         collected += (unsigned)got;
     }
-
-    for (unsigned int k = 0; k < ArrayLength - 1; k++)
-    {
-        fprintf(stderr, "%d\n", out[k]);
-    }
-    return (int)TARGET;
+    return (int)collected;
 }

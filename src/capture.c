@@ -205,9 +205,7 @@ int main(int argc, char* argv[])
             shift_buffer_data(&ticktock, res.subpos, res.maxpos, res.maxvals);
         }
         //  block_signal(&block, &non_block);
-        //       int err = getData(cfg.fpInput, *res.derivative, &ctx);
-        int err =
-            read_samples(capture_handle, ArrayLength, res.derivative->arr);
+        int err = getData(cfg.fpInput, *res.derivative, &ctx);
         //  unblock_signal(&non_block);
         if (err < 0)
         {

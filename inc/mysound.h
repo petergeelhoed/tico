@@ -81,4 +81,4 @@ int build_alsa_pollfds(snd_pcm_t* handle,
                        struct pollfd** fds_out,
                        nfds_t* nfds_out);
 
-int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int* out);
+int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out);

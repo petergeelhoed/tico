@@ -134,16 +134,24 @@ int main(int argc, char* argv[])
 
     // Number of blocks to capture in total
     unsigned int blocks_left = time * bph / 2 / SECS_HOUR;
-    const int POLL_TIMEOUT_MS = 2000;
+    const unsigned int ArrayLength = 16000;
 
     while (blocks_left > 0)
     {
         //       printTOD(filePtr);
-        struct myarr* filled = capture_next_block(&ctx, POLL_TIMEOUT_MS);
-        if (!filled)
+        int16_t out[16000];
+
+        struct myarr* filled = makemyarr(ArrayLength);
+        int read = read_samples(ctx.cap, ArrayLength, out);
+        if (!read)
         {
             (void)fprintf(stderr, "capture_next_block failed; stopping\n");
             break;
+        }
+
+        for (unsigned int i = 0; i < ArrayLength; ++i)
+        {
+            filled->arr[i] = out[i];
         }
 
         // Your existing persist/processing step

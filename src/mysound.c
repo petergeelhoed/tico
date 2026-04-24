@@ -209,51 +209,6 @@ void readBufferRaw(snd_pcm_t* capture_handle,
     }
 }
 
-static int read_exact_frames(snd_pcm_t* pcm,
-                             char* buf,
-                             snd_pcm_uframes_t frames_to_read,
-                             unsigned int bytes_per_frame)
-{
-    snd_pcm_uframes_t remaining = frames_to_read;
-    char* write_ptr = buf;
-
-    while (remaining > 0)
-    {
-        snd_pcm_sframes_t got = snd_pcm_readi(pcm, write_ptr, remaining);
-
-        if (got == -EAGAIN)
-        {
-            // Non-blocking: try again
-            continue;
-        }
-        if (got == -EPIPE || got == -ESTRPIPE)
-        {
-            // Overrun / suspend: recover
-            int retval = snd_pcm_recover(pcm, (int)got, /*silent=*/1);
-            if (retval < 0)
-            {
-                (void)fprintf(stderr,
-                              "ALSA recover failed: %s\n",
-                              snd_strerror(retval));
-                return retval;
-            }
-            continue;
-        }
-        if (got < 0)
-        {
-            // Other error
-            (void)fprintf(stderr,
-                          "ALSA read failed: %s\n",
-                          snd_strerror((int)got));
-            return (int)got;
-        }
-
-        write_ptr += (size_t)got * bytes_per_frame;
-        remaining -= (snd_pcm_uframes_t)got;
-    }
-    return 0; // Success
-}
-
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,

@@ -59,13 +59,9 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.filterFFT = makeFilter(evalue, ArrayLength);
     res.audioBuffer16 =
         calloc(ArrayLength, sizeof(*res.audioBuffer16)); // 16bit
-    res.audioBuffer =
-        calloc(ArrayLength, 2 * sizeof(*res.audioBuffer)); // 16bit
     res.teethArray = calloc(teeth, sizeof(*res.teethArray));
-    if (res.audioBuffer == NULL || res.teethArray == NULL ||
-        res.audioBuffer16 == NULL)
+    if (res.teethArray == NULL || res.audioBuffer16 == NULL)
     {
-        free(res.audioBuffer);
         free(res.audioBuffer16);
         free(res.teethArray);
         (void)fprintf(stderr, "Failed memory allocation\n");
@@ -97,7 +93,6 @@ static void cleanup_resources(AppResources* res, CapConfig* cfg)
     {
         (void)fclose(cfg->fptotal);
     }
-    free(res->audioBuffer);
     free(res->audioBuffer16);
     freemyarr(res->subpos);
     freemyarr(res->maxpos);

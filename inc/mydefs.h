@@ -33,6 +33,7 @@
 #define HEXDEC 16
 #define INIT_ERROR -2
 #define INIT_N 4000
+#define INPUT_SOUND_ERROR -34
 #define INPUT_FILE_ERROR -33
 #define INPUT_OVERFLOW -4
 #define KILO 1000.

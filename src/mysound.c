@@ -374,6 +374,10 @@ int readBufferOrFile(int* derivative,
         {
             return ret;
         }
+        if ((unsigned)ret != ArrayLength)
+        {
+            return INPUT_SOUND_ERROR;
+        }
     }
 
     for (unsigned int k = 0; k < ArrayLength - 1; k++)

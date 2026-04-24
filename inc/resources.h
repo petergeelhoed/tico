@@ -13,6 +13,5 @@ typedef struct
     struct myarr* reference;
     struct myarr** teethArray;
     fftw_complex* filterFFT;
-    char* audioBuffer;
     int16_t* audioBuffer16;
 } AppResources;

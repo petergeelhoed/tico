@@ -21,9 +21,7 @@
 
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
-static int init_audio_source(CapConfig* cfg,
-                             snd_pcm_t** handle,
-                             unsigned int* actualRate)
+static int init_audio_source(CapConfig* cfg, unsigned int* actualRate)
 {
     if (cfg->fpInput == NULL && *cfg->device == '\0')
     {
@@ -38,10 +36,13 @@ static int init_audio_source(CapConfig* cfg,
                cfg->rate,
                cfg->device,
                *actualRate);
-        *handle = initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
+        cfg->capture_handle =
+            initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
         printf("Actual rate %d, calculating with %f\n", *actualRate, cfg->rate);
     }
-    return (*handle == NULL && cfg->fpInput == NULL) ? ERROR_NO_SOURCE : 0;
+    return (cfg->capture_handle == NULL && cfg->fpInput == NULL)
+               ? ERROR_NO_SOURCE
+               : 0;
 }
 
 static AppResources allocate_resources(unsigned int ArrayLength,
@@ -92,6 +93,10 @@ static void cleanup_resources(AppResources* res, CapConfig* cfg)
     if (cfg->fptotal)
     {
         (void)fclose(cfg->fptotal);
+    }
+    if (cfg->capture_handle)
+    {
+        snd_pcm_close(cfg->capture_handle);
     }
     free(res->audioBuffer16);
     freemyarr(res->subpos);
@@ -154,7 +159,8 @@ int main(int argc, char* argv[])
                      .fpmaxcor = NULL,
                      .fptotal = NULL,
                      .fpDefPeak = NULL,
-                     .fpInput = NULL};
+                     .fpInput = NULL,
+                     .capture_handle = NULL};
 
     parse_arguments(argc, argv, &cfg);
 
@@ -163,19 +169,16 @@ int main(int argc, char* argv[])
     columns = windowSize.ws_col;
     set_signal_action();
 
-    snd_pcm_t* capture_handle = NULL;
     unsigned int actualRate;
-    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    if (init_audio_source(&cfg, &capture_handle, &actualRate))
+    if (init_audio_source(&cfg, &actualRate))
     {
         return EXIT_FAILURE;
     }
     CaptureCtx ctx;
-    if (capture_setup(&ctx, capture_handle, &cfg, actualRate, cfg.bph, format) <
-        0)
+    if (capture_setup(&ctx, &cfg, actualRate, cfg.bph) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
-        snd_pcm_close(capture_handle);
+        snd_pcm_close(cfg.capture_handle);
         return EXIT_FAILURE;
     }
 
@@ -274,9 +277,5 @@ int main(int argc, char* argv[])
 
     print_finals(&cfg, &res, ArrayLength, totalTickTock);
     cleanup_resources(&res, &cfg);
-    if (capture_handle)
-    {
-        snd_pcm_close(capture_handle);
-    }
     return 0;
 }

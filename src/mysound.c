@@ -22,6 +22,7 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
+int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void check_alsa_err(int err,
                            const char* device,
@@ -132,6 +133,30 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     return capture_handle;
 }
 
+int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
+{
+
+    int clip_count = 0;
+
+    for (unsigned int k = 0; k < ArrayLength - 1; k++)
+    {
+        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
+        {
+            ++clip_count;
+        }
+        derivative[k] = abs(samples[k] - samples[k + 1]);
+    }
+
+    if (clip_count > 1)
+    {
+        (void)fprintf(stderr,
+                      "%d audio 16-bit clipping event(s)\n",
+                      clip_count);
+    }
+    derivative[ArrayLength - 1] = 0;
+    return (int)ArrayLength;
+}
+
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
@@ -196,25 +221,7 @@ int readBufferOrFile(int* derivative,
         }
     }
 
-    int clip_count = 0;
-
-    for (unsigned int k = 0; k < ArrayLength - 1; k++)
-    {
-        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
-        {
-            ++clip_count;
-        }
-        derivative[k] = abs(samples[k] - samples[k + 1]);
-    }
-
-    if (clip_count > 1)
-    {
-        (void)fprintf(stderr,
-                      "%d audio 16-bit clipping event(s)\n",
-                      clip_count);
-    }
-    derivative[ArrayLength - 1] = 0;
-    return (int)ArrayLength;
+    return derived(derivative, ArrayLength, samples);
 }
 
 // Get data from audio capture
@@ -236,64 +243,6 @@ int getData(FILE* fpInput,
     return err;
 }
 
-/* -------------------- Helpers -------------------- */
-
-int build_alsa_pollfds(snd_pcm_t* handle,
-                       struct pollfd** fds_out,
-                       nfds_t* nfds_out)
-{
-    int count = snd_pcm_poll_descriptors_count(handle);
-    if (count <= 0)
-    {
-        (void)fprintf(stderr,
-                      "ALSA: invalid poll descriptors count: %d\n",
-                      count);
-        return -1;
-    }
-    struct pollfd* fds = (struct pollfd*)calloc((size_t)count, sizeof(*fds));
-    if (!fds)
-    {
-        (void)fprintf(stderr, "alloc failed for alsa fds\n");
-        return -1;
-    }
-    int err = snd_pcm_poll_descriptors(handle, fds, (unsigned)count);
-    if (err < 0)
-    {
-        (void)fprintf(stderr,
-                      "ALSA: snd_pcm_poll_descriptors failed: %s\n",
-                      snd_strerror(err));
-        free(fds);
-        return -1;
-    }
-    *fds_out = fds;
-    *nfds_out = (nfds_t)count;
-    return 0;
-}
-
-int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
-{
-    int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    if (tfd < 0)
-    {
-        perror("timerfd_create");
-        return -1;
-    }
-    struct itimerspec its;
-    memset(&its, 0, sizeof(its));
-    its.it_value.tv_sec = initial_ms / THOUSAND;
-    its.it_value.tv_nsec = (long)(initial_ms % THOUSAND) * MILLION;
-    its.it_interval.tv_sec = interval_ms / THOUSAND;
-    its.it_interval.tv_nsec = (long)(interval_ms % THOUSAND) * MILLION;
-
-    if (timerfd_settime(tfd, 0, &its, NULL) < 0)
-    {
-        perror("timerfd_settime");
-        close(tfd);
-        return -1;
-    }
-    return tfd;
-}
-
 /* -------------------- API: setup / next_block / teardown --------------------
  */
 
@@ -304,28 +253,21 @@ int make_timerfd_ms(unsigned initial_ms, unsigned interval_ms)
  * - Queries period_size and builds poll descriptors.
  */
 int capture_setup(CaptureCtx* ctx,
-                  snd_pcm_t* cap,
                   CapConfig* cfg,
                   unsigned int rate,
-                  unsigned int bph,
-                  snd_pcm_format_t fmt /* expect SND_PCM_FORMAT_S16_LE */)
+                  unsigned int bph)
 {
     memset(ctx, 0, sizeof(*ctx));
-    ctx->cap = cap;
+    ctx->cap = cfg->capture_handle;
     ctx->rate = rate;
-    ctx->tfd = -1;
 
     // Geometry
     ctx->ArrayLength =
         rate * SECS_HOUR * 2 / bph; // e.g., ~16000 @ 48k/21600bph
-    const unsigned bytes_per_sample =
-        (unsigned)snd_pcm_format_width(fmt) / BITS_IN_BYTE; // 2
-    const unsigned channels = 1; // you configure mono in initAudio
-    ctx->bytes_per_frame = bytes_per_sample * channels;
 
     // Query ALSA buffer/period sizes (read per period)
     if (cfg->fpInput == 0 &&
-        snd_pcm_get_params(cap, &ctx->buffer_size, &ctx->period_size) < 0)
+        snd_pcm_get_params(ctx->cap, &ctx->buffer_size, &ctx->period_size) < 0)
     {
         (void)fprintf(
             stderr,

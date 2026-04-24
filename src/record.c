@@ -114,9 +114,10 @@ int main(int argc, char* argv[])
                      .fpmaxcor = NULL,
                      .fptotal = NULL,
                      .fpDefPeak = NULL,
-                     .fpInput = NULL};
+                     .fpInput = NULL,
+                     .capture_handle = cap};
 
-    if (capture_setup(&ctx, cap, &cfg, rate, bph, format) < 0)
+    if (capture_setup(&ctx, &cfg, rate, bph) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         free(device_mutable);
@@ -126,20 +127,14 @@ int main(int argc, char* argv[])
 
     // Open output file (buffered) — optional
     FILE* filePtr = fopen("recorded", "w");
-    if (!filePtr)
-    {
-        (void)fprintf(stderr,
-                      "warning: could not open output file 'recorded'\n");
-    }
 
     // Number of blocks to capture in total
     unsigned int blocks_left = time * bph / 2 / SECS_HOUR;
     const unsigned int ArrayLength = 16000;
 
-    while (blocks_left > 0)
+    int16_t* out = calloc(ArrayLength, sizeof(int16_t)); // 16bit
+    while (out != NULL && blocks_left > 0)
     {
-        //       printTOD(filePtr);
-        int16_t out[16000];
 
         struct myarr* filled = makemyarr(ArrayLength);
         int read = read_samples(ctx.cap, ArrayLength, out);
@@ -176,5 +171,7 @@ int main(int argc, char* argv[])
     {
         free(device_mutable);
     }
+    free(out);
+    capture_teardown(&ctx);
     return 0;
 }

@@ -64,9 +64,13 @@ void readBufferRaw(snd_pcm_t* capture_handle,
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
-                     CaptureCtx* ctx);
+                     CaptureCtx* ctx,
+                     int16_t* samples);
 
-int getData(FILE* fpInput, struct myarr derivative, CaptureCtx* ctx);
+int getData(FILE* fpInput,
+            struct myarr derivative,
+            CaptureCtx* ctx,
+            int16_t* out);
 //=====
 void capture_teardown(CaptureCtx* ctx);
 struct myarr* capture_next_block(CaptureCtx* ctx, int poll_timeout_ms);

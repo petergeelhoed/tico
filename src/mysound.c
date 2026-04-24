@@ -319,7 +319,8 @@ int readBuffer(snd_pcm_t* capture_handle,
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
-                     CaptureCtx* ctx)
+                     CaptureCtx* ctx,
+                     int16_t* samples)
 {
     int ret = READ_FAILED;
 
@@ -376,14 +377,6 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-
-        int16_t* samples = (int16_t*)malloc(ArrayLength * sizeof(int16_t));
-        if (!samples)
-        {
-            (void)fprintf(stderr, "alloc failed for sample_buf\n");
-            exit(-ENOMEM);
-        }
-
         ret = read_samples(ctx->cap, ArrayLength, samples);
         if (ret < 0)
         {
@@ -400,10 +393,16 @@ int readBufferOrFile(int* derivative,
 }
 
 // Get data from audio capture
-int getData(FILE* fpInput, struct myarr derivative, CaptureCtx* ctx)
+int getData(FILE* fpInput,
+            struct myarr derivative,
+            CaptureCtx* ctx,
+            int16_t* out)
 {
-    int err =
-        readBufferOrFile(derivative.arr, derivative.ArrayLength, fpInput, ctx);
+    int err = readBufferOrFile(derivative.arr,
+                               derivative.ArrayLength,
+                               fpInput,
+                               ctx,
+                               out);
     if (err == INPUT_FILE_ERROR)
     {
         (void)fprintf(stderr,

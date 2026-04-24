@@ -57,12 +57,16 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.tmpder = makemyarr(ArrayLength);
     res.reference = makemyarr(ArrayLength);
     res.filterFFT = makeFilter(evalue, ArrayLength);
+    res.audioBuffer16 =
+        calloc(ArrayLength, sizeof(*res.audioBuffer16)); // 16bit
     res.audioBuffer =
         calloc(ArrayLength, 2 * sizeof(*res.audioBuffer)); // 16bit
     res.teethArray = calloc(teeth, sizeof(*res.teethArray));
-    if (res.audioBuffer == NULL || res.teethArray == NULL)
+    if (res.audioBuffer == NULL || res.teethArray == NULL ||
+        res.audioBuffer16 == NULL)
     {
         free(res.audioBuffer);
+        free(res.audioBuffer16);
         free(res.teethArray);
         (void)fprintf(stderr, "Failed memory allocation\n");
         exit(EXIT_FAILURE);
@@ -94,6 +98,7 @@ static void cleanup_resources(AppResources* res, CapConfig* cfg)
         (void)fclose(cfg->fptotal);
     }
     free(res->audioBuffer);
+    free(res->audioBuffer16);
     freemyarr(res->subpos);
     freemyarr(res->maxpos);
     freemyarr(res->maxvals);
@@ -205,7 +210,8 @@ int main(int argc, char* argv[])
             shift_buffer_data(&ticktock, res.subpos, res.maxpos, res.maxvals);
         }
         //  block_signal(&block, &non_block);
-        int err = getData(cfg.fpInput, *res.derivative, &ctx);
+        int err =
+            getData(cfg.fpInput, *res.derivative, &ctx, res.audioBuffer16);
         //  unblock_signal(&non_block);
         if (err < 0)
         {

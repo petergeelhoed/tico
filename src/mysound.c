@@ -95,52 +95,6 @@ static inline void missdet_init(MissDet* missdet, snd_pcm_t* pcm)
     }
 }
 
-/* Call AFTER each successful read() that returned 'got' frames.
-   Returns:
-     >0  suspected missing data (gap larger than tolerance)
-      0  OK (no gap)
-     <0  not enough info (e.g., sample_rate unknown or timestamp unavailable)
-*/
-static inline int missdet_check(MissDet* missdet, snd_pcm_t* pcm, unsigned got)
-{
-    if (!missdet || missdet->sample_rate == 0)
-    {
-        return -1;
-    }
-
-    snd_htimestamp_t timestmp = {0, 0};
-    snd_pcm_uframes_t avail_hw = 0; /* not used, but required by API */
-    if (snd_pcm_htimestamp(pcm, &avail_hw, &timestmp) != 0)
-    {
-        return -1;
-    }
-
-    if (missdet->inited)
-    {
-        /* Compute elapsed wallclock time between reads */
-        double delta_t =
-            (double)(timestmp.tv_sec - missdet->prev_ts.tv_sec) +
-            (double)(timestmp.tv_nsec - missdet->prev_ts.tv_nsec) * NANO;
-        if (delta_t > 0.0)
-        {
-            double expected = delta_t * (double)missdet->sample_rate;
-            double actual = (double)got;
-            double gap = expected - actual;
-
-            if (gap > missdet->tol_frames)
-            {
-                /* Missing data suspected */
-                missdet->prev_ts = timestmp;
-                return 1;
-            }
-        }
-    }
-
-    missdet->prev_ts = timestmp;
-    missdet->inited = 1;
-    return 0;
-}
-
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
@@ -396,6 +350,7 @@ int readBufferOrFile(int* derivative,
                 // Error checking (optional but recommended)
                 if (errno == ERANGE)
                 { /* Handle overflow */
+                    free(line);
                     return INPUT_OVERFLOW;
                 }
 
@@ -421,7 +376,13 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        int16_t samples[16000];
+
+        int16_t* samples = (int16_t*)malloc(ArrayLength * sizeof(int16_t));
+        if (!samples)
+        {
+            (void)fprintf(stderr, "alloc failed for sample_buf\n");
+            exit(-ENOMEM);
+        }
 
         ret = read_samples(ctx->cap, ArrayLength, samples);
         if (ret < 0)
@@ -652,14 +613,6 @@ void capture_teardown(CaptureCtx* ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-static inline void clear_revents(struct pollfd* fds, nfds_t n)
-{
-    for (nfds_t i = 0; i < n; ++i)
-    {
-        fds[i].revents = 0;
-    }
-}
-
 int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
 {
     const unsigned TARGET = ArrayLength;
@@ -674,7 +627,8 @@ int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
         {
             /* No data available right now */
             /* Yield or sleep very briefly */
-            usleep(1000); /* 1 ms */
+            const unsigned int SLEEP_US = 1000;
+            usleep(SLEEP_US); /* 1 ms */
             continue;
         }
 

@@ -254,68 +254,6 @@ static int read_exact_frames(snd_pcm_t* pcm,
     return 0; // Success
 }
 
-int readBuffer(snd_pcm_t* capture_handle,
-               unsigned int ArrayLength,
-               char* buffer,
-               int* derivative)
-{
-    if (!capture_handle || !buffer || !derivative)
-    {
-        return -EINVAL;
-    }
-    if (ArrayLength == 0)
-    {
-        return 0;
-    }
-
-    // S16_LE mono
-    const unsigned int BYTES_PER_SAMPLE = 2;
-    const unsigned int CHANNELS = 1;
-    const unsigned int BYTES_PER_FRAME = BYTES_PER_SAMPLE * CHANNELS;
-
-    // Read exactly ArrayLength frames
-    int retval = read_exact_frames(capture_handle,
-                                   buffer,
-                                   (snd_pcm_uframes_t)ArrayLength,
-                                   BYTES_PER_FRAME);
-    if (retval < 0)
-    {
-        return retval;
-    }
-
-    // Convert to samples, detect clipping, store in derivative[]
-    int clip_count = 0;
-    for (unsigned int i = 0; i < ArrayLength; ++i)
-    {
-        const uint8_t lsb = (uint8_t)buffer[2 * i + 0];
-        const int8_t msb = (int8_t)buffer[2 * i + 1];
-        const int16_t samp = (int16_t)(((int)msb << 8) | lsb); // S16_LE
-
-        derivative[i] = (int)samp;
-
-        if (samp == INT16_MAX || samp == INT16_MIN)
-        {
-            ++clip_count;
-        }
-    }
-
-    if (clip_count > 1)
-    {
-        (void)fprintf(stderr,
-                      "%d audio 16-bit clipping event(s)\n",
-                      clip_count);
-    }
-
-    // Compute |x[n] - x[n+1]|, last = 0
-    for (unsigned int i = 0; i + 1 < ArrayLength; ++i)
-    {
-        derivative[i] = abs(derivative[i] - derivative[i + 1]);
-    }
-    derivative[ArrayLength - 1] = 0;
-
-    return (int)ArrayLength;
-}
-
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
@@ -380,9 +318,22 @@ int readBufferOrFile(int* derivative,
         }
     }
 
+    int clip_count = 0;
+
     for (unsigned int k = 0; k < ArrayLength - 1; k++)
     {
+        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
+        {
+            ++clip_count;
+        }
         derivative[k] = abs(samples[k] - samples[k + 1]);
+    }
+
+    if (clip_count > 1)
+    {
+        (void)fprintf(stderr,
+                      "%d audio 16-bit clipping event(s)\n",
+                      clip_count);
     }
     derivative[ArrayLength - 1] = 0;
     return (int)ArrayLength;

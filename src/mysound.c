@@ -355,7 +355,7 @@ int readBufferOrFile(int* derivative,
                     return INPUT_OVERFLOW;
                 }
 
-                derivative[index++] = (int)val;
+                samples[index++] = (int16_t)val;
                 ptr = endptr; // Advance to the rest of the string
             }
         }
@@ -366,14 +366,6 @@ int readBufferOrFile(int* derivative,
         {
             return INPUT_FILE_ERROR;
         }
-        ret = (int)ArrayLength;
-
-        // Perform derivative calculation
-        for (unsigned int k = 0; k < ArrayLength - 1; k++)
-        {
-            derivative[k] = abs(derivative[k] - derivative[k + 1]);
-        }
-        derivative[ArrayLength - 1] = 0;
     }
     else
     {
@@ -382,14 +374,14 @@ int readBufferOrFile(int* derivative,
         {
             return ret;
         }
-        for (unsigned int k = 0; k < ArrayLength - 1; k++)
-        {
-            derivative[k] = abs(samples[k] - samples[k + 1]);
-        }
-        derivative[ArrayLength - 1] = 0;
-        ret = (int)ArrayLength;
     }
-    return ret;
+
+    for (unsigned int k = 0; k < ArrayLength - 1; k++)
+    {
+        derivative[k] = abs(samples[k] - samples[k + 1]);
+    }
+    derivative[ArrayLength - 1] = 0;
+    return (int)ArrayLength;
 }
 
 // Get data from audio capture

@@ -48,53 +48,6 @@ static void check_alsa_err(int err,
     }
 }
 
-/* Initialize from current hw_param params (safe even if not all fields are
- * available)
- */
-static inline void missdet_init(MissDet* missdet, snd_pcm_t* pcm)
-{
-    memset(missdet, 0, sizeof(*missdet));
-
-    snd_pcm_hw_params_t* hw_param = NULL;
-    int err = snd_pcm_hw_params_malloc(&hw_param);
-
-    if (err < 0 || !hw_param)
-    {
-        // handle allocation failure
-        (void)fprintf(stderr,
-                      "snd_pcm_hw_params_malloc failed: %s\n",
-                      snd_strerror(err));
-        exit(err ? err : -ENOMEM);
-    }
-
-    if (snd_pcm_hw_params_current(pcm, hw_param) == 0)
-    {
-        int dir = 0;
-        (void)snd_pcm_hw_params_get_rate(hw_param, &missdet->sample_rate, &dir);
-        (void)snd_pcm_hw_params_get_period_size(hw_param,
-                                                &missdet->period_size,
-                                                &dir);
-    }
-    snd_pcm_hw_params_free(hw_param);
-
-    /* Build a practical tolerance:
-       - If we know period_size: allow one period worth of jitter
-       - Else: allow ~1 ms worth of frames
-    */
-    if (missdet->period_size > 0)
-    {
-        missdet->tol_frames = (double)missdet->period_size;
-    }
-    else if (missdet->sample_rate > 0)
-    {
-        missdet->tol_frames = MILLI * (double)missdet->sample_rate; /* ~1 ms */
-    }
-    else
-    {
-        missdet->tol_frames = FRAME_FALLBACK; /* conservative fallback */
-    }
-}
-
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
@@ -177,36 +130,6 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     }
 
     return capture_handle;
-}
-
-void readBufferRaw(snd_pcm_t* capture_handle,
-                   char* buffer,
-                   struct myarr* data_in)
-{
-    unsigned char lsb;
-    signed char msb;
-    long err = snd_pcm_readi(capture_handle, buffer, data_in->ArrayLength);
-    if (err != (long)data_in->ArrayLength)
-    {
-        (void)fprintf(stderr,
-                      "read from audio interface failed %ld (%s)\n",
-                      err,
-                      snd_strerror((int)err));
-        exit(READ_FAILED);
-    }
-    int overflow = 0;
-    for (unsigned int index = 0; index < 2 * data_in->ArrayLength; index += 2)
-    {
-        msb = (signed char)buffer[index + 1];
-        lsb = *(buffer + index);
-        data_in->arr[index / 2] = (msb << BITS_IN_BYTE) | lsb;
-        overflow += (data_in->arr[index / 2] == SHRT_MAX);
-        overflow += (data_in->arr[index / 2] == SHRT_MIN);
-    }
-    if (overflow > 1)
-    {
-        (void)fprintf(stderr, "%d audio 16bit overflows\n", overflow);
-    }
 }
 
 int readBufferOrFile(int* derivative,
@@ -419,73 +342,6 @@ int capture_setup(CaptureCtx* ctx,
         ctx->period_size = ctx->ArrayLength;
     }
 
-    // Buffers
-    ctx->block_buf =
-        (char*)malloc((size_t)ctx->ArrayLength * ctx->bytes_per_frame);
-    if (!ctx->block_buf)
-    {
-        (void)fprintf(stderr, "alloc failed for block_buf\n");
-        return -1;
-    }
-    ctx->rawread = makemyarr(ctx->ArrayLength);
-    if (!ctx->rawread)
-    {
-        (void)fprintf(stderr, "alloc failed for rawread\n");
-        free(ctx->block_buf);
-        ctx->block_buf = NULL;
-        return -1;
-    }
-    if (cfg->fpInput == 0)
-    {
-        missdet_init(&ctx->missdet, ctx->cap);
-
-        // Warm-up reads to settle the pipeline
-        readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
-        readBufferRaw(ctx->cap, ctx->block_buf, ctx->rawread);
-
-        // Build ALSA poll fds
-        if (build_alsa_pollfds(ctx->cap, &ctx->fds, &ctx->alsa_nfds) < 0)
-        {
-            (void)fprintf(stderr, "failed to build ALSA pollfds\n");
-            freemyarr(ctx->rawread);
-            ctx->rawread = NULL;
-            free(ctx->block_buf);
-            ctx->block_buf = NULL;
-            return -1;
-        }
-
-        // Combine fds (ALSA + optional timerfd)
-        ctx->nfds = ctx->alsa_nfds;
-        if (ctx->nfds == ctx->alsa_nfds)
-        {
-            // ALSA-only; ctx->fds is already set
-            return 0;
-        }
-
-        struct pollfd* combined =
-            (struct pollfd*)calloc(ctx->nfds, sizeof(*combined));
-        if (!combined)
-        {
-            (void)fprintf(stderr, "alloc failed for combined fds\n");
-            free(ctx->fds);
-            ctx->fds = NULL;
-            ctx->alsa_nfds = 0;
-            freemyarr(ctx->rawread);
-            ctx->rawread = NULL;
-            free(ctx->block_buf);
-            ctx->block_buf = NULL;
-            return -1;
-        }
-        for (nfds_t i = 0; i < ctx->alsa_nfds; ++i)
-        {
-            combined[i] = ctx->fds[i];
-        }
-        combined[ctx->alsa_nfds].fd = ctx->tfd;
-        combined[ctx->alsa_nfds].events = POLLIN;
-
-        free(ctx->fds);
-        ctx->fds = combined;
-    }
     return 0;
 }
 
@@ -494,22 +350,6 @@ void capture_teardown(CaptureCtx* ctx)
     if (!ctx)
     {
         return;
-    }
-    if (ctx->fds)
-    {
-        free(ctx->fds);
-    }
-    if (ctx->tfd >= 0)
-    {
-        close(ctx->tfd);
-    }
-    if (ctx->block_buf)
-    {
-        free(ctx->block_buf);
-    }
-    if (ctx->rawread)
-    {
-        freemyarr(ctx->rawread);
     }
     memset(ctx, 0, sizeof(*ctx));
 }

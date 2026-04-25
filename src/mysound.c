@@ -161,7 +161,7 @@ int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
                      CaptureCtx* ctx,
-                     int16_t* samples)
+                     int16_t* buffer16)
 {
     int ret = READ_FAILED;
 
@@ -196,7 +196,7 @@ int readBufferOrFile(int* derivative,
                     return INPUT_OVERFLOW;
                 }
 
-                samples[index++] = (int16_t)val;
+                buffer16[index++] = (int16_t)val;
                 ptr = endptr; // Advance to the rest of the string
             }
         }
@@ -210,7 +210,7 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        ret = read_samples(ctx->cap, ArrayLength, samples);
+        ret = read_samples(ctx->cap, ArrayLength, buffer16);
         if (ret < 0)
         {
             return ret;
@@ -221,7 +221,7 @@ int readBufferOrFile(int* derivative,
         }
     }
 
-    return derived(derivative, ArrayLength, samples);
+    return derived(derivative, ArrayLength, buffer16);
 }
 
 // Get data from audio capture

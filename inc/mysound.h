@@ -23,7 +23,7 @@ int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,
                      CaptureCtx* ctx,
-                     int16_t* samples);
+                     int16_t* buffer16);
 
 int getData(FILE* fpInput,
             struct myarr* derivative,

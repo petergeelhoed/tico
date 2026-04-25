@@ -226,12 +226,12 @@ int readBufferOrFile(int* derivative,
 
 // Get data from audio capture
 int getData(FILE* fpInput,
-            struct myarr derivative,
+            struct myarr* derivative,
             CaptureCtx* ctx,
             int16_t* out)
 {
-    int err = readBufferOrFile(derivative.arr,
-                               derivative.ArrayLength,
+    int err = readBufferOrFile(derivative->arr,
+                               derivative->ArrayLength,
                                fpInput,
                                ctx,
                                out);

@@ -208,8 +208,7 @@ int main(int argc, char* argv[])
             shift_buffer_data(&ticktock, res.subpos, res.maxpos, res.maxvals);
         }
         //  block_signal(&block, &non_block);
-        int err =
-            getData(cfg.fpInput, *res.derivative, &ctx, res.audioBuffer16);
+        int err = getData(cfg.fpInput, res.derivative, &ctx, res.audioBuffer16);
         //  unblock_signal(&non_block);
         if (err < 0)
         {

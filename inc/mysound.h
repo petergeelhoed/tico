@@ -26,7 +26,7 @@ int readBufferOrFile(int* derivative,
                      int16_t* samples);
 
 int getData(FILE* fpInput,
-            struct myarr derivative,
+            struct myarr* derivative,
             CaptureCtx* ctx,
             int16_t* out);
 

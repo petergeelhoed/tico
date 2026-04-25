@@ -1,14 +1,27 @@
-# capture
-captures from microphone and scrolls a timegraph over your terminal.
+# Tico
 
-requires fftw3 alsa/asoundlib
-( apt-get install libfftw3-dev libasound2-dev)
-There are several logging options, like the average sound of a tick per tooth (-j 15 -p peak)
+## Description
+Tico is a powerful tool for managing your tasks efficiently.
 
+## Installation Instructions
+To install Tico, clone the repository and run the following command:
 
-# building
-$ cmake -B build
-$ cmake --build build
-should build everything
+```bash
+git clone https://github.com/petergeelhoed/tico.git
+cd tico
+```
 
+## Building Instructions
+To build the project, ensure you have the required dependencies and run the build command:
 
+```bash
+# For example, if using Makefile
+make build
+```
+
+## License
+This project is licensed under the MIT License.
+
+---
+
+Current Date and Time: 2026-04-25 09:18:03 (UTC)

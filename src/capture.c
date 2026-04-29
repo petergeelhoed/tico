@@ -146,6 +146,39 @@ static void process_logging(CapConfig* cfg,
     }
 }
 
+static void fitAndPrint(unsigned int ticktock,
+                        unsigned int totalTickTock,
+                        struct myarr* cumulativeTick,
+                        AppResources* res,
+                        CapConfig* cfg,
+                        unsigned int ArrayLength,
+                        unsigned int mod)
+{
+
+    double intercept = 0.0;
+    double slope = 0.0;
+    fitNpeaks(&intercept,
+              &slope,
+              ticktock,
+              res->maxvals,
+              res->maxpos,
+              res->subpos,
+              cfg->fitN,
+              cfg->SDthreshold);
+
+    printheader(slope * SECS_DAY / ArrayLength,
+                cfg->everyline,
+                getBeatError(cumulativeTick, cfg->rate, 0),
+                (double)totalTickTock * ArrayLength / cfg->rate);
+
+    printspaces(res->maxpos->arr[ticktock],
+                res->maxvals->arrd[ticktock] * HEXDEC,
+                mod,
+                columns - cfg->everyline,
+                intercept,
+                cfg->cvalue);
+}
+
 int main(int argc, char* argv[])
 {
     CapConfig cfg = {.rate = DEFAULT_RATE,
@@ -249,28 +282,14 @@ int main(int argc, char* argv[])
 
         process_logging(&cfg, &res, ticktock, DEFAULT_TICKTOCK_WRITE);
 
-        double intercept = 0.0;
-        double slope = 0.0;
-        fitNpeaks(&intercept,
-                  &slope,
-                  ticktock,
-                  res.maxvals,
-                  res.maxpos,
-                  res.subpos,
-                  cfg.fitN,
-                  cfg.SDthreshold);
+        fitAndPrint(ticktock,
+                    totalTickTock,
+                    cumulativeTick,
+                    &res,
+                    &cfg,
+                    ArrayLength,
+                    mod);
 
-        printheader(slope * SECS_DAY / ArrayLength,
-                    cfg.everyline,
-                    getBeatError(cumulativeTick, cfg.rate, 0),
-                    (double)totalTickTock * ArrayLength / cfg.rate);
-
-        printspaces(res.maxpos->arr[ticktock],
-                    res.maxvals->arrd[ticktock] * HEXDEC,
-                    mod,
-                    columns - cfg.everyline,
-                    intercept,
-                    cfg.cvalue);
         ticktock++;
         totalTickTock++;
     }

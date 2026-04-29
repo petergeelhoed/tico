@@ -75,7 +75,9 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     return res;
 }
 
-static void cleanup_resources(AppResources* res, CapConfig* cfg)
+static void cleanup_resources(AppResources* res,
+                              CapConfig* cfg,
+                              CaptureCtx* ctx)
 {
     if (cfg->fpposition)
     {
@@ -110,6 +112,7 @@ static void cleanup_resources(AppResources* res, CapConfig* cfg)
         freemyarr(res->teethArray[t]);
     }
     free(res->teethArray);
+    capture_teardown(ctx);
 }
 
 static void process_logging(CapConfig* cfg,
@@ -273,6 +276,7 @@ int main(int argc, char* argv[])
     }
 
     print_finals(&cfg, &res, ArrayLength, totalTickTock);
-    cleanup_resources(&res, &cfg);
+    cleanup_resources(&res, &cfg, &ctx);
+
     return 0;
 }

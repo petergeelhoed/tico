@@ -47,8 +47,7 @@ static int init_audio_source(CapConfig* cfg, unsigned int* actualRate)
 
 static AppResources allocate_resources(unsigned int ArrayLength,
                                        unsigned int ticktockBuffer,
-                                       unsigned int teeth,
-                                       unsigned int evalue)
+                                       CapConfig* cfg)
 {
     AppResources res = {0};
     res.subpos = makemyarrd(ticktockBuffer);
@@ -57,10 +56,10 @@ static AppResources allocate_resources(unsigned int ArrayLength,
     res.derivative = makemyarr(ArrayLength);
     res.tmpder = makemyarr(ArrayLength);
     res.reference = makemyarr(ArrayLength);
-    res.filterFFT = makeFilter(evalue, ArrayLength);
+    res.filterFFT = makeFilter(cfg->evalue, ArrayLength);
     res.audioBuffer16 =
         calloc(ArrayLength, sizeof(*res.audioBuffer16)); // 16bit
-    res.teethArray = calloc(teeth, sizeof(*res.teethArray));
+    res.teethArray = calloc(cfg->teeth, sizeof(*res.teethArray));
     if (res.teethArray == NULL || res.audioBuffer16 == NULL)
     {
         free(res.audioBuffer16);
@@ -69,7 +68,7 @@ static AppResources allocate_resources(unsigned int ArrayLength,
         exit(EXIT_FAILURE);
     }
 
-    for (unsigned int t = 0; t < teeth; t++)
+    for (unsigned int t = 0; t < cfg->teeth; t++)
     {
         res.teethArray[t] = makemyarr(ArrayLength);
     }
@@ -189,8 +188,7 @@ int main(int argc, char* argv[])
                                  (cfg.time ? cfg.time : DEFAULT_TIME) /
                                  ArrayLength;
 
-    AppResources res =
-        allocate_resources(ArrayLength, ARR_BUFF * 2, cfg.teeth, cfg.evalue);
+    AppResources res = allocate_resources(ArrayLength, ARR_BUFF * 2, &cfg);
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
 
     sigset_t block;

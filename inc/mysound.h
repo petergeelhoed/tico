@@ -32,9 +32,6 @@ int getData(FILE* fpInput,
 
 void capture_teardown(CaptureCtx* ctx);
 
-int capture_setup(CaptureCtx* ctx,
-                  CapConfig* cfg,
-                  unsigned int rate,
-                  unsigned int bph);
+int capture_setup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate);
 
 int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out);

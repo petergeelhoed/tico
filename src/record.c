@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
                      .fpInput = NULL,
                      .capture_handle = cap};
 
-    if (capture_setup(&ctx, &cfg, rate, bph) < 0)
+    if (capture_setup(&ctx, &cfg, rate) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         free(device_mutable);

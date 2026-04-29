@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     CaptureCtx ctx;
-    if (capture_setup(&ctx, &cfg, actualRate, cfg.bph) < 0)
+    if (capture_setup(&ctx, &cfg, actualRate) < 0)
     {
         (void)fprintf(stderr, "capture_setup failed\n");
         snd_pcm_close(cfg.capture_handle);

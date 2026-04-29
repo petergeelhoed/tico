@@ -252,10 +252,7 @@ int getData(FILE* fpInput,
  * - Computes ArrayLength = rate * SECS_HOUR * 2 / bph
  * - Queries period_size and builds poll descriptors.
  */
-int capture_setup(CaptureCtx* ctx,
-                  CapConfig* cfg,
-                  unsigned int rate,
-                  unsigned int bph)
+int capture_setup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate)
 {
     memset(ctx, 0, sizeof(*ctx));
     ctx->cap = cfg->capture_handle;
@@ -263,7 +260,7 @@ int capture_setup(CaptureCtx* ctx,
 
     // Geometry
     ctx->ArrayLength =
-        rate * SECS_HOUR * 2 / bph; // e.g., ~16000 @ 48k/21600bph
+        rate * SECS_HOUR * 2 / cfg->bph; // e.g., ~16000 @ 48k/21600bph
 
     // Query ALSA buffer/period sizes (read per period)
     if (cfg->fpInput == 0 &&

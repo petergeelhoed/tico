@@ -17,17 +17,17 @@ struct mymat
 
 unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
 {
-    int maxtick = -INT_MAX;
-    unsigned int postick = 0;
+    int maxTick = -INT_MAX;
+    unsigned int maxIndex = 0;
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
-        if (array[j] > maxtick)
+        if (array[j] > maxTick)
         {
-            maxtick = array[j];
-            postick = j;
+            maxTick = array[j];
+            maxIndex = j;
         }
     }
-    return postick;
+    return maxIndex;
 }
 
 void linreg(const double* xarr,
@@ -64,8 +64,8 @@ void linreg(const double* xarr,
 
 void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
-    double* tmp = (double*)calloc(Nrows * Ncols, sizeof(double));
-    if (tmp == NULL)
+    double* transposeBuffer = (double*)calloc(Nrows * Ncols, sizeof(double));
+    if (transposeBuffer == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in transpone\n");
         exit(EXIT_FAILURE);
@@ -74,18 +74,18 @@ void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
     {
         for (unsigned int j = 0; j < Nrows; ++j)
         {
-            tmp[j + i * Nrows] = arr[i + j * Ncols];
+            transposeBuffer[j + i * Nrows] = arr[i + j * Ncols];
         }
     }
-    memcpy(arr, tmp, sizeof(double) * Ncols * Nrows);
-    free(tmp);
+    memcpy(arr, transposeBuffer, sizeof(double) * Ncols * Nrows);
+    free(transposeBuffer);
 }
 
 void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
     // make matrix twice as wide
-    double* tmp = (double*)calloc(Nrows * Ncols * 2, sizeof(double));
-    if (tmp == NULL)
+    double* augmentedMatrix = (double*)calloc(Nrows * Ncols * 2, sizeof(double));
+    if (augmentedMatrix == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in invert\n");
         exit(EXIT_FAILURE);
@@ -95,13 +95,13 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
     {
         for (unsigned int i = 0; i < Ncols; ++i)
         {
-            tmp[i + j * doubleNcols] = arr[i + j * Nrows];
+            augmentedMatrix[i + j * doubleNcols] = arr[i + j * Nrows];
         }
     }
     // make second part diagonal 1
     for (unsigned int i = 0; i < Ncols; ++i)
     {
-        tmp[i + Ncols + i * doubleNcols] = 1.0;
+        augmentedMatrix[i + Ncols + i * doubleNcols] = 1.0;
     }
 
     for (unsigned int j = 0; j < Nrows; j++)
@@ -111,11 +111,12 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
             if (j != k)
             {
                 double factor =
-                    tmp[j + k * doubleNcols] / tmp[j + j * doubleNcols];
+                    augmentedMatrix[j + k * doubleNcols] /
+                    augmentedMatrix[j + j * doubleNcols];
                 for (unsigned int i = 0; i < doubleNcols; i++)
                 {
-                    tmp[i + k * doubleNcols] -=
-                        tmp[i + j * doubleNcols] * factor;
+                    augmentedMatrix[i + k * doubleNcols] -=
+                        augmentedMatrix[i + j * doubleNcols] * factor;
                 }
             }
         }
@@ -125,10 +126,11 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         for (unsigned int i = 0; i < Ncols; i++)
         {
             arr[i + j * Ncols] =
-                tmp[i + Ncols + j * doubleNcols] / tmp[j + j * doubleNcols];
+                augmentedMatrix[i + Ncols + j * doubleNcols] /
+                augmentedMatrix[j + j * doubleNcols];
         }
     }
-    free(tmp);
+    free(augmentedMatrix);
 }
 
 double* mulmat(const double* matrix0,
@@ -143,8 +145,8 @@ double* mulmat(const double* matrix0,
         (void)fprintf(stderr, "Matrix multiplication dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
-    double* tmp = (double*)calloc(Nrows * Mcols, sizeof(double));
-    if (tmp == NULL)
+    double* resultMatrix = (double*)calloc(Nrows * Mcols, sizeof(double));
+    if (resultMatrix == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in mulmat\n");
         exit(EXIT_FAILURE);
@@ -155,12 +157,12 @@ double* mulmat(const double* matrix0,
         {
             for (unsigned int i = 0; i < Ncols; i++)
             {
-                tmp[l + j * Mcols] +=
+                resultMatrix[l + j * Mcols] +=
                     matrix0[i + Ncols * j] * matrix1[i * Mcols + l];
             }
         }
     }
-    return tmp;
+    return resultMatrix;
 }
 
 void matlinreg(double coeffs[2],
@@ -237,30 +239,31 @@ void fastlinreg(double coeffs[2],
                 const double* vec,
                 const double* weightArr)
 {
-    double Sum_w = 0.0;
-    double Sum_wx = 0.0;
-    double Sum_wy = 0.0;
-    double Sum_wxx = 0.0;
-    double Sum_wxy = 0.0;
+    double sumWeight = 0.0;
+    double sumWeightX = 0.0;
+    double sumWeightY = 0.0;
+    double sumWeightXX = 0.0;
+    double sumWeightXY = 0.0;
 
     for (unsigned int i = 0; i < Npoints; i++)
     {
         const double xVal = xmat[i];
         const double yVal = vec[i];
         const double weight = weightArr[i] * weightArr[i];
-        Sum_w += weight;
-        Sum_wx += weight * xVal;
-        Sum_wy += weight * yVal;
-        Sum_wxx += weight * xVal * xVal;
-        Sum_wxy += weight * xVal * yVal;
+        sumWeight += weight;
+        sumWeightX += weight * xVal;
+        sumWeightY += weight * yVal;
+        sumWeightXX += weight * xVal * xVal;
+        sumWeightXY += weight * xVal * yVal;
     }
-    double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
+    double denom = sumWeight * sumWeightXX - sumWeightX * sumWeightX;
     coeffs[0] = 0.0;
     coeffs[1] = 0.0;
     if (fabs(denom) > DOUBLE_LIMIT)
     {
-        coeffs[1] = (Sum_w * Sum_wxy - Sum_wx * Sum_wy) / denom;
-        coeffs[0] = (Sum_wy - coeffs[1] * Sum_wx) / Sum_w;
+        coeffs[1] =
+            (sumWeight * sumWeightXY - sumWeightX * sumWeightY) / denom;
+        coeffs[0] = (sumWeightY - coeffs[1] * sumWeightX) / sumWeight;
     }
     else
     {

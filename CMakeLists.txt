@@ -136,7 +136,11 @@ set(INTERNAL_LIBS
 set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 # Equivalent to $(LIB)/libmylib.a
-add_library(mylib STATIC ${SRC}/mylib.c ${SRC}/crosscorint.c ${SRC}/parseargs.c)
+add_library(mylib STATIC
+  ${SRC}/analysis.c
+  ${SRC}/capture_helpers.c
+  ${SRC}/crosscorint.c
+  ${SRC}/parseargs.c)
 target_link_libraries(mylib PUBLIC myarr )
 add_library(mysound STATIC ${SRC}/mysound.c)
 target_link_libraries(mysound PUBLIC myarr )

@@ -22,7 +22,7 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
-int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
+static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void checkAlsaErr(int err,
                            const char* device,
@@ -133,7 +133,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     return captureHandle;
 }
 
-int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
+static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
 {
 
     int clipCount = 0;

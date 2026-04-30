@@ -89,28 +89,6 @@ void printspaces(int maxpos,
     (void)fprintf(stderr, "\n");
 }
 
-void writefile(FILE* filePtr, int* array, unsigned int ArrayLength)
-{
-    if (filePtr)
-    {
-        for (unsigned int j = 0; j < ArrayLength; j++)
-        {
-            (void)fprintf(filePtr, "%d\n", array[j]);
-        }
-    }
-}
-
-void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength)
-{
-    if (filePtr)
-    {
-        for (unsigned int j = 0; j < ArrayLength; j++)
-        {
-            (void)fprintf(filePtr, "%f\n", array[j]);
-        }
-    }
-}
-
 static void calculateTotal(unsigned int count,
                            double* maxpos,
                            unsigned int ArrayLength,

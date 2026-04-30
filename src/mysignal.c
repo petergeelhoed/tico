@@ -68,21 +68,3 @@ void setupBlockSignals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
     sigaddset(new_set, SIGWINCH);
     sigaddset(new_set, SIGINT);
 }
-
-void blockSignal(sigset_t* new_set, sigset_t* old_set)
-{
-    if (sigprocmask(SIG_BLOCK, new_set, old_set) != 0)
-    {
-        (void)fprintf(stderr, "block sigprocmask() error");
-        exit(ERROR_SIGNAL);
-    }
-}
-
-void unblockSignal(sigset_t* old_set)
-{
-    if (sigprocmask(SIG_SETMASK, old_set, NULL) != 0)
-    {
-        (void)fprintf(stderr, "unblock sigprocmask() error");
-        exit(ERROR_SIGNAL);
-    }
-}

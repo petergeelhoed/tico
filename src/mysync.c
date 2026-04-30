@@ -53,26 +53,6 @@ void wait(void)
     thread_ctr_unlock();
 }
 
-void writearray(int* arr, unsigned int ArrayLength, const char* file)
-{
-    FILE* filePtr = fopen(file, "w");
-    if (filePtr == NULL)
-    {
-        perror("Error opening file");
-        return;
-    }
-
-    for (unsigned int j = 0; j < ArrayLength; j++)
-    {
-        (void)fprintf(filePtr, "%u %d\n", j, arr[j]);
-    }
-
-    if (fclose(filePtr))
-    {
-        perror("Error closing file");
-    }
-}
-
 void* threadAppendMyarr(void* inStruct)
 {
     struct append_task* mine = (struct append_task*)inStruct;

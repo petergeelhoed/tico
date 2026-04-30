@@ -17,9 +17,6 @@ void printspaces(int maxpos,
                  double avgPos,
                  unsigned int correlationThreshold);
 
-void writefile(FILE* filePtr, int* array, unsigned int ArrayLength);
-void writefileDouble(FILE* filePtr, double* array, unsigned int ArrayLength);
-
 double getBeatError(const struct myarr* totalTick, double rate, int verbose);
 
 void fillReference(FILE* fpDefPeak,

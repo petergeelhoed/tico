@@ -121,10 +121,16 @@ find_library(MATH_LIB m)
 
 find_program(CLANG_FORMAT_EXE
   NAMES clang-format clang-format-19 clang-format-18 clang-format-17 clang-format-16 clang-format-15)
+find_program(CLANG_TIDY_EXE
+  NAMES clang-tidy clang-tidy-19 clang-tidy-18 clang-tidy-17 clang-tidy-16 clang-tidy-15)
 
 file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS
   ${PROJECT_SOURCE_DIR}/src/*.c
   ${PROJECT_SOURCE_DIR}/inc/*.h
+  ${PROJECT_SOURCE_DIR}/tests/*.c)
+
+file(GLOB_RECURSE TIDY_SOURCES CONFIGURE_DEPENDS
+  ${PROJECT_SOURCE_DIR}/src/*.c
   ${PROJECT_SOURCE_DIR}/tests/*.c)
 
 if (CLANG_FORMAT_EXE)
@@ -145,6 +151,21 @@ else()
     COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found"
     COMMAND ${CMAKE_COMMAND} -E false
     COMMENT "clang-format is required for format-check target")
+endif()
+
+if (CLANG_TIDY_EXE)
+  add_custom_target(clang-tidy
+  COMMAND ${CLANG_TIDY_EXE}
+    -p ${CMAKE_BINARY_DIR}
+    --extra-arg=-Wno-unknown-warning-option
+    --extra-arg=-Wno-error=unknown-warning-option
+    ${TIDY_SOURCES}
+    COMMENT "Running clang-tidy over C sources")
+else()
+  add_custom_target(clang-tidy
+    COMMAND ${CMAKE_COMMAND} -E echo "clang-tidy not found"
+    COMMAND ${CMAKE_COMMAND} -E false
+    COMMENT "clang-tidy is required for clang-tidy target")
 endif()
 
 include(CTest)

@@ -182,15 +182,22 @@
       "name": "format",
       "displayName": "Run clang-format",
       "inherits": "base-build",
-      "configurePreset": "debug-gcc",
+      "configurePreset": "debug-clang19",
       "targets": ["format"]
     },
     {
       "name": "format-check",
       "displayName": "Check clang-format",
       "inherits": "base-build",
-      "configurePreset": "debug-gcc",
+      "configurePreset": "debug-clang19",
       "targets": ["format-check"]
+    },
+    {
+      "name": "clang-tidy",
+      "displayName": "Run clang-tidy",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang19",
+      "targets": ["clang-tidy"]
     }
   ],
 
@@ -339,7 +346,7 @@
       "name": "format",
       "displayName": "Format: configure + clang-format",
       "steps": [
-        { "type": "configure", "name": "debug-gcc" },
+        { "type": "configure", "name": "debug-clang19" },
         { "type": "build",     "name": "format" }
       ]
     },
@@ -347,8 +354,19 @@
       "name": "format-check",
       "displayName": "Format Check: configure + clang-format check",
       "steps": [
-        { "type": "configure", "name": "debug-gcc" },
+        { "type": "configure", "name": "debug-clang19" },
         { "type": "build",     "name": "format-check" }
+      ]
+    },
+    {
+      "name": "quality",
+      "displayName": "Quality: format-check + clang-tidy + build + test",
+      "steps": [
+        { "type": "configure", "name": "debug-clang19" },
+        { "type": "build",     "name": "format-check" },
+        { "type": "build",     "name": "clang-tidy" },
+        { "type": "build",     "name": "debug-clang19" },
+        { "type": "test",      "name": "debug_ctest-clang19" }
       ]
     }
   ]

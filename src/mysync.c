@@ -17,10 +17,75 @@ static pthread_cond_t ctr_zero = PTHREAD_COND_INITIALIZER;
 
 static int count = 0;
 
+struct file_state
+{
+    FILE* file;
+    unsigned int pending;
+    int closing;
+    struct file_state* next;
+};
+
+static struct file_state* file_states = NULL;
+
 static void thread_ctr_lock(void) { (void)pthread_mutex_lock(&ctr_mutex); }
 static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
 static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
 static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
+
+static struct file_state* find_file_state(FILE* file)
+{
+    for (struct file_state* it = file_states; it != NULL; it = it->next)
+    {
+        if (it->file == file)
+        {
+            return it;
+        }
+    }
+    return NULL;
+}
+
+static struct file_state* get_or_create_file_state(FILE* file)
+{
+    struct file_state* state = find_file_state(file);
+    if (state != NULL)
+    {
+        return state;
+    }
+
+    state = calloc(1, sizeof(*state));
+    if (state == NULL)
+    {
+        return NULL;
+    }
+    state->file = file;
+    state->next = file_states;
+    file_states = state;
+    return state;
+}
+
+static void remove_file_state(FILE* file)
+{
+    struct file_state* prev = NULL;
+    struct file_state* iter = file_states;
+    while (iter != NULL)
+    {
+        if (iter->file == file)
+        {
+            if (prev == NULL)
+            {
+                file_states = iter->next;
+            }
+            else
+            {
+                prev->next = iter->next;
+            }
+            free(iter);
+            return;
+        }
+        prev = iter;
+        iter = iter->next;
+    }
+}
 
 static void printTODUnlocked(FILE* out)
 {
@@ -57,10 +122,22 @@ static void decr_count(void)
 {
     thread_ctr_lock();
     count--;
-    if (count == 0)
+    pthread_cond_broadcast(&ctr_zero);
+    thread_ctr_unlock();
+}
+
+static void decr_append_count(FILE* file)
+{
+    thread_ctr_lock();
+    count--;
+
+    struct file_state* state = find_file_state(file);
+    if (state != NULL && state->pending > 0)
     {
-        pthread_cond_broadcast(&ctr_zero);
+        state->pending--;
     }
+
+    pthread_cond_broadcast(&ctr_zero);
     thread_ctr_unlock();
 }
 struct append_task
@@ -71,7 +148,29 @@ struct append_task
 
 void waitClose(FILE* file)
 {
-    wait();
+    if (file == NULL)
+    {
+        return;
+    }
+
+    thread_ctr_lock();
+    struct file_state* state = get_or_create_file_state(file);
+    if (state == NULL)
+    {
+        thread_ctr_unlock();
+        errno = ENOMEM;
+        return;
+    }
+
+    state->closing = 1;
+    while (state->pending > 0)
+    {
+        (void)pthread_cond_wait(&ctr_zero, &ctr_mutex);
+    }
+
+    remove_file_state(file);
+    thread_ctr_unlock();
+
     (void)fclose(file);
 }
 void wait(void)
@@ -87,6 +186,7 @@ void wait(void)
 void* threadAppendMyarr(void* inStruct)
 {
     struct append_task* mine = (struct append_task*)inStruct;
+    FILE* file = mine->file;
 
     /* Serialize all writes to the FILE* to prevent interleaving */
     thread_lock();
@@ -118,7 +218,7 @@ void* threadAppendMyarr(void* inStruct)
     free(mine->array);
     free(mine);
 
-    decr_count();
+    decr_append_count(file);
     return NULL;
 }
 
@@ -159,6 +259,28 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     info->file = file;
 
     thread_ctr_lock();
+    struct file_state* state = get_or_create_file_state(file);
+    if (state == NULL)
+    {
+        thread_ctr_unlock();
+        perror("Error tracking file state");
+        free(local->arrd);
+        free(local->arr);
+        free(local);
+        free(info);
+        return;
+    }
+    if (state->closing)
+    {
+        thread_ctr_unlock();
+        errno = EPIPE;
+        free(local->arrd);
+        free(local->arr);
+        free(local);
+        free(info);
+        return;
+    }
+    state->pending++;
     count++;
     thread_ctr_unlock();
 
@@ -167,7 +289,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         perror("pthread_attr_init failed");
 
-        decr_count();
+        decr_append_count(file);
 
         free(local->arrd);
         free(local->arr);
@@ -181,7 +303,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
         (void)pthread_attr_destroy(&attr);
 
-        decr_count();
+        decr_append_count(file);
 
         free(local->arrd);
         free(local->arr);
@@ -198,7 +320,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         perror("Error creating thread");
 
-        decr_count();
+        decr_append_count(file);
 
         /* Free payload */
         free(local->arrd);

@@ -6,7 +6,7 @@ int checkFileArg(int name,
                  const char* optArg,
                  const char* mode);
 
-int checkUIntArg(int name, unsigned int* value, char* optArg);
+int checkUIntArg(int name, unsigned int* value, const char* optArg);
 
 void parseArguments(int argc, char* argv[], CapConfig* cfg);
 int getInt(char* ptr);

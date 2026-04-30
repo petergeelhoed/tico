@@ -9,6 +9,8 @@ set(TEST_TARGETS
     testmysync testfilter testremove50 testlinreg 
     testinvert testmulmat testmatlinreg testmatlinregquad 
     testcalculateall testcrosscorint testtranspone
+    testshiftbufferdata testrotatederivativewindow testupdatetotalshift
+    testcheckargs testgetbeaterror
     testgetinput
 )
 foreach(TEST ${TEST_TARGETS})
@@ -31,6 +33,11 @@ target_link_libraries(testcalculateall analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MAT
 target_link_libraries(testcrosscorint analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testtranspone mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testgetinput cli mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testshiftbufferdata ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testrotatederivativewindow ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testupdatetotalshift ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testcheckargs cli ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testgetbeaterror analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 
 target_compile_definitions(testcalculateall
     PRIVATE TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
@@ -38,11 +45,22 @@ target_compile_definitions(testcalculateall
 set( TESTS
         testcalculateall
         testcrosscorint
-        testinvert 
+        testinvert
+        testshiftbufferdata
+        testrotatederivativewindow
+        testupdatetotalshift
+        testcheckargs
+        testgetbeaterror
         )
 foreach(TST ${TESTS})
 
 if(TST STREQUAL "testcalculateall")
+    add_test(NAME ${TST} COMMAND $<TARGET_FILE:${TST}>)
+elseif(TST STREQUAL "testshiftbufferdata" OR
+       TST STREQUAL "testrotatederivativewindow" OR
+    TST STREQUAL "testupdatetotalshift" OR
+    TST STREQUAL "testcheckargs" OR
+    TST STREQUAL "testgetbeaterror")
     add_test(NAME ${TST} COMMAND $<TARGET_FILE:${TST}>)
 else()
     add_test(

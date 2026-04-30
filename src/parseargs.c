@@ -36,14 +36,18 @@ static void printUsage(void)
                   " -v <peak> write files for this peak\n");
 }
 
-int checkUIntArg(int name, unsigned int* value, char* optArg)
+int checkUIntArg(int name, unsigned int* value, const char* optArg)
 {
-    *value = (unsigned int)getInt(optArg);
-    if (*value == 0)
+    char* endptr = NULL;
+    errno = 0;
+    long parsed = strtol(optArg, &endptr, DECIMAL);
+    if (optArg == endptr || *endptr != '\0' || errno == ERANGE || parsed <= 0 ||
+        parsed > UINT_MAX)
     {
         printf("invalid integer argument for -%c: '%s'\n", (char)name, optArg);
         return -1;
     }
+    *value = (unsigned int)parsed;
     return 0;
 }
 

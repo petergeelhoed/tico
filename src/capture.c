@@ -31,9 +31,9 @@ typedef struct
 
 typedef struct
 {
-    int totalshift;
-    unsigned int ticktock;
-    unsigned int totalTickTock;
+    int cumulativeShift;
+    unsigned int tickIndex;
+    unsigned int globalTickIndex;
 } LoopState;
 
 static int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
@@ -60,7 +60,7 @@ static int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
                : 0;
 }
 
-static AppResources allocateResources(unsigned int ArrayLength,
+static AppResources allocateResources(unsigned int arrayLength,
                                       unsigned int ticktockBuffer,
                                       CapConfig* cfg)
 {
@@ -68,12 +68,12 @@ static AppResources allocateResources(unsigned int ArrayLength,
     res.subpos = makemyarrd(ticktockBuffer);
     res.maxpos = makemyarr(ticktockBuffer);
     res.maxvals = makemyarrd(ticktockBuffer);
-    res.derivative = makemyarr(ArrayLength);
-    res.tmpder = makemyarr(ArrayLength);
-    res.reference = makemyarr(ArrayLength);
-    res.filterFFT = makeFilter(cfg->evalue, ArrayLength);
+    res.derivative = makemyarr(arrayLength);
+    res.tmpder = makemyarr(arrayLength);
+    res.reference = makemyarr(arrayLength);
+    res.filterFFT = makeFilter(cfg->evalue, arrayLength);
     res.audioBuffer16 =
-        calloc(ArrayLength, sizeof(*res.audioBuffer16)); // 16bit
+        calloc(arrayLength, sizeof(*res.audioBuffer16)); // 16bit
     res.teethArray = calloc(cfg->teeth, sizeof(*res.teethArray));
     if (res.teethArray == NULL || res.audioBuffer16 == NULL)
     {
@@ -85,7 +85,7 @@ static AppResources allocateResources(unsigned int ArrayLength,
 
     for (unsigned int t = 0; t < cfg->teeth; t++)
     {
-        res.teethArray[t] = makemyarr(ArrayLength);
+        res.teethArray[t] = makemyarr(arrayLength);
     }
     return res;
 }
@@ -131,40 +131,40 @@ static void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx)
 static void processLogging(CapConfig* cfg,
                            AppResources* res,
                            unsigned int totalTime,
-                           unsigned int writeinterval)
+                           unsigned int writeInterval)
 {
-    if (totalTime > 0 && totalTime % writeinterval == 0)
+    if (totalTime > 0 && totalTime % writeInterval == 0)
     {
         if (cfg->fpposition)
         {
-            struct myarr* sync = makemyarrd(writeinterval);
-            for (unsigned int k = 0; k < writeinterval; ++k)
+            struct myarr* positionBatch = makemyarrd(writeInterval);
+            for (unsigned int k = 0; k < writeInterval; ++k)
             {
-                sync->arrd[k] =
-                    res->subpos->arrd[totalTime - writeinterval + k] +
-                    (double)res->maxpos->arr[totalTime - writeinterval + k];
+                positionBatch->arrd[k] =
+                    res->subpos->arrd[totalTime - writeInterval + k] +
+                    (double)res->maxpos->arr[totalTime - writeInterval + k];
             }
-            syncAppendMyarr(sync, cfg->fpposition);
-            freemyarr(sync);
+            syncAppendMyarr(positionBatch, cfg->fpposition);
+            freemyarr(positionBatch);
         }
         if (cfg->fpmaxcor)
         {
-            struct myarr* sync = makemyarrd(writeinterval);
-            memcpy(sync->arrd,
-                   res->maxvals->arrd + totalTime - writeinterval,
-                   writeinterval * sizeof(double));
-            syncAppendMyarr(sync, cfg->fpmaxcor);
-            freemyarr(sync);
+            struct myarr* correlationBatch = makemyarrd(writeInterval);
+            memcpy(correlationBatch->arrd,
+                   res->maxvals->arrd + totalTime - writeInterval,
+                   writeInterval * sizeof(double));
+            syncAppendMyarr(correlationBatch, cfg->fpmaxcor);
+            freemyarr(correlationBatch);
         }
     }
 }
 
-static void fitAndPrint(unsigned int ticktock,
-                        unsigned int totalTickTock,
+static void fitAndPrint(unsigned int tickIndex,
+                        unsigned int globalTickIndex,
                         struct myarr* cumulativeTick,
                         AppResources* res,
                         CapConfig* cfg,
-                        unsigned int ArrayLength,
+                        unsigned int arrayLength,
                         unsigned int mod)
 {
 
@@ -172,20 +172,20 @@ static void fitAndPrint(unsigned int ticktock,
     double slope = 0.0;
     fitNpeaks(&intercept,
               &slope,
-              ticktock,
+              tickIndex,
               res->maxvals,
               res->maxpos,
               res->subpos,
               cfg->fitN,
               cfg->SDthreshold);
 
-    printheader(slope * SECS_DAY / ArrayLength,
+    printheader(slope * SECS_DAY / arrayLength,
                 cfg->everyline,
                 getBeatError(cumulativeTick, cfg->rate, 0),
-                (double)totalTickTock * ArrayLength / cfg->rate);
+                (double)globalTickIndex * arrayLength / cfg->rate);
 
-    printspaces(res->maxpos->arr[ticktock],
-                res->maxvals->arrd[ticktock] * HEXDEC,
+    printspaces(res->maxpos->arr[tickIndex],
+                res->maxvals->arrd[tickIndex] * HEXDEC,
                 mod,
                 columns - cfg->everyline,
                 intercept,
@@ -194,53 +194,53 @@ static void fitAndPrint(unsigned int ticktock,
 
 static void rotateDerivativeWindow(AppResources* res,
                                    unsigned int arrayLength,
-                                   int totalshift)
+                                   int cumulativeShift)
 {
     for (int j = 0; j < (int)arrayLength; ++j)
     {
         res->tmpder->arr[j] =
-            res->derivative->arr[modSigned(totalshift + j, arrayLength)];
+            res->derivative->arr[modSigned(cumulativeShift + j, arrayLength)];
     }
 }
 
 static int findMaxPosition(AppResources* res,
                            struct myarr* cumulativeTick,
-                           unsigned int totalTickTock,
-                           unsigned int ticktock,
+                           unsigned int globalTickIndex,
+                           unsigned int tickIndex,
                            unsigned int arrayLength,
                            CapConfig* cfg)
 {
-    const int useReference = (totalTickTock < AUTOCOR_LIMIT * cfg->teeth);
+    const int useReference = (globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
     return shiftHalf(
         fftfit(*res->tmpder,
                cumulativeTick->arr,
                useReference ? res->reference->arr : cumulativeTick->arr,
-               res->maxvals->arrd + ticktock,
+                   res->maxvals->arrd + tickIndex,
                res->filterFFT,
-               totalTickTock == cfg->verbose,
-               res->subpos->arrd + ticktock),
+               globalTickIndex == cfg->verbose,
+                   res->subpos->arrd + tickIndex),
         arrayLength);
 }
 
-static int updateTotalShiftIfNeeded(int totalshift,
-                                    int maxposition,
-                                    unsigned int totalTickTock,
-                                    unsigned int ticktock,
+static int updateTotalShiftIfNeeded(int cumulativeShift,
+                                    int peakOffset,
+                                    unsigned int globalTickIndex,
+                                    unsigned int tickIndex,
                                     AppResources* res,
                                     CapConfig* cfg)
 {
-    if (totalTickTock > AUTOCOR_LIMIT &&
-        res->maxvals->arrd[ticktock] > (double)cfg->cvalue / HEXDEC &&
-        totalTickTock % cfg->teeth == 0)
+    if (globalTickIndex > AUTOCOR_LIMIT &&
+        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEXDEC &&
+        globalTickIndex % cfg->teeth == 0)
     {
-        int delta = maxposition;
+        int delta = peakOffset;
         if (abs(delta) > PRESHIFT_THRESHOLD)
         {
             delta = (int)(PRESHIFT_THRESHOLD_ROOT * delta / sqrt(abs(delta)));
         }
-        totalshift += delta;
+        cumulativeShift += delta;
     }
-    return totalshift;
+    return cumulativeShift;
 }
 
 static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
@@ -262,50 +262,53 @@ static int processCaptureTick(CapConfig* cfg,
                               const RuntimeParams* params,
                               LoopState* state)
 {
-    if (state->ticktock == ARR_BUFF * 2)
+    if (state->tickIndex == ARR_BUFF * 2)
     {
-        shiftBufferData(&state->ticktock,
+        shiftBufferData(&state->tickIndex,
                           res->subpos,
                           res->maxpos,
                           res->maxvals);
     }
 
-    int err = getData(cfg->fpInput, res->derivative, ctx, res->audioBuffer16);
-    if (err < 0)
+    int readStatus =
+        getData(cfg->fpInput, res->derivative, ctx, res->audioBuffer16);
+    if (readStatus < 0)
     {
         return -1;
     }
 
     struct myarr* cumulativeTick =
-        res->teethArray[state->totalTickTock % cfg->teeth];
-    rotateDerivativeWindow(res, params->arrayLength, state->totalshift);
-    int maxposition = findMaxPosition(res,
+        res->teethArray[state->globalTickIndex % cfg->teeth];
+    rotateDerivativeWindow(res, params->arrayLength, state->cumulativeShift);
+    int peakOffset = findMaxPosition(res,
                                       cumulativeTick,
-                                      state->totalTickTock,
-                                      state->ticktock,
+                                      state->globalTickIndex,
+                                      state->tickIndex,
                                       params->arrayLength,
                                       cfg);
 
-    res->maxpos->arr[state->ticktock] = state->totalshift + maxposition;
-    state->totalshift = updateTotalShiftIfNeeded(state->totalshift,
-                                                 maxposition,
-                                                 state->totalTickTock,
-                                                 state->ticktock,
+    res->maxpos->arr[state->tickIndex] =
+        state->cumulativeShift + peakOffset;
+    state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
+                                                 peakOffset,
+                                                 state->globalTickIndex,
+                                                 state->tickIndex,
                                                  res,
                                                  cfg);
 
-    processLogging(cfg, res, state->ticktock, ARR_BUFF / DEFAULT_WRITE_FACTOR);
+    processLogging(
+        cfg, res, state->tickIndex, ARR_BUFF / DEFAULT_WRITE_FACTOR);
 
-    fitAndPrint(state->ticktock,
-                state->totalTickTock,
+    fitAndPrint(state->tickIndex,
+                state->globalTickIndex,
                 cumulativeTick,
                 res,
                 cfg,
                 params->arrayLength,
                 params->mod);
 
-    state->ticktock++;
-    state->totalTickTock++;
+    state->tickIndex++;
+    state->globalTickIndex++;
     return 0;
 }
 
@@ -358,7 +361,7 @@ int main(int argc, char* argv[])
 
     LoopState state = {0};
 
-    while (keepRunning && !(state.totalTickTock > params.maxTime && cfg.time))
+    while (keepRunning && !(state.globalTickIndex > params.maxTime && cfg.time))
     {
         if (processCaptureTick(&cfg, &res, &ctx, &params, &state) < 0)
         {
@@ -366,7 +369,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    printFinals(&cfg, &res, params.arrayLength, state.totalTickTock);
+    printFinals(&cfg, &res, params.arrayLength, state.globalTickIndex);
     cleanupResources(&res, &cfg, &ctx);
 
     return 0;

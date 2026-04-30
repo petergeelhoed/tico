@@ -119,6 +119,34 @@ find_library(ASOUND_LIB asound)
 find_library(FFTW3_LIB fftw3)
 find_library(MATH_LIB m)
 
+find_program(CLANG_FORMAT_EXE
+  NAMES clang-format clang-format-19 clang-format-18 clang-format-17 clang-format-16 clang-format-15)
+
+file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS
+  ${PROJECT_SOURCE_DIR}/src/*.c
+  ${PROJECT_SOURCE_DIR}/inc/*.h
+  ${PROJECT_SOURCE_DIR}/tests/*.c)
+
+if (CLANG_FORMAT_EXE)
+  add_custom_target(format
+    COMMAND ${CLANG_FORMAT_EXE} -i ${FORMAT_SOURCES}
+    COMMENT "Formatting C sources with clang-format")
+
+  add_custom_target(format-check
+    COMMAND ${CLANG_FORMAT_EXE} --dry-run --Werror ${FORMAT_SOURCES}
+    COMMENT "Checking C sources formatting with clang-format")
+else()
+  add_custom_target(format
+    COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found"
+    COMMAND ${CMAKE_COMMAND} -E false
+    COMMENT "clang-format is required for format target")
+
+  add_custom_target(format-check
+    COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found"
+    COMMAND ${CMAKE_COMMAND} -E false
+    COMMENT "clang-format is required for format-check target")
+endif()
+
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})

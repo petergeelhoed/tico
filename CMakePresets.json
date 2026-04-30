@@ -177,6 +177,20 @@
       "displayName": "Build Release (gcc, all)",
       "inherits": "base-build",
       "configurePreset": "release-gcc"
+    },
+    {
+      "name": "format",
+      "displayName": "Run clang-format",
+      "inherits": "base-build",
+      "configurePreset": "debug-gcc",
+      "targets": ["format"]
+    },
+    {
+      "name": "format-check",
+      "displayName": "Check clang-format",
+      "inherits": "base-build",
+      "configurePreset": "debug-gcc",
+      "targets": ["format-check"]
     }
   ],
 
@@ -319,6 +333,22 @@
         { "type": "configure", "name": "release-gcc" },
         { "type": "build",     "name": "release-gcc" },
         { "type": "test",      "name": "release_ctest-gcc" }
+      ]
+    },
+    {
+      "name": "format",
+      "displayName": "Format: configure + clang-format",
+      "steps": [
+        { "type": "configure", "name": "debug-gcc" },
+        { "type": "build",     "name": "format" }
+      ]
+    },
+    {
+      "name": "format-check",
+      "displayName": "Format Check: configure + clang-format check",
+      "steps": [
+        { "type": "configure", "name": "debug-gcc" },
+        { "type": "build",     "name": "format-check" }
       ]
     }
   ]

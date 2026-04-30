@@ -10,7 +10,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
-        "CMAKE_C_STANDARD": "17",
+        "CMAKE_C_STANDARD": "11",
         "CMAKE_C_STANDARD_REQUIRED": "ON",
         "CMAKE_C_EXTENSIONS": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"

@@ -311,16 +311,16 @@ static int fastlinreg_sufficient_stats(
             }
         }
 
-        long double wL = (long double)weight;
-        long double xL = (long double)xVal;
-        long double yL = (long double)yVal;
+        long double weightLong = (long double)weight;
+        long double xValueLong = (long double)xVal;
+        long double yValueLong = (long double)yVal;
 
-        *Sum_w += wL;
-        *Sum_wx += wL * xL;
-        *Sum_wy += wL * yL;
-        *Sum_wxx += wL * xL * xL;
-        *Sum_wxy += wL * xL * yL;
-        *Sum_w2 += wL * wL;
+        *Sum_w += weightLong;
+        *Sum_wx += weightLong * xValueLong;
+        *Sum_wy += weightLong * yValueLong;
+        *Sum_wxx += weightLong * xValueLong * xValueLong;
+        *Sum_wxy += weightLong * xValueLong * yValueLong;
+        *Sum_w2 += weightLong * weightLong;
     }
 
     // Return success if we have at least two distinct weighted points
@@ -375,10 +375,10 @@ static long double compute_weighted_SSE(double intercept,
         }
 
         double deviation = yVal - (intercept + slope * xVal);
-        long double wL = (long double)weight;
-        SSE += wL * (long double)(deviation * deviation);
-        Sum_w += wL;
-        Sum_w2 += wL * wL;
+        long double weightLong = (long double)weight;
+        SSE += weightLong * (long double)(deviation * deviation);
+        Sum_w += weightLong;
+        Sum_w2 += weightLong * weightLong;
     }
     if (Sum_w_out)
     {
@@ -435,10 +435,10 @@ void fitNpeaks(double* intercept,
             return;
         }
 
-        double a1 = 0.0;
-        double b1 = 0.0;
-        if (!solve_weighted_line(&a1,
-                                 &b1,
+        double interceptPass1 = 0.0;
+        double slopePass1 = 0.0;
+        if (!solve_weighted_line(&interceptPass1,
+                     &slopePass1,
                                  Sum_w,
                                  Sum_wx,
                                  Sum_wy,
@@ -454,8 +454,8 @@ void fitNpeaks(double* intercept,
         // Compute weighted residual SSE and sigma
         long double Sum_w_res;
         long double Sum_w2_res;
-        long double SSE = compute_weighted_SSE(a1,
-                                               b1,
+        long double SSE = compute_weighted_SSE(interceptPass1,
+                               slopePass1,
                                                curPos,
                                                fitwindow,
                                                maxvals,
@@ -488,28 +488,28 @@ void fitNpeaks(double* intercept,
                                           maxes,
                                           subpos,
                                           /*skipOutliers=*/(thresh > 0.0),
-                                          a1,
-                                          b1,
+                                          interceptPass1,
+                                          slopePass1,
                                           thresh);
 
-        double a2 = a1;
-        double b2 = b1;
-        if (ok1 && solve_weighted_line(&a2,
-                                       &b2,
+        double interceptPass2 = interceptPass1;
+        double slopePass2 = slopePass1;
+        if (ok1 && solve_weighted_line(&interceptPass2,
+                                       &slopePass2,
                                        Sum_w,
                                        Sum_wx,
                                        Sum_wy,
                                        Sum_wxx,
                                        Sum_wxy))
         {
-            *intercept = a2;
-            *slope = b2;
+            *intercept = interceptPass2;
+            *slope = slopePass2;
         }
         else
         {
             // Fall back to initial fit if second pass degenerates
-            *intercept = a1;
-            *slope = b1;
+            *intercept = interceptPass1;
+            *slope = slopePass1;
         }
     }
 }

@@ -13,13 +13,24 @@ set(TEST_TARGETS
 )
 foreach(TEST ${TEST_TARGETS})
     add_executable(${TEST} ${TEST}.c)
-    target_link_libraries(${TEST} 
-        ${INTERNAL_LIBS} 
-        ${ASOUND_LIB} 
-        ${FFTW3_LIB} 
-        ${MATH_LIB}
-    )
 endforeach()
+
+target_link_libraries(testfft myfft ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testsyncwrite myarr mysync ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testsyncappend myarr mysync ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testgetdoubles cli ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testmysync myarr mysync ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testfilter myfft ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testremove50 myfft ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testlinreg mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testinvert mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testmulmat mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testmatlinreg mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testmatlinregquad mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testcalculateall analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testcrosscorint analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testtranspone mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testgetinput cli mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 
 target_compile_definitions(testcalculateall
     PRIVATE TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}")

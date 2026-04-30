@@ -184,13 +184,55 @@ add_subdirectory(tests)
 
 foreach(BIN ${BINARIES})
     add_executable(${BIN} src/${BIN}.c)
-    target_link_libraries(${BIN} 
-        ${INTERNAL_LIBS} 
-        ${ASOUND_LIB} 
-        ${FFTW3_LIB} 
-        ${MATH_LIB}
-    )
 endforeach()
+
+target_link_libraries(capture
+  capture_helpers
+  mysignal
+  mysound
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(1dcor
+  myfft
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(fft
+  mymath
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(linregw
+  mymath
+  cli
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(ifft
+  cli
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(linreg
+  cli
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
+
+target_link_libraries(record
+  mysound
+  mysync
+  cli
+  myarr
+  ${ASOUND_LIB}
+  ${FFTW3_LIB}
+  ${MATH_LIB})
 
 
 # 6. Install (Moves binaries to a bin folder)

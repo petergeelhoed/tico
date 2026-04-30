@@ -94,7 +94,7 @@ static void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx)
 {
     if (cfg->fpposition)
     {
-        (void)fclose(cfg->fpposition);
+        waitClose(cfg->fpposition);
     }
     if (cfg->fpInput)
     {
@@ -102,7 +102,7 @@ static void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx)
     }
     if (cfg->fpmaxcor)
     {
-        (void)fclose(cfg->fpmaxcor);
+        waitClose(cfg->fpmaxcor);
     }
     if (cfg->fptotal)
     {

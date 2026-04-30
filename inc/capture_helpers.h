@@ -29,3 +29,35 @@ void shiftBufferData(unsigned int* ticktock,
                      struct myarr* subpos,
                      struct myarr* maxpos,
                      struct myarr* maxvals);
+
+void processLogging(CapConfig* cfg,
+                    AppResources* res,
+                    unsigned int totalTime,
+                    unsigned int writeInterval);
+
+void fitAndPrint(unsigned int tickIndex,
+                 unsigned int globalTickIndex,
+                 struct myarr* cumulativeTick,
+                 AppResources* res,
+                 CapConfig* cfg,
+                 unsigned int arrayLength,
+                 unsigned int mod,
+                 unsigned int currentColumns);
+
+void rotateDerivativeWindow(AppResources* res,
+                            unsigned int arrayLength,
+                            int cumulativeShift);
+
+int findMaxPosition(AppResources* res,
+                    struct myarr* cumulativeTick,
+                    unsigned int globalTickIndex,
+                    unsigned int tickIndex,
+                    unsigned int arrayLength,
+                    CapConfig* cfg);
+
+int updateTotalShiftIfNeeded(int cumulativeShift,
+                             int peakOffset,
+                             unsigned int globalTickIndex,
+                             unsigned int tickIndex,
+                             AppResources* res,
+                             CapConfig* cfg);

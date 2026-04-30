@@ -19,6 +19,8 @@ typedef struct CaptureCtx
 // NOLINTNEXTLINE(misc-include-cleaner)
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate);
 
+int initAudioSource(CapConfig* cfg, unsigned int* actualRate);
+
 int readBufferOrFile(int* derivative,
                      unsigned int ArrayLength,
                      FILE* fpInput,

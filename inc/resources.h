@@ -1,7 +1,11 @@
 #pragma once
+#include "config.h"
+#include "mysound.h"
 #include "myarr.h"
 
 #include "fftw3.h"
+
+#include <stdint.h>
 
 typedef struct
 {
@@ -15,3 +19,9 @@ typedef struct
     fftw_complex* filterFFT;
     int16_t* audioBuffer16;
 } AppResources;
+
+AppResources allocateResources(unsigned int arrayLength,
+                               unsigned int ticktockBuffer,
+                               CapConfig* cfg);
+
+void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx);

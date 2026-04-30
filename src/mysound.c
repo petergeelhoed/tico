@@ -133,6 +133,29 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     return captureHandle;
 }
 
+int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
+{
+    if (cfg->fpInput == NULL && *cfg->device == '\0')
+    {
+        printf("device and file are NULL\n");
+        exit(EXIT_FAILURE);
+    }
+
+    *actualRate = (unsigned int)(cfg->rate + ROUNDING_HALF);
+    if (cfg->fpInput == NULL)
+    {
+        printf("Casting inputrate %f to soundcard(%s) rate %d\n",
+               cfg->rate,
+               cfg->device,
+               *actualRate);
+        cfg->captureHandle =
+            initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
+        printf("Actual rate %d, calculating with %f\n", *actualRate, cfg->rate);
+    }
+    return (cfg->captureHandle == NULL && cfg->fpInput == NULL) ? ERROR_NO_SOURCE
+                                                                 : 0;
+}
+
 static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
 {
 

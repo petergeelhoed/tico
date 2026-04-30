@@ -193,3 +193,118 @@ void shiftBufferData(unsigned int* ticktock,
             ARRAY_BUFFER_SIZE * sizeof(double));
     *ticktock -= ARRAY_BUFFER_SIZE;
 }
+
+void processLogging(CapConfig* cfg,
+                    AppResources* res,
+                    unsigned int totalTime,
+                    unsigned int writeInterval)
+{
+    if (totalTime > 0 && totalTime % writeInterval == 0)
+    {
+        if (cfg->fpposition)
+        {
+            struct myarr* positionBatch = makemyarrd(writeInterval);
+            for (unsigned int k = 0; k < writeInterval; ++k)
+            {
+                positionBatch->arrd[k] =
+                    res->subpos->arrd[totalTime - writeInterval + k] +
+                    (double)res->maxpos->arr[totalTime - writeInterval + k];
+            }
+            syncAppendMyarr(positionBatch, cfg->fpposition);
+            freemyarr(positionBatch);
+        }
+        if (cfg->fpmaxcor)
+        {
+            struct myarr* correlationBatch = makemyarrd(writeInterval);
+            memcpy(correlationBatch->arrd,
+                   res->maxvals->arrd + totalTime - writeInterval,
+                   writeInterval * sizeof(double));
+            syncAppendMyarr(correlationBatch, cfg->fpmaxcor);
+            freemyarr(correlationBatch);
+        }
+    }
+}
+
+void fitAndPrint(unsigned int tickIndex,
+                 unsigned int globalTickIndex,
+                 struct myarr* cumulativeTick,
+                 AppResources* res,
+                 CapConfig* cfg,
+                 unsigned int arrayLength,
+                 unsigned int mod,
+                 unsigned int currentColumns)
+{
+    double intercept = 0.0;
+    double slope = 0.0;
+    fitNpeaks(&intercept,
+              &slope,
+              tickIndex,
+              res->maxvals,
+              res->maxpos,
+              res->subpos,
+              cfg->fitN,
+              cfg->SDthreshold);
+
+    printheader(slope * SECS_DAY / arrayLength,
+                cfg->everyline,
+                getBeatError(cumulativeTick, cfg->rate, 0),
+                (double)globalTickIndex * arrayLength / cfg->rate);
+
+    printspaces(res->maxpos->arr[tickIndex],
+                res->maxvals->arrd[tickIndex] * HEX_BASE,
+                mod,
+                currentColumns - cfg->everyline,
+                intercept,
+                cfg->cvalue);
+}
+
+void rotateDerivativeWindow(AppResources* res,
+                            unsigned int arrayLength,
+                            int cumulativeShift)
+{
+    for (int j = 0; j < (int)arrayLength; ++j)
+    {
+        res->tmpder->arr[j] =
+            res->derivative->arr[modSigned(cumulativeShift + j, arrayLength)];
+    }
+}
+
+int findMaxPosition(AppResources* res,
+                    struct myarr* cumulativeTick,
+                    unsigned int globalTickIndex,
+                    unsigned int tickIndex,
+                    unsigned int arrayLength,
+                    CapConfig* cfg)
+{
+    const int useReference = (globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
+    return shiftHalf(
+        fftfit(*res->tmpder,
+               cumulativeTick->arr,
+               useReference ? res->reference->arr : cumulativeTick->arr,
+               res->maxvals->arrd + tickIndex,
+               res->filterFFT,
+               globalTickIndex == cfg->verbose,
+               res->subpos->arrd + tickIndex),
+        arrayLength);
+}
+
+int updateTotalShiftIfNeeded(int cumulativeShift,
+                             int peakOffset,
+                             unsigned int globalTickIndex,
+                             unsigned int tickIndex,
+                             AppResources* res,
+                             CapConfig* cfg)
+{
+    if (globalTickIndex > AUTOCOR_LIMIT &&
+        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEX_BASE &&
+        globalTickIndex % cfg->teeth == 0)
+    {
+        int delta = peakOffset;
+        if (abs(delta) > PRESHIFT_THRESHOLD)
+        {
+            delta = (int)(PRESHIFT_THRESHOLD_ROOT * delta / sqrt(abs(delta)));
+        }
+        cumulativeShift += delta;
+    }
+    return cumulativeShift;
+}

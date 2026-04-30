@@ -140,7 +140,8 @@ add_library(mylib STATIC
   ${SRC}/analysis.c
   ${SRC}/capture_helpers.c
   ${SRC}/crosscorint.c
-  ${SRC}/parseargs.c)
+  ${SRC}/parseargs.c
+  ${SRC}/resources.c)
 target_link_libraries(mylib PUBLIC myarr )
 add_library(mysound STATIC ${SRC}/mysound.c)
 target_link_libraries(mysound PUBLIC myarr )

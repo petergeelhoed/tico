@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
             totalshift += maxposition;
         }
 
-        process_logging(&cfg, &res, ticktock, DEFAULT_TICKTOCK_WRITE);
+        process_logging(&cfg, &res, ticktock, ARR_BUFF / DEFAULT_WRITE_FACTOR);
 
         fitAndPrint(ticktock,
                     totalTickTock,

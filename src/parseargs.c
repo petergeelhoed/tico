@@ -138,6 +138,14 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             break;
         case 'f':
             enforce_uint(flag, &cfg->fitN, optarg);
+            if (cfg->fitN > ARR_BUFF)
+            {
+                (void)fprintf(
+                    stderr,
+                    "truncating number of points to local fit to %d\n",
+                    ARR_BUFF);
+                cfg->fitN = ARR_BUFF;
+            }
             break;
         case 'e':
             enforce_uint(flag, &cfg->evalue, optarg);

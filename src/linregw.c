@@ -8,12 +8,12 @@
 
 int main(void)
 {
-    const size_t initial_size = 1000000;
+    const size_t initialSize = 1000000;
 
     // Prefer heap to avoid large stack frames
-    double* xarr = (double*)malloc(initial_size * sizeof(double));
-    double* yvec = (double*)malloc(initial_size * sizeof(double));
-    double* wvec = (double*)malloc(initial_size * sizeof(double));
+    double* xarr = (double*)malloc(initialSize * sizeof(double));
+    double* yvec = (double*)malloc(initialSize * sizeof(double));
+    double* wvec = (double*)malloc(initialSize * sizeof(double));
     if (!xarr || !yvec || !wvec)
     {
         (void)fprintf(stderr, "memory allocation failed\n");
@@ -29,33 +29,33 @@ int main(void)
     // Read one line at a time, up to 3 doubles per line
     for (;;)
     {
-        int nr_doubles = getDoublesFromStdin(3, arr);
-        if (nr_doubles < 0)
+        int nrDoubles = getDoublesFromStdin(3, arr);
+        if (nrDoubles < 0)
         {
             // EOF or read error -> stop
             break;
         }
-        if (nr_doubles == 0)
+        if (nrDoubles == 0)
         {
             // Blank line or no numbers -> skip to next line
             continue;
         }
-        if (nr_doubles < 3)
+        if (nrDoubles < 3)
         {
             // Line did not have 3 doubles -> depending on your policy:
             // either skip, or fill defaults, or break. Here we skip.
             (void)fprintf(stderr,
                           "Warning: line had only %d double(s); skipping\n",
-                          nr_doubles);
+                          nrDoubles);
             continue;
         }
 
-        if (arrayLength >= initial_size)
+        if (arrayLength >= initialSize)
         {
             (void)fprintf(
                 stderr,
                 "Capacity reached (%zu). Remaining input will be ignored.\n",
-                initial_size);
+                initialSize);
             break;
         }
 

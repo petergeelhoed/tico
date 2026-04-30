@@ -23,7 +23,7 @@ int main(void)
     unsigned int length = 0;
     char line[LINESIZE];
     char* endptr;
-    char* next_start;
+    char* nextStart;
 
     // Read lines until EOF or error
     while (fgets(line, sizeof(line), stdin))
@@ -37,9 +37,9 @@ int main(void)
             continue; // No number found on this line
         }
         // 2. Convert second number starting where the first one ended
-        next_start = endptr;
-        readValue1 = strtod(next_start, &endptr);
-        if (next_start == endptr)
+        nextStart = endptr;
+        readValue1 = strtod(nextStart, &endptr);
+        if (nextStart == endptr)
         {
             continue; // Second number not found
         }

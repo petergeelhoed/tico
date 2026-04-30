@@ -51,11 +51,11 @@ static int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
                cfg->rate,
                cfg->device,
                *actualRate);
-        cfg->capture_handle =
+        cfg->captureHandle =
             initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
         printf("Actual rate %d, calculating with %f\n", *actualRate, cfg->rate);
     }
-    return (cfg->capture_handle == NULL && cfg->fpInput == NULL)
+    return (cfg->captureHandle == NULL && cfg->fpInput == NULL)
                ? ERROR_NO_SOURCE
                : 0;
 }
@@ -108,9 +108,9 @@ static void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx)
     {
         (void)fclose(cfg->fptotal);
     }
-    if (cfg->capture_handle)
+    if (cfg->captureHandle)
     {
-        snd_pcm_close(cfg->capture_handle);
+        snd_pcm_close(cfg->captureHandle);
     }
     free(res->audioBuffer16);
     freemyarr(res->subpos);
@@ -125,7 +125,7 @@ static void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx)
         freemyarr(res->teethArray[t]);
     }
     free(res->teethArray);
-    capture_teardown(ctx);
+    captureTeardown(ctx);
 }
 
 static void processLogging(CapConfig* cfg,
@@ -264,7 +264,7 @@ static int processCaptureTick(CapConfig* cfg,
 {
     if (state->ticktock == ARR_BUFF * 2)
     {
-        shift_buffer_data(&state->ticktock,
+        shiftBufferData(&state->ticktock,
                           res->subpos,
                           res->maxpos,
                           res->maxvals);
@@ -325,14 +325,14 @@ int main(int argc, char* argv[])
                      .fptotal = NULL,
                      .fpDefPeak = NULL,
                      .fpInput = NULL,
-                     .capture_handle = NULL};
+                     .captureHandle = NULL};
 
-    parse_arguments(argc, argv, &cfg);
+    parseArguments(argc, argv, &cfg);
 
     struct winsize windowSize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
     columns = windowSize.ws_col;
-    set_signal_action();
+    setSignalAction();
 
     unsigned int actualRate;
     if (initAudioSource(&cfg, &actualRate))
@@ -340,10 +340,10 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     CaptureCtx ctx;
-    if (capture_setup(&ctx, &cfg, actualRate) < 0)
+    if (captureSetup(&ctx, &cfg, actualRate) < 0)
     {
-        (void)fprintf(stderr, "capture_setup failed\n");
-        snd_pcm_close(cfg.capture_handle);
+        (void)fprintf(stderr, "captureSetup failed\n");
+        snd_pcm_close(cfg.captureHandle);
         return EXIT_FAILURE;
     }
 
@@ -354,7 +354,7 @@ int main(int argc, char* argv[])
 
     sigset_t block;
     // sigset_t non_block;
-    setup_block_signals(&block);
+    setupBlockSignals(&block);
 
     LoopState state = {0};
 
@@ -366,7 +366,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    print_finals(&cfg, &res, params.arrayLength, state.totalTickTock);
+    printFinals(&cfg, &res, params.arrayLength, state.totalTickTock);
     cleanupResources(&res, &cfg, &ctx);
 
     return 0;

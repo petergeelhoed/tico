@@ -9,7 +9,7 @@
 int main(void)
 {
     FILE* rawfile;
-    checkFileArg('r', &rawfile, "raw_nan", "r");
+    checkFileArg('r', &rawfile, "rawNan", "r");
 
     if (rawfile)
     {

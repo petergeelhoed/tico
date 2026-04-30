@@ -3,13 +3,13 @@
 
 int checkFileArg(int name,
                  FILE** filePtr,
-                 const char* opt_arg,
+                 const char* optArg,
                  const char* mode);
 
-int checkUIntArg(int name, unsigned int* value, char* opt_arg);
+int checkUIntArg(int name, unsigned int* value, char* optArg);
 
-void parse_arguments(int argc, char* argv[], CapConfig* cfg);
+void parseArguments(int argc, char* argv[], CapConfig* cfg);
 int getInt(char* ptr);
 double getDouble(char* ptr);
-int getDoublesFromStdin(size_t max_count, double* arr);
-int getIntsFromStdin(size_t max_count, int* arr);
+int getDoublesFromStdin(size_t maxCount, double* arr);
+int getIntsFromStdin(size_t maxCount, int* arr);

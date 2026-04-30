@@ -14,7 +14,7 @@ void printspaces(int maxpos,
                  double hexvalue,
                  unsigned int mod,
                  unsigned int columns,
-                 double avg_pos,
+                 double avgPos,
                  unsigned int correlationThreshold);
 
 void writefile(FILE* filePtr, int* array, unsigned int ArrayLength);
@@ -26,12 +26,12 @@ void fillReference(FILE* fpDefPeak,
                    struct myarr* reference,
                    unsigned int teeth);
 
-void print_finals(CapConfig* cfg,
+void printFinals(CapConfig* cfg,
                   AppResources* res,
                   unsigned int ArrayLength,
                   unsigned int totalTickTock);
 
-void shift_buffer_data(unsigned int* ticktock,
+void shiftBufferData(unsigned int* ticktock,
                        struct myarr* subpos,
                        struct myarr* maxpos,
                        struct myarr* maxvals);

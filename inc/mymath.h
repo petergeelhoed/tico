@@ -18,7 +18,7 @@ void matlinreg(double coeffs[2],
 
 void fitNpeaks(double* intercept,
                double* slope,
-               unsigned int cur_pos,
+               unsigned int curPos,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
@@ -31,7 +31,7 @@ void fastlinreg(double coeffs[2],
                 const double* vec,
                 const double* weight);
 
-int nearly_equal(double number0, double number1);
+int nearlyEqual(double number0, double number1);
 
 unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
 

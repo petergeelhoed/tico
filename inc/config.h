@@ -22,6 +22,6 @@ typedef struct
     FILE* fptotal;
     FILE* fpDefPeak;
     FILE* fpInput;
-    snd_pcm_t* capture_handle;
+    snd_pcm_t* captureHandle;
 
 } CapConfig;

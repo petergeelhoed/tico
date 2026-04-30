@@ -18,27 +18,27 @@ int main(void)
 
     for (;;)
     {
-        int nr_doubles = getDoublesFromStdin(3, triplet);
-        if (nr_doubles < 0)
+        int nrDoubles = getDoublesFromStdin(3, triplet);
+        if (nrDoubles < 0)
         {
             break;
         }
-        if (nr_doubles < 3)
+        if (nrDoubles < 3)
         {
             continue;
         }
 
-        double x_arr = triplet[0];
-        double y_arr = triplet[1];
+        double xArr = triplet[0];
+        double yArr = triplet[1];
         double weight = triplet[2];
         Sum_w += weight;
-        Sum_wx += weight * x_arr;
-        Sum_wy += weight * y_arr;
-        Sum_wxx += weight * x_arr * x_arr;
-        Sum_wxy += weight * x_arr * y_arr;
+        Sum_wx += weight * xArr;
+        Sum_wy += weight * yArr;
+        Sum_wxx += weight * xArr * xArr;
+        Sum_wxy += weight * xArr * yArr;
     }
 
-    // Solve weighted simple linear regression y_arr = intercept + slope x_arr
+    // Solve weighted simple linear regression yArr = intercept + slope xArr
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     double intercept = 0.0;
     double slope = 0.0;

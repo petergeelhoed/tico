@@ -11,8 +11,8 @@ typedef struct CaptureCtx
     /* ALSA */
     snd_pcm_t* cap;
     unsigned int rate;
-    snd_pcm_uframes_t period_size;
-    snd_pcm_uframes_t buffer_size;
+    snd_pcm_uframes_t periodSize;
+    snd_pcm_uframes_t bufferSize;
     unsigned int ArrayLength; // frames per processing block
 } CaptureCtx;
 
@@ -30,8 +30,8 @@ int getData(FILE* fpInput,
             CaptureCtx* ctx,
             int16_t* out);
 
-void capture_teardown(CaptureCtx* ctx);
+void captureTeardown(CaptureCtx* ctx);
 
-int capture_setup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate);
+int captureSetup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate);
 
-int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out);
+int readSamples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out);

@@ -37,28 +37,28 @@ void linreg(const double* xarr,
             double* slope,
             double* stdev)
 {
-    double sum_x = 0;
-    double sum_y = 0;
-    double sum_xx = 0;
-    double sum_xy = 0;
-    double sum_yy = 0;
+    double sumX = 0;
+    double sumY = 0;
+    double sumXx = 0;
+    double sumXy = 0;
+    double sumYy = 0;
     for (unsigned int i = 0; i < ArrayLength; ++i)
     {
-        sum_y += yarr[i];
-        sum_xx += xarr[i] * xarr[i];
-        sum_x += xarr[i];
-        sum_xy += xarr[i] * yarr[i];
-        sum_yy += yarr[i] * yarr[i];
+        sumY += yarr[i];
+        sumXx += xarr[i] * xarr[i];
+        sumX += xarr[i];
+        sumXy += xarr[i] * yarr[i];
+        sumYy += yarr[i] * yarr[i];
     }
 
-    *intercept = (sum_y * sum_xx - sum_x * sum_xy) /
-                 (ArrayLength * sum_xx - sum_x * sum_x);
-    *slope = (ArrayLength * sum_xy - sum_x * sum_y) /
-             (ArrayLength * sum_xx - sum_x * sum_x);
-    *stdev = sqrt((sum_yy - 2 * (*intercept) * sum_y - 2 * (*slope) * sum_xy +
-                   2 * (*intercept) * (*slope) * sum_x +
+    *intercept = (sumY * sumXx - sumX * sumXy) /
+                 (ArrayLength * sumXx - sumX * sumX);
+    *slope = (ArrayLength * sumXy - sumX * sumY) /
+             (ArrayLength * sumXx - sumX * sumX);
+    *stdev = sqrt((sumYy - 2 * (*intercept) * sumY - 2 * (*slope) * sumXy +
+                   2 * (*intercept) * (*slope) * sumX +
                    (*intercept) * (*intercept) * ArrayLength +
-                   (*slope) * (*slope) * sum_xx) /
+                   (*slope) * (*slope) * sumXx) /
                   ArrayLength);
 }
 
@@ -235,7 +235,7 @@ void fastlinreg(double coeffs[2],
                 const double* xmat,
                 unsigned int Npoints,
                 const double* vec,
-                const double* weight_arr)
+                const double* weightArr)
 {
     double Sum_w = 0.0;
     double Sum_wx = 0.0;
@@ -245,14 +245,14 @@ void fastlinreg(double coeffs[2],
 
     for (unsigned int i = 0; i < Npoints; i++)
     {
-        const double x_val = xmat[i];
-        const double y_val = vec[i];
-        const double weight = weight_arr[i] * weight_arr[i];
+        const double xVal = xmat[i];
+        const double yVal = vec[i];
+        const double weight = weightArr[i] * weightArr[i];
         Sum_w += weight;
-        Sum_wx += weight * x_val;
-        Sum_wy += weight * y_val;
-        Sum_wxx += weight * x_val * x_val;
-        Sum_wxy += weight * x_val * y_val;
+        Sum_wx += weight * xVal;
+        Sum_wy += weight * yVal;
+        Sum_wxx += weight * xVal * xVal;
+        Sum_wxy += weight * xVal * yVal;
     }
     double denom = Sum_w * Sum_wxx - Sum_wx * Sum_wx;
     coeffs[0] = 0.0;
@@ -277,50 +277,50 @@ static int fastlinreg_sufficient_stats(
     long double* Sum_wxx,
     long double* Sum_wxy,
     long double* Sum_w2,
-    const unsigned int cur_pos,
+    const unsigned int curPos,
     const unsigned int fitwindow,
     const struct myarr* maxvals,
     const struct myarr* maxes,
     const struct myarr* subpos,
-    int skip_outliers,
+    int skipOutliers,
     double intercept,
     double slope,
-    double stdev_threshold // absolute threshold; compare with residual
+    double stdevThreshold // absolute threshold; compare with residual
 )
 {
     *Sum_w = *Sum_wx = *Sum_wy = *Sum_wxx = *Sum_wxy = *Sum_w2 = 0.0L;
 
     for (unsigned int k = 0; k < fitwindow; ++k)
     {
-        unsigned int idx = cur_pos - k;
+        unsigned int idx = curPos - k;
 
-        const double x_val = (double)k;
-        const double y_val = (double)maxes->arr[idx] + subpos->arrd[idx];
+        const double xVal = (double)k;
+        const double yVal = (double)maxes->arr[idx] + subpos->arrd[idx];
         const double weight = maxvals->arrd[idx];
         if (!(weight > 0.0))
         {
             continue;
         } // skip non-positive weights
 
-        if (skip_outliers)
+        if (skipOutliers)
         {
-            double deviation = y_val - (intercept + slope * x_val);
-            if (fabs(deviation) > stdev_threshold)
+            double deviation = yVal - (intercept + slope * xVal);
+            if (fabs(deviation) > stdevThreshold)
             {
                 continue;
             }
         }
 
-        long double w_l = (long double)weight;
-        long double x_l = (long double)x_val;
-        long double y_l = (long double)y_val;
+        long double wL = (long double)weight;
+        long double xL = (long double)xVal;
+        long double yL = (long double)yVal;
 
-        *Sum_w += w_l;
-        *Sum_wx += w_l * x_l;
-        *Sum_wy += w_l * y_l;
-        *Sum_wxx += w_l * x_l * x_l;
-        *Sum_wxy += w_l * x_l * y_l;
-        *Sum_w2 += w_l * w_l;
+        *Sum_w += wL;
+        *Sum_wx += wL * xL;
+        *Sum_wy += wL * yL;
+        *Sum_wxx += wL * xL * xL;
+        *Sum_wxy += wL * xL * yL;
+        *Sum_w2 += wL * wL;
     }
 
     // Return success if we have at least two distinct weighted points
@@ -351,7 +351,7 @@ static int solve_weighted_line(double* intercept,
 // Compute weighted residual SSE for given (intercept,slope) over the window
 static long double compute_weighted_SSE(double intercept,
                                         double slope,
-                                        const unsigned int cur_pos,
+                                        const unsigned int curPos,
                                         const unsigned int fitwindow,
                                         const struct myarr* maxvals,
                                         const struct myarr* maxes,
@@ -365,20 +365,20 @@ static long double compute_weighted_SSE(double intercept,
 
     for (unsigned int k = 0; k < fitwindow; ++k)
     {
-        unsigned int idx = cur_pos - k;
-        double x_val = (double)k;
-        double y_val = (double)maxes->arr[idx] + subpos->arrd[idx];
+        unsigned int idx = curPos - k;
+        double xVal = (double)k;
+        double yVal = (double)maxes->arr[idx] + subpos->arrd[idx];
         double weight = maxvals->arrd[idx];
         if (!(weight > 0.0))
         {
             continue;
         }
 
-        double deviation = y_val - (intercept + slope * x_val);
-        long double w_l = (long double)weight;
-        SSE += w_l * (long double)(deviation * deviation);
-        Sum_w += w_l;
-        Sum_w2 += w_l * w_l;
+        double deviation = yVal - (intercept + slope * xVal);
+        long double wL = (long double)weight;
+        SSE += wL * (long double)(deviation * deviation);
+        Sum_w += wL;
+        Sum_w2 += wL * wL;
     }
     if (Sum_w_out)
     {
@@ -393,16 +393,16 @@ static long double compute_weighted_SSE(double intercept,
 
 void fitNpeaks(double* intercept,
                double* slope,
-               const unsigned int cur_pos,
+               const unsigned int curPos,
                const struct myarr* maxvals,
                const struct myarr* maxes,
                const struct myarr* subpos,
                const unsigned int npeaks,
                const double SDthreshold)
 {
-    unsigned int fitwindow = (cur_pos > npeaks) ? npeaks : cur_pos;
+    unsigned int fitwindow = (curPos > npeaks) ? npeaks : curPos;
 
-    if (fitwindow > 1 && cur_pos >= fitwindow && maxvals && maxvals->arrd &&
+    if (fitwindow > 1 && curPos >= fitwindow && maxvals && maxvals->arrd &&
         maxes && maxes->arr && subpos && subpos->arrd)
     {
         // Pass 1: fit using all points (positive weights)
@@ -418,15 +418,15 @@ void fitNpeaks(double* intercept,
                                               &Sum_wxx,
                                               &Sum_wxy,
                                               &Sum_w2,
-                                              cur_pos,
+                                              curPos,
                                               fitwindow,
                                               maxvals,
                                               maxes,
                                               subpos,
-                                              /*skip_outliers=*/0,
+                                              /*skipOutliers=*/0,
                                               /*intercept=*/0.0,
                                               /*slope=*/0.0,
-                                              /*stdev_threshold=*/0.0);
+                                              /*stdevThreshold=*/0.0);
         if (!ok1)
         {
             // No valid data
@@ -435,10 +435,10 @@ void fitNpeaks(double* intercept,
             return;
         }
 
-        double a_1 = 0.0;
-        double b_1 = 0.0;
-        if (!solve_weighted_line(&a_1,
-                                 &b_1,
+        double a1 = 0.0;
+        double b1 = 0.0;
+        if (!solve_weighted_line(&a1,
+                                 &b1,
                                  Sum_w,
                                  Sum_wx,
                                  Sum_wy,
@@ -454,9 +454,9 @@ void fitNpeaks(double* intercept,
         // Compute weighted residual SSE and sigma
         long double Sum_w_res;
         long double Sum_w2_res;
-        long double SSE = compute_weighted_SSE(a_1,
-                                               b_1,
-                                               cur_pos,
+        long double SSE = compute_weighted_SSE(a1,
+                                               b1,
+                                               curPos,
                                                fitwindow,
                                                maxvals,
                                                maxes,
@@ -482,39 +482,39 @@ void fitNpeaks(double* intercept,
                                           &Sum_wxx,
                                           &Sum_wxy,
                                           &Sum_w2,
-                                          cur_pos,
+                                          curPos,
                                           fitwindow,
                                           maxvals,
                                           maxes,
                                           subpos,
-                                          /*skip_outliers=*/(thresh > 0.0),
-                                          a_1,
-                                          b_1,
+                                          /*skipOutliers=*/(thresh > 0.0),
+                                          a1,
+                                          b1,
                                           thresh);
 
-        double a_2 = a_1;
-        double b_2 = b_1;
-        if (ok1 && solve_weighted_line(&a_2,
-                                       &b_2,
+        double a2 = a1;
+        double b2 = b1;
+        if (ok1 && solve_weighted_line(&a2,
+                                       &b2,
                                        Sum_w,
                                        Sum_wx,
                                        Sum_wy,
                                        Sum_wxx,
                                        Sum_wxy))
         {
-            *intercept = a_2;
-            *slope = b_2;
+            *intercept = a2;
+            *slope = b2;
         }
         else
         {
             // Fall back to initial fit if second pass degenerates
-            *intercept = a_1;
-            *slope = b_1;
+            *intercept = a1;
+            *slope = b1;
         }
     }
 }
 
-int nearly_equal(double number0, double number1)
+int nearlyEqual(double number0, double number1)
 {
     if (isnan(number0) || isnan(number1))
     {
@@ -525,17 +525,17 @@ int nearly_equal(double number0, double number1)
         return 0;
     }
 
-    const double abs_eps = DOUBLE_LIMIT;
-    const double rel_eps = DOUBLE_LIMIT;
+    const double absEps = DOUBLE_LIMIT;
+    const double relEps = DOUBLE_LIMIT;
 
     const double diff = fabs(number0 - number1);
-    if (diff <= abs_eps)
+    if (diff <= absEps)
     {
         return 1;
     }
 
     const double maxab = fmax(fabs(number0), fabs(number1));
-    return diff <= rel_eps * maxab;
+    return diff <= relEps * maxab;
 }
 
 int shiftHalf(unsigned int value, unsigned int ArrayLength)

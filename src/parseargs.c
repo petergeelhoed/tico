@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static void print_usage(void)
+static void printUsage(void)
 {
     (void)fprintf(stderr,
                   "usage: capture\n"
@@ -36,12 +36,12 @@ static void print_usage(void)
                   " -v <peak> write files for this peak\n");
 }
 
-int checkUIntArg(int name, unsigned int* value, char* opt_arg)
+int checkUIntArg(int name, unsigned int* value, char* optArg)
 {
-    *value = (unsigned int)getInt(opt_arg);
+    *value = (unsigned int)getInt(optArg);
     if (*value == 0)
     {
-        printf("invalid integer argument for -%c: '%s'\n", (char)name, opt_arg);
+        printf("invalid integer argument for -%c: '%s'\n", (char)name, optArg);
         return -1;
     }
     return 0;
@@ -49,46 +49,46 @@ int checkUIntArg(int name, unsigned int* value, char* opt_arg)
 
 int checkFileArg(int name,
                  FILE** filePtr,
-                 const char* opt_arg,
+                 const char* optArg,
                  const char* mode)
 {
-    if (*opt_arg == '-')
+    if (*optArg == '-')
     {
         (void)fprintf(stderr,
                       "expecting -%c <file>\n got -w %s\n",
                       (char)name,
-                      opt_arg);
+                      optArg);
         return -1;
     }
 
-    *filePtr = fopen(opt_arg, mode);
+    *filePtr = fopen(optArg, mode);
     if (*filePtr == NULL)
     {
         (void)fprintf(stderr,
                       "cannot open file -%c '%s' for mode %s\n",
                       (char)name,
-                      opt_arg,
+                      optArg,
                       mode);
         return -4;
     }
     return 0;
 }
 
-static int checkFloatArg(int name, double* value, char* opt_arg)
+static int checkFloatArg(int name, double* value, char* optArg)
 {
 
     char* endp = NULL;
-    *value = strtod(opt_arg, &endp);
-    if (opt_arg == endp || fabs(*value) < DOUBLE_LIMIT)
+    *value = strtod(optArg, &endp);
+    if (optArg == endp || fabs(*value) < DOUBLE_LIMIT)
     {
-        printf("invalid float argument for -%c: '%s'\n", (char)name, opt_arg);
+        printf("invalid float argument for -%c: '%s'\n", (char)name, optArg);
         return -1;
     }
     return 0;
 }
 
 // Hulpfunctie om float conversie en validatie te isoleren
-static void parse_sd_threshold(const char* arg, double* threshold)
+static void parseSdThreshold(const char* arg, double* threshold)
 {
     char* endp = NULL;
     errno = 0;
@@ -102,7 +102,7 @@ static void parse_sd_threshold(const char* arg, double* threshold)
     }
 }
 
-static void handle_file_arg(int opt,
+static void handleFileArg(int opt,
                             FILE** filePtr,
                             const char* arg,
                             const char* mode)
@@ -116,7 +116,7 @@ static void handle_file_arg(int opt,
     }
 }
 
-static void enforce_uint(int flag, unsigned int* target, char* arg)
+static void enforceUint(int flag, unsigned int* target, char* arg)
 {
     if (checkUIntArg(flag, target, arg) != 0)
     {
@@ -124,7 +124,7 @@ static void enforce_uint(int flag, unsigned int* target, char* arg)
     }
 }
 
-void parse_arguments(int argc, char* argv[], CapConfig* cfg)
+void parseArguments(int argc, char* argv[], CapConfig* cfg)
 {
     int flag;
     while ((flag = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:")) !=
@@ -134,10 +134,10 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
         {
         // Group 1: Integrated Numeric Parsers
         case 'j':
-            enforce_uint(flag, &cfg->teeth, optarg);
+            enforceUint(flag, &cfg->teeth, optarg);
             break;
         case 'f':
-            enforce_uint(flag, &cfg->fitN, optarg);
+            enforceUint(flag, &cfg->fitN, optarg);
             if (cfg->fitN > ARR_BUFF)
             {
                 (void)fprintf(
@@ -148,21 +148,21 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             }
             break;
         case 'e':
-            enforce_uint(flag, &cfg->evalue, optarg);
+            enforceUint(flag, &cfg->evalue, optarg);
             break;
         case 'v':
-            enforce_uint(flag, &cfg->verbose, optarg);
+            enforceUint(flag, &cfg->verbose, optarg);
             break;
         case 't':
-            enforce_uint(flag, &cfg->time, optarg);
+            enforceUint(flag, &cfg->time, optarg);
             break;
         case 'z':
-            enforce_uint(flag, &cfg->zoom, optarg);
+            enforceUint(flag, &cfg->zoom, optarg);
             break;
 
         // Group 2: Special Logic
         case 'b':
-            enforce_uint(flag, &cfg->bph, optarg);
+            enforceUint(flag, &cfg->bph, optarg);
             if (cfg->bph < SECS_HOUR)
             {
                 (void)fprintf(stderr, "refusing bph < 3600\n");
@@ -170,14 +170,14 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             }
             break;
         case 'c':
-            enforce_uint(flag, &cfg->cvalue, optarg);
+            enforceUint(flag, &cfg->cvalue, optarg);
             if (cfg->cvalue > CVAL)
             {
                 cfg->cvalue = CVAL;
             }
             break;
         case 's':
-            parse_sd_threshold(optarg, &cfg->SDthreshold);
+            parseSdThreshold(optarg, &cfg->SDthreshold);
             break;
         case 'r':
             if (checkFloatArg(flag, &cfg->rate, optarg) != 0)
@@ -187,19 +187,19 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             break;
         // Group 3: File Handlers
         case 'I':
-            handle_file_arg(flag, &cfg->fpInput, optarg, "r");
+            handleFileArg(flag, &cfg->fpInput, optarg, "r");
             break;
         case 'm':
-            handle_file_arg(flag, &cfg->fpmaxcor, optarg, "w+");
+            handleFileArg(flag, &cfg->fpmaxcor, optarg, "w+");
             break;
         case 'w':
-            handle_file_arg(flag, &cfg->fpposition, optarg, "w+");
+            handleFileArg(flag, &cfg->fpposition, optarg, "w+");
             break;
         case 'D':
-            handle_file_arg(flag, &cfg->fpDefPeak, optarg, "r");
+            handleFileArg(flag, &cfg->fpDefPeak, optarg, "r");
             break;
         case 'p':
-            handle_file_arg(flag, &cfg->fptotal, optarg, "w");
+            handleFileArg(flag, &cfg->fptotal, optarg, "w");
             break;
 
         // Group 4: Flags & Help
@@ -218,7 +218,7 @@ void parse_arguments(int argc, char* argv[], CapConfig* cfg)
             break;
         case 'h':
         default:
-            print_usage();
+            printUsage();
             exit(0);
         }
     }
@@ -262,12 +262,12 @@ double getDouble(char* ptr)
 #include <ctype.h>
 
 /**
- * Reads one line from stdin and parses up to max_count doubles into array.
+ * Reads one line from stdin and parses up to maxCount doubles into array.
  * Returns the number of doubles stored (>=0), or -1 on I/O/memory error.
  */
-int getDoublesFromStdin(size_t max_count, double* arr)
+int getDoublesFromStdin(size_t maxCount, double* arr)
 {
-    if (!arr || max_count == 0)
+    if (!arr || maxCount == 0)
     {
         return 0; // nothing to do
     }
@@ -285,8 +285,8 @@ int getDoublesFromStdin(size_t max_count, double* arr)
     char* endptr = NULL;
     size_t parsed = 0;
 
-    // Parse up to max_count doubles from THIS line only
-    while (*ptr != '\0' && parsed < max_count)
+    // Parse up to maxCount doubles from THIS line only
+    while (*ptr != '\0' && parsed < maxCount)
     {
         errno = 0;
         double val = strtod(ptr, &endptr);
@@ -301,12 +301,12 @@ int getDoublesFromStdin(size_t max_count, double* arr)
     }
 
     free(line);
-    return (int)parsed; // returns 0..max_count
+    return (int)parsed; // returns 0..maxCount
 }
 
-int getIntsFromStdin(size_t max_count, int* arr)
+int getIntsFromStdin(size_t maxCount, int* arr)
 {
-    if (!arr || max_count == 0)
+    if (!arr || maxCount == 0)
     {
         return 0; // nothing to do
     }
@@ -324,8 +324,8 @@ int getIntsFromStdin(size_t max_count, int* arr)
     char* endptr = NULL;
     size_t parsed = 0;
 
-    // Parse up to max_count doubles from THIS line only
-    while (*ptr != '\0' && parsed < max_count)
+    // Parse up to maxCount doubles from THIS line only
+    while (*ptr != '\0' && parsed < maxCount)
     {
         errno = 0;
         long val = strtol(ptr, &endptr, DECIMAL);
@@ -340,5 +340,5 @@ int getIntsFromStdin(size_t max_count, int* arr)
     }
 
     free(line);
-    return (int)parsed; // returns 0..max_count
+    return (int)parsed; // returns 0..maxCount
 }

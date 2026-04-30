@@ -47,22 +47,22 @@ void printspaces(int maxpos,
                  double hexvalue,
                  unsigned int mod,
                  unsigned int columns,
-                 double avg_pos,
+                 double avgPos,
                  unsigned int correlationThreshold)
 {
     while (maxpos < (int)mod)
     {
         maxpos += (int)mod;
     }
-    while (avg_pos < (double)mod)
+    while (avgPos < (double)mod)
     {
-        avg_pos += (double)mod;
+        avgPos += (double)mod;
     }
     const unsigned int default_columns = 80;
     columns = columns > MAX_COLUMNS ? default_columns : columns;
     size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
     size_t widtha =
-        (size_t)modSigned((int)lround(avg_pos), mod) * columns / mod;
+        (size_t)modSigned((int)lround(avgPos), mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
     memset(spaces, ' ', width);
@@ -219,7 +219,7 @@ static void calculateTotalFromFile(unsigned int count,
     }
 }
 
-void print_finals(CapConfig* cfg,
+void printFinals(CapConfig* cfg,
                   AppResources* res,
                   unsigned int ArrayLength,
                   unsigned int totalTickTock)
@@ -338,7 +338,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
     }
 }
 
-void shift_buffer_data(unsigned int* ticktock,
+void shiftBufferData(unsigned int* ticktock,
                        struct myarr* subpos,
                        struct myarr* maxpos,
                        struct myarr* maxvals)

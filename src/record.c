@@ -80,22 +80,22 @@ int main(int argc, char* argv[])
     }
 
     // Mutable device string
-    size_t device_len = strlen(device);
-    char* device_mutable = (char*)malloc(device_len + 1);
-    if (!device_mutable)
+    size_t deviceLen = strlen(device);
+    char* deviceMutable = (char*)malloc(deviceLen + 1);
+    if (!deviceMutable)
     {
         (void)fprintf(stderr, "device memory allocation failed\n");
         return EXIT_FAILURE;
     }
-    strncpy(device_mutable, device, device_len + 1);
-    device_mutable[device_len] = '\0';
+    strncpy(deviceMutable, device, deviceLen + 1);
+    deviceMutable[deviceLen] = '\0';
 
     // Init ALSA (your function)
     snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
-    snd_pcm_t* cap = initAudio(format, device_mutable, &rate);
+    snd_pcm_t* cap = initAudio(format, deviceMutable, &rate);
     if (!cap)
     {
-        free(device_mutable);
+        free(deviceMutable);
         return EXIT_FAILURE;
     }
 
@@ -115,12 +115,12 @@ int main(int argc, char* argv[])
                      .fptotal = NULL,
                      .fpDefPeak = NULL,
                      .fpInput = NULL,
-                     .capture_handle = cap};
+                     .captureHandle = cap};
 
-    if (capture_setup(&ctx, &cfg, rate) < 0)
+    if (captureSetup(&ctx, &cfg, rate) < 0)
     {
-        (void)fprintf(stderr, "capture_setup failed\n");
-        free(device_mutable);
+        (void)fprintf(stderr, "captureSetup failed\n");
+        free(deviceMutable);
         snd_pcm_close(cap);
         return EXIT_FAILURE;
     }
@@ -129,15 +129,15 @@ int main(int argc, char* argv[])
     FILE* filePtr = fopen("recorded", "w");
 
     // Number of blocks to capture in total
-    unsigned int blocks_left = time * bph / 2 / SECS_HOUR;
+    unsigned int blocksLeft = time * bph / 2 / SECS_HOUR;
     const unsigned int ArrayLength = 16000;
 
     int16_t* out = calloc(ArrayLength, sizeof(int16_t)); // 16bit
-    while (out != NULL && blocks_left > 0)
+    while (out != NULL && blocksLeft > 0)
     {
 
         struct myarr* filled = makemyarr(ArrayLength);
-        int read = read_samples(ctx.cap, ArrayLength, out);
+        int read = readSamples(ctx.cap, ArrayLength, out);
         if (!read)
         {
             (void)fprintf(stderr, "capture_next_block failed; stopping\n");
@@ -153,25 +153,25 @@ int main(int argc, char* argv[])
         syncAppendMyarr(filled, filePtr);
 
         // Progress print (once per block)
-        printf("%u\n", blocks_left - 1);
-        --blocks_left;
+        printf("%u\n", blocksLeft - 1);
+        --blocksLeft;
     }
 
     // Cleanup
     if (filePtr)
     {
-        wait_close(filePtr);
-        capture_teardown(&ctx);
+        waitClose(filePtr);
+        captureTeardown(&ctx);
     }
     if (cap)
     {
         snd_pcm_close(cap);
     }
-    if (device_mutable)
+    if (deviceMutable)
     {
-        free(device_mutable);
+        free(deviceMutable);
     }
     free(out);
-    capture_teardown(&ctx);
+    captureTeardown(&ctx);
     return 0;
 }

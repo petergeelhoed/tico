@@ -24,7 +24,7 @@
 
 int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
 // Helper to handle repetitive ALSA parameter setting and error reporting
-static void check_alsa_err(int err,
+static void checkAlsaErr(int err,
                            const char* device,
                            const char* msg,
                            snd_pcm_t* handle,
@@ -52,73 +52,73 @@ static void check_alsa_err(int err,
 // Initialize audio capture
 snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 {
-    snd_pcm_t* capture_handle = NULL;
+    snd_pcm_t* captureHandle = NULL;
     snd_pcm_hw_params_t* hw_params = NULL;
     unsigned int requestedRate = *rate;
 
     // 1. Open Device
-    check_alsa_err(
-        snd_pcm_open(&capture_handle, device, SND_PCM_STREAM_CAPTURE, 0),
+    checkAlsaErr(
+        snd_pcm_open(&captureHandle, device, SND_PCM_STREAM_CAPTURE, 0),
         device,
         "cannot open audio device",
         NULL,
         NULL);
 
     // 2. Allocate and Init Params
-    check_alsa_err(snd_pcm_hw_params_malloc(&hw_params),
+    checkAlsaErr(snd_pcm_hw_params_malloc(&hw_params),
                    device,
                    "cannot allocate hardware parameter structure",
-                   capture_handle,
+                   captureHandle,
                    NULL);
 
-    check_alsa_err(snd_pcm_hw_params_any(capture_handle, hw_params),
+    checkAlsaErr(snd_pcm_hw_params_any(captureHandle, hw_params),
                    device,
                    "cannot initialize hardware parameter structure",
-                   capture_handle,
+                   captureHandle,
                    hw_params);
 
     // 3. Set Hardware Configurations
-    check_alsa_err(snd_pcm_hw_params_set_access(capture_handle,
+    checkAlsaErr(snd_pcm_hw_params_set_access(captureHandle,
                                                 hw_params,
                                                 SND_PCM_ACCESS_RW_INTERLEAVED),
                    device,
                    "cannot set access type",
-                   capture_handle,
+                   captureHandle,
                    hw_params);
 
-    check_alsa_err(
-        snd_pcm_hw_params_set_format(capture_handle, hw_params, format),
+    checkAlsaErr(
+        snd_pcm_hw_params_set_format(captureHandle, hw_params, format),
         device,
         "cannot set sample format",
-        capture_handle,
+        captureHandle,
         hw_params);
 
-    check_alsa_err(
-        snd_pcm_hw_params_set_rate_near(capture_handle, hw_params, rate, 0),
+    checkAlsaErr(
+        snd_pcm_hw_params_set_rate_near(captureHandle, hw_params, rate, 0),
         device,
         "cannot set sample rate",
-        capture_handle,
+        captureHandle,
         hw_params);
 
-    check_alsa_err(snd_pcm_hw_params_set_channels(capture_handle, hw_params, 1),
+    checkAlsaErr(snd_pcm_hw_params_set_channels(captureHandle, hw_params, 1),
                    device,
                    "cannot set channel count",
-                   capture_handle,
+                   captureHandle,
                    hw_params);
 
     // 4. Apply Params and Prepare
-    check_alsa_err(snd_pcm_hw_params(capture_handle, hw_params),
+    checkAlsaErr(snd_pcm_hw_params(captureHandle, hw_params),
                    device,
                    "cannot set parameters",
-                   capture_handle,
+                   captureHandle,
                    hw_params);
 
     snd_pcm_hw_params_free(hw_params);
 
-    check_alsa_err(snd_pcm_prepare(capture_handle),
+    checkAlsaErr(snd_pcm_prepare(captureHandle),
                    device,
                    "cannot prepare audio interface",
-                   capture_handle,
+                   captureHandle,
                    NULL);
 
     // Minor logic check
@@ -130,28 +130,28 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
                       *rate);
     }
 
-    return capture_handle;
+    return captureHandle;
 }
 
 int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
 {
 
-    int clip_count = 0;
+    int clipCount = 0;
 
     for (unsigned int k = 0; k < ArrayLength - 1; k++)
     {
         if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
         {
-            ++clip_count;
+            ++clipCount;
         }
         derivative[k] = abs(samples[k] - samples[k + 1]);
     }
 
-    if (clip_count > 1)
+    if (clipCount > 1)
     {
         (void)fprintf(stderr,
                       "%d audio 16-bit clipping event(s)\n",
-                      clip_count);
+                      clipCount);
     }
     derivative[ArrayLength - 1] = 0;
     return (int)ArrayLength;
@@ -210,7 +210,7 @@ int readBufferOrFile(int* derivative,
     }
     else
     {
-        ret = read_samples(ctx->cap, ArrayLength, buffer16);
+        ret = readSamples(ctx->cap, ArrayLength, buffer16);
         if (ret < 0)
         {
             return ret;
@@ -247,15 +247,15 @@ int getData(FILE* fpInput,
  */
 
 /**
- * capture_setup
+ * captureSetup
  * - Accepts an already-opened/initialized ALSA handle (from initAudio).
  * - Computes ArrayLength = rate * SECS_HOUR * 2 / bph
- * - Queries period_size and builds poll descriptors.
+ * - Queries periodSize and builds poll descriptors.
  */
-int capture_setup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate)
+int captureSetup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate)
 {
     memset(ctx, 0, sizeof(*ctx));
-    ctx->cap = cfg->capture_handle;
+    ctx->cap = cfg->captureHandle;
     ctx->rate = rate;
 
     // Geometry
@@ -264,27 +264,27 @@ int capture_setup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate)
 
     // Query ALSA buffer/period sizes (read per period)
     if (cfg->fpInput == 0 &&
-        snd_pcm_get_params(ctx->cap, &ctx->buffer_size, &ctx->period_size) < 0)
+        snd_pcm_get_params(ctx->cap, &ctx->bufferSize, &ctx->periodSize) < 0)
     {
         (void)fprintf(
             stderr,
-            "ALSA: snd_pcm_get_params failed; defaulting period_size=%d\n",
+            "ALSA: snd_pcm_get_params failed; defaulting periodSize=%d\n",
             DEFAULT_PERIOD);
-        ctx->period_size = DEFAULT_PERIOD;
+        ctx->periodSize = DEFAULT_PERIOD;
     }
-    if (ctx->period_size == 0)
+    if (ctx->periodSize == 0)
     {
-        ctx->period_size = DEFAULT_PERIOD;
+        ctx->periodSize = DEFAULT_PERIOD;
     }
-    if (ctx->period_size > ctx->ArrayLength)
+    if (ctx->periodSize > ctx->ArrayLength)
     {
-        ctx->period_size = ctx->ArrayLength;
+        ctx->periodSize = ctx->ArrayLength;
     }
 
     return 0;
 }
 
-void capture_teardown(CaptureCtx* ctx)
+void captureTeardown(CaptureCtx* ctx)
 {
     if (!ctx)
     {
@@ -293,7 +293,7 @@ void capture_teardown(CaptureCtx* ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-int read_samples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
+int readSamples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
 {
     const unsigned TARGET = ArrayLength;
     unsigned collected = 0;

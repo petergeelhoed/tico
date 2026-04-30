@@ -19,6 +19,6 @@ fftw_complex* crosscor(unsigned int ArrayLength,
 void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file);
 
 void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate);
-void normalise(unsigned int ArrayLength, fftw_complex* in_data);
+void normalise(unsigned int ArrayLength, fftw_complex* inData);
 void rescale(int* total, unsigned int ArrayLength);
 int getshift(struct myarr xarr, struct myarr yarr);

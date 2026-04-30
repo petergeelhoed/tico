@@ -11,7 +11,7 @@
 extern int keepRunning;
 extern unsigned int columns;
 
-void sigint_handler(int signal)
+void sigintHandler(int signal)
 {
     if (signal == SIGINT)
     {
@@ -32,12 +32,12 @@ void sigint_handler(int signal)
     }
 }
 
-void set_signal_action(void)
+void setSignalAction(void)
 {
     struct sigaction sact;
     sigemptyset(&sact.sa_mask);
     sact.sa_flags = 0;
-    sact.sa_handler = sigint_handler;
+    sact.sa_handler = sigintHandler;
 
     // Set signal handlers
     if (sigaction(SIGWINCH, &sact, NULL) == -1)
@@ -52,13 +52,13 @@ void set_signal_action(void)
     }
 }
 
-void setup_block_signals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
+void setupBlockSignals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
 {
     struct sigaction sact;
 
     sigemptyset(&sact.sa_mask);
     sact.sa_flags = 0;
-    sact.sa_handler = sigint_handler;
+    sact.sa_handler = sigintHandler;
     if (sigaction(SIGWINCH, &sact, NULL) != 0)
     {
         (void)fprintf(stderr, "sigaction() error");
@@ -69,7 +69,7 @@ void setup_block_signals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
     sigaddset(new_set, SIGINT);
 }
 
-void block_signal(sigset_t* new_set, sigset_t* old_set)
+void blockSignal(sigset_t* new_set, sigset_t* old_set)
 {
     if (sigprocmask(SIG_BLOCK, new_set, old_set) != 0)
     {
@@ -78,7 +78,7 @@ void block_signal(sigset_t* new_set, sigset_t* old_set)
     }
 }
 
-void unblock_signal(sigset_t* old_set)
+void unblockSignal(sigset_t* old_set)
 {
     if (sigprocmask(SIG_SETMASK, old_set, NULL) != 0)
     {

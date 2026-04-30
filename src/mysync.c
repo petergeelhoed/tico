@@ -38,7 +38,7 @@ struct append_task
     FILE* file; /* not owned by worker; must stay open until worker finishes */
 };
 
-void wait_close(FILE* file)
+void waitClose(FILE* file)
 {
     wait();
     (void)fclose(file);

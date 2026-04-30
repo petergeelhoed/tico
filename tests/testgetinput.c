@@ -34,7 +34,7 @@ int main(void)
         struct exp test1 = array[i];
         int a = getInt(test1.input);
         double b = getDouble(test1.input);
-        if (!nearly_equal(b, test1.dbl))
+        if (!nearlyEqual(b, test1.dbl))
         {
             if (isnan(b) && isnan(test1.dbl))
             {

@@ -23,7 +23,7 @@ typedef struct
     unsigned int count;
 } Signal;
 
-static double* safe_realloc(double* ptr, unsigned int new_size)
+static double* safeRealloc(double* ptr, unsigned int new_size)
 {
     double* next = realloc(ptr, new_size * sizeof(double));
     if (!next)
@@ -35,7 +35,7 @@ static double* safe_realloc(double* ptr, unsigned int new_size)
     return next;
 }
 
-static Signal read_input(void)
+static Signal readInput(void)
 {
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
     if (signalStruct.data == NULL)
@@ -65,7 +65,7 @@ static Signal read_input(void)
             if (signalStruct.count >= capacity)
             {
                 capacity = (capacity * 3) / 2;
-                signalStruct.data = safe_realloc(signalStruct.data, capacity);
+                signalStruct.data = safeRealloc(signalStruct.data, capacity);
             }
 
             signalStruct.data[signalStruct.count++] = readDouble;
@@ -75,7 +75,7 @@ static Signal read_input(void)
     return signalStruct;
 }
 
-static void run_fft(Signal sig, Config cfg)
+static void runFft(Signal sig, Config cfg)
 {
     unsigned int arrayLength = sig.count * cfg.z;
     double intercept = 0.0;
@@ -176,14 +176,14 @@ int main(int argc, char** argv)
         }
     }
 
-    Signal sig = read_input();
+    Signal sig = readInput();
     if (sig.count == 0)
     {
         free(sig.data);
         return -1;
     }
 
-    run_fft(sig, cfg);
+    runFft(sig, cfg);
 
     free(sig.data);
     fftw_cleanup();

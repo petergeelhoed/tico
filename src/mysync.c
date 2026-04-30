@@ -22,6 +22,37 @@ static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
 static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
 static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
 
+static void printTODUnlocked(FILE* out)
+{
+    if (out == NULL)
+    {
+        return;
+    }
+
+    struct timeval time; // NOLINT(misc-include-cleaner)
+    gettimeofday(&time, NULL);
+
+    struct tm* today = localtime(&time.tv_sec); // NOLINT(misc-include-cleaner)
+    if (today == NULL)
+    {
+        perror("Error getting local time");
+        return;
+    }
+
+    const int nineteenhundred = 1900;
+    (void)fprintf(out,
+                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
+                  today->tm_year + nineteenhundred,
+                  today->tm_mon + 1,
+                  today->tm_mday,
+                  today->tm_hour,
+                  today->tm_min,
+                  today->tm_sec,
+                  (long)time.tv_usec,
+                  (long long)time.tv_sec,
+                  (long)time.tv_usec);
+}
+
 static void decr_count(void)
 {
     thread_ctr_lock();
@@ -60,7 +91,7 @@ void* threadAppendMyarr(void* inStruct)
     /* Serialize all writes to the FILE* to prevent interleaving */
     thread_lock();
 
-    printTOD(mine->file);
+    printTODUnlocked(mine->file);
 
     if (mine->array->arr != NULL)
     {
@@ -292,31 +323,7 @@ int syncwrite(int* input, unsigned int ArrayLength, const char* file)
 
 void printTOD(FILE* out)
 {
-    if (out == NULL)
-    {
-        return;
-    }
-
-    struct timeval time; // NOLINT(misc-include-cleaner)
-    gettimeofday(&time, NULL);
-
-    struct tm* today = localtime(&time.tv_sec); // NOLINT(misc-include-cleaner)
-    if (today == NULL)
-    {
-        perror("Error getting local time");
-        return;
-    }
-
-    const int nineteenhundred = 1900;
-    (void)fprintf(out,
-                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
-                  today->tm_year + nineteenhundred,
-                  today->tm_mon + 1,
-                  today->tm_mday,
-                  today->tm_hour,
-                  today->tm_min,
-                  today->tm_sec,
-                  (long)time.tv_usec,
-                  (long long)time.tv_sec,
-                  (long)time.tv_usec);
+    thread_lock();
+    printTODUnlocked(out);
+    thread_unlock();
 }

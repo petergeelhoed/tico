@@ -29,11 +29,11 @@ static void printTODUnlocked(FILE* out)
         return;
     }
 
-    struct timeval time; // NOLINT(misc-include-cleaner)
+    struct timeval time;
     gettimeofday(&time, NULL);
 
-    struct tm* today = localtime(&time.tv_sec); // NOLINT(misc-include-cleaner)
-    if (today == NULL)
+    struct tm today;
+    if (localtime_r(&time.tv_sec, &today) == NULL)
     {
         perror("Error getting local time");
         return;
@@ -42,12 +42,12 @@ static void printTODUnlocked(FILE* out)
     const int nineteenhundred = 1900;
     (void)fprintf(out,
                   "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
-                  today->tm_year + nineteenhundred,
-                  today->tm_mon + 1,
-                  today->tm_mday,
-                  today->tm_hour,
-                  today->tm_min,
-                  today->tm_sec,
+                  today.tm_year + nineteenhundred,
+                  today.tm_mon + 1,
+                  today.tm_mday,
+                  today.tm_hour,
+                  today.tm_min,
+                  today.tm_sec,
                   (long)time.tv_usec,
                   (long long)time.tv_sec,
                   (long)time.tv_usec);

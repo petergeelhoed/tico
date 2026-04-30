@@ -51,10 +51,7 @@ int checkUIntArg(int name, unsigned int* value, const char* optArg)
     return 0;
 }
 
-int checkFileArg(int name,
-                 FILE** filePtr,
-                 const char* optArg,
-                 const char* mode)
+int checkFileArg(int name, FILE** filePtr, const char* optArg, const char* mode)
 {
     if (*optArg == '-')
     {
@@ -107,9 +104,9 @@ static void parseSdThreshold(const char* arg, double* threshold)
 }
 
 static void handleFileArg(int opt,
-                            FILE** filePtr,
-                            const char* arg,
-                            const char* mode)
+                          FILE** filePtr,
+                          const char* arg,
+                          const char* mode)
 {
     if (*filePtr == NULL)
     {

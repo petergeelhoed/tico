@@ -7,8 +7,10 @@
 
 #include "parseargs.h"
 
-static void
-printResult(const char* label, int n, const double* vals, size_t maxCount)
+static void printResult(const char* label,
+                        int n,
+                        const double* vals,
+                        size_t maxCount)
 {
     printf("%s\n", label);
     if (n < 0)

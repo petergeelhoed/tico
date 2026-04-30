@@ -1,6 +1,6 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include "capture_helpers.h"
 #include "myarr.h"
@@ -49,8 +49,8 @@ int main(void)
 
     int largeDelta = 250;
     int absDelta = abs(largeDelta);
-    int expectedDelta = (int)(PRESHIFT_THRESHOLD_ROOT * largeDelta /
-                              sqrt((double)absDelta));
+    int expectedDelta =
+        (int)(PRESHIFT_THRESHOLD_ROOT * largeDelta / sqrt((double)absDelta));
     out = updateTotalShiftIfNeeded(shift,
                                    largeDelta,
                                    AUTOCOR_LIMIT + 3,

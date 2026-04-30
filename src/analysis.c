@@ -47,7 +47,8 @@ static void calculateTotal(unsigned int count,
     {
         for (unsigned int i = 0; i < count; ++i)
         {
-            deviation = fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
+            deviation =
+                fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
             if (deviation < threshold)
             {
                 maxpos[maxIndex] = maxpos[i];

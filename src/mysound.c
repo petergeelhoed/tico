@@ -25,10 +25,10 @@
 static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void checkAlsaErr(int err,
-                           const char* device,
-                           const char* msg,
-                           snd_pcm_t* handle,
-                           snd_pcm_hw_params_t* params)
+                         const char* device,
+                         const char* msg,
+                         snd_pcm_t* handle,
+                         snd_pcm_hw_params_t* params)
 {
     if (err < 0)
     {
@@ -66,32 +66,31 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
 
     // 2. Allocate and Init Params
     checkAlsaErr(snd_pcm_hw_params_malloc(&hw_params),
-                   device,
-                   "cannot allocate hardware parameter structure",
-                   captureHandle,
-                   NULL);
+                 device,
+                 "cannot allocate hardware parameter structure",
+                 captureHandle,
+                 NULL);
 
     checkAlsaErr(snd_pcm_hw_params_any(captureHandle, hw_params),
-                   device,
-                   "cannot initialize hardware parameter structure",
-                   captureHandle,
-                   hw_params);
+                 device,
+                 "cannot initialize hardware parameter structure",
+                 captureHandle,
+                 hw_params);
 
     // 3. Set Hardware Configurations
     checkAlsaErr(snd_pcm_hw_params_set_access(captureHandle,
-                                                hw_params,
-                                                SND_PCM_ACCESS_RW_INTERLEAVED),
-                   device,
-                   "cannot set access type",
-                   captureHandle,
-                   hw_params);
+                                              hw_params,
+                                              SND_PCM_ACCESS_RW_INTERLEAVED),
+                 device,
+                 "cannot set access type",
+                 captureHandle,
+                 hw_params);
 
-    checkAlsaErr(
-        snd_pcm_hw_params_set_format(captureHandle, hw_params, format),
-        device,
-        "cannot set sample format",
-        captureHandle,
-        hw_params);
+    checkAlsaErr(snd_pcm_hw_params_set_format(captureHandle, hw_params, format),
+                 device,
+                 "cannot set sample format",
+                 captureHandle,
+                 hw_params);
 
     checkAlsaErr(
         snd_pcm_hw_params_set_rate_near(captureHandle, hw_params, rate, 0),
@@ -101,25 +100,25 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
         hw_params);
 
     checkAlsaErr(snd_pcm_hw_params_set_channels(captureHandle, hw_params, 1),
-                   device,
-                   "cannot set channel count",
-                   captureHandle,
-                   hw_params);
+                 device,
+                 "cannot set channel count",
+                 captureHandle,
+                 hw_params);
 
     // 4. Apply Params and Prepare
     checkAlsaErr(snd_pcm_hw_params(captureHandle, hw_params),
-                   device,
-                   "cannot set parameters",
-                   captureHandle,
-                   hw_params);
+                 device,
+                 "cannot set parameters",
+                 captureHandle,
+                 hw_params);
 
     snd_pcm_hw_params_free(hw_params);
 
     checkAlsaErr(snd_pcm_prepare(captureHandle),
-                   device,
-                   "cannot prepare audio interface",
-                   captureHandle,
-                   NULL);
+                 device,
+                 "cannot prepare audio interface",
+                 captureHandle,
+                 NULL);
 
     // Minor logic check
     if (*rate != requestedRate)
@@ -152,8 +151,9 @@ int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
             initAudio(SND_PCM_FORMAT_S16_LE, cfg->device, actualRate);
         printf("Actual rate %d, calculating with %f\n", *actualRate, cfg->rate);
     }
-    return (cfg->captureHandle == NULL && cfg->fpInput == NULL) ? ERROR_NO_SOURCE
-                                                                 : 0;
+    return (cfg->captureHandle == NULL && cfg->fpInput == NULL)
+               ? ERROR_NO_SOURCE
+               : 0;
 }
 
 static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
@@ -172,9 +172,7 @@ static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
 
     if (clipCount > 1)
     {
-        (void)fprintf(stderr,
-                      "%d audio 16-bit clipping event(s)\n",
-                      clipCount);
+        (void)fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clipCount);
     }
     derivative[ArrayLength - 1] = 0;
     return (int)ArrayLength;

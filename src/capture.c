@@ -1,6 +1,6 @@
-#include "config.h"
 #include "analysis.h"
 #include "capture_helpers.h"
+#include "config.h"
 #include "myarr.h"
 #include "myfft.h"
 #include "mymath.h"
@@ -59,9 +59,9 @@ static int processCaptureTick(CapConfig* cfg,
     if (state->tickIndex == ARRAY_BUFFER_SIZE * 2)
     {
         shiftBufferData(&state->tickIndex,
-                          res->subpos,
-                          res->maxpos,
-                          res->maxvals);
+                        res->subpos,
+                        res->maxpos,
+                        res->maxvals);
     }
 
     int readStatus =
@@ -75,26 +75,24 @@ static int processCaptureTick(CapConfig* cfg,
         res->teethArray[state->globalTickIndex % cfg->teeth];
     rotateDerivativeWindow(res, params->arrayLength, state->cumulativeShift);
     int peakOffset = findMaxPosition(res,
-                                      cumulativeTick,
-                                      state->globalTickIndex,
-                                      state->tickIndex,
-                                      params->arrayLength,
-                                      cfg);
+                                     cumulativeTick,
+                                     state->globalTickIndex,
+                                     state->tickIndex,
+                                     params->arrayLength,
+                                     cfg);
 
-    res->maxpos->arr[state->tickIndex] =
-        state->cumulativeShift + peakOffset;
+    res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
-                                                 peakOffset,
-                                                 state->globalTickIndex,
-                                                 state->tickIndex,
-                                                 res,
-                                                 cfg);
+                                                      peakOffset,
+                                                      state->globalTickIndex,
+                                                      state->tickIndex,
+                                                      res,
+                                                      cfg);
 
-    processLogging(
-        cfg,
-        res,
-        state->tickIndex,
-        ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
+    processLogging(cfg,
+                   res,
+                   state->tickIndex,
+                   ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
 
     fitAndPrint(state->tickIndex,
                 state->globalTickIndex,

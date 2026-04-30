@@ -51,8 +51,8 @@ void linreg(const double* xarr,
         sumYy += yarr[i] * yarr[i];
     }
 
-    *intercept = (sumY * sumXx - sumX * sumXy) /
-                 (ArrayLength * sumXx - sumX * sumX);
+    *intercept =
+        (sumY * sumXx - sumX * sumXy) / (ArrayLength * sumXx - sumX * sumX);
     *slope = (ArrayLength * sumXy - sumX * sumY) /
              (ArrayLength * sumXx - sumX * sumX);
     *stdev = sqrt((sumYy - 2 * (*intercept) * sumY - 2 * (*slope) * sumXy +
@@ -84,7 +84,8 @@ void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
 void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
 {
     // make matrix twice as wide
-    double* augmentedMatrix = (double*)calloc(Nrows * Ncols * 2, sizeof(double));
+    double* augmentedMatrix =
+        (double*)calloc(Nrows * Ncols * 2, sizeof(double));
     if (augmentedMatrix == NULL)
     {
         (void)fprintf(stderr, "Memory allocation failed in invert\n");
@@ -110,9 +111,8 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         {
             if (j != k)
             {
-                double factor =
-                    augmentedMatrix[j + k * doubleNcols] /
-                    augmentedMatrix[j + j * doubleNcols];
+                double factor = augmentedMatrix[j + k * doubleNcols] /
+                                augmentedMatrix[j + j * doubleNcols];
                 for (unsigned int i = 0; i < doubleNcols; i++)
                 {
                     augmentedMatrix[i + k * doubleNcols] -=
@@ -125,9 +125,8 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
     {
         for (unsigned int i = 0; i < Ncols; i++)
         {
-            arr[i + j * Ncols] =
-                augmentedMatrix[i + Ncols + j * doubleNcols] /
-                augmentedMatrix[j + j * doubleNcols];
+            arr[i + j * Ncols] = augmentedMatrix[i + Ncols + j * doubleNcols] /
+                                 augmentedMatrix[j + j * doubleNcols];
         }
     }
     free(augmentedMatrix);
@@ -261,8 +260,7 @@ void fastlinreg(double coeffs[2],
     coeffs[1] = 0.0;
     if (fabs(denom) > DOUBLE_LIMIT)
     {
-        coeffs[1] =
-            (sumWeight * sumWeightXY - sumWeightX * sumWeightY) / denom;
+        coeffs[1] = (sumWeight * sumWeightXY - sumWeightX * sumWeightY) / denom;
         coeffs[0] = (sumWeightY - coeffs[1] * sumWeightX) / sumWeight;
     }
     else
@@ -441,7 +439,7 @@ void fitNpeaks(double* intercept,
         double interceptPass1 = 0.0;
         double slopePass1 = 0.0;
         if (!solve_weighted_line(&interceptPass1,
-                     &slopePass1,
+                                 &slopePass1,
                                  Sum_w,
                                  Sum_wx,
                                  Sum_wy,
@@ -458,7 +456,7 @@ void fitNpeaks(double* intercept,
         long double Sum_w_res;
         long double Sum_w2_res;
         long double SSE = compute_weighted_SSE(interceptPass1,
-                               slopePass1,
+                                               slopePass1,
                                                curPos,
                                                fitwindow,
                                                maxvals,

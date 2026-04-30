@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "capture_helpers.h"
 #include "myarr.h"
@@ -36,8 +36,8 @@ int main(void)
 
     for (unsigned int i = 0; i < ARRAY_BUFFER_SIZE; ++i)
     {
-        if (fabs(subpos->arrd[i] -
-             ((double)(i + ARRAY_BUFFER_SIZE) + 0.25)) > 1e-12)
+        if (fabs(subpos->arrd[i] - ((double)(i + ARRAY_BUFFER_SIZE) + 0.25)) >
+            1e-12)
         {
             (void)fprintf(stderr, "subpos mismatch at %u\n", i);
             return 3;
@@ -48,7 +48,7 @@ int main(void)
             return 4;
         }
         if (fabs(maxvals->arrd[i] -
-             ((double)(i + ARRAY_BUFFER_SIZE) + 1000.5)) > 1e-12)
+                 ((double)(i + ARRAY_BUFFER_SIZE) + 1000.5)) > 1e-12)
         {
             (void)fprintf(stderr, "maxvals mismatch at %u\n", i);
             return 5;

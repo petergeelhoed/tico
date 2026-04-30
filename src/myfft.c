@@ -162,11 +162,11 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
         outData[j][0] = (outData[j][0] * filterFFT[j][0] -
-                          outData[j][1] * filterFFT[j][1]) /
-                         ArrayLength;
+                         outData[j][1] * filterFFT[j][1]) /
+                        ArrayLength;
         outData[j][1] = (outData[j][0] * filterFFT[j][1] +
-                          outData[j][1] * filterFFT[j][0]) /
-                         ArrayLength;
+                         outData[j][1] * filterFFT[j][0]) /
+                        ArrayLength;
     }
 
     fftw_execute(reverse);

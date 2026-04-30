@@ -23,7 +23,9 @@ void printFinals(CapConfig* cfg,
                  unsigned int ArrayLength,
                  unsigned int totalTickTock);
 
-void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth);
+void fillReference(FILE* fpDefPeak,
+                   struct myarr* reference,
+                   unsigned int teeth);
 
 void shiftBufferData(unsigned int* ticktock,
                      struct myarr* subpos,

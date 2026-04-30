@@ -19,12 +19,21 @@ int main(void)
     fftw_complex* filter = fftw_alloc_complex(ArrayLength);
     fftw_complex* filterFFT = makeFilter(evalue, ArrayLength);
 
-    fftw_plan reversefilter = fftw_plan_dft_1d(
-        (int)ArrayLength, filterFFT, filter, FFTW_BACKWARD, FFTW_ESTIMATE);
-    fftw_plan forwardpeak = fftw_plan_dft_1d(
-        (int)ArrayLength, peak, tmp, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_plan reversecorr = fftw_plan_dft_1d(
-        (int)ArrayLength, tmp, corr, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_plan reversefilter = fftw_plan_dft_1d((int)ArrayLength,
+                                               filterFFT,
+                                               filter,
+                                               FFTW_BACKWARD,
+                                               FFTW_ESTIMATE);
+    fftw_plan forwardpeak = fftw_plan_dft_1d((int)ArrayLength,
+                                             peak,
+                                             tmp,
+                                             FFTW_FORWARD,
+                                             FFTW_ESTIMATE);
+    fftw_plan reversecorr = fftw_plan_dft_1d((int)ArrayLength,
+                                             tmp,
+                                             corr,
+                                             FFTW_BACKWARD,
+                                             FFTW_ESTIMATE);
 
     fprintf(stderr, "======filter FFT=====\n");
     for (unsigned int j = 0; j < ArrayLength; j++)

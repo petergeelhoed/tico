@@ -1,7 +1,7 @@
 #pragma once
 #include "config.h"
-#include "mysound.h"
 #include "myarr.h"
+#include "mysound.h"
 
 #include "fftw3.h"
 

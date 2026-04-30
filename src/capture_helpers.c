@@ -56,8 +56,7 @@ void printspaces(int maxpos,
     const unsigned int default_columns = 80;
     columns = columns > MAX_COLUMNS ? default_columns : columns;
     size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
-    size_t widtha =
-        (size_t)modSigned((int)lround(avgPos), mod) * columns / mod;
+    size_t widtha = (size_t)modSigned((int)lround(avgPos), mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
     memset(spaces, ' ', width);
@@ -148,7 +147,8 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                 {
                     (void)fprintf(
                         stderr,
-                        "not enough values in -D <default peak file>\n 4 columns required, %u samples and %u teeth\n",
+                        "not enough values in -D <default peak file>\n 4 "
+                        "columns required, %u samples and %u teeth\n",
                         reference->ArrayLength,
                         teeth);
                     exit(EXIT_FAILURE);
@@ -169,10 +169,11 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 
         for (int i = 0; i < 3; i++)
         {
-            reference->arr[reference->ArrayLength / 4 - (unsigned int)peakpos[i]] =
+            reference
+                ->arr[reference->ArrayLength / 4 - (unsigned int)peakpos[i]] =
                 peakheight[i];
-            reference->arr[3 * reference->ArrayLength / 4 - (unsigned int)peakpos[i]] =
-                peakheight[i];
+            reference->arr[3 * reference->ArrayLength / 4 -
+                           (unsigned int)peakpos[i]] = peakheight[i];
         }
     }
 }

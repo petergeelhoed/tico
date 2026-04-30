@@ -49,7 +49,8 @@ int main(void)
     FILE* seed = fopen("tmp_checkfilearg.txt", "w");
     if (seed == NULL)
     {
-        (void)fprintf(stderr, "cannot create temp file for checkFileArg test\n");
+        (void)fprintf(stderr,
+                      "cannot create temp file for checkFileArg test\n");
         return 7;
     }
     (void)fputs("ok\n", seed);

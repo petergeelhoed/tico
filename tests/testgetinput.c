@@ -10,7 +10,7 @@
 
 struct exp
 {
-    char input[BUF_SIZE];
+    char input[BUFFER_SIZE];
     double dbl;
     int integer;
 };

@@ -31,10 +31,10 @@ printResult(const char* label, int n, const double* vals, size_t maxCount)
  */
 static void runAutoTest(const char* input, size_t maxCount)
 {
-    double vals[BUF_SIZE];
-    if (maxCount > BUF_SIZE)
+    double vals[BUFFER_SIZE];
+    if (maxCount > BUFFER_SIZE)
     {
-        maxCount = BUF_SIZE;
+        maxCount = BUFFER_SIZE;
     }
     printf("=== Auto test input: \"%s\" ===\n", input);
 
@@ -71,19 +71,19 @@ static void runAutoTest(const char* input, size_t maxCount)
 int main(void)
 {
     /* --------- Automated tests --------- */
-    runAutoTest("3.14 -2.5e3 junk 42\n", BUF_SIZE);
-    runAutoTest("a=1.0; b=2.0; c=nan; d=inf\n", BUF_SIZE);
-    runAutoTest("no numbers here!\n", BUF_SIZE);
-    runAutoTest("   +.5  -0.125  1e-9  2E+10\n", BUF_SIZE);
-    runAutoTest("comma, separated: 12.3, -4.56, 78.9\n", BUF_SIZE);
+    runAutoTest("3.14 -2.5e3 junk 42\n", BUFFER_SIZE);
+    runAutoTest("a=1.0; b=2.0; c=nan; d=inf\n", BUFFER_SIZE);
+    runAutoTest("no numbers here!\n", BUFFER_SIZE);
+    runAutoTest("   +.5  -0.125  1e-9  2E+10\n", BUFFER_SIZE);
+    runAutoTest("comma, separated: 12.3, -4.56, 78.9\n", BUFFER_SIZE);
 
     /* --------- Interactive test --------- */
     printf("Enter a line with doubles (mixed text is okay). Press Ctrl+D "
            "(Unix) or Ctrl+Z (Windows) to end:\n");
 
-    double arr[BUF_SIZE];
-    int count = getDoublesFromStdin(BUF_SIZE, arr);
-    printResult("Interactive parse result:", count, arr, BUF_SIZE);
+    double arr[BUFFER_SIZE];
+    int count = getDoublesFromStdin(BUFFER_SIZE, arr);
+    printResult("Interactive parse result:", count, arr, BUFFER_SIZE);
 
     return 0;
 }

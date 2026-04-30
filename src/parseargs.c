@@ -138,13 +138,13 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
             break;
         case 'f':
             enforceUint(flag, &cfg->fitN, optarg);
-            if (cfg->fitN > ARR_BUFF)
+            if (cfg->fitN > ARRAY_BUFFER_SIZE)
             {
                 (void)fprintf(
                     stderr,
                     "truncating number of points to local fit to %d\n",
-                    ARR_BUFF);
-                cfg->fitN = ARR_BUFF;
+                    ARRAY_BUFFER_SIZE);
+                cfg->fitN = ARRAY_BUFFER_SIZE;
             }
             break;
         case 'e':
@@ -159,8 +159,6 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
         case 'z':
             enforceUint(flag, &cfg->zoom, optarg);
             break;
-
-        // Group 2: Special Logic
         case 'b':
             enforceUint(flag, &cfg->bph, optarg);
             if (cfg->bph < SECS_HOUR)
@@ -171,9 +169,9 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
             break;
         case 'c':
             enforceUint(flag, &cfg->cvalue, optarg);
-            if (cfg->cvalue > CVAL)
+            if (cfg->cvalue > MAX_CVALUE)
             {
-                cfg->cvalue = CVAL;
+                cfg->cvalue = MAX_CVALUE;
             }
             break;
         case 's':

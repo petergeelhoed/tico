@@ -44,7 +44,7 @@ static int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
         exit(EXIT_FAILURE);
     }
 
-    *actualRate = (unsigned int)(cfg->rate + HALF);
+    *actualRate = (unsigned int)(cfg->rate + ROUNDING_HALF);
     if (cfg->fpInput == NULL)
     {
         printf("Casting inputrate %f to soundcard(%s) rate %d\n",
@@ -185,7 +185,7 @@ static void fitAndPrint(unsigned int tickIndex,
                 (double)globalTickIndex * arrayLength / cfg->rate);
 
     printspaces(res->maxpos->arr[tickIndex],
-                res->maxvals->arrd[tickIndex] * HEXDEC,
+                res->maxvals->arrd[tickIndex] * HEX_BASE,
                 mod,
                 columns - cfg->everyline,
                 intercept,
@@ -230,7 +230,7 @@ static int updateTotalShiftIfNeeded(int cumulativeShift,
                                     CapConfig* cfg)
 {
     if (globalTickIndex > AUTOCOR_LIMIT &&
-        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEXDEC &&
+        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEX_BASE &&
         globalTickIndex % cfg->teeth == 0)
     {
         int delta = peakOffset;
@@ -262,7 +262,7 @@ static int processCaptureTick(CapConfig* cfg,
                               const RuntimeParams* params,
                               LoopState* state)
 {
-    if (state->tickIndex == ARR_BUFF * 2)
+    if (state->tickIndex == ARRAY_BUFFER_SIZE * 2)
     {
         shiftBufferData(&state->tickIndex,
                           res->subpos,
@@ -297,7 +297,10 @@ static int processCaptureTick(CapConfig* cfg,
                                                  cfg);
 
     processLogging(
-        cfg, res, state->tickIndex, ARR_BUFF / DEFAULT_WRITE_FACTOR);
+        cfg,
+        res,
+        state->tickIndex,
+        ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
 
     fitAndPrint(state->tickIndex,
                 state->globalTickIndex,
@@ -352,7 +355,7 @@ int main(int argc, char* argv[])
 
     RuntimeParams params = computeRuntimeParams(&cfg, actualRate);
     AppResources res =
-        allocateResources(params.arrayLength, ARR_BUFF * 2, &cfg);
+        allocateResources(params.arrayLength, ARRAY_BUFFER_SIZE * 2, &cfg);
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
 
     sigset_t block;

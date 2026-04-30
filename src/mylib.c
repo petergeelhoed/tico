@@ -172,7 +172,7 @@ static void calculateTotalFromFile(unsigned int count,
     double* all = (double*)calloc(count, sizeof(double));
     if (all)
     {
-        size_t bufsize = BUF_SIZE;
+        size_t bufsize = BUFFER_SIZE;
         char* buf = (char*)malloc(bufsize * sizeof(char));
         if (buf == NULL)
         {
@@ -321,8 +321,14 @@ void shiftBufferData(unsigned int* ticktock,
                        struct myarr* maxpos,
                        struct myarr* maxvals)
 {
-    memmove(subpos->arrd, subpos->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
-    memmove(maxpos->arr, maxpos->arr + ARR_BUFF, ARR_BUFF * sizeof(int));
-    memmove(maxvals->arrd, maxvals->arrd + ARR_BUFF, ARR_BUFF * sizeof(double));
-    *ticktock -= ARR_BUFF;
+        memmove(subpos->arrd,
+            subpos->arrd + ARRAY_BUFFER_SIZE,
+            ARRAY_BUFFER_SIZE * sizeof(double));
+        memmove(maxpos->arr,
+            maxpos->arr + ARRAY_BUFFER_SIZE,
+            ARRAY_BUFFER_SIZE * sizeof(int));
+        memmove(maxvals->arrd,
+            maxvals->arrd + ARRAY_BUFFER_SIZE,
+            ARRAY_BUFFER_SIZE * sizeof(double));
+        *ticktock -= ARRAY_BUFFER_SIZE;
 }

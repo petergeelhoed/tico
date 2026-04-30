@@ -21,7 +21,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
     unsigned int length = 0;
-    char line[LINESIZE];
+    char line[LINE_BUFFER_SIZE];
     char* endptr;
     char* nextStart;
 

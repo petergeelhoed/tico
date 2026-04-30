@@ -45,7 +45,7 @@ static Signal readInput(void)
         exit(EXIT_FAILURE);
     }
     unsigned int capacity = INIT_N;
-    char line[BUFF_SIZE];
+    char line[BUFFER_SIZE];
     char* ptr;
     char* endptr;
 

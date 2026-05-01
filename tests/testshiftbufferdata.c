@@ -21,9 +21,10 @@ int main(void)
 
     for (unsigned int i = 0; i < len; ++i)
     {
-        subpos->arrd[i] = (double)i + 0.25;
+        subpos->arrd[i] = (double)i + 0.25; // NOLINT(readability-magic-numbers)
         maxpos->arr[i] = (int)i;
-        maxvals->arrd[i] = (double)i + 1000.5;
+        maxvals->arrd[i] =
+            (double)i + 1000.5; // NOLINT(readability-magic-numbers)
     }
 
     shiftBufferData(&ticktock, subpos, maxpos, maxvals);
@@ -36,8 +37,10 @@ int main(void)
 
     for (unsigned int i = 0; i < ARRAY_BUFFER_SIZE; ++i)
     {
-        if (fabs(subpos->arrd[i] - ((double)(i + ARRAY_BUFFER_SIZE) + 0.25)) >
-            1e-12)
+        if (fabs(subpos->arrd[i] -
+                 ((double)(i + ARRAY_BUFFER_SIZE) +
+                  0.25)) > // NOLINT(readability-magic-numbers)
+            1e-12)         // NOLINT(readability-magic-numbers)
         {
             (void)fprintf(stderr, "subpos mismatch at %u\n", i);
             return 3;
@@ -48,10 +51,11 @@ int main(void)
             return 4;
         }
         if (fabs(maxvals->arrd[i] -
-                 ((double)(i + ARRAY_BUFFER_SIZE) + 1000.5)) > 1e-12)
+                 ((double)(i + ARRAY_BUFFER_SIZE) + 1000.5)) >
+            1e-12) // NOLINT(readability-magic-numbers)
         {
             (void)fprintf(stderr, "maxvals mismatch at %u\n", i);
-            return 5;
+            return 5; // NOLINT(readability-magic-numbers)
         }
     }
 

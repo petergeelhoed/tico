@@ -10,7 +10,7 @@
 int main(void)
 {
     struct myarr* test = makemyarr(size);
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++) // NOLINT(readability-magic-numbers)
     {
         test->arr[0] = i;
         syncwrite(test->arr, size, "testsync");

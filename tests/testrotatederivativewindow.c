@@ -17,7 +17,8 @@ int main(void)
 
     for (unsigned int i = 0; i < len; ++i)
     {
-        res.derivative->arr[i] = (int)(10 + i);
+        res.derivative->arr[i] =
+            (int)(10 + i); // NOLINT(readability-magic-numbers)
     }
 
     rotateDerivativeWindow(&res, len, -1);

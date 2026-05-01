@@ -16,12 +16,16 @@ int main(void)
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
         blah[j] =
-            (int)(1000 * sin((double)(3.1415926 * 2 * j * 50. / 48000.))) +
-            (int)(800 * sin((double)(3.1415926 * 2 * j * 52. / 48000.)));
+            (int)(1000 *
+                  sin((double)(3.1415926 * 2 * j * 50. /
+                               48000.))) + // NOLINT(readability-magic-numbers)
+            (int)(800 *
+                  sin((double)(3.1415926 * 2 * j * 52. /
+                               48000.))); // NOLINT(readability-magic-numbers)
         orig[j] = blah[j];
     }
 
-    remove50hz(ArrayLength, blah, 48000);
+    remove50hz(ArrayLength, blah, 48000); // NOLINT(readability-magic-numbers)
 
     for (unsigned int j = 0; j < ArrayLength; j++)
     {

@@ -167,6 +167,12 @@ else()
     COMMENT "clang-tidy is required for clang-tidy target")
 endif()
 
+# Runs a GCC debug build from the source root so quality can include GCC compilation.
+add_custom_target(quality-gcc-build
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset debug-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset debug-gcc
+  COMMENT "Configuring and building GCC debug preset")
+
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})

@@ -81,7 +81,7 @@ cmake --workflow --preset release-clang
 
 ### Quality Workflow
 
-Run formatting checks, clang-tidy, build, and tests in one command:
+Run formatting checks, clang-tidy, clang build-and-test, and a GCC build in one command:
 
 ```bash
 cmake --workflow --preset quality
@@ -94,6 +94,7 @@ The `quality` workflow runs these steps:
 - Static analysis (`clang-tidy`)
 - Build (`debug-clang`)
 - Test (`debug_ctest-clang`)
+- GCC build (`quality-gcc-build` -> runs `debug-gcc` configure + build)
 
 ## Testing
 

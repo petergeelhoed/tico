@@ -154,6 +154,13 @@
       "inherits": "base-build",
       "configurePreset": "debug-clang",
       "targets": ["clang-tidy"]
+    },
+    {
+      "name": "quality-gcc-build",
+      "displayName": "Run GCC build from quality",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang",
+      "targets": ["quality-gcc-build"]
     }
   ],
 
@@ -283,13 +290,14 @@
     },
     {
       "name": "quality",
-      "displayName": "Quality: format-check + clang-tidy + build + test",
+      "displayName": "Quality: clang checks + clang build/test + gcc build",
       "steps": [
         { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" },
         { "type": "build",     "name": "clang-tidy" },
         { "type": "build",     "name": "debug-clang" },
-        { "type": "test",      "name": "debug_ctest-clang" }
+        { "type": "test",      "name": "debug_ctest-clang" },
+        { "type": "build",     "name": "quality-gcc-build" }
       ]
     }
   ]

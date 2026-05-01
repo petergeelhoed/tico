@@ -166,4 +166,8 @@ ctest --preset debug_ctest-gcc
 
 ## License
 
-(Add your license information here)
+This project is licensed under the GNU General Public License v3.0 (GPLv3).
+
+**Note:** The GPLv3 license is required because this project depends on the FFTW library, which is licensed under GPL. As a result, any software linked with FFTW must also be distributed under the GPL.
+
+See the LICENSE file for the full license text.

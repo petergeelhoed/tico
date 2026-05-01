@@ -3,21 +3,22 @@
 
 #include "mymath.h"
 
+#define numElements 9
 int main(void)
 {
 
-    unsigned int numRows = 3;
-    unsigned int numCols = 3;
-    double xarr[9] = // NOLINTBEGIN[readability-magic-numbers]
-        {1.0,
-         2.0,
-         -1.0,
-         2.0,
-         1.0,
-         2.0,
-         -1.0,
-         2.0,
-         1.0}; // NOLINTEND[readability-magic-numbers]
+    const unsigned int numRows = 3;
+    const unsigned int numCols = 3;
+    // NOLINTBEGIN[readability-magic-numbers]
+    double xarr[numElements] = {1.0,
+                                2.0,
+                                -1.0,
+                                2.0,
+                                1.0,
+                                2.0,
+                                -1.0,
+                                2.0,
+                                1.0}; // NOLINTEND[readability-magic-numbers]
 
     for (unsigned int col = 0; col < numCols; col++)
     {

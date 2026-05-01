@@ -1,3 +1,5 @@
+#define MATQ_M 2
+#define MATQ_N 4
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,7 +8,7 @@
 int main(void)
 {
     // 1+2x-0.5x^2
-    double xarr[8] = // NOLINTBEGIN[readability-magic-numbers]
+    double xarr[MATQ_M * MATQ_N] = // NOLINTBEGIN[readability-magic-numbers]
         {1.0,
          1.0,
          2.0,

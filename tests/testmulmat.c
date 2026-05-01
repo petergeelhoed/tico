@@ -1,3 +1,7 @@
+#define MATMUL_M 3
+#define MATMUL_N 3
+#define MATMUL_T 2
+#define MATMUL_S 3
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -5,9 +9,9 @@
 
 int main(void)
 {
-    unsigned int matM = 3;
-    unsigned int matN = 3;
-    double xarr[9] = // NOLINTBEGIN[readability-magic-numbers]
+    unsigned int matM = MATMUL_M;
+    unsigned int matN = MATMUL_N;
+    double xarr[MATMUL_M * MATMUL_N] = // NOLINTBEGIN[readability-magic-numbers]
         {1.0,
          2.0,
          3.0,
@@ -18,9 +22,9 @@ int main(void)
          8.0,
          9.0}; // NOLINTEND[readability-magic-numbers]
 
-    unsigned int matT = 2;
-    unsigned int matS = 3;
-    double yvec[6] = // NOLINTBEGIN[readability-magic-numbers]
+    unsigned int matT = MATMUL_T;
+    unsigned int matS = MATMUL_S;
+    double yvec[MATMUL_S * MATMUL_T] = // NOLINTBEGIN[readability-magic-numbers]
         {1.0, 2.0, 1.0, 2.0, 1.0, 2.0}; // NOLINTEND[readability-magic-numbers]
 
     for (unsigned int j = 0; j < matN; j++)

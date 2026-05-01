@@ -8,7 +8,7 @@ Audio capture and terminal visualization tool that captures from a microphone an
 - FFT-based frequency analysis
 - Customizable logging options (e.g., average sound per tick with peak detection)
 - Terminal-based visualization
-- Multi-compiler support (GCC, Clang 15, Clang 19)
+- Multi-compiler support (GCC, latest available Clang)
 - Debug and Release build configurations
 
 ## Prerequisites
@@ -44,10 +44,8 @@ cmake --build --preset debug
 | `release` | GCC | Release | Release build with default GCC |
 | `debug-gcc` | GCC | Debug | Explicit GCC debug build |
 | `release-gcc` | GCC | Release | Explicit GCC release build |
-| `debug-clang15` | Clang 15 | Debug | Debug build with Clang 15 |
-| `release-clang15` | Clang 15 | Release | Release build with Clang 15 |
-| `debug-clang19` | Clang 19 | Debug | Debug build with Clang 19 |
-| `release-clang19` | Clang 19 | Release | Release build with Clang 19 |
+| `debug-clang` | Clang (auto-detected latest) | Debug | Debug build with newest installed Clang |
+| `release-clang` | Clang (auto-detected latest) | Release | Release build with newest installed Clang |
 
 #### Build Examples
 
@@ -59,19 +57,12 @@ cmake --build --preset debug-gcc
 cmake --preset release-gcc
 cmake --build --preset release-gcc
 
-# Clang 15 builds
-cmake --preset debug-clang15
-cmake --build --preset debug-clang15
+# Clang latest builds
+cmake --preset debug-clang
+cmake --build --preset debug-clang
 
-cmake --preset release-clang15
-cmake --build --preset release-clang15
-
-# Clang 19 builds
-cmake --preset debug-clang19
-cmake --build --preset debug-clang19
-
-cmake --preset release-clang19
-cmake --build --preset release-clang19
+cmake --preset release-clang
+cmake --build --preset release-clang
 ```
 
 ### Workflow Presets
@@ -84,11 +75,25 @@ cmake --workflow --preset debug
 cmake --workflow --preset release
 cmake --workflow --preset debug-gcc
 cmake --workflow --preset release-gcc
-cmake --workflow --preset debug-clang15
-cmake --workflow --preset release-clang15
-cmake --workflow --preset debug-clang19
-cmake --workflow --preset release-clang19
+cmake --workflow --preset debug-clang
+cmake --workflow --preset release-clang
 ```
+
+### Quality Workflow
+
+Run formatting checks, clang-tidy, build, and tests in one command:
+
+```bash
+cmake --workflow --preset quality
+```
+
+The `quality` workflow runs these steps:
+
+- Configure (`debug-clang`)
+- Format check (`format-check`)
+- Static analysis (`clang-tidy`)
+- Build (`debug-clang`)
+- Test (`debug_ctest-clang`)
 
 ## Testing
 
@@ -99,13 +104,9 @@ Run tests using CTest presets:
 ctest --preset debug_ctest
 ctest --preset release_ctest
 
-# Test with Clang 15
-ctest --preset debug_ctest-clang15
-ctest --preset release_ctest-clang15
-
-# Test with Clang 19
-ctest --preset debug_ctest-clang19
-ctest --preset release_ctest-clang19
+# Test with Clang latest
+ctest --preset debug_ctest-clang
+ctest --preset release_ctest-clang
 
 # Test with explicit GCC
 ctest --preset debug_ctest-gcc
@@ -136,18 +137,15 @@ ctest --preset release_ctest-gcc
   - `build/release/` - GCC release build
   - `build/gcc-debug/` - Explicit GCC debug
   - `build/gcc-release/` - Explicit GCC release
-  - `build/clang15-debug/` - Clang 15 debug
-  - `build/clang15-release/` - Clang 15 release
-  - `build/clang19-debug/` - Clang 19 debug
-  - `build/clang19-release/` - Clang 19 release
+  - `build/clang-debug/` - Clang debug
+  - `build/clang-release/` - Clang release
 
 ### Compiler Versions
 
 - GCC (default system version)
-- Clang 15
-- Clang 19
+- Clang (newest available version detected at configure time)
 
-The project requires C17 standard support and exports compile commands for IDE integration.
+The project requires C11 standard support and exports compile commands for IDE integration.
 
 ### Building from Scratch
 

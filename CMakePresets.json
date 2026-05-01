@@ -16,31 +16,12 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
-
-  {
-      "name": "base-config-clang15",
-      "hidden": true,
-      "inherits": "base-config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang-15"
-      },
-      "binaryDir": "${sourceDir}/build/clang15"
-    },
     {
-      "name": "base-config-clang19",
-      "hidden": true,
-      "inherits": "base-config",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/bin/clang-19"
-      },
-      "binaryDir": "${sourceDir}/build/clang19"
-    },
-    {
-      "name": "base-config-clang-latest",
+      "name": "base-config-clang",
       "hidden": true,
       "inherits": "base-config",
       "toolchainFile": "${sourceDir}/cmake/toolchains/clang-latest.cmake",
-      "binaryDir": "${sourceDir}/build/clang-latest"
+      "binaryDir": "${sourceDir}/build/clang"
     },
     {
       "name": "base-config-gcc",
@@ -70,60 +51,23 @@
       },
       "binaryDir": "${sourceDir}/build/release"
     },
-
     {
-      "name": "debug-clang15",
-      "displayName": "Debug configure (clang-15)",
-      "inherits": "base-config-clang15",
+      "name": "debug-clang",
+      "displayName": "Debug configure (clang)",
+      "inherits": "base-config-clang",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       },
-      "binaryDir": "${sourceDir}/build/clang15-debug"
+      "binaryDir": "${sourceDir}/build/clang-debug"
     },
     {
-      "name": "release-clang15",
-      "displayName": "Release configure (clang-15)",
-      "inherits": "base-config-clang15",
+      "name": "release-clang",
+      "displayName": "Release configure (clang)",
+      "inherits": "base-config-clang",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       },
-      "binaryDir": "${sourceDir}/build/clang15-release"
-    },
-    {
-      "name": "debug-clang19",
-      "displayName": "Debug configure (clang-19)",
-      "inherits": "base-config-clang19",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "binaryDir": "${sourceDir}/build/clang19-debug"
-    },
-    {
-      "name": "release-clang19",
-      "displayName": "Release configure (clang-19)",
-      "inherits": "base-config-clang19",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      },
-      "binaryDir": "${sourceDir}/build/clang19-release"
-    },
-    {
-      "name": "debug-clang-latest",
-      "displayName": "Debug configure (clang latest)",
-      "inherits": "base-config-clang-latest",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "binaryDir": "${sourceDir}/build/clang-latest-debug"
-    },
-    {
-      "name": "release-clang-latest",
-      "displayName": "Release configure (clang latest)",
-      "inherits": "base-config-clang-latest",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      },
-      "binaryDir": "${sourceDir}/build/clang-latest-release"
+      "binaryDir": "${sourceDir}/build/clang-release"
     },
 
     {
@@ -165,42 +109,17 @@
       "inherits": "base-build",
       "configurePreset": "release"
     },
-
     {
-      "name": "debug-clang15",
-      "displayName": "Build Debug (clang-15, all)",
+      "name": "debug-clang",
+      "displayName": "Build Debug (clang, all)",
       "inherits": "base-build",
-      "configurePreset": "debug-clang15"
+      "configurePreset": "debug-clang"
     },
     {
-      "name": "release-clang15",
-      "displayName": "Build Release (clang-15, all)",
+      "name": "release-clang",
+      "displayName": "Build Release (clang, all)",
       "inherits": "base-build",
-      "configurePreset": "release-clang15"
-    },
-    {
-      "name": "debug-clang19",
-      "displayName": "Build Debug (clang-19, all)",
-      "inherits": "base-build",
-      "configurePreset": "debug-clang19"
-    },
-    {
-      "name": "release-clang19",
-      "displayName": "Build Release (clang-19, all)",
-      "inherits": "base-build",
-      "configurePreset": "release-clang19"
-    },
-    {
-      "name": "debug-clang-latest",
-      "displayName": "Build Debug (clang latest, all)",
-      "inherits": "base-build",
-      "configurePreset": "debug-clang-latest"
-    },
-    {
-      "name": "release-clang-latest",
-      "displayName": "Build Release (clang latest, all)",
-      "inherits": "base-build",
-      "configurePreset": "release-clang-latest"
+      "configurePreset": "release-clang"
     },
 
     {
@@ -219,35 +138,21 @@
       "name": "format",
       "displayName": "Run clang-format",
       "inherits": "base-build",
-      "configurePreset": "debug-clang19",
+      "configurePreset": "debug-clang",
       "targets": ["format"]
     },
     {
       "name": "format-check",
       "displayName": "Check clang-format",
       "inherits": "base-build",
-      "configurePreset": "debug-clang19",
+      "configurePreset": "debug-clang",
       "targets": ["format-check"]
     },
     {
       "name": "clang-tidy",
       "displayName": "Run clang-tidy",
       "inherits": "base-build",
-      "configurePreset": "debug-clang19",
-      "targets": ["clang-tidy"]
-    },
-    {
-      "name": "format-check-clang-latest",
-      "displayName": "Check clang-format (clang latest)",
-      "inherits": "base-build",
-      "configurePreset": "debug-clang-latest",
-      "targets": ["format-check"]
-    },
-    {
-      "name": "clang-tidy-clang-latest",
-      "displayName": "Run clang-tidy (clang latest)",
-      "inherits": "base-build",
-      "configurePreset": "debug-clang-latest",
+      "configurePreset": "debug-clang",
       "targets": ["clang-tidy"]
     }
   ],
@@ -265,54 +170,29 @@
         "verbosity": "default"
       }
     },
-  {
-      "name": "debug_ctest-clang15",
-      "displayName": "Run CTest (Debug, clang-15, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "debug-clang15"
-    },
-    {
-      "name": "release_ctest-clang15",
-      "displayName": "Run CTest (Release, clang-15, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "release-clang15"
-    },
     {
       "name": "debug_ctest",
-      "displayName": "Run CTest (Debug, clang-19, all tests)",
+      "displayName": "Run CTest (Debug, default compiler, all tests)",
       "inherits": "base-test",
       "configurePreset": "debug"
     },
     {
       "name": "release_ctest",
-      "displayName": "Run CTest (Release, clang-19, all tests)",
+      "displayName": "Run CTest (Release, default compiler, all tests)",
       "inherits": "base-test",
       "configurePreset": "release"
     },
-
     {
-      "name": "debug_ctest-clang19",
-      "displayName": "Run CTest (Debug, clang-19, all tests)",
+      "name": "debug_ctest-clang",
+      "displayName": "Run CTest (Debug, clang, all tests)",
       "inherits": "base-test",
-      "configurePreset": "debug-clang19"
+      "configurePreset": "debug-clang"
     },
     {
-      "name": "release_ctest-clang19",
-      "displayName": "Run CTest (Release, clang-19, all tests)",
+      "name": "release_ctest-clang",
+      "displayName": "Run CTest (Release, clang, all tests)",
       "inherits": "base-test",
-      "configurePreset": "release-clang19"
-    },
-    {
-      "name": "debug_ctest-clang-latest",
-      "displayName": "Run CTest (Debug, clang latest, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "debug-clang-latest"
-    },
-    {
-      "name": "release_ctest-clang-latest",
-      "displayName": "Run CTest (Release, clang latest, all tests)",
-      "inherits": "base-test",
-      "configurePreset": "release-clang-latest"
+      "configurePreset": "release-clang"
     },
 
     {
@@ -348,42 +228,22 @@
         { "type": "test",      "name": "release_ctest" }
       ]
     },
-
     {
-      "name": "debug-clang15",
-      "displayName": "Debug: configure + build + test (clang-15)",
+      "name": "debug-clang",
+      "displayName": "Debug: configure + build + test (clang)",
       "steps": [
-        { "type": "configure", "name": "debug-clang15" },
-        { "type": "build",     "name": "debug-clang15" },
-        { "type": "test",      "name": "debug_ctest-clang15" }
+        { "type": "configure", "name": "debug-clang" },
+        { "type": "build",     "name": "debug-clang" },
+        { "type": "test",      "name": "debug_ctest-clang" }
       ]
     },
     {
-      "name": "release-clang15",
-      "displayName": "Release: configure + build + test (clang-15)",
+      "name": "release-clang",
+      "displayName": "Release: configure + build + test (clang)",
       "steps": [
-        { "type": "configure", "name": "release-clang15" },
-        { "type": "build",     "name": "release-clang15" },
-        { "type": "test",      "name": "release_ctest-clang15" }
-      ]
-    },
-
-    {
-      "name": "debug-clang19",
-      "displayName": "Debug: configure + build + test (clang-19)",
-      "steps": [
-        { "type": "configure", "name": "debug-clang19" },
-        { "type": "build",     "name": "debug-clang19" },
-        { "type": "test",      "name": "debug_ctest-clang19" }
-      ]
-    },
-    {
-      "name": "release-clang19",
-      "displayName": "Release: configure + build + test (clang-19)",
-      "steps": [
-        { "type": "configure", "name": "release-clang19" },
-        { "type": "build",     "name": "release-clang19" },
-        { "type": "test",      "name": "release_ctest-clang19" }
+        { "type": "configure", "name": "release-clang" },
+        { "type": "build",     "name": "release-clang" },
+        { "type": "test",      "name": "release_ctest-clang" }
       ]
     },
 
@@ -409,7 +269,7 @@
       "name": "format",
       "displayName": "Format: configure + clang-format",
       "steps": [
-        { "type": "configure", "name": "debug-clang19" },
+        { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format" }
       ]
     },
@@ -417,7 +277,7 @@
       "name": "format-check",
       "displayName": "Format Check: configure + clang-format check",
       "steps": [
-        { "type": "configure", "name": "debug-clang19" },
+        { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" }
       ]
     },
@@ -425,11 +285,11 @@
       "name": "quality",
       "displayName": "Quality: format-check + clang-tidy + build + test",
       "steps": [
-        { "type": "configure", "name": "debug-clang-latest" },
-        { "type": "build",     "name": "format-check-clang-latest" },
-        { "type": "build",     "name": "clang-tidy-clang-latest" },
-        { "type": "build",     "name": "debug-clang-latest" },
-        { "type": "test",      "name": "debug_ctest-clang-latest" }
+        { "type": "configure", "name": "debug-clang" },
+        { "type": "build",     "name": "format-check" },
+        { "type": "build",     "name": "clang-tidy" },
+        { "type": "build",     "name": "debug-clang" },
+        { "type": "test",      "name": "debug_ctest-clang" }
       ]
     }
   ]

@@ -11,21 +11,14 @@ int main(void)
 {
     unsigned int matM = MATMUL_M;
     unsigned int matN = MATMUL_N;
-    double xarr[MATMUL_M * MATMUL_N] = // NOLINTBEGIN[readability-magic-numbers]
-        {1.0,
-         2.0,
-         3.0,
-         4.0,
-         5.0,
-         6.0,
-         7.0,
-         8.0,
-         9.0}; // NOLINTEND[readability-magic-numbers]
+    // NOLINTBEGIN[readability-magic-numbers]
+    double xarr[MATMUL_M * MATMUL_N] =
+        {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
 
     unsigned int matT = MATMUL_T;
     unsigned int matS = MATMUL_S;
-    double yvec[MATMUL_S * MATMUL_T] = // NOLINTBEGIN[readability-magic-numbers]
-        {1.0, 2.0, 1.0, 2.0, 1.0, 2.0}; // NOLINTEND[readability-magic-numbers]
+    double yvec[MATMUL_S * MATMUL_T] = {1.0, 2.0, 1.0, 2.0, 1.0, 2.0};
+    // NOLINTEND[readability-magic-numbers]
 
     for (unsigned int j = 0; j < matN; j++)
     {

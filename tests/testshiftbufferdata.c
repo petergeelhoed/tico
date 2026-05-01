@@ -58,7 +58,7 @@ int main(void)
         }
         if (fabs(maxvals->arrd[i] -
                  ((double)(i + ARRAY_BUFFER_SIZE) + SHIFTBUFFER_LARGE_OFFSET)) >
-            SHIFTBUFFER_TOLERANCE) // NOLINT(readability-magic-numbers)
+            SHIFTBUFFER_TOLERANCE)
         {
             (void)fprintf(stderr, "maxvals mismatch at %u\n", i);
             return 5; // NOLINT(readability-magic-numbers)

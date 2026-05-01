@@ -7,27 +7,26 @@
 #include "myfft.h"
 #include "mylib.h"
 
-#define ArrayLength 48000
-int main(void)
-{
-
-    int blah[ArrayLength];
-    int orig[ArrayLength];
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    #define kArrayLength 48000
+    int main(void)
     {
-        blah[j] =
-            (int)(1000 *
-                  sin((double)(3.1415926 * 2 * j * 50. /
-                               48000.))) + // NOLINT(readability-magic-numbers)
-            (int)(800 *
-                  sin((double)(3.1415926 * 2 * j * 52. /
-                               48000.))); // NOLINT(readability-magic-numbers)
-        orig[j] = blah[j];
-    }
+        int signalArray[kArrayLength];
+        int originalArray[kArrayLength];
+        for (unsigned int sampleIndex = 0; sampleIndex < kArrayLength; sampleIndex++)
+        {
+            signalArray[sampleIndex] =
+                (int)(1000 *
+                      sin((double)(3.1415926 * 2 * sampleIndex * 50. /
+                                   48000.))) + // NOLINT(readability-magic-numbers)
+                (int)(800 *
+                      sin((double)(3.1415926 * 2 * sampleIndex * 52. /
+                                   48000.))); // NOLINT(readability-magic-numbers)
+            originalArray[sampleIndex] = signalArray[sampleIndex];
+        }
 
-    remove50hz(ArrayLength, blah, 48000); // NOLINT(readability-magic-numbers)
+        remove50hz(kArrayLength, signalArray, 48000); // NOLINT(readability-magic-numbers)
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+        for (unsigned int sampleIndex = 0; sampleIndex < kArrayLength; sampleIndex++)
     {
         printf("%3d %12d %12d\n", j, blah[j], orig[j]);
     }

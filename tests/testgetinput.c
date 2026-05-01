@@ -17,22 +17,22 @@ struct exp
 
 int main(void)
 {
-    struct exp array[NR_TESTS];
+    struct exp testCases[NR_TESTS];
     // NOLINTBEGIN(readability-magic-numbers)
-    array[0] = (struct exp){.input = " 34", .integer = 34, .dbl = 34};
-    array[1] = (struct exp){.input = " 34.1", .integer = 34, .dbl = 34.1};
-    array[2] =
+    testCases[0] = (struct exp){.input = " 34", .integer = 34, .dbl = 34};
+    testCases[1] = (struct exp){.input = " 34.1", .integer = 34, .dbl = 34.1};
+    testCases[2] =
         (struct exp){.input = "", .integer = INT_MIN, .dbl = (double)NAN};
-    array[3] = (struct exp){.input = " -1.7 ", .integer = -1, .dbl = -1.7};
-    array[4] = (struct exp){.input = " 1111111111111111",
-                            .integer = INT_MIN,
-                            .dbl = 1111111111111111.};
+    testCases[3] = (struct exp){.input = " -1.7 ", .integer = -1, .dbl = -1.7};
+    testCases[4] = (struct exp){.input = " 1111111111111111",
+                                .integer = INT_MIN,
+                                .dbl = 1111111111111111.};
     // NOLINTEND(readability-magic-numbers)
 
-    for (size_t i = 0; i < NR_TESTS; i++)
+    for (size_t testIndex = 0; testIndex < NR_TESTS; testIndex++)
     {
-        struct exp test1 = array[i];
-        int a = getInt(test1.input);
+        struct exp testCase = testCases[testIndex];
+        int intResult = getInt(testCase.input);
         double b = getDouble(test1.input);
         if (!nearlyEqual(b, test1.dbl))
         {

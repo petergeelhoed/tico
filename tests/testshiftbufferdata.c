@@ -7,42 +7,42 @@
 
 int main(void)
 {
-    const unsigned int len = ARRAY_BUFFER_SIZE * 2;
-    unsigned int ticktock = len;
+    const unsigned int totalLength = ARRAY_BUFFER_SIZE * 2;
+    unsigned int ticktockCounter = totalLength;
 
-    struct myarr* subpos = makemyarrd(len);
-    struct myarr* maxpos = makemyarr(len);
-    struct myarr* maxvals = makemyarrd(len);
+    struct myarr* subPositionArray = makemyarrd(totalLength);
+    struct myarr* maxPositionArray = makemyarr(totalLength);
+    struct myarr* maxValueArray = makemyarrd(totalLength);
 
-    if (subpos == NULL || maxpos == NULL || maxvals == NULL)
+    if (subPositionArray == NULL || maxPositionArray == NULL || maxValueArray == NULL)
     {
         return 1;
     }
 
-    for (unsigned int i = 0; i < len; ++i)
+    for (unsigned int index = 0; index < totalLength; ++index)
     {
-        subpos->arrd[i] = (double)i + 0.25; // NOLINT(readability-magic-numbers)
-        maxpos->arr[i] = (int)i;
-        maxvals->arrd[i] =
-            (double)i + 1000.5; // NOLINT(readability-magic-numbers)
+        subPositionArray->arrd[index] = (double)index + 0.25; // NOLINT(readability-magic-numbers)
+        maxPositionArray->arr[index] = (int)index;
+        maxValueArray->arrd[index] =
+            (double)index + 1000.5; // NOLINT(readability-magic-numbers)
     }
 
-    shiftBufferData(&ticktock, subpos, maxpos, maxvals);
+    shiftBufferData(&ticktockCounter, subPositionArray, maxPositionArray, maxValueArray);
 
-    if (ticktock != ARRAY_BUFFER_SIZE)
+    if (ticktockCounter != ARRAY_BUFFER_SIZE)
     {
-        (void)fprintf(stderr, "ticktock mismatch: %u\n", ticktock);
+        (void)fprintf(stderr, "ticktock mismatch: %u\n", ticktockCounter);
         return 2;
     }
 
-    for (unsigned int i = 0; i < ARRAY_BUFFER_SIZE; ++i)
+    for (unsigned int index = 0; index < ARRAY_BUFFER_SIZE; ++index)
     {
-        if (fabs(subpos->arrd[i] -
-                 ((double)(i + ARRAY_BUFFER_SIZE) +
+        if (fabs(subPositionArray->arrd[index] -
+                 ((double)(index + ARRAY_BUFFER_SIZE) +
                   0.25)) > // NOLINT(readability-magic-numbers)
             1e-12)         // NOLINT(readability-magic-numbers)
         {
-            (void)fprintf(stderr, "subpos mismatch at %u\n", i);
+            (void)fprintf(stderr, "subpos mismatch at %u\n", index);
             return 3;
         }
         if (maxpos->arr[i] != (int)(i + ARRAY_BUFFER_SIZE))

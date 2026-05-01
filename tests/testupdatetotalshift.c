@@ -8,83 +8,83 @@
 
 int main(void)
 {
-    CapConfig cfg = {0};
-    cfg.cvalue = 8; // NOLINT(readability-magic-numbers)
-    cfg.teeth = 2;
+    CapConfig captureConfig = {0};
+    captureConfig.cvalue = 8; // NOLINT(readability-magic-numbers)
+    captureConfig.teeth = 2;
 
-    AppResources res = {0};
-    res.maxvals = makemyarrd(4);
-    if (res.maxvals == NULL)
+    AppResources resources = {0};
+    resources.maxvals = makemyarrd(4);
+    if (resources.maxvals == NULL)
     {
         return 1;
     }
 
-    const double threshold = (double)cfg.cvalue / HEX_BASE;
-    res.maxvals->arrd[0] =
+    const double threshold = (double)captureConfig.cvalue / HEX_BASE;
+    resources.maxvals->arrd[0] =
         threshold + 0.01; // NOLINT(readability-magic-numbers)
-    res.maxvals->arrd[1] =
+    resources.maxvals->arrd[1] =
         threshold - 0.01; // NOLINT(readability-magic-numbers)
 
-    int shift = 100;
+    int shiftValue = 100;
 
-    int out =
-        updateTotalShiftIfNeeded(shift,
+    int shiftResult =
+        updateTotalShiftIfNeeded(shiftValue,
                                  9,
                                  AUTOCOR_LIMIT,
                                  0,
-                                 &res,
-                                 &cfg); // NOLINT(readability-magic-numbers)
-    if (out != shift)
+                                 &resources,
+                                 &captureConfig); // NOLINT(readability-magic-numbers)
+    if (shiftResult != shiftValue)
     {
         (void)fprintf(stderr, "unexpected shift update at AUTOCOR_LIMIT\n");
         return 2;
     }
 
-    out = updateTotalShiftIfNeeded(shift,
+    shiftResult = updateTotalShiftIfNeeded(shiftValue,
                                    9,
                                    AUTOCOR_LIMIT + 1,
                                    1,
-                                   &res,
-                                   &cfg); // NOLINT(readability-magic-numbers)
-    if (out != shift)
+                                   &resources,
+                                   &captureConfig); // NOLINT(readability-magic-numbers)
+    if (shiftResult != shiftValue)
     {
         (void)fprintf(stderr, "unexpected shift update below threshold\n");
         return 3;
     }
 
-    res.maxvals->arrd[0] =
+    resources.maxvals->arrd[0] =
         threshold + 0.02; // NOLINT(readability-magic-numbers)
-    out = updateTotalShiftIfNeeded(shift,
+    shiftResult = updateTotalShiftIfNeeded(shiftValue,
                                    9,
                                    AUTOCOR_LIMIT + 1,
                                    0,
-                                   &res,
-                                   &cfg); // NOLINT(readability-magic-numbers)
-    if (out != shift + 9)                 // NOLINT(readability-magic-numbers)
+                                   &resources,
+                                   &captureConfig); // NOLINT(readability-magic-numbers)
+    if (shiftResult != shiftValue + 9)                 // NOLINT(readability-magic-numbers)
     {
-        (void)fprintf(stderr, "small-delta shift mismatch: got %d\n", out);
+        (void)fprintf(stderr, "small-delta shift mismatch: got %d\n", shiftResult);
         return 4;
     }
 
-    int largeDelta = 250; // NOLINT(readability-magic-numbers)
-    int absDelta = abs(largeDelta);
-    int expectedDelta =
-        (int)(PRESHIFT_THRESHOLD_ROOT * largeDelta / sqrt((double)absDelta));
-    out = updateTotalShiftIfNeeded(shift,
-                                   largeDelta,
+    int largeDeltaValue = 250; // NOLINT(readability-magic-numbers)
+    int absDeltaValue = abs(largeDeltaValue);
+    int expectedDeltaValue =
+        (int)(PRESHIFT_THRESHOLD_ROOT * largeDeltaValue / sqrt((double)absDeltaValue));
+    shiftResult = updateTotalShiftIfNeeded(shiftValue,
+                                   largeDeltaValue,
                                    AUTOCOR_LIMIT + 3,
                                    0,
-                                   &res,
-                                   &cfg);
-    if (out != shift + expectedDelta)
+                                   &resources,
+                                   &captureConfig);
+    if (shiftResult != shiftValue + expectedDeltaValue)
     {
         (void)fprintf(stderr,
                       "large-delta shift mismatch: got %d expected %d\n",
-                      out,
-                      shift + expectedDelta);
+                      shiftResult,
+                      shiftValue + expectedDeltaValue);
         return 5; // NOLINT(readability-magic-numbers)
     }
 
-    freemyarr(res.maxvals);
+    freemyarr(resources.maxvals);
     return 0;
 }

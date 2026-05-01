@@ -6,16 +6,16 @@
 #include "mylib.h"
 #include "mysync.h"
 
-#define size 8
+#define kArraySize 8
 int main(void)
 {
-    struct myarr* test = makemyarr(size);
-    for (int i = 0; i < 10; i++) // NOLINT(readability-magic-numbers)
+    struct myarr* testArray = makemyarr(kArraySize);
+    for (int index = 0; index < 10; index++) // NOLINT(readability-magic-numbers)
     {
-        test->arr[0] = i;
-        syncwrite(test->arr, size, "testsync");
+        testArray->arr[0] = index;
+        syncwrite(testArray->arr, kArraySize, "testsync");
     }
-    freemyarr(test);
+    freemyarr(testArray);
     wait();
     exit(0);
 }

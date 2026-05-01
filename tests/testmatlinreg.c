@@ -6,17 +6,16 @@
 int main(void)
 {
 
-
     unsigned int matM = 1;
     unsigned int matN = 4;
-    double xarr[4] = // NOLINTBEGIN[readability-magic-numbers]
+    double xarr[4] =          // NOLINTBEGIN[readability-magic-numbers]
         {1.0, 2.0, 3.0, 4.0}; // NOLINTEND[readability-magic-numbers]
 
     unsigned int matT = 1;
     unsigned int matS = 4;
-    double yvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+    double yvec[4] =          // NOLINTBEGIN[readability-magic-numbers]
         {3.0, 5.0, 8.0, 9.0}; // NOLINTEND[readability-magic-numbers]
-    double wvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+    double wvec[4] =          // NOLINTBEGIN[readability-magic-numbers]
         {1.0, 1.0, 2.0, 1.0}; // NOLINTEND[readability-magic-numbers]
 
     for (unsigned int j = 0; j < matN; j++)

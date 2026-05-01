@@ -5,15 +5,22 @@
 
 int main(void)
 {
-// 1+2x-0.5x^2
+    // 1+2x-0.5x^2
     double xarr[8] = // NOLINTBEGIN[readability-magic-numbers]
-        {1.0, 1.0, 2.0, 4.0, 3.0, 9.0, 4.0, 16.0}; // NOLINTEND[readability-magic-numbers]
+        {1.0,
+         1.0,
+         2.0,
+         4.0,
+         3.0,
+         9.0,
+         4.0,
+         16.0}; // NOLINTEND[readability-magic-numbers]
 
     unsigned int matT = 1;
     unsigned int matS = 4;
-    double yvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+    double yvec[4] =          // NOLINTBEGIN[readability-magic-numbers]
         {2.5, 3.0, 2.5, 1.0}; // NOLINTEND[readability-magic-numbers]
-    double wvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+    double wvec[4] =          // NOLINTBEGIN[readability-magic-numbers]
         {1.0, 1.0, 2.0, 1.0}; // NOLINTEND[readability-magic-numbers]
 
     for (unsigned int j = 0; j < MATQ_N; j++)

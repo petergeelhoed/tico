@@ -6,13 +6,15 @@
 #include "mylib.h"
 #include "mysync.h"
 
-#define size 8
+// Magic number constants
+#define TESTSYNC_SIZE 8
+#define TESTSYNC_LOOP_COUNT 1000
 int main(void)
 {
     FILE* filePtr = fopen("testsync", "w");
-    struct myarr* test = makemyarr(size);
+    struct myarr* test = makemyarr(TESTSYNC_SIZE);
     printf("%d %d %d \n", test->arr[0], test->arr[1], test->arr[2]);
-    for (int i = 0; i < 1000; i++) // NOLINT(readability-magic-numbers)
+    for (int i = 0; i < TESTSYNC_LOOP_COUNT; i++)
     {
         test->arr[0] = i;
         syncAppendMyarr(test, filePtr);

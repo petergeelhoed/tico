@@ -15,47 +15,69 @@ struct exp
     int integer;
 };
 
+// Magic number constants
+#define TEST_INT_1 34
+#define TEST_DBL_1 34.0
+#define TEST_INPUT_2 " 34.1"
+#define TEST_INT_2 34
+#define TEST_DBL_2 34.1
+#define TEST_INPUT_3 ""
+#define TEST_INT_3 INT_MIN
+#define TEST_DBL_3 ((double)NAN)
+#define TEST_INPUT_4 " -1.7 "
+#define TEST_INT_4 -1
+#define TEST_DBL_4 -1.7
+#define TEST_INPUT_5 " 1111111111111111"
+#define TEST_INT_5 INT_MIN
+#define TEST_DBL_5 1111111111111111.0
+
 int main(void)
 {
     struct exp testCases[NR_TESTS];
     // NOLINTBEGIN(readability-magic-numbers)
-    testCases[0] = (struct exp){.input = " 34", .integer = 34, .dbl = 34};
-    testCases[1] = (struct exp){.input = " 34.1", .integer = 34, .dbl = 34.1};
-    testCases[2] =
-        (struct exp){.input = "", .integer = INT_MIN, .dbl = (double)NAN};
-    testCases[3] = (struct exp){.input = " -1.7 ", .integer = -1, .dbl = -1.7};
-    testCases[4] = (struct exp){.input = " 1111111111111111",
-                                .integer = INT_MIN,
-                                .dbl = 1111111111111111.};
+    testCases[0] =
+        (struct exp){.input = " 34", .integer = TEST_INT_1, .dbl = TEST_DBL_1};
+    testCases[1] = (struct exp){.input = TEST_INPUT_2,
+                                .integer = TEST_INT_2,
+                                .dbl = TEST_DBL_2};
+    testCases[2] = (struct exp){.input = TEST_INPUT_3,
+                                .integer = TEST_INT_3,
+                                .dbl = TEST_DBL_3};
+    testCases[3] = (struct exp){.input = TEST_INPUT_4,
+                                .integer = TEST_INT_4,
+                                .dbl = TEST_DBL_4};
+    testCases[4] = (struct exp){.input = TEST_INPUT_5,
+                                .integer = TEST_INT_5,
+                                .dbl = TEST_DBL_5};
     // NOLINTEND(readability-magic-numbers)
 
     for (size_t testIndex = 0; testIndex < NR_TESTS; testIndex++)
     {
         struct exp testCase = testCases[testIndex];
         int intResult = getInt(testCase.input);
-        double b = getDouble(test1.input);
-        if (!nearlyEqual(b, test1.dbl))
+        double dblResult = getDouble(testCase.input);
+        if (!nearlyEqual(dblResult, testCase.dbl))
         {
-            if (isnan(b) && isnan(test1.dbl))
+            if (isnan(dblResult) && isnan(testCase.dbl))
             {
                 continue;
             }
-            printf("test %lu:\n"
+            printf("test %zu:\n"
                    "input '%s' => (dbl)%lf : expected %lf\n",
-                   i,
-                   test1.input,
-                   b,
-                   test1.dbl);
+                   testIndex,
+                   testCase.input,
+                   dblResult,
+                   testCase.dbl);
             return -1;
         }
-        if (a != test1.integer)
+        if (intResult != testCase.integer)
         {
-            printf("test %lu:\n"
+            printf("test %zu:\n"
                    "input '%s' => (int)%d :expected %d \n",
-                   i,
-                   test1.input,
-                   a,
-                   test1.integer);
+                   testIndex,
+                   testCase.input,
+                   intResult,
+                   testCase.integer);
             return -1;
         }
     }

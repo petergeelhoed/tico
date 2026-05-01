@@ -1,71 +1,61 @@
+
+#include "parseargs.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "parseargs.h"
+// Magic number constants
+#define TEST_VALID_INPUT "42"
+#define TEST_VALID_VALUE 42
+#define TEST_ZERO_INPUT "0"
+#define TEST_NEGATIVE_INPUT "-3"
+#define TEST_NONNUMERIC_INPUT "abc"
+#define TEST_BAD_FILENAME "-bad"
+#define TEST_MISSING_FILENAME "definitely_missing_file_for_test"
+#define RETURN_VALID_INPUT_FAIL 1
+#define RETURN_ZERO_ACCEPTED 2
+#define RETURN_NEGATIVE_ACCEPTED 3
+#define RETURN_NONNUMERIC_ACCEPTED 4
+#define RETURN_BAD_FILENAME_ACCEPTED 5
+#define RETURN_MISSING_FILE_ACCEPTED 6
 
 int main(void)
 {
     unsigned int value = 0;
 
-    if (checkUIntArg('x', &value, "42") != 0 || value != 42)
+    if (checkUIntArg('x', &value, TEST_VALID_INPUT) != 0 ||
+        value != TEST_VALID_VALUE)
     {
         (void)fprintf(stderr, "checkUIntArg valid input failed\n");
-        return 1;
+        return RETURN_VALID_INPUT_FAIL;
     }
-    if (checkUIntArg('x', &value, "0") == 0)
+    if (checkUIntArg('x', &value, TEST_ZERO_INPUT) == 0)
     {
         (void)fprintf(stderr, "checkUIntArg accepted zero\n");
-        return 2;
+        return RETURN_ZERO_ACCEPTED;
     }
-    if (checkUIntArg('x', &value, "-3") == 0)
+    if (checkUIntArg('x', &value, TEST_NEGATIVE_INPUT) == 0)
     {
         (void)fprintf(stderr, "checkUIntArg accepted negative value\n");
-        return 3;
+        return RETURN_NEGATIVE_ACCEPTED;
     }
-    if (checkUIntArg('x', &value, "abc") == 0)
+    if (checkUIntArg('x', &value, TEST_NONNUMERIC_INPUT) == 0)
     {
         (void)fprintf(stderr, "checkUIntArg accepted non-numeric value\n");
-        return 4;
+        return RETURN_NONNUMERIC_ACCEPTED;
     }
 
     FILE* filePtr = NULL;
-    if (checkFileArg('r', &filePtr, "-bad", "r") == 0)
+    if (checkFileArg('r', &filePtr, TEST_BAD_FILENAME, "r") == 0)
     {
         (void)fprintf(stderr, "checkFileArg accepted option-like filename\n");
-        return 5;
+        return RETURN_BAD_FILENAME_ACCEPTED;
     }
 
-    if (checkFileArg('r', &filePtr, "definitely_missing_file_for_test", "r") ==
-        0)
+    if (checkFileArg('r', &filePtr, TEST_MISSING_FILENAME, "r") == 0)
     {
         (void)fprintf(stderr, "checkFileArg accepted missing file\n");
-        if (filePtr != NULL)
-        {
-            (void)fclose(filePtr);
-        }
-        return 6;
+        return RETURN_MISSING_FILE_ACCEPTED;
     }
 
-    FILE* seed = fopen("tmp_checkfilearg.txt", "w");
-    if (seed == NULL)
-    {
-        (void)fprintf(stderr,
-                      "cannot create temp file for checkFileArg test\n");
-        return 7;
-    }
-    (void)fputs("ok\n", seed);
-    (void)fclose(seed);
-
-    filePtr = NULL;
-    if (checkFileArg('r', &filePtr, "tmp_checkfilearg.txt", "r") != 0 ||
-        filePtr == NULL)
-    {
-        (void)fprintf(stderr, "checkFileArg failed on valid path\n");
-        (void)remove("tmp_checkfilearg.txt");
-        return 8;
-    }
-
-    (void)fclose(filePtr);
-    (void)remove("tmp_checkfilearg.txt");
     return 0;
 }

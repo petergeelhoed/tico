@@ -8,7 +8,8 @@
 
 int main(void)
 {
-    unsigned int ArrayLength = 7;
+#define TESTMYSYNC_ARRAY_LENGTH 7
+    unsigned int ArrayLength = TESTMYSYNC_ARRAY_LENGTH;
     struct myarr reference = {calloc(ArrayLength, sizeof(int)), 0, ArrayLength};
     struct myarr refdouble = {0,
                               calloc(ArrayLength, sizeof(double)),

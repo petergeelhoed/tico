@@ -5,47 +5,52 @@
 
 int main(void)
 {
-    unsigned int M = 1;
-    unsigned int N = 4;
-    double xarr[4] = {1.0, 2.0, 3.0, 4.0};
 
-    unsigned int T = 1;
-    unsigned int S = 4;
-    double yvec[4] = {3.0, 5.0, 8.0, 9.0};
-    double wvec[4] = {1.0, 1.0, 2.0, 1.0};
 
-    for (unsigned int j = 0; j < N; j++)
+    unsigned int matM = 1;
+    unsigned int matN = 4;
+    double xarr[4] = // NOLINTBEGIN[readability-magic-numbers]
+        {1.0, 2.0, 3.0, 4.0}; // NOLINTEND[readability-magic-numbers]
+
+    unsigned int matT = 1;
+    unsigned int matS = 4;
+    double yvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+        {3.0, 5.0, 8.0, 9.0}; // NOLINTEND[readability-magic-numbers]
+    double wvec[4] = // NOLINTBEGIN[readability-magic-numbers]
+        {1.0, 1.0, 2.0, 1.0}; // NOLINTEND[readability-magic-numbers]
+
+    for (unsigned int j = 0; j < matN; j++)
     {
-        for (unsigned int i = 0; i < M; i++)
+        for (unsigned int i = 0; i < matM; i++)
         {
-            printf("%8.1f ", xarr[i + j * M]);
+            printf("%8.1f ", xarr[i + j * matM]);
         }
         printf("\n");
     }
     printf("\n");
 
-    for (unsigned int j = 0; j < S; j++)
+    for (unsigned int j = 0; j < matS; j++)
     {
-        for (unsigned int i = 0; i < T; i++)
+        for (unsigned int i = 0; i < matT; i++)
         {
-            printf("%8.1fw%3.1f ", yvec[i + j * T], wvec[i + j * T]);
+            printf("%8.1fw%3.1f ", yvec[i + j * matT], wvec[i + j * matT]);
         }
         printf("\n");
     }
 
     printf("\n");
     double tmp[2];
-    matlinreg(tmp, xarr, N, M, yvec, wvec);
+    matlinreg(tmp, xarr, matN, matM, yvec, wvec);
     printf("\n");
 
-    for (unsigned int i = 0; i < T + 1; i++)
+    for (unsigned int i = 0; i < matT + 1; i++)
     {
         printf("%8.3f ", tmp[i]);
     }
     printf("\n");
 
-    fastlinreg(tmp, xarr, N, yvec, wvec);
-    for (unsigned int i = 0; i < T + 1; i++)
+    fastlinreg(tmp, xarr, matN, yvec, wvec);
+    for (unsigned int i = 0; i < matT + 1; i++)
     {
         printf("%8.3f ", tmp[i]);
     }

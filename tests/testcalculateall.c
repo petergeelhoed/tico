@@ -11,6 +11,12 @@
 #define TEST_DATA_DIR "."
 #endif
 
+// Magic number constants
+#define CALC_TOTAL_INDEX 7
+#define CALC_TOTAL_LENGTH 16000
+#define CALC_TOTAL_FACTOR 3.0
+#define CALC_TOTAL_RATE 48000
+
 int main(void)
 {
     FILE* rawfile = NULL;
@@ -30,8 +36,12 @@ int main(void)
 
     if (rawfile)
     {
-        calculateTotalFromFile(7, rawfile, 16000, 3.0, 48000);
-        fclose(rawfile);
+        calculateTotalFromFile(CALC_TOTAL_INDEX,
+                               rawfile,
+                               CALC_TOTAL_LENGTH,
+                               CALC_TOTAL_FACTOR,
+                               CALC_TOTAL_RATE);
+        (void)fclose(rawfile);
     }
     return 0;
 }

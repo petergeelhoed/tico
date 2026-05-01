@@ -8,50 +8,35 @@
 #include "mymath.h"
 #include "mysync.h"
 
-#define fitwindow 14
+// Magic number constants
+#define FITWINDOW 14
+#define YARR_0 600
+#define XARR_0 1
+#define YARR_1A 592
+#define LINREG_IDX_7 7
+#define LINREG_IDX_8 8
+#define LINREG_IDX_9 9
 int main(void)
 {
-    double xarr[fitwindow];
-    double yarr[fitwindow];
-    double a = 0;
-    double b = 0;
-    double s = 0;
-    unsigned int n = 0;
-    for (int k = 0; k < (int)fitwindow; k++)
-    {
-        n++;
-        xarr[k] = k;
-        yarr[k] = 4 + k * 2 + k % 2;
-    }
+    // NOLINTBEGIN[readability-magic-numbers]
+    double xarr[FITWINDOW] =
+        {1, 2, 6, 7, 10, 11, 12, 14, 16, 19, 10, 11, 12, 13};
+    double yarr[FITWINDOW] =
+        {600, 592, 458, 120, 398, 87, 394, 358, 332, 16, 100, 200, 300, 400};
+    // NOLINTEND[readability-magic-numbers]
+    double slope = 0;
+    double intercept = 0;
+    double stddev = 0;
+    unsigned int sampleCount = FITWINDOW;
 
-    linreg(xarr, yarr, n, &a, &b, &s);
+    linreg(xarr, yarr, sampleCount, &slope, &intercept, &stddev);
 
-    fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
-    yarr[0] = 600;
-    xarr[0] = 1;
-    yarr[1] = 592;
-    xarr[1] = 2;
-    yarr[1] = 552;
-    xarr[2] = 6;
-    yarr[2] = 458;
-    xarr[3] = 7;
-    yarr[3] = 120;
-    xarr[4] = 10;
-    yarr[4] = 398;
-    xarr[5] = 11;
-    yarr[5] = 87;
-    xarr[6] = 12;
-    yarr[6] = 394;
-    xarr[7] = 14;
-    yarr[7] = 358;
-    xarr[8] = 16;
-    yarr[8] = 332;
-    xarr[9] = 19;
-    yarr[9] = 16;
-    n = 10;
-    linreg(xarr, yarr, n, &a, &b, &s);
+    (void)
+        fprintf(stderr, "%d %f %f %f\n", sampleCount, slope, intercept, stddev);
+    linreg(xarr, yarr, sampleCount, &slope, &intercept, &stddev);
 
-    fprintf(stderr, "%d %f %f %f\n", n, a, b, s);
+    (void)
+        fprintf(stderr, "%d %f %f %f\n", sampleCount, slope, intercept, stddev);
 
     exit(0);
 }

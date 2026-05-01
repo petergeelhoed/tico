@@ -7,28 +7,39 @@
 #include "myfft.h"
 #include "mylib.h"
 
-    #define kArrayLength 48000
-    int main(void)
+// Magic number constants
+#define SIGNAL_ARRAY_LENGTH 48000
+#define SINE_FREQ1 50
+#define SINE_FREQ2 52
+#define SINE_AMP1 1000
+#define SINE_AMP2 800
+// Magic number constants
+#define PI 3.1415926
+#define TWO 2.0
+int main(void)
+{
+    int signalArray[SIGNAL_ARRAY_LENGTH];
+    int originalArray[SIGNAL_ARRAY_LENGTH];
+    for (unsigned int sampleIndex = 0; sampleIndex < SIGNAL_ARRAY_LENGTH;
+         sampleIndex++)
     {
-        int signalArray[kArrayLength];
-        int originalArray[kArrayLength];
-        for (unsigned int sampleIndex = 0; sampleIndex < kArrayLength; sampleIndex++)
-        {
-            signalArray[sampleIndex] =
-                (int)(1000 *
-                      sin((double)(3.1415926 * 2 * sampleIndex * 50. /
-                                   48000.))) + // NOLINT(readability-magic-numbers)
-                (int)(800 *
-                      sin((double)(3.1415926 * 2 * sampleIndex * 52. /
-                                   48000.))); // NOLINT(readability-magic-numbers)
-            originalArray[sampleIndex] = signalArray[sampleIndex];
-        }
+        signalArray[sampleIndex] =
+            (int)(SINE_AMP1 * sin(PI * TWO * sampleIndex * SINE_FREQ1 /
+                                  SIGNAL_ARRAY_LENGTH)) +
+            (int)(SINE_AMP2 * sin(PI * TWO * sampleIndex * SINE_FREQ2 /
+                                  SIGNAL_ARRAY_LENGTH));
+        originalArray[sampleIndex] = signalArray[sampleIndex];
+    }
 
-        remove50hz(kArrayLength, signalArray, 48000); // NOLINT(readability-magic-numbers)
+    remove50hz(SIGNAL_ARRAY_LENGTH, signalArray, SIGNAL_ARRAY_LENGTH);
 
-        for (unsigned int sampleIndex = 0; sampleIndex < kArrayLength; sampleIndex++)
+    for (unsigned int sampleIndex = 0; sampleIndex < SIGNAL_ARRAY_LENGTH;
+         sampleIndex++)
     {
-        printf("%3d %12d %12d\n", j, blah[j], orig[j]);
+        printf("%3u %12d %12d\n",
+               sampleIndex,
+               signalArray[sampleIndex],
+               originalArray[sampleIndex]);
     }
 
     exit(0);

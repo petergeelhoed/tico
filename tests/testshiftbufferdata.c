@@ -5,44 +5,50 @@
 #include "myarr.h"
 #include "mydefs.h"
 
+// Magic number constants
+#define SHIFTBUFFER_EXTRA_FACTOR 2
+#define SHIFTBUFFER_OFFSET 0.25
+#define SHIFTBUFFER_LARGE_OFFSET 1000.5
+#define SHIFTBUFFER_TOLERANCE 1e-12
+#define RETURN_TICKTOCK_MISMATCH 2
+
 int main(void)
 {
-    const unsigned int totalLength = ARRAY_BUFFER_SIZE * 2;
+    const unsigned int totalLength =
+        ARRAY_BUFFER_SIZE * SHIFTBUFFER_EXTRA_FACTOR;
     unsigned int ticktockCounter = totalLength;
 
-    struct myarr* subPositionArray = makemyarrd(totalLength);
-    struct myarr* maxPositionArray = makemyarr(totalLength);
-    struct myarr* maxValueArray = makemyarrd(totalLength);
+    struct myarr* subpos = makemyarrd(totalLength);
+    struct myarr* maxpos = makemyarr(totalLength);
+    struct myarr* maxvals = makemyarrd(totalLength);
 
-    if (subPositionArray == NULL || maxPositionArray == NULL || maxValueArray == NULL)
+    if (subpos == NULL || maxpos == NULL || maxvals == NULL)
     {
         return 1;
     }
 
     for (unsigned int index = 0; index < totalLength; ++index)
     {
-        subPositionArray->arrd[index] = (double)index + 0.25; // NOLINT(readability-magic-numbers)
-        maxPositionArray->arr[index] = (int)index;
-        maxValueArray->arrd[index] =
-            (double)index + 1000.5; // NOLINT(readability-magic-numbers)
+        subpos->arrd[index] = (double)index + SHIFTBUFFER_OFFSET;
+        maxpos->arr[index] = (int)index;
+        maxvals->arrd[index] = (double)index + SHIFTBUFFER_LARGE_OFFSET;
     }
 
-    shiftBufferData(&ticktockCounter, subPositionArray, maxPositionArray, maxValueArray);
+    shiftBufferData(&ticktockCounter, subpos, maxpos, maxvals);
 
     if (ticktockCounter != ARRAY_BUFFER_SIZE)
     {
         (void)fprintf(stderr, "ticktock mismatch: %u\n", ticktockCounter);
-        return 2;
+        return RETURN_TICKTOCK_MISMATCH;
     }
 
-    for (unsigned int index = 0; index < ARRAY_BUFFER_SIZE; ++index)
+    for (unsigned int i = 0; i < ARRAY_BUFFER_SIZE; ++i)
     {
-        if (fabs(subPositionArray->arrd[index] -
-                 ((double)(index + ARRAY_BUFFER_SIZE) +
-                  0.25)) > // NOLINT(readability-magic-numbers)
-            1e-12)         // NOLINT(readability-magic-numbers)
+        if (fabs(subpos->arrd[i] -
+                 ((double)(i + ARRAY_BUFFER_SIZE) + SHIFTBUFFER_OFFSET)) >
+            SHIFTBUFFER_TOLERANCE)
         {
-            (void)fprintf(stderr, "subpos mismatch at %u\n", index);
+            (void)fprintf(stderr, "subpos mismatch at %u\n", i);
             return 3;
         }
         if (maxpos->arr[i] != (int)(i + ARRAY_BUFFER_SIZE))
@@ -51,8 +57,8 @@ int main(void)
             return 4;
         }
         if (fabs(maxvals->arrd[i] -
-                 ((double)(i + ARRAY_BUFFER_SIZE) + 1000.5)) >
-            1e-12) // NOLINT(readability-magic-numbers)
+                 ((double)(i + ARRAY_BUFFER_SIZE) + SHIFTBUFFER_LARGE_OFFSET)) >
+            SHIFTBUFFER_TOLERANCE) // NOLINT(readability-magic-numbers)
         {
             (void)fprintf(stderr, "maxvals mismatch at %u\n", i);
             return 5; // NOLINT(readability-magic-numbers)

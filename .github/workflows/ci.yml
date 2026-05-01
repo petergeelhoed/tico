@@ -10,15 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: [gcc, clang]
-        build_type: [Debug, Release]
 
-    env:
-      # Set to "false" to skip clang-tidy in CI
-      CLANG_TIDY: "true"
 
     steps:
       - name: Checkout
@@ -48,43 +40,7 @@ jobs:
           fi
           cmake --version
 
-      - name: Configure (CMake)
-        env:
-          CC: ${{ matrix.compiler == 'gcc' && 'gcc' || 'clang' }}
-          CXX: ${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}
+      - name: Run quality workflow
         run: |
-          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
-          cmake -S . -B "${BUILD_DIR}" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DENABLE_WERROR=OFF \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-      - name: Run clang-tidy
-        if: ${{ env.CLANG_TIDY != 'false' && matrix.compiler == 'clang' }}
-        run: |
-          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
-          echo "Finding C translation units..."
-          FILES=$(git ls-files 'src/*.c' || true)
-          if [ -z "$FILES" ]; then
-            echo "No C files found to lint"
-            exit 0
-          fi
-          echo "Running clang-tidy (warnings treated as errors)..."
-          # Use compile_commands.json from the build dir created in this job
-          echo "$FILES" | xargs -r -n1 -P"$(nproc)" -I{} \
-            clang-tidy --warnings-as-errors="*" -p "${BUILD_DIR}" {}
-
-      - name: Build
-        run: |
-          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
-          cmake --build "${BUILD_DIR}" -- -j"$(nproc)"
-
-      - name: Run tests
-        run: |
-          BUILD_DIR=build-${{ matrix.compiler }}-${{ matrix.build_type }}
-          if [ -d "${BUILD_DIR}" ]; then
-            ctest --test-dir "${BUILD_DIR}" --output-on-failure
-          else
-            echo "No build directory; nothing to test"
-          fi
+          cmake --workflow --preset quality
 

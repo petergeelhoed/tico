@@ -39,7 +39,7 @@ void printheader(double fittedRate,
 }
 
 void printspaces(int maxpos,
-                 double hexvalue,
+                 size_t hexvalue,
                  size_t mod,
                  size_t columns,
                  double avgPos,
@@ -66,12 +66,11 @@ void printspaces(int maxpos,
         spaces[widtha] = '|';
     }
 
-    (void)fprintf(
-        stderr,
-        "%s%s%X\033[0m",
-        spaces,
-        (size_t)hexvalue < correlationThreshold ? "\033[31m" : "\033[32m",
-        (int)hexvalue);
+    (void)fprintf(stderr,
+                  "%s%s%zX\033[0m",
+                  spaces,
+                  hexvalue < correlationThreshold ? "\033[31m" : "\033[32m",
+                  hexvalue);
 
     memset(spaces, ' ', width);
     if (widtha > width)
@@ -250,12 +249,13 @@ void fitAndPrint(size_t tickIndex,
                 getBeatError(cumulativeTick, cfg->rate, 0),
                 (double)globalTickIndex * (double)arrayLength / cfg->rate);
 
-    printspaces(res->maxpos->arr[(unsigned int)tickIndex],
-                res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE,
-                mod,
-                currentColumns - cfg->everyline,
-                intercept,
-                cfg->cvalue);
+    printspaces(
+        res->maxpos->arr[(unsigned int)tickIndex],
+        (size_t)(res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE),
+        mod,
+        currentColumns - cfg->everyline,
+        intercept,
+        cfg->cvalue);
 }
 
 void rotateDerivativeWindow(AppResources* res,

@@ -12,7 +12,7 @@ void printheader(double fittedRate,
                  double seconds);
 
 void printspaces(int maxpos,
-                 double hexvalue,
+                 size_t hexvalue,
                  size_t mod,
                  size_t columns,
                  double avgPos,

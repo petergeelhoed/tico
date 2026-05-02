@@ -80,13 +80,12 @@ static int processCaptureTick(CapConfig* cfg,
                                      cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
-    state->cumulativeShift =
-        updateTotalShiftIfNeeded(state->cumulativeShift,
-                                 peakOffset,
-                                 state->globalTickIndex,
-                                 (unsigned int)state->tickIndex,
-                                 res,
-                                 cfg);
+    state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
+                                                      peakOffset,
+                                                      state->globalTickIndex,
+                                                      state->tickIndex,
+                                                      res,
+                                                      cfg);
 
     processLogging(cfg,
                    res,

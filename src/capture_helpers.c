@@ -292,8 +292,8 @@ int findMaxPosition(AppResources* res,
 
 int updateTotalShiftIfNeeded(int cumulativeShift,
                              int peakOffset,
-                             unsigned int globalTickIndex,
-                             unsigned int tickIndex,
+                             size_t globalTickIndex,
+                             size_t tickIndex,
                              AppResources* res,
                              CapConfig* cfg)
 {

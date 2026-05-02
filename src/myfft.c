@@ -9,7 +9,7 @@
 #include "mylib.h"
 #include "mysync.h"
 
-fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
+fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength)
 {
     fftw_complex* filter = fftw_alloc_complex(ArrayLength);
     fftw_complex* filterFFT = fftw_alloc_complex(ArrayLength);
@@ -27,28 +27,28 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
 
     if (evalue != 0)
     {
-        for (unsigned int j = 0; j < evalue * GAUSSPOINTS; j++)
+        for (size_t j = 0; j < (size_t)(evalue * GAUSSPOINTS); j++)
         {
             filter[j][0] =
-                GAUSSIAN_CONST / evalue *
-                exp(-((double)(j * j)) / (double)(evalue * evalue) / 2);
+                GAUSSIAN_CONST / (double)evalue *
+                exp(-((double)(j * j)) / ((double)(evalue * evalue) / 2.0));
             filter[j][1] = 0.0;
         }
-        for (unsigned int j = evalue * GAUSSPOINTS;
-             j < ArrayLength - evalue * GAUSSPOINTS;
+        for (size_t j = (size_t)(evalue * GAUSSPOINTS);
+             j < ArrayLength - (size_t)(evalue * GAUSSPOINTS);
              j++)
         {
             filter[j][0] = 0.0;
             filter[j][1] = 0.0;
         }
-        for (unsigned int j = ArrayLength - (evalue * GAUSSPOINTS);
+        for (size_t j = ArrayLength - (size_t)(evalue * GAUSSPOINTS);
              j < ArrayLength;
              j++)
         {
             filter[j][0] =
-                GAUSSIAN_CONST / evalue *
-                exp(-((double)(ArrayLength - j) * (ArrayLength - j)) /
-                    (double)(evalue * evalue) / 2);
+                GAUSSIAN_CONST / (double)evalue *
+                exp(-((double)((ArrayLength - j) * (ArrayLength - j))) /
+                    ((double)(evalue * evalue) / 2.0));
             filter[j][1] = 0.0;
         }
     }
@@ -56,7 +56,7 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
     {
         filter[0][0] = 1;
         filter[0][1] = 0;
-        for (unsigned int j = 1; j < ArrayLength; j++)
+        for (size_t j = 1; j < ArrayLength; j++)
         {
             filter[j][0] = 0;
             filter[j][1] = 0;
@@ -70,10 +70,10 @@ fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength)
     return filterFFT;
 }
 
-void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
+void remove50hz(size_t ArrayLength, int* array, unsigned int rate)
 {
-    const unsigned int freq = 50;
-    unsigned int ofj = ArrayLength * freq / rate;
+    const size_t freq = 50;
+    size_t ofj = (size_t)((double)ArrayLength * (double)freq / (double)rate);
     fftw_complex* inData = fftw_alloc_complex(ArrayLength);
     fftw_complex* outData = fftw_alloc_complex(ArrayLength);
     fftw_plan forward = fftw_plan_dft_1d((int)ArrayLength,
@@ -93,28 +93,34 @@ void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
         return;
     }
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         inData[j][0] = (double)array[j];
         inData[j][1] = 0.0;
     }
     fftw_execute(forward);
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
-        outData[j][0] /= ArrayLength;
-        outData[j][1] /= ArrayLength;
+        outData[j][0] /= (double)ArrayLength;
+        outData[j][1] /= (double)ArrayLength;
     }
 
-    outData[ofj + 1][1] = 0.0;
-    outData[ofj - 1][0] = 0.0;
-    outData[ofj + 1][1] = 0.0;
-    outData[ofj - 1][0] = 0.0;
-
-    for (unsigned int j = ofj; j < ArrayLength; j += ofj)
+    if (ofj >= 1 && ofj + 1 < ArrayLength)
     {
-        outData[j][0] = 0.0;
-        outData[j][1] = 0.0;
+        outData[ofj + 1][1] = 0.0;
+        outData[ofj - 1][0] = 0.0;
+        outData[ofj + 1][1] = 0.0;
+        outData[ofj - 1][0] = 0.0;
+    }
+
+    if (ofj > 0)
+    {
+        for (size_t j = ofj; j < ArrayLength; j += ofj)
+        {
+            outData[j][0] = 0.0;
+            outData[j][1] = 0.0;
+        }
     }
 
     fftw_execute(reverse);
@@ -132,7 +138,7 @@ void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate)
 
 fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
 {
-    unsigned int ArrayLength = array.ArrayLength;
+    size_t ArrayLength = array.ArrayLength;
     fftw_complex* inData = fftw_alloc_complex(ArrayLength);
     fftw_complex* outData = fftw_alloc_complex(ArrayLength);
     fftw_plan forward = fftw_plan_dft_1d((int)ArrayLength,
@@ -152,21 +158,21 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
         return NULL;
     }
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         inData[j][0] = (double)array.arr[j];
         inData[j][1] = 0.0;
     }
     fftw_execute(forward);
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
-        outData[j][0] = (outData[j][0] * filterFFT[j][0] -
-                         outData[j][1] * filterFFT[j][1]) /
-                        ArrayLength;
-        outData[j][1] = (outData[j][0] * filterFFT[j][1] +
-                         outData[j][1] * filterFFT[j][0]) /
-                        ArrayLength;
+        double real = outData[j][0];
+        double imag = outData[j][1];
+        outData[j][0] = (real * filterFFT[j][0] - imag * filterFFT[j][1]) /
+                        (double)ArrayLength;
+        outData[j][1] = (real * filterFFT[j][1] + imag * filterFFT[j][0]) /
+                        (double)ArrayLength;
     }
 
     fftw_execute(reverse);
@@ -177,7 +183,7 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
     return inData;
 }
 
-fftw_complex* crosscor(unsigned int ArrayLength,
+fftw_complex* crosscor(size_t ArrayLength,
                        fftw_complex* array,
                        fftw_complex* ref)
 {
@@ -214,7 +220,7 @@ fftw_complex* crosscor(unsigned int ArrayLength,
     fftw_execute(arrFour);
     fftw_execute(refFour);
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         tmp[j][0] = (tmparr[j][0] * tmpref[j][0] + tmparr[j][1] * tmpref[j][1]);
         tmp[j][1] =
@@ -222,8 +228,8 @@ fftw_complex* crosscor(unsigned int ArrayLength,
     }
     fftw_execute(correverse);
 
-    double scale = 1. / ArrayLength / ArrayLength;
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    double scale = 1.0 / ((double)ArrayLength * (double)ArrayLength);
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         corr[j][0] *= scale;
     }
@@ -241,7 +247,7 @@ fftw_complex* crosscor(unsigned int ArrayLength,
 
 int getshift(const struct myarr xarr, const struct myarr yarr)
 {
-    unsigned int ArrayLength = xarr.ArrayLength;
+    size_t ArrayLength = xarr.ArrayLength;
     if (ArrayLength == 0)
     {
         return 0;
@@ -259,7 +265,7 @@ int getshift(const struct myarr xarr, const struct myarr yarr)
     }
     fftw_complex* corr = crosscor(ArrayLength, F_x, F_y);
 
-    unsigned int poscor = getmaxfftw(corr, ArrayLength);
+    size_t poscor = getmaxfftw(corr, ArrayLength);
     fftw_free(F_x);
     fftw_free(corr);
     fftw_free(F_y);
@@ -268,15 +274,15 @@ int getshift(const struct myarr xarr, const struct myarr yarr)
            (int)(ArrayLength / 2);
 }
 
-unsigned int fftfit(const struct myarr input,
-                    int* total,
-                    const int* base,
-                    double* corvalue,
-                    fftw_complex* filterFFT,
-                    int verb,
-                    double* subpos)
+size_t fftfit(const struct myarr input,
+              int* total,
+              const int* base,
+              double* corvalue,
+              fftw_complex* filterFFT,
+              int verb,
+              double* subpos)
 {
-    unsigned int ArrayLength = input.ArrayLength;
+    size_t ArrayLength = input.ArrayLength;
     if (ArrayLength == 0)
     {
         return 0;
@@ -308,7 +314,7 @@ unsigned int fftfit(const struct myarr input,
         writefftw(corr, ArrayLength, "crosscor");
     }
 
-    unsigned int poscor = getmaxfftw(corr, ArrayLength);
+    size_t poscor = getmaxfftw(corr, ArrayLength);
 
     double maxcor = corr[poscor][0];
     *corvalue = maxcor;
@@ -341,19 +347,19 @@ unsigned int fftfit(const struct myarr input,
     return poscor;
 }
 
-void rescale(int* total, unsigned int ArrayLength)
+void rescale(int* total, size_t ArrayLength)
 {
     double avg = 0.0;
     int maxval = -INT_MAX;
     int minval = INT_MAX;
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         avg += (double)total[j];
         maxval = total[j] > maxval ? total[j] : maxval;
         minval = total[j] < minval ? total[j] : minval;
     }
-    avg /= ArrayLength;
+    avg /= (double)ArrayLength;
     int avi = (int)avg;
 
     const int magic = 100000000;
@@ -374,11 +380,11 @@ void rescale(int* total, unsigned int ArrayLength)
     }
 }
 
-unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength)
+size_t getmaxfftw(fftw_complex* array, size_t ArrayLength)
 {
     double maxtick = -INT_MAX;
-    unsigned int postick = 0;
-    for (unsigned int j = 0; j < ArrayLength / 3; j++)
+    size_t postick = 0;
+    for (size_t j = 0; j < ArrayLength / 3; j++)
     {
         if (array[j][0] > maxtick)
         {
@@ -386,7 +392,7 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength)
             postick = j;
         }
     }
-    for (unsigned int j = ArrayLength * 2 / 3; j < ArrayLength; j++)
+    for (size_t j = ArrayLength * 2 / 3; j < ArrayLength; j++)
     {
         if (array[j][0] > maxtick)
         {
@@ -397,7 +403,7 @@ unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength)
     return postick;
 }
 
-void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
+void writefftw(fftw_complex* arr, size_t ArrayLength, const char* file)
 {
     FILE* filePtr = fopen(file, "w");
     if (filePtr == NULL)
@@ -405,26 +411,26 @@ void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file)
         (void)fprintf(stderr, "File opening failed inData writefftw\n");
         return;
     }
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
-        (void)fprintf(filePtr, "%d %f %f\n", j, arr[j][0], arr[j][1]);
+        (void)fprintf(filePtr, "%zu %f %f\n", j, arr[j][0], arr[j][1]);
     }
     (void)fclose(filePtr);
 }
 
-void normalise(unsigned int ArrayLength, fftw_complex* inData)
+void normalise(size_t ArrayLength, fftw_complex* inData)
 {
     double Sum_x = 0.0;
     double Sum_xx = 0.0;
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         inData[j][0] = inData[j][0];
         Sum_x += inData[j][0];
         Sum_xx += inData[j][0] * inData[j][0];
     }
-    double mean = Sum_x / ArrayLength;
-    double stdev = sqrt((Sum_xx / ArrayLength) - (mean * mean));
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    double mean = Sum_x / (double)ArrayLength;
+    double stdev = sqrt((Sum_xx / (double)ArrayLength) - (mean * mean));
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         inData[j][0] = (inData[j][0] - mean) / stdev;
     }

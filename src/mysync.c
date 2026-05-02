@@ -333,7 +333,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 struct write_task
 {
     int* array;
-    unsigned int len;
+    size_t len;
     char file[FILE_NAME_LENGTH];
 };
 
@@ -373,7 +373,7 @@ static void* threadWrite(void* arg)
     return NULL;
 }
 
-int syncwrite(int* input, unsigned int ArrayLength, const char* file)
+int syncwrite(int* input, size_t ArrayLength, const char* file)
 {
     if (!input || !file)
     {

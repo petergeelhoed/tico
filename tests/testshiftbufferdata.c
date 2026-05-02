@@ -16,7 +16,7 @@ int main(void)
 {
     const unsigned int totalLength =
         ARRAY_BUFFER_SIZE * SHIFTBUFFER_EXTRA_FACTOR;
-    unsigned int ticktockCounter = totalLength;
+    size_t ticktockCounter = totalLength;
 
     struct myarr* subpos = makemyarrd(totalLength);
     struct myarr* maxpos = makemyarr(totalLength);
@@ -38,7 +38,7 @@ int main(void)
 
     if (ticktockCounter != ARRAY_BUFFER_SIZE)
     {
-        (void)fprintf(stderr, "ticktock mismatch: %u\n", ticktockCounter);
+        (void)fprintf(stderr, "ticktock mismatch: %zu\n", ticktockCounter);
         return RETURN_TICKTOCK_MISMATCH;
     }
 

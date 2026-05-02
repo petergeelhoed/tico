@@ -12,9 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void calculateTotal(unsigned int count,
+static void calculateTotal(size_t count,
                            double* maxpos,
-                           unsigned int ArrayLength,
+                           size_t ArrayLength,
                            double threshold,
                            double rate)
 {
@@ -27,7 +27,7 @@ static void calculateTotal(unsigned int count,
         exit(EXIT_FAILURE);
     }
 
-    for (unsigned int i = 0; i < count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
         xarr[i] = (double)i;
     }
@@ -35,8 +35,8 @@ static void calculateTotal(unsigned int count,
     linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
     (void)fprintf(stderr,
-                  "unweighted raw rate: %f s/d, %d samples σ=%.2gms\n",
-                  -slope * SECS_DAY / ArrayLength,
+                  "unweighted raw rate: %f s/d, %zu samples σ=%.2gms\n",
+                  -slope * SECS_DAY / (double)ArrayLength,
                   count,
                   stdev * THOUSAND / rate);
     unsigned int maxIndex = 0;
@@ -45,7 +45,7 @@ static void calculateTotal(unsigned int count,
 
     for (unsigned int j = 0; j < 3; ++j)
     {
-        for (unsigned int i = 0; i < count; ++i)
+        for (size_t i = 0; i < count; ++i)
         {
             deviation =
                 fabs((maxpos[i] - (intercept + xarr[i] * slope)) / stdev);
@@ -62,10 +62,10 @@ static void calculateTotal(unsigned int count,
         linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
         (void)fprintf(stderr,
-                      "after %.1fσ (%.2gms) removal: %.2f s/d, %d samples\n",
+                      "after %.1fc3 (%.2gms) removal: %.2f s/d, %zu samples\n",
                       threshold,
                       stdev * THOUSAND / rate,
-                      -slope * SECS_DAY / ArrayLength,
+                      -slope * SECS_DAY / (double)ArrayLength,
                       count);
         threshold /= 2;
     }
@@ -73,9 +73,9 @@ static void calculateTotal(unsigned int count,
     free(xarr);
 }
 
-void calculateTotalFromFile(unsigned int count,
+void calculateTotalFromFile(size_t count,
                             FILE* rawfile,
-                            unsigned int ArrayLength,
+                            size_t ArrayLength,
                             double threshold,
                             double rate)
 {
@@ -116,8 +116,8 @@ void calculateTotalFromFile(unsigned int count,
 
 double getBeatError(const struct myarr* totaltick, double rate, int verbose)
 {
-    unsigned int ArrayLength = totaltick->ArrayLength;
-    int* cross = malloc(ArrayLength / 2 * sizeof(int));
+    size_t ArrayLength = totaltick->ArrayLength;
+    int* cross = malloc((ArrayLength / 2) * sizeof(int));
     if (cross == NULL)
     {
         (void)fprintf(stderr, "Cannot allocate memory for getBeatError\n");

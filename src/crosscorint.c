@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 // Perform cross-correlation using FFT
-void crosscorint(unsigned int ArrayLength,
+void crosscorint(size_t ArrayLength,
                  const int* array,
                  const int* ref,
                  int* cross)
@@ -55,7 +55,7 @@ void crosscorint(unsigned int ArrayLength,
     for (unsigned int j = 0; j < ArrayLength; j++)
     {
 
-        long tmp = lround(coor[j][0] * ArrayLength);
+        long tmp = lround(coor[j][0] * (double)ArrayLength);
 
         if (tmp > INT_MAX)
         {

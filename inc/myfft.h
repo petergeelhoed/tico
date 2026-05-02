@@ -3,13 +3,13 @@
 
 fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength);
 
-unsigned int fftfit(struct myarr input,
-                    int* total,
-                    const int* base,
-                    double* corvalue,
-                    fftw_complex* filterFFT,
-                    int verb,
-                    double* subpos);
+size_t fftfit(struct myarr input,
+              int* total,
+              const int* base,
+              double* corvalue,
+              fftw_complex* filterFFT,
+              int verb,
+              double* subpos);
 fftw_complex* convolute(struct myarr array, fftw_complex* filter);
 
 size_t getmaxfftw(fftw_complex* array, size_t ArrayLength);

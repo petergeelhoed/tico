@@ -33,7 +33,7 @@ typedef struct
 typedef struct
 {
     int cumulativeShift;
-    unsigned int tickIndex;
+    size_t tickIndex;
     unsigned int globalTickIndex;
 } LoopState;
 
@@ -75,17 +75,18 @@ static int processCaptureTick(CapConfig* cfg,
     int peakOffset = findMaxPosition(res,
                                      cumulativeTick,
                                      state->globalTickIndex,
-                                     state->tickIndex,
+                                     (unsigned int)state->tickIndex,
                                      params->arrayLength,
                                      cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
-    state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
-                                                      peakOffset,
-                                                      state->globalTickIndex,
-                                                      state->tickIndex,
-                                                      res,
-                                                      cfg);
+    state->cumulativeShift =
+        updateTotalShiftIfNeeded(state->cumulativeShift,
+                                 peakOffset,
+                                 state->globalTickIndex,
+                                 (unsigned int)state->tickIndex,
+                                 res,
+                                 cfg);
 
     processLogging(cfg,
                    res,

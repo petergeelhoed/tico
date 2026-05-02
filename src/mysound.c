@@ -179,7 +179,7 @@ static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
 }
 
 int readBufferOrFile(int* derivative,
-                     unsigned int ArrayLength,
+                     size_t ArrayLength,
                      FILE* fpInput,
                      CaptureCtx* ctx,
                      int16_t* buffer16)
@@ -242,7 +242,7 @@ int readBufferOrFile(int* derivative,
         }
     }
 
-    return derived(derivative, ArrayLength, buffer16);
+    return derived(derivative, (unsigned int)ArrayLength, buffer16);
 }
 
 // Get data from audio capture
@@ -314,15 +314,17 @@ void captureTeardown(CaptureCtx* ctx)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-int readSamples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out)
+int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
 {
-    const unsigned TARGET = ArrayLength;
-    unsigned collected = 0;
+    const size_t TARGET = ArrayLength;
+    size_t collected = 0;
 
     while (collected < TARGET)
     {
         snd_pcm_sframes_t got =
-            snd_pcm_readi(cap, out + collected, TARGET - collected);
+            snd_pcm_readi(cap,
+                          out + collected,
+                          (snd_pcm_uframes_t)(TARGET - collected));
 
         if (got == -EAGAIN)
         {

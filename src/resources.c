@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-AppResources allocateResources(unsigned int arrayLength,
-                               unsigned int ticktockBuffer,
+AppResources allocateResources(size_t arrayLength,
+                               size_t ticktockBuffer,
                                CapConfig* cfg)
 {
     AppResources res = {0};
@@ -29,7 +29,7 @@ AppResources allocateResources(unsigned int arrayLength,
         exit(EXIT_FAILURE);
     }
 
-    for (unsigned int t = 0; t < cfg->teeth; t++)
+    for (size_t t = 0; t < cfg->teeth; t++)
     {
         res.teethArray[t] = makemyarr(arrayLength);
     }

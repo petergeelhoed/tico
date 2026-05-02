@@ -85,8 +85,8 @@ void printspaces(int maxpos,
 
 void printFinals(CapConfig* cfg,
                  AppResources* res,
-                 unsigned int ArrayLength,
-                 unsigned int totalTickTock)
+                 size_t ArrayLength,
+                 size_t totalTickTock)
 {
     if (cfg->fpposition)
     {
@@ -103,18 +103,18 @@ void printFinals(CapConfig* cfg,
 
     if (cfg->fptotal)
     {
-        for (unsigned int t = 0; t < cfg->teeth; ++t)
+        for (size_t t = 0; t < cfg->teeth; ++t)
         {
             struct myarr* tmp = res->teethArray[t];
             if (tmp != NULL)
             {
                 struct myarr cumulativeTick = *tmp;
                 int toothshift = getshift(*res->teethArray[0], cumulativeTick);
-                for (unsigned int j = 0; j < ArrayLength; ++j)
+                for (size_t j = 0; j < ArrayLength; ++j)
                 {
                     (void)fprintf(cfg->fptotal,
-                                  "%d %d %u %d\n",
-                                  (int)j,
+                                  "%zu %d %zu %d\n",
+                                  j,
                                   cumulativeTick.arr[j],
                                   t,
                                   toothshift);
@@ -129,14 +129,14 @@ void printFinals(CapConfig* cfg,
     }
 }
 
-void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
+void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth)
 {
     if (fpDefPeak != NULL)
     {
         int arr[4];
-        for (unsigned int t = 0; t < teeth; t++)
+        for (size_t t = 0; t < teeth; t++)
         {
-            for (unsigned int j = 0; j < reference->ArrayLength; j++)
+            for (size_t j = 0; j < reference->ArrayLength; j++)
             {
                 int int_count = getIntsFromStdin(4, arr);
                 if (int_count < 0)
@@ -148,7 +148,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
                     (void)fprintf(
                         stderr,
                         "not enough values in -D <default peak file>\n 4 "
-                        "columns required, %u samples and %u teeth\n",
+                        "columns required, %zu samples and %zu teeth\n",
                         reference->ArrayLength,
                         teeth);
                     exit(EXIT_FAILURE);
@@ -177,7 +177,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
     }
 }
 
-void shiftBufferData(unsigned int* ticktock,
+void shiftBufferData(size_t* ticktock,
                      struct myarr* subpos,
                      struct myarr* maxpos,
                      struct myarr* maxvals)
@@ -196,15 +196,15 @@ void shiftBufferData(unsigned int* ticktock,
 
 void processLogging(CapConfig* cfg,
                     AppResources* res,
-                    unsigned int totalTime,
-                    unsigned int writeInterval)
+                    size_t totalTime,
+                    size_t writeInterval)
 {
     if (totalTime > 0 && totalTime % writeInterval == 0)
     {
         if (cfg->fpposition)
         {
             struct myarr* positionBatch = makemyarrd(writeInterval);
-            for (unsigned int k = 0; k < writeInterval; ++k)
+            for (size_t k = 0; k < writeInterval; ++k)
             {
                 positionBatch->arrd[k] =
                     res->subpos->arrd[totalTime - writeInterval + k] +
@@ -225,35 +225,35 @@ void processLogging(CapConfig* cfg,
     }
 }
 
-void fitAndPrint(unsigned int tickIndex,
-                 unsigned int globalTickIndex,
+void fitAndPrint(size_t tickIndex,
+                 size_t globalTickIndex,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
-                 unsigned int arrayLength,
-                 unsigned int mod,
-                 unsigned int currentColumns)
+                 size_t arrayLength,
+                 size_t mod,
+                 size_t currentColumns)
 {
     double intercept = 0.0;
     double slope = 0.0;
     fitNpeaks(&intercept,
               &slope,
-              tickIndex,
+              (unsigned int)tickIndex,
               res->maxvals,
               res->maxpos,
               res->subpos,
               cfg->fitN,
               cfg->SDthreshold);
 
-    printheader(slope * SECS_DAY / arrayLength,
+    printheader(slope * SECS_DAY / (double)arrayLength,
                 cfg->everyline,
                 getBeatError(cumulativeTick, cfg->rate, 0),
-                (double)globalTickIndex * arrayLength / cfg->rate);
+                (double)globalTickIndex * (double)arrayLength / cfg->rate);
 
-    printspaces(res->maxpos->arr[tickIndex],
-                res->maxvals->arrd[tickIndex] * HEX_BASE,
-                mod,
-                currentColumns - cfg->everyline,
+    printspaces(res->maxpos->arr[(unsigned int)tickIndex],
+                res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE,
+                (unsigned int)mod,
+                (unsigned int)(currentColumns - cfg->everyline),
                 intercept,
                 cfg->cvalue);
 }

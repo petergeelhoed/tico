@@ -165,14 +165,13 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
     else
     {
         const int peakheight[3] = {100000, 80000, 60000};
-        const int peakpos[3] = {0, 400, 800};
+        const size_t peakpos[3] = {0, 400, 800};
 
         for (int i = 0; i < 3; i++)
         {
-            reference->arr[reference->ArrayLength / 4 - (size_t)peakpos[i]] =
+            reference->arr[reference->ArrayLength / 4 - peakpos[i]] =
                 peakheight[i];
-            reference
-                ->arr[3 * reference->ArrayLength / 4 - (size_t)peakpos[i]] =
+            reference->arr[3 * reference->ArrayLength / 4 - peakpos[i]] =
                 peakheight[i];
         }
     }

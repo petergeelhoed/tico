@@ -1,7 +1,7 @@
 #include "myarr.h"
 #include <fftw3.h>
 
-fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength);
+fftw_complex* makeFilter(size_t evalue, size_t ArrayLength);
 
 size_t fftfit(struct myarr input,
               int* total,

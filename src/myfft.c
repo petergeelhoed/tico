@@ -9,7 +9,7 @@
 #include "mylib.h"
 #include "mysync.h"
 
-fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength)
+fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
 {
     fftw_complex* filter = fftw_alloc_complex(ArrayLength);
     fftw_complex* filterFFT = fftw_alloc_complex(ArrayLength);
@@ -27,22 +27,21 @@ fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength)
 
     if (evalue != 0)
     {
-        for (size_t j = 0; j < (size_t)(evalue * GAUSSPOINTS); j++)
+        for (size_t j = 0; j < evalue * GAUSSPOINTS; j++)
         {
             filter[j][0] =
                 GAUSSIAN_CONST / (double)evalue *
                 exp(-((double)(j * j)) / ((double)(evalue * evalue) / 2.0));
             filter[j][1] = 0.0;
         }
-        for (size_t j = (size_t)(evalue * GAUSSPOINTS);
-             j < ArrayLength - (size_t)(evalue * GAUSSPOINTS);
+        for (size_t j = evalue * GAUSSPOINTS;
+             j < ArrayLength - evalue * GAUSSPOINTS;
              j++)
         {
             filter[j][0] = 0.0;
             filter[j][1] = 0.0;
         }
-        for (size_t j = ArrayLength - (size_t)(evalue * GAUSSPOINTS);
-             j < ArrayLength;
+        for (size_t j = ArrayLength - evalue * GAUSSPOINTS; j < ArrayLength;
              j++)
         {
             filter[j][0] =

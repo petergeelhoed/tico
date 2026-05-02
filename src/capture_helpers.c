@@ -263,11 +263,14 @@ void rotateDerivativeWindow(AppResources* res,
                             unsigned int arrayLength,
                             int cumulativeShift)
 {
-    for (int j = 0; j < (int)arrayLength; ++j)
-    {
-        res->tmpder->arr[j] =
-            res->derivative->arr[modSigned(cumulativeShift + j, arrayLength)];
-    }
+    memmove(res->tmpder->arr,
+            res->derivative->arr + modSigned(cumulativeShift, arrayLength),
+            arrayLength * sizeof(int));
+    memmove(
+        res->tmpder->arr + arrayLength -
+            modSigned(cumulativeShift, arrayLength),
+        res->derivative->arr,
+        (unsigned long)modSigned(cumulativeShift, arrayLength) * sizeof(int));
 }
 
 int findMaxPosition(AppResources* res,

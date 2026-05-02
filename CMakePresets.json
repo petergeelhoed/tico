@@ -294,10 +294,10 @@
       "steps": [
         { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" },
-        { "type": "build",     "name": "clang-tidy" },
         { "type": "build",     "name": "debug-clang" },
-        { "type": "test",      "name": "debug_ctest-clang" },
-        { "type": "build",     "name": "quality-gcc-build" }
+        { "type": "build",     "name": "quality-gcc-build" },
+        { "type": "build",     "name": "clang-tidy" },
+        { "type": "test",      "name": "debug_ctest-clang" }
       ]
     }
   ]

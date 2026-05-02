@@ -15,11 +15,11 @@ struct mymat
     unsigned int Nrows;
 };
 
-unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
+size_t getmaxpos(const int* array, size_t ArrayLength)
 {
     int maxTick = -INT_MAX;
-    unsigned int maxIndex = 0;
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    size_t maxIndex = 0;
+    for (size_t j = 0; j < ArrayLength; j++)
     {
         if (array[j] > maxTick)
         {
@@ -32,7 +32,7 @@ unsigned int getmaxpos(const int* array, unsigned int ArrayLength)
 
 void linreg(const double* xarr,
             const double* yarr,
-            unsigned int ArrayLength,
+            size_t ArrayLength,
             double* intercept,
             double* slope,
             double* stdev)
@@ -51,15 +51,15 @@ void linreg(const double* xarr,
         sumYy += yarr[i] * yarr[i];
     }
 
-    *intercept =
-        (sumY * sumXx - sumX * sumXy) / (ArrayLength * sumXx - sumX * sumX);
-    *slope = (ArrayLength * sumXy - sumX * sumY) /
-             (ArrayLength * sumXx - sumX * sumX);
+    *intercept = (sumY * sumXx - sumX * sumXy) /
+                 ((double)ArrayLength * sumXx - sumX * sumX);
+    *slope = ((double)ArrayLength * sumXy - sumX * sumY) /
+             ((double)ArrayLength * sumXx - sumX * sumX);
     *stdev = sqrt((sumYy - 2 * (*intercept) * sumY - 2 * (*slope) * sumXy +
                    2 * (*intercept) * (*slope) * sumX +
-                   (*intercept) * (*intercept) * ArrayLength +
+                   (*intercept) * (*intercept) * (double)ArrayLength +
                    (*slope) * (*slope) * sumXx) /
-                  ArrayLength);
+                  (double)ArrayLength);
 }
 
 void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
@@ -188,11 +188,9 @@ void matlinreg(double coeffs[2],
             xarr[i + 1 + (Ncols + 1) * j] = xmat[i + j * Ncols];
         }
     }
-
     memcpy(xarrT, xarr, (Ncols + 1) * Nrows * sizeof(double));
     transpone(xarrT, Nrows, Ncols + 1);
-
-    // multiply by inverse of weigths
+    // multiply by inverse of weights
     for (unsigned int j = 0; j < Ncols + 1; j++)
     {
         for (unsigned int i = 0; i < Nrows; i++)
@@ -200,12 +198,10 @@ void matlinreg(double coeffs[2],
             xarrT[i + Nrows * j] *= weight[i] * weight[i];
         }
     }
-
     double* xtwx = mulmat(xarrT, Ncols + 1, Nrows, xarr, Nrows, Ncols + 1);
     if (xtwx != NULL)
     {
         invert(xtwx, Ncols + 1, Ncols + 1);
-
         memcpy(xarrT, xarr, (Ncols + 1) * Nrows * sizeof(double));
         transpone(xarrT, Nrows, Ncols + 1);
         double* pipe =
@@ -219,15 +215,14 @@ void matlinreg(double coeffs[2],
                     pipe[i + Nrows * j] *= weight[i] * weight[i];
                 }
             }
-
             double* cffs = mulmat(pipe, Ncols + 1, Nrows, vec, Nrows, 1);
             coeffs[0] = cffs[0];
             coeffs[1] = cffs[1];
             free(cffs);
             free(pipe);
         }
+        free(xtwx);
     }
-    free(xtwx);
     free(xarr);
     free(xarrT);
 }
@@ -539,14 +534,14 @@ int nearlyEqual(double number0, double number1)
     return diff <= relEps * maxab;
 }
 
-int shiftHalf(unsigned int value, unsigned int ArrayLength)
+int shiftHalf(size_t value, size_t ArrayLength)
 {
     return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) -
            (int)(ArrayLength / 2);
 }
 
 // mods an int with a signed int, but makes sure the result is positive
-size_t modSigned(int value, unsigned int ArrayLength)
+size_t modSigned(int value, size_t ArrayLength)
 {
     return (size_t)(((value % (int)ArrayLength) + (int)ArrayLength) %
                     (int)ArrayLength);

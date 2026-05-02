@@ -33,14 +33,14 @@ void fastlinreg(double coeffs[2],
 
 int nearlyEqual(double number0, double number1);
 
-unsigned int getmaxpos(const int* array, unsigned int ArrayLength);
+size_t getmaxpos(const int* array, size_t ArrayLength);
 
 void linreg(const double* xarr,
             const double* yarr,
-            unsigned int ArrayLength,
+            size_t ArrayLength,
             double* intercept,
             double* slope,
             double* stdev);
 
-int shiftHalf(unsigned int value, unsigned int ArrayLength);
-size_t modSigned(int value, unsigned int ArrayLength);
+int shiftHalf(size_t value, size_t ArrayLength);
+size_t modSigned(int value, size_t ArrayLength);

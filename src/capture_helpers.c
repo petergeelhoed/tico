@@ -40,10 +40,10 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 unsigned int mod,
-                 unsigned int columns,
+                 size_t mod,
+                 size_t columns,
                  double avgPos,
-                 unsigned int correlationThreshold)
+                 size_t correlationThreshold)
 {
     while (maxpos < (int)mod)
     {
@@ -53,7 +53,7 @@ void printspaces(int maxpos,
     {
         avgPos += (double)mod;
     }
-    const unsigned int default_columns = 80;
+    const size_t default_columns = 80;
     columns = columns > MAX_COLUMNS ? default_columns : columns;
     size_t width = modSigned(maxpos, mod) * columns / mod;
     size_t widtha = modSigned((int)lround(avgPos), mod) * columns / mod;
@@ -70,7 +70,7 @@ void printspaces(int maxpos,
         stderr,
         "%s%s%X\033[0m",
         spaces,
-        (unsigned int)hexvalue < correlationThreshold ? "\033[31m" : "\033[32m",
+        (size_t)hexvalue < correlationThreshold ? "\033[31m" : "\033[32m",
         (int)hexvalue);
 
     memset(spaces, ' ', width);
@@ -252,8 +252,8 @@ void fitAndPrint(size_t tickIndex,
 
     printspaces(res->maxpos->arr[(unsigned int)tickIndex],
                 res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE,
-                (unsigned int)mod,
-                (unsigned int)(currentColumns - cfg->everyline),
+                mod,
+                currentColumns - cfg->everyline,
                 intercept,
                 cfg->cvalue);
 }

@@ -13,10 +13,10 @@ void printheader(double fittedRate,
 
 void printspaces(int maxpos,
                  double hexvalue,
-                 unsigned int mod,
-                 unsigned int columns,
+                 size_t mod,
+                 size_t columns,
                  double avgPos,
-                 unsigned int correlationThreshold);
+                 size_t correlationThreshold);
 
 void printFinals(CapConfig* cfg,
                  AppResources* res,

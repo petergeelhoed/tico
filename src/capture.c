@@ -64,9 +64,7 @@ static int processCaptureTick(CapConfig* cfg,
                         res->maxvals);
     }
 
-    int readStatus =
-        getData(cfg->fpInput, res->derivative, ctx, res->audioBuffer16);
-    if (readStatus < 0)
+    if (getData(cfg->fpInput, res->derivative, ctx, res->audioBuffer16) < 0)
     {
         return -1;
     }

@@ -53,7 +53,7 @@
 #define RATE_WIDTH 8
 #define READ_FAILED -1
 #define REINIT_ERROR -32
-#define ROUNDING_HALF 0.5
+#define HALF 0.5
 #define SECS_DAY 86400
 #define SECS_HOUR 3600
 #define THOUSAND 1000

@@ -31,7 +31,7 @@ fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
         {
             filter[j][0] =
                 GAUSSIAN_CONST / (double)evalue *
-                exp(-((double)(j * j)) / ((double)(evalue * evalue) / 2.0));
+                exp(-((double)(j * j)) / ((double)(evalue * evalue) * HALF));
             filter[j][1] = 0.0;
         }
         for (size_t j = evalue * GAUSSPOINTS;
@@ -47,7 +47,7 @@ fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
             filter[j][0] =
                 GAUSSIAN_CONST / (double)evalue *
                 exp(-((double)((ArrayLength - j) * (ArrayLength - j))) /
-                    ((double)(evalue * evalue) / 2.0));
+                    ((double)(evalue * evalue) * HALF));
             filter[j][1] = 0.0;
         }
     }

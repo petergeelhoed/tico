@@ -140,7 +140,7 @@ int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
         exit(EXIT_FAILURE);
     }
 
-    *actualRate = (unsigned int)(cfg->rate + ROUNDING_HALF);
+    *actualRate = (unsigned int)(cfg->rate + HALF);
     if (cfg->fpInput == NULL)
     {
         printf("Casting inputrate %f to soundcard(%s) rate %d\n",

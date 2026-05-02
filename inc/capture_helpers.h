@@ -47,14 +47,14 @@ void fitAndPrint(unsigned int tickIndex,
                  unsigned int currentColumns);
 
 void rotateDerivativeWindow(AppResources* res,
-                            unsigned int arrayLength,
+                            size_t arrayLength,
                             int cumulativeShift);
 
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
                     unsigned int globalTickIndex,
                     unsigned int tickIndex,
-                    unsigned int arrayLength,
+                    size_t arrayLength,
                     CapConfig* cfg);
 
 int updateTotalShiftIfNeeded(int cumulativeShift,

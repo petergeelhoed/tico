@@ -169,11 +169,11 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, unsigned int teeth)
 
         for (int i = 0; i < 3; i++)
         {
-            reference
-                ->arr[reference->ArrayLength / 4 - (unsigned int)peakpos[i]] =
+            reference->arr[reference->ArrayLength / 4 - (size_t)peakpos[i]] =
                 peakheight[i];
-            reference->arr[3 * reference->ArrayLength / 4 -
-                           (unsigned int)peakpos[i]] = peakheight[i];
+            reference
+                ->arr[3 * reference->ArrayLength / 4 - (size_t)peakpos[i]] =
+                peakheight[i];
         }
     }
 }
@@ -260,7 +260,7 @@ void fitAndPrint(unsigned int tickIndex,
 }
 
 void rotateDerivativeWindow(AppResources* res,
-                            unsigned int arrayLength,
+                            size_t arrayLength,
                             int cumulativeShift)
 {
     memmove(res->tmpder->arr,
@@ -276,7 +276,7 @@ int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
                     unsigned int globalTickIndex,
                     unsigned int tickIndex,
-                    unsigned int arrayLength,
+                    size_t arrayLength,
                     CapConfig* cfg)
 {
     const int useReference = (globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);

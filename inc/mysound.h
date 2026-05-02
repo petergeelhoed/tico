@@ -13,7 +13,7 @@ typedef struct CaptureCtx
     unsigned int rate;
     snd_pcm_uframes_t periodSize;
     snd_pcm_uframes_t bufferSize;
-    unsigned int ArrayLength; // frames per processing block
+    size_t ArrayLength; // frames per processing block
 } CaptureCtx;
 
 // NOLINTNEXTLINE(misc-include-cleaner)
@@ -22,7 +22,7 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate);
 int initAudioSource(CapConfig* cfg, unsigned int* actualRate);
 
 int readBufferOrFile(int* derivative,
-                     unsigned int ArrayLength,
+                     size_t ArrayLength,
                      FILE* fpInput,
                      CaptureCtx* ctx,
                      int16_t* buffer16);
@@ -36,4 +36,4 @@ void captureTeardown(CaptureCtx* ctx);
 
 int captureSetup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate);
 
-int readSamples(snd_pcm_t* cap, unsigned int ArrayLength, int16_t* out);
+int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out);

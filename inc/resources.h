@@ -20,8 +20,8 @@ typedef struct
     int16_t* audioBuffer16;
 } AppResources;
 
-AppResources allocateResources(unsigned int arrayLength,
-                               unsigned int ticktockBuffer,
+AppResources allocateResources(size_t arrayLength,
+                               size_t ticktockBuffer,
                                CapConfig* cfg);
 
 void cleanupResources(AppResources* res, CapConfig* cfg, CaptureCtx* ctx);

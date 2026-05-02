@@ -5,9 +5,9 @@ struct myarr
 {
     int* arr;
     double* arrd;
-    unsigned int ArrayLength;
+    size_t ArrayLength;
 };
 
 void freemyarr(struct myarr* arr);
-struct myarr* makemyarr(unsigned int ArrayLength);
-struct myarr* makemyarrd(unsigned int ArrayLength);
+struct myarr* makemyarr(size_t ArrayLength);
+struct myarr* makemyarrd(size_t ArrayLength);

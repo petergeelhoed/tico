@@ -1,5 +1,5 @@
 #pragma once
-void crosscorint(unsigned int ArrayLength,
+void crosscorint(size_t ArrayLength,
                  const int* array,
                  const int* ref,
                  int* cross);

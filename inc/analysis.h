@@ -4,9 +4,9 @@
 
 #include <stdio.h>
 
-void calculateTotalFromFile(unsigned int count,
+void calculateTotalFromFile(size_t count,
                             FILE* rawfile,
-                            unsigned int ArrayLength,
+                            size_t ArrayLength,
                             double threshold,
                             double rate);
 

@@ -1,7 +1,7 @@
 #include "myarr.h"
 #include <fftw3.h>
 
-fftw_complex* makeFilter(unsigned int evalue, unsigned int ArrayLength);
+fftw_complex* makeFilter(unsigned int evalue, size_t ArrayLength);
 
 unsigned int fftfit(struct myarr input,
                     int* total,
@@ -12,13 +12,13 @@ unsigned int fftfit(struct myarr input,
                     double* subpos);
 fftw_complex* convolute(struct myarr array, fftw_complex* filter);
 
-unsigned int getmaxfftw(fftw_complex* array, unsigned int ArrayLength);
-fftw_complex* crosscor(unsigned int ArrayLength,
+size_t getmaxfftw(fftw_complex* array, size_t ArrayLength);
+fftw_complex* crosscor(size_t ArrayLength,
                        fftw_complex* array,
                        fftw_complex* ref);
-void writefftw(fftw_complex* arr, unsigned int ArrayLength, const char* file);
+void writefftw(fftw_complex* arr, size_t ArrayLength, const char* file);
 
-void remove50hz(unsigned int ArrayLength, int* array, unsigned int rate);
-void normalise(unsigned int ArrayLength, fftw_complex* inData);
-void rescale(int* total, unsigned int ArrayLength);
+void remove50hz(size_t ArrayLength, int* array, unsigned int rate);
+void normalise(size_t ArrayLength, fftw_complex* inData);
+void rescale(int* total, size_t ArrayLength);
 int getshift(struct myarr xarr, struct myarr yarr);

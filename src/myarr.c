@@ -11,7 +11,7 @@ void freemyarr(struct myarr* arr)
     free(arr);
 }
 
-struct myarr* makemyarrd(unsigned int ArrayLength)
+struct myarr* makemyarrd(size_t ArrayLength)
 {
     struct myarr* ret = (struct myarr*)calloc(1, sizeof(struct myarr));
     if (ret == NULL)
@@ -29,7 +29,7 @@ struct myarr* makemyarrd(unsigned int ArrayLength)
     ret->ArrayLength = ArrayLength;
     return ret;
 }
-struct myarr* makemyarr(unsigned int ArrayLength)
+struct myarr* makemyarr(size_t ArrayLength)
 {
     struct myarr* ret = (struct myarr*)calloc(1, sizeof(struct myarr));
     if (ret == NULL)

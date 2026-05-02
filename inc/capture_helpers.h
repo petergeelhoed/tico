@@ -20,31 +20,29 @@ void printspaces(int maxpos,
 
 void printFinals(CapConfig* cfg,
                  AppResources* res,
-                 unsigned int ArrayLength,
-                 unsigned int totalTickTock);
+                 size_t ArrayLength,
+                 size_t totalTickTock);
 
-void fillReference(FILE* fpDefPeak,
-                   struct myarr* reference,
-                   unsigned int teeth);
+void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth);
 
-void shiftBufferData(unsigned int* ticktock,
+void shiftBufferData(size_t* ticktock,
                      struct myarr* subpos,
                      struct myarr* maxpos,
                      struct myarr* maxvals);
 
 void processLogging(CapConfig* cfg,
                     AppResources* res,
-                    unsigned int totalTime,
-                    unsigned int writeInterval);
+                    size_t totalTime,
+                    size_t writeInterval);
 
-void fitAndPrint(unsigned int tickIndex,
-                 unsigned int globalTickIndex,
+void fitAndPrint(size_t tickIndex,
+                 size_t globalTickIndex,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
-                 unsigned int arrayLength,
-                 unsigned int mod,
-                 unsigned int currentColumns);
+                 size_t arrayLength,
+                 size_t mod,
+                 size_t currentColumns);
 
 void rotateDerivativeWindow(AppResources* res,
                             size_t arrayLength,

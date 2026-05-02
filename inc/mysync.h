@@ -4,7 +4,7 @@
 
 void waitClose(FILE* file);
 void wait(void);
-int syncwrite(int* input, unsigned int ArrayLength, const char* file);
+int syncwrite(int* input, size_t ArrayLength, const char* file);
 void printTOD(FILE* out);
 
 void syncAppendMyarr(struct myarr* input, FILE* file);

@@ -246,31 +246,32 @@ fftw_complex* crosscor(size_t ArrayLength,
 
 int getshift(const struct myarr xarr, const struct myarr yarr)
 {
-    size_t ArrayLength = xarr.ArrayLength;
-    if (ArrayLength == 0)
+    if (xarr.ArrayLength != yarr.ArrayLength || xarr.ArrayLength == 0)
     {
         return 0;
     }
 
-    fftw_complex* F_x = fftw_alloc_complex(ArrayLength);
-    fftw_complex* F_y = fftw_alloc_complex(ArrayLength);
+    fftw_complex* F_x = fftw_alloc_complex(xarr.ArrayLength);
+    fftw_complex* F_y = fftw_alloc_complex(yarr.ArrayLength);
 
-    for (unsigned int j = 0; j < ArrayLength; j++)
+    for (size_t j = 0; j < xarr.ArrayLength; j++)
     {
         F_x[j][0] = (double)xarr.arr[j];
         F_x[j][1] = 0.0;
         F_y[j][0] = (double)yarr.arr[j];
         F_y[j][1] = 0.0;
     }
-    fftw_complex* corr = crosscor(ArrayLength, F_x, F_y);
+    fftw_complex* corr = crosscor(xarr.ArrayLength, F_x, F_y);
 
-    size_t poscor = getmaxfftw(corr, ArrayLength);
+    size_t poscor = getmaxfftw(corr, xarr.ArrayLength);
     fftw_free(F_x);
     fftw_free(corr);
     fftw_free(F_y);
     fftw_cleanup();
-    return (((int)poscor + (int)ArrayLength / 2) % (int)(ArrayLength)) -
-           (int)(ArrayLength / 2);
+
+    return (((int)poscor + (int)xarr.ArrayLength / 2) %
+            (int)(xarr.ArrayLength)) -
+           (int)(xarr.ArrayLength / 2);
 }
 
 size_t fftfit(const struct myarr input,

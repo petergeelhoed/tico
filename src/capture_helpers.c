@@ -55,8 +55,8 @@ void printspaces(int maxpos,
     }
     const unsigned int default_columns = 80;
     columns = columns > MAX_COLUMNS ? default_columns : columns;
-    size_t width = (size_t)modSigned(maxpos, mod) * columns / mod;
-    size_t widtha = (size_t)modSigned((int)lround(avgPos), mod) * columns / mod;
+    size_t width = modSigned(maxpos, mod) * columns / mod;
+    size_t widtha = modSigned((int)lround(avgPos), mod) * columns / mod;
 
     char spaces[MAX_COLUMNS];
     memset(spaces, ' ', width);
@@ -266,11 +266,10 @@ void rotateDerivativeWindow(AppResources* res,
     memmove(res->tmpder->arr,
             res->derivative->arr + modSigned(cumulativeShift, arrayLength),
             arrayLength * sizeof(int));
-    memmove(
-        res->tmpder->arr + arrayLength -
-            modSigned(cumulativeShift, arrayLength),
-        res->derivative->arr,
-        (unsigned long)modSigned(cumulativeShift, arrayLength) * sizeof(int));
+    memmove(res->tmpder->arr + arrayLength -
+                modSigned(cumulativeShift, arrayLength),
+            res->derivative->arr,
+            modSigned(cumulativeShift, arrayLength) * sizeof(int));
 }
 
 int findMaxPosition(AppResources* res,

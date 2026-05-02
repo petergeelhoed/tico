@@ -43,4 +43,4 @@ void linreg(const double* xarr,
             double* stdev);
 
 int shiftHalf(unsigned int value, unsigned int ArrayLength);
-int modSigned(int value, unsigned int ArrayLength);
+size_t modSigned(int value, unsigned int ArrayLength);

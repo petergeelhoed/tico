@@ -13,7 +13,6 @@
 #include "myarr.h"
 #include "mydefs.h"
 #include "myfft.h"
-#include "mylib.h"
 #include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"

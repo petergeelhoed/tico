@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mydefs.h"
 #include "myfft.h"
-#include "mylib.h"
 
 int main(void)
 {

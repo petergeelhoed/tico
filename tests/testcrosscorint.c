@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "crosscorint.h"
 #include "myfft.h"
-#include "mylib.h"
 // Magic number constants
 #define CROSSCOR_ARRAY_LENGTH 20
 #define CROSSCOR_INDEX_1 4

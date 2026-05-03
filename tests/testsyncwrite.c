@@ -3,7 +3,6 @@
 
 #include "myarr.h"
 #include "mydefs.h"
-#include "mylib.h"
 #include "mysync.h"
 
 // Magic number constants

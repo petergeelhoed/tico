@@ -5,7 +5,6 @@
 #define FFT_INDEX_2 7
 
 #include "myfft.h"
-#include "mylib.h"
 #include "mysync.h"
 #include <fftw3.h>
 #include <stdio.h>

@@ -5,8 +5,8 @@
 #include <stdlib.h>
 
 #include "myarr.h"
+#include "mydefs.h"
 #include "myfft.h"
-#include "mylib.h"
 #include "mysync.h"
 
 fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)

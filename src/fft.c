@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "mydefs.h"
 #include "myfft.h"
-#include "mylib.h"
 #include "mymath.h"
 typedef struct
 {

@@ -3,7 +3,6 @@
 #include "myarr.h"
 #include "mydefs.h"
 #include "myfft.h"
-#include "mylib.h"
 #include "mysync.h"
 #include "parseargs.h"
 

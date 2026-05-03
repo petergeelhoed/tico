@@ -1,4 +1,3 @@
-#include "mylib.h"
 #include "mymath.h"
 #include "parseargs.h"
 

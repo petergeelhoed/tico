@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 #include "myfft.h"
-#include "mylib.h"
 
 // Magic number constants
 #define SIGNAL_ARRAY_LENGTH 48000

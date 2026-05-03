@@ -3,6 +3,7 @@
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
+/** brief struct to hold the configuration parameters for the capture process */
 typedef struct
 {
     double rate;

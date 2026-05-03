@@ -173,6 +173,7 @@ void waitClose(FILE* file)
 
     (void)fclose(file);
 }
+
 void wait(void)
 {
     thread_ctr_lock();

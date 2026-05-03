@@ -21,7 +21,28 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
-static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples);
+static int derived(int* derivative, size_t ArrayLength, int16_t* samples)
+{
+
+    int clipCount = 0;
+
+    for (size_t k = 0; k < ArrayLength - 1; k++)
+    {
+        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
+        {
+            ++clipCount;
+        }
+        derivative[k] = abs(samples[k] - samples[k + 1]);
+    }
+
+    if (clipCount > 1)
+    {
+        (void)fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clipCount);
+    }
+    derivative[ArrayLength - 1] = 0;
+    return (int)ArrayLength;
+}
+
 // Helper to handle repetitive ALSA parameter setting and error reporting
 static void checkAlsaErr(int err,
                          const char* device,
@@ -155,28 +176,6 @@ int initAudioSource(CapConfig* cfg, unsigned int* actualRate)
                : 0;
 }
 
-static int derived(int* derivative, unsigned int ArrayLength, int16_t* samples)
-{
-
-    int clipCount = 0;
-
-    for (unsigned int k = 0; k < ArrayLength - 1; k++)
-    {
-        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
-        {
-            ++clipCount;
-        }
-        derivative[k] = abs(samples[k] - samples[k + 1]);
-    }
-
-    if (clipCount > 1)
-    {
-        (void)fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clipCount);
-    }
-    derivative[ArrayLength - 1] = 0;
-    return (int)ArrayLength;
-}
-
 int readBufferOrFile(int* derivative,
                      size_t ArrayLength,
                      FILE* fpInput,
@@ -241,7 +240,7 @@ int readBufferOrFile(int* derivative,
         }
     }
 
-    return derived(derivative, (unsigned int)ArrayLength, buffer16);
+    return derived(derivative, ArrayLength, buffer16);
 }
 
 // Get data from audio capture

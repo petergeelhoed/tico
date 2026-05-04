@@ -378,15 +378,25 @@ static int description_has_usb(const char* desc)
     return 0;
 }
 
-const char* get_default_device(void)
+static void strip_newline(char* str)
 {
-    static char device[MAX_DEVICE_LENGTH] = "";
-    static char fallback[MAX_DEVICE_LENGTH] = "";
-    FILE* alsa_pipe = popen("arecord -L", "r");
+    char* newline_ptr = strchr(str, '\n');
+    if (newline_ptr)
+    {
+        *newline_ptr = '\0';
+    }
+}
+
+// Helper: Find a sysdefault device whose description contains 'usb'
+static int find_sysdefault_usb_device(char* out, size_t outlen)
+{
+    FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input
+
     if (!alsa_pipe)
     {
-        return "default";
+        return 0;
     }
+    char device[MAX_DEVICE_LENGTH];
     char description[DEVICE_DESC_LEN];
     while (fgets(device, sizeof(device), alsa_pipe))
     {
@@ -395,40 +405,70 @@ const char* get_default_device(void)
             continue;
         }
         long rewind_pos = ftell(alsa_pipe);
-        if (strstr(device, "sysdefault:"))
+        if (!strstr(device, "sysdefault:"))
         {
-            if (fgets(description, sizeof(description), alsa_pipe))
+            if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
             {
-                if (description_has_usb(description))
-                {
-                    char* newline_ptr = strchr(device, '\n');
-                    if (newline_ptr)
-                    {
-                        *newline_ptr = '\0';
-                    }
-                    pclose(alsa_pipe);
-                    return device;
-                }
+                break;
             }
-            if (fallback[0] == '\0')
-            {
-                strncpy(fallback, device, sizeof(fallback) - 1);
-                char* newline_ptr = strchr(fallback, '\n');
-                if (newline_ptr)
-                {
-                    *newline_ptr = '\0';
-                }
-            }
+            continue;
+        }
+        if (fgets(description, sizeof(description), alsa_pipe) &&
+            description_has_usb(description))
+        {
+            strncpy(out, device, outlen - 1);
+            out[outlen - 1] = '\0';
+            strip_newline(out);
+            pclose(alsa_pipe);
+            return 1;
         }
         if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
         {
-            break; // If fseek fails, break to avoid infinite loop
+            break;
         }
     }
     pclose(alsa_pipe);
-    if (fallback[0] != '\0')
+    return 0;
+}
+
+// Helper: Find any sysdefault device
+static int find_any_sysdefault_device(char* out, size_t outlen)
+{
+    FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input
+    if (!alsa_pipe)
     {
-        return fallback;
+        return 0;
+    }
+    char device[MAX_DEVICE_LENGTH];
+    while (fgets(device, sizeof(device), alsa_pipe))
+    {
+        if (!is_device_line(device))
+        {
+            continue;
+        }
+        if (strstr(device, "sysdefault:"))
+        {
+            strncpy(out, device, outlen - 1);
+            out[outlen - 1] = '\0';
+            strip_newline(out);
+            pclose(alsa_pipe);
+            return 1;
+        }
+    }
+    pclose(alsa_pipe);
+    return 0;
+}
+
+const char* get_default_device(void)
+{
+    static char device[MAX_DEVICE_LENGTH] = "";
+    if (find_sysdefault_usb_device(device, sizeof(device)))
+    {
+        return device;
+    }
+    if (find_any_sysdefault_device(device, sizeof(device)))
+    {
+        return device;
     }
     return "default";
 }

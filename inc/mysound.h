@@ -2,6 +2,8 @@
 
 // Print all ALSA logical capture devices (suggested input devices)
 void get_suggested_device(void);
+// Returns the first 'plughw:' device from arecord -L output (skipping comments/blank lines)
+const char* get_default_device(void);
 #include "config.h"
 #include "myarr.h"
 #include <alsa/asoundlib.h> // IWYU pragma: export

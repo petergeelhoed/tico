@@ -1,22 +1,81 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+#include "mysound.h"
+
+
+
+
+
+
+
+// Prefer a sysdefault device whose description contains 'usb', else any sysdefault, else 'default'
+const char* get_default_device(void) {
+    static char device[256] = "";
+    static char fallback[256] = "";
+    FILE *fa = popen("arecord -L", "r");
+    if (!fa) {
+        return "default";
+    }
+    char desc[256];
+    while (fgets(device, sizeof(device), fa)) {
+        if (device[0] != '\t' && device[0] != '\n' && device[0] != '#') {
+            long pos = ftell(fa);
+            if (strstr(device, "sysdefault:")) {
+                if (fgets(desc, sizeof(desc), fa)) {
+                    // Case-insensitive search for 'usb' in description
+                    char *d = desc;
+                    for (; *d; ++d) *d = (char)tolower((unsigned char)*d);
+                    if (strstr(desc, "usb")) {
+                        char *nl = strchr(device, '\n');
+                        if (nl) *nl = '\0';
+                        pclose(fa);
+                        return device;
+                    }
+                }
+                // Save as fallback if no USB found
+                if (fallback[0] == '\0') {
+                    strncpy(fallback, device, sizeof(fallback)-1);
+                    char *nl = strchr(fallback, '\n');
+                    if (nl) *nl = '\0';
+                }
+            }
+            fseek(fa, pos, SEEK_SET); // rewind if not a match
+        }
+    }
+    pclose(fa);
+    if (fallback[0] != '\0') return fallback;
+    return "default";
+}
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mysound.h"
 
 
 // Print all ALSA logical capture devices (suggested input devices)
 void get_suggested_device(void) {
-    printf("[Suggested ALSA Input Devices] (from arecord -L):\n");
+    printf("[Suggested ALSA Input Devices with Microphone] (from arecord -L):\n");
     FILE *fa = popen("arecord -L", "r");
     if (!fa) {
         perror("arecord -L");
         return;
     }
     char line[256];
+    char desc[256];
     while (fgets(line, sizeof(line), fa)) {
-        // Only print lines that look like device names (not indented)
+        // Only consider lines that look like device names (not indented)
         if (line[0] != '\t' && line[0] != '\n') {
-            printf("  %s", line);
+            long pos = ftell(fa);
+            if (fgets(desc, sizeof(desc), fa)) {
+                // Check if the next line (description) contains 'mic', 'microphone', or 'input' (case-insensitive)
+                char *d = desc;
+                for (; *d; ++d) *d = (char)tolower((unsigned char)*d);
+                if (strstr(desc, "mic") || strstr(desc, "microphone") || strstr(desc, "input")) {
+                    printf("  %s", line);
+                }
+            }
+            fseek(fa, pos, SEEK_SET); // rewind if not a match
         }
     }
     pclose(fa);

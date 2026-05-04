@@ -4,12 +4,24 @@ Audio capture and terminal visualization tool that captures from a microphone an
 
 ## Features
 
-- Real-time audio capture from microphone
+- Real-time audio capture from microphone (robust automatic device selection)
 - FFT-based frequency analysis
 - Customizable logging options (e.g., average sound per tick with peak detection)
 - Terminal-based visualization
 - Multi-compiler support (GCC, latest available Clang)
 - Debug and Release build configurations
+
+## Microphone Device Selection
+
+By default, tico automatically selects the most appropriate microphone device using robust heuristics:
+
+- **USB microphones are preferred**: If a sysdefault device with a USB description is found, it is used automatically.
+- **Sysdefault fallback**: If no USB device is found, any sysdefault device is used.
+- **Final fallback**: If no sysdefault device is found, the standard "default" ALSA device is used.
+
+This logic ensures that USB microphones are prioritized for best compatibility and quality, but the program will work out-of-the-box on most Linux systems with ALSA.
+
+You can override the device selection by specifying the device name with the `-d` option.
 
 ## Prerequisites
 

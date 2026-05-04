@@ -357,13 +357,25 @@ int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
     return (int)collected;
 }
 
-#define DEVICE_DESC_LEN 256
 
+/**
+ * @brief Check if a line from arecord -L output is a device line (not a comment or blank).
+ *
+ * @param line The line to check.
+ * @return 1 if the line is a device line, 0 otherwise.
+ */
 static int is_device_line(const char* line)
 {
     return line[0] != '\t' && line[0] != '\n' && line[0] != '#';
 }
 
+
+/**
+ * @brief Check if a device description contains the substring "usb" (case-insensitive).
+ *
+ * @param desc The device description string.
+ * @return 1 if "usb" is found, 0 otherwise.
+ */
 static int description_has_usb(const char* desc)
 {
     for (const char* p = desc; *p; ++p)
@@ -378,6 +390,12 @@ static int description_has_usb(const char* desc)
     return 0;
 }
 
+
+/**
+ * @brief Remove the trailing newline from a string, if present.
+ *
+ * @param str The string to modify in place.
+ */
 static void strip_newline(char* str)
 {
     char* newline_ptr = strchr(str, '\n');
@@ -387,7 +405,14 @@ static void strip_newline(char* str)
     }
 }
 
-// Helper: Find a sysdefault device whose description contains 'usb'
+
+/**
+ * @brief Find a sysdefault ALSA device whose description contains "usb".
+ *
+ * @param out Output buffer to store the device name.
+ * @param outlen Length of the output buffer.
+ * @return 1 if a USB sysdefault device is found, 0 otherwise.
+ */
 static int find_sysdefault_usb_device(char* out, size_t outlen)
 {
     FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input
@@ -397,7 +422,7 @@ static int find_sysdefault_usb_device(char* out, size_t outlen)
         return 0;
     }
     char device[MAX_DEVICE_LENGTH];
-    char description[DEVICE_DESC_LEN];
+    char description[MAX_DEVICE_LENGTH];
     while (fgets(device, sizeof(device), alsa_pipe))
     {
         if (!is_device_line(device))
@@ -431,7 +456,14 @@ static int find_sysdefault_usb_device(char* out, size_t outlen)
     return 0;
 }
 
-// Helper: Find any sysdefault device
+
+/**
+ * @brief Find any sysdefault ALSA device.
+ *
+ * @param out Output buffer to store the device name.
+ * @param outlen Length of the output buffer.
+ * @return 1 if a sysdefault device is found, 0 otherwise.
+ */
 static int find_any_sysdefault_device(char* out, size_t outlen)
 {
     FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input

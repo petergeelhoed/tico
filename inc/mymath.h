@@ -2,17 +2,20 @@
 
 /** @brief Transposes a matrix in-place.
  *
+ * @param arr The matrix to transpose, stored as a 1D array in row-major order.
  * @param Nrows The number of rows in the original matrix.
  * @param Ncols The number of columns in the original matrix.
  */
-void transpone(double*, unsigned int Nrows, unsigned int Ncols);
+void transpone(double* arr, unsigned int Nrows, unsigned int Ncols);
 
 /** @brief Inverts a square matrix in-place.
- *
+
+ * @param arr The square matrix to invert, stored as a 1D array in row-major
+ order. The result will overwrite the original matrix.
  * @param Nrows The number of rows (and columns) in the square matrix.
  * @param Ncols The number of columns (and rows) in the square matrix.
  */
-void invert(double*, unsigned int Nrows, unsigned int Ncols);
+void invert(double* arr, unsigned int Nrows, unsigned int Ncols);
 
 /** @brief Multiplies two matrices and returns the result as a new matrix.
  *

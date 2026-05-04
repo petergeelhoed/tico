@@ -28,6 +28,11 @@ jobs:
             libfftw3-dev \
             libasound2-dev
 
+      - name: Install Doxygen and Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
       - name: Show toolchain versions
         run: |
           echo "Compiler: ${{ matrix.compiler }}"

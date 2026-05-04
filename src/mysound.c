@@ -1,3 +1,26 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "mysound.h"
+
+
+// Print all ALSA logical capture devices (suggested input devices)
+void get_suggested_device(void) {
+    printf("[Suggested ALSA Input Devices] (from arecord -L):\n");
+    FILE *fa = popen("arecord -L", "r");
+    if (!fa) {
+        perror("arecord -L");
+        return;
+    }
+    char line[256];
+    while (fgets(line, sizeof(line), fa)) {
+        // Only print lines that look like device names (not indented)
+        if (line[0] != '\t' && line[0] != '\n') {
+            printf("  %s", line);
+        }
+    }
+    pclose(fa);
+}
 #include "mysound.h"
 #include "config.h"
 #include "myarr.h"

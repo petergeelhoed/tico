@@ -1,4 +1,6 @@
+
 #pragma once
+void print_card_device_mapping(void);
 
 #include "config.h"
 #include "myarr.h"

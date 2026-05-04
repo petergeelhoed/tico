@@ -1,4 +1,7 @@
 #pragma once
+
+// Print all ALSA logical capture devices (suggested input devices)
+void get_suggested_device(void);
 #include "config.h"
 #include "myarr.h"
 #include <alsa/asoundlib.h> // IWYU pragma: export

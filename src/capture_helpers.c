@@ -3,56 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-void print_card_device_mapping(void) {
-    printf("[DEBUG] print_card_device_mapping called\n");
-    struct CardInfo {
-        int idx;
-        char label[64];
-    } cards[16];
-    int card_count = 0;
-    FILE *fcards = fopen("/proc/asound/cards", "r");
-    if (fcards) {
-        char line[256];
-        while (fgets(line, sizeof(line), fcards)) {
-            int idx;
-            char label[64];
-            if (sscanf(line, " %d [%63[^]]]", &idx, label) == 2) {
-                cards[card_count].idx = idx;
-                strncpy(cards[card_count].label, label, 63);
-                cards[card_count].label[63] = '\0';
-                card_count++;
-            }
-        }
-        fclose(fcards);
-    }
-
-    FILE *fa = popen("arecord -L", "r");
-    if (!fa) {
-        perror("arecord -L");
-        return;
-    }
-    printf("\n[ALSA Card Number to Device Mapping]\n");
-    char line[256];
-    while (fgets(line, sizeof(line), fa)) {
-        printf("[DEBUG] arecord -L: %s", line);
-        char cardlabel[64];
-        int devnum = -1;
-        if (sscanf(line, "hw:CARD=%63[^,],DEV=%d", cardlabel, &devnum) == 2) {
-            int found = 0;
-            for (int i = 0; i < card_count; ++i) {
-                if (strcmp(cards[i].label, cardlabel) == 0) {
-                    printf("  hw:%d  <=>  %s", cards[i].idx, line);
-                    found = 1;
-                    break;
-                }
-            }
-            if (!found) {
-                printf("  (unknown card) <=>  %s", line);
-            }
-        }
-    }
-    pclose(fa);
-}
 #include "capture_helpers.h"
 
 #include "analysis.h"

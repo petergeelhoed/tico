@@ -149,17 +149,6 @@ int main(int argc, char* argv[])
                      .fpInput = NULL,
                      .captureHandle = NULL};
 
-    // Check for --list-devices before parsing arguments
-    for (int i = 1; i < argc; ++i)
-    {
-        if (strcmp(argv[i], "--list-devices") == 0)
-        {
-            get_suggested_device();      // will print all ALSA logical devices
-            print_card_device_mapping(); // print mapping from card numbers to
-                                         // device names
-            return 0;
-        }
-    }
 
     parseArguments(argc, argv, &cfg);
     if (strlen(cfg.device) == 0)

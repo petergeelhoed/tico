@@ -53,33 +53,6 @@ const char* get_default_device(void) {
 #include <stdlib.h>
 
 
-// Print all ALSA logical capture devices (suggested input devices)
-void get_suggested_device(void) {
-    printf("[Suggested ALSA Input Devices with Microphone] (from arecord -L):\n");
-    FILE *fa = popen("arecord -L", "r");
-    if (!fa) {
-        perror("arecord -L");
-        return;
-    }
-    char line[256];
-    char desc[256];
-    while (fgets(line, sizeof(line), fa)) {
-        // Only consider lines that look like device names (not indented)
-        if (line[0] != '\t' && line[0] != '\n') {
-            long pos = ftell(fa);
-            if (fgets(desc, sizeof(desc), fa)) {
-                // Check if the next line (description) contains 'mic', 'microphone', or 'input' (case-insensitive)
-                char *d = desc;
-                for (; *d; ++d) *d = (char)tolower((unsigned char)*d);
-                if (strstr(desc, "mic") || strstr(desc, "microphone") || strstr(desc, "input")) {
-                    printf("  %s", line);
-                }
-            }
-            fseek(fa, pos, SEEK_SET); // rewind if not a match
-        }
-    }
-    pclose(fa);
-}
 #include "mysound.h"
 #include "config.h"
 #include "myarr.h"

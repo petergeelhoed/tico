@@ -357,9 +357,9 @@ int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
     return (int)collected;
 }
 
-
 /**
- * @brief Check if a line from arecord -L output is a device line (not a comment or blank).
+ * @brief Check if a line from arecord -L output is a device line (not a comment
+ * or blank).
  *
  * @param line The line to check.
  * @return 1 if the line is a device line, 0 otherwise.
@@ -369,9 +369,9 @@ static int is_device_line(const char* line)
     return line[0] != '\t' && line[0] != '\n' && line[0] != '#';
 }
 
-
 /**
- * @brief Check if a device description contains the substring "usb" (case-insensitive).
+ * @brief Check if a device description contains the substring "usb"
+ * (case-insensitive).
  *
  * @param desc The device description string.
  * @return 1 if "usb" is found, 0 otherwise.
@@ -390,7 +390,6 @@ static int description_has_usb(const char* desc)
     return 0;
 }
 
-
 /**
  * @brief Remove the trailing newline from a string, if present.
  *
@@ -405,7 +404,6 @@ static void strip_newline(char* str)
     }
 }
 
-
 /**
  * @brief Find a sysdefault ALSA device whose description contains "usb".
  *
@@ -415,7 +413,8 @@ static void strip_newline(char* str)
  */
 static int find_sysdefault_usb_device(char* out, size_t outlen)
 {
-    FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input
+    // NOLINTNEXTLINE(cert-env33-c) // Safe: command is fixed, no user input
+    FILE* alsa_pipe = popen("arecord -L", "r");
 
     if (!alsa_pipe)
     {
@@ -456,7 +455,6 @@ static int find_sysdefault_usb_device(char* out, size_t outlen)
     return 0;
 }
 
-
 /**
  * @brief Find any sysdefault ALSA device.
  *
@@ -466,7 +464,8 @@ static int find_sysdefault_usb_device(char* out, size_t outlen)
  */
 static int find_any_sysdefault_device(char* out, size_t outlen)
 {
-    FILE* alsa_pipe = popen("arecord -L", "r"); // NOLINT(cert-env33-c) // Safe: command is fixed, no user input
+    // NOLINTNEXTLINE(cert-env33-c) // Safe: command is fixed, no user input
+    FILE* alsa_pipe = popen("arecord -L", "r");
     if (!alsa_pipe)
     {
         return 0;

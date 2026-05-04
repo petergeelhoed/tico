@@ -129,6 +129,7 @@ CITE_BIB_FILES         =
 #--------------------------------------------------------------------------
 # Input configuration options
 #--------------------------------------------------------------------------
-INPUT                  = src inc
+INPUT                  = README.md src inc
 RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE   = @CMAKE_SOURCE_DIR@/README.md
 # ...rest of the Doxyfile options...

@@ -1,3 +1,4 @@
+# @mainpage
 # tico
 
 Audio capture and terminal visualization tool that captures from a microphone and displays a time-domain graph that scrolls across your terminal.

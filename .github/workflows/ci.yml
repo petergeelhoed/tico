@@ -15,25 +15,26 @@ jobs:
 
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install build dependencies and Doxygen/Graphviz
         run: |
           sudo apt-get update
-          # gcc, g++, clang, clang-tidy, cmake, and project deps
           sudo apt-get install -y \
             build-essential \
             cmake \
             gcc g++ \
             clang clang-tidy \
             libfftw3-dev \
-            libasound2-dev
+            libasound2-dev \
+            doxygen graphviz
 
-      - name: Install Doxygen and Graphviz
+      - name: Verify Doxygen and Graphviz installation
         run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
+          doxygen --version
+          dot -V
 
       - name: Show toolchain versions
         run: |

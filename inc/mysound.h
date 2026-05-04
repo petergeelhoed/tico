@@ -1,7 +1,5 @@
 #pragma once
 
-// Returns the first 'plughw:' device from arecord -L output (skipping comments/blank lines)
-const char* get_default_device(void);
 #include "config.h"
 #include "myarr.h"
 #include <alsa/asoundlib.h> // IWYU pragma: export
@@ -19,6 +17,20 @@ typedef struct CaptureCtx
     snd_pcm_uframes_t bufferSize;
     size_t ArrayLength; // frames per processing block
 } CaptureCtx;
+
+/**@brief Retrieves the default ALSA audio capture device, preferring sysdefault
+ * devices with 'usb' in their description. This function executes the 'arecord
+ * -L' command to list available ALSA devices and parses the output to find a
+ * suitable default device. It first looks for devices with 'sysdefault:' in
+ * their name and 'usb' in their description. If such a device is found, it is
+ * returned as the default. If no USB sysdefault device is found, it falls back
+ * to any sysdefault device. If no sysdefault devices are found, it returns
+ * 'default'.
+ * @return A string representing the default ALSA device to use for audio
+ * capture.
+ */
+const char* get_default_device(void);
+
 /** * @brief Initializes the ALSA audio capture device with the specified
  * format, device name, and sample rate.
  *

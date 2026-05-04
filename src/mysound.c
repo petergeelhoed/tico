@@ -1,58 +1,3 @@
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-
-#include "mysound.h"
-
-
-
-
-
-
-
-// Prefer a sysdefault device whose description contains 'usb', else any sysdefault, else 'default'
-const char* get_default_device(void) {
-    static char device[256] = "";
-    static char fallback[256] = "";
-    FILE *fa = popen("arecord -L", "r");
-    if (!fa) {
-        return "default";
-    }
-    char desc[256];
-    while (fgets(device, sizeof(device), fa)) {
-        if (device[0] != '\t' && device[0] != '\n' && device[0] != '#') {
-            long pos = ftell(fa);
-            if (strstr(device, "sysdefault:")) {
-                if (fgets(desc, sizeof(desc), fa)) {
-                    // Case-insensitive search for 'usb' in description
-                    char *d = desc;
-                    for (; *d; ++d) *d = (char)tolower((unsigned char)*d);
-                    if (strstr(desc, "usb")) {
-                        char *nl = strchr(device, '\n');
-                        if (nl) *nl = '\0';
-                        pclose(fa);
-                        return device;
-                    }
-                }
-                // Save as fallback if no USB found
-                if (fallback[0] == '\0') {
-                    strncpy(fallback, device, sizeof(fallback)-1);
-                    char *nl = strchr(fallback, '\n');
-                    if (nl) *nl = '\0';
-                }
-            }
-            fseek(fa, pos, SEEK_SET); // rewind if not a match
-        }
-    }
-    pclose(fa);
-    if (fallback[0] != '\0') return fallback;
-    return "default";
-}
-
-#include <stdio.h>
-#include <stdlib.h>
-
-
 #include "mysound.h"
 #include "config.h"
 #include "myarr.h"
@@ -62,6 +7,7 @@ const char* get_default_device(void) {
 #include "parseargs.h"
 
 #include <alsa/asoundlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <fftw3.h>
 #include <limits.h>
@@ -409,4 +355,67 @@ int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
         collected += (unsigned)got;
     }
     return (int)collected;
+}
+
+#define DEVICE_DESC_LEN 256
+
+const char* get_default_device(void)
+{
+    static char device[MAX_DEVICE_LENGTH] = "";
+    static char fallback[MAX_DEVICE_LENGTH] = "";
+    FILE* alsa_pipe = popen("arecord -L", "r");
+    if (!alsa_pipe)
+    {
+        return "default";
+    }
+    char description[DEVICE_DESC_LEN];
+    while (fgets(device, sizeof(device), alsa_pipe))
+    {
+        if (device[0] != '\t' && device[0] != '\n' && device[0] != '#')
+        {
+            long rewind_pos = ftell(alsa_pipe);
+            if (strstr(device, "sysdefault:"))
+            {
+                if (fgets(description, sizeof(description), alsa_pipe))
+                {
+                    // Case-insensitive search for 'usb' in description
+                    char* desc_ptr = description;
+                    for (; *desc_ptr; ++desc_ptr)
+                    {
+                        *desc_ptr = (char)tolower((unsigned char)*desc_ptr);
+                    }
+                    if (strstr(description, "usb"))
+                    {
+                        char* newline_ptr = strchr(device, '\n');
+                        if (newline_ptr)
+                        {
+                            *newline_ptr = '\0';
+                        }
+                        pclose(alsa_pipe);
+                        return device;
+                    }
+                }
+                // Save as fallback if no USB found
+                if (fallback[0] == '\0')
+                {
+                    strncpy(fallback, device, sizeof(fallback) - 1);
+                    char* newline_ptr = strchr(fallback, '\n');
+                    if (newline_ptr)
+                    {
+                        *newline_ptr = '\0';
+                    }
+                }
+            }
+            if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
+            {
+                break; // If fseek fails, break to avoid infinite loop
+            }
+        }
+    }
+    pclose(alsa_pipe);
+    if (fallback[0] != '\0')
+    {
+        return fallback;
+    }
+    return "default";
 }

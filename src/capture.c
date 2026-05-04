@@ -149,17 +149,15 @@ int main(int argc, char* argv[])
                      .fpInput = NULL,
                      .captureHandle = NULL};
 
-
     parseArguments(argc, argv, &cfg);
+
     if (strlen(cfg.device) == 0)
     {
         const char* defaultDevice = get_default_device();
         if (defaultDevice)
         {
             strncpy(cfg.device, defaultDevice, sizeof(cfg.device) - 1);
-            cfg.device[sizeof(cfg.device) - 1] =
-                '\0'; // Ensure null-termination
-            (void)fprintf(stderr, "Using default audio device: %s\n", cfg.device);
+            cfg.device[sizeof(cfg.device) - 1] = '\0';
         }
         else
         {

@@ -1,9 +1,4 @@
 #include "capture_helpers.h"
-#include "capture_helpers.h"
-#include <stdio.h>
-#include <string.h>
-
-#include "capture_helpers.h"
 
 #include "analysis.h"
 #include "mydefs.h"

@@ -359,6 +359,25 @@ int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
 
 #define DEVICE_DESC_LEN 256
 
+static int is_device_line(const char* line)
+{
+    return line[0] != '\t' && line[0] != '\n' && line[0] != '#';
+}
+
+static int description_has_usb(const char* desc)
+{
+    for (const char* p = desc; *p; ++p)
+    {
+        if (tolower((unsigned char)*p) == 'u' &&
+            tolower((unsigned char)*(p + 1)) == 's' &&
+            tolower((unsigned char)*(p + 2)) == 'b')
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 const char* get_default_device(void)
 {
     static char device[MAX_DEVICE_LENGTH] = "";
@@ -371,45 +390,39 @@ const char* get_default_device(void)
     char description[DEVICE_DESC_LEN];
     while (fgets(device, sizeof(device), alsa_pipe))
     {
-        if (device[0] != '\t' && device[0] != '\n' && device[0] != '#')
+        if (!is_device_line(device))
         {
-            long rewind_pos = ftell(alsa_pipe);
-            if (strstr(device, "sysdefault:"))
+            continue;
+        }
+        long rewind_pos = ftell(alsa_pipe);
+        if (strstr(device, "sysdefault:"))
+        {
+            if (fgets(description, sizeof(description), alsa_pipe))
             {
-                if (fgets(description, sizeof(description), alsa_pipe))
+                if (description_has_usb(description))
                 {
-                    // Case-insensitive search for 'usb' in description
-                    char* desc_ptr = description;
-                    for (; *desc_ptr; ++desc_ptr)
-                    {
-                        *desc_ptr = (char)tolower((unsigned char)*desc_ptr);
-                    }
-                    if (strstr(description, "usb"))
-                    {
-                        char* newline_ptr = strchr(device, '\n');
-                        if (newline_ptr)
-                        {
-                            *newline_ptr = '\0';
-                        }
-                        pclose(alsa_pipe);
-                        return device;
-                    }
-                }
-                // Save as fallback if no USB found
-                if (fallback[0] == '\0')
-                {
-                    strncpy(fallback, device, sizeof(fallback) - 1);
-                    char* newline_ptr = strchr(fallback, '\n');
+                    char* newline_ptr = strchr(device, '\n');
                     if (newline_ptr)
                     {
                         *newline_ptr = '\0';
                     }
+                    pclose(alsa_pipe);
+                    return device;
                 }
             }
-            if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
+            if (fallback[0] == '\0')
             {
-                break; // If fseek fails, break to avoid infinite loop
+                strncpy(fallback, device, sizeof(fallback) - 1);
+                char* newline_ptr = strchr(fallback, '\n');
+                if (newline_ptr)
+                {
+                    *newline_ptr = '\0';
+                }
             }
+        }
+        if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
+        {
+            break; // If fseek fails, break to avoid infinite loop
         }
     }
     pclose(alsa_pipe);

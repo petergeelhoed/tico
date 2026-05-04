@@ -40,15 +40,16 @@ typedef struct
 } LoopState;
 
 /**
-  @brief Computes runtime parameters based on the configuration and actual audio
-  rate.
-  @param cfg Pointer to the configuration structure containing user-defined
-  settings.
-  @param actualRate The actual audio sampling rate obtained from the audio
-  source.
-  @return A RuntimeParams structure containing calculated parameters for the
-  capture loop.
-*/
+ * @brief Computes runtime parameters based on the configuration and actual
+ * audio rate.
+ *
+ * @param cfg Pointer to the configuration structure containing user-defined
+ * settings.
+ * @param actualRate The actual audio sampling rate obtained from the audio
+ * source.
+ * @return A RuntimeParams structure containing calculated parameters for the
+ * capture loop.
+ */
 static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
                                           unsigned int actualRate)
 {
@@ -62,19 +63,21 @@ static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
     return params;
 }
 
-/** @brief Processes a single ticktock of audio capture and analysis.
-  @param cfg Pointer to the configuration structure containing user-defined
-  settings.
-  @param res Pointer to the application resources structure for managing buffers
-  and state.
-  @param ctx Pointer to the capture context structure for managing audio capture
-  state.
-  @param params Pointer to the runtime parameters structure containing
-  calculated parameters.
-  @param state Pointer to the loop state structure for tracking cumulative
-  shifts and tick indices.
-  @return 0 on success, -1 on failure (e.g., if audio data cannot be read).
-*/
+/**
+ * @brief Processes a single ticktock of audio capture and analysis.
+ *
+ * @param cfg Pointer to the configuration structure containing user-defined
+ * settings.
+ * @param res Pointer to the application resources structure for managing
+ * buffers and state.
+ * @param ctx Pointer to the capture context structure for managing audio
+ * capture state.
+ * @param params Pointer to the runtime parameters structure containing
+ * calculated parameters.
+ * @param state Pointer to the loop state structure for tracking cumulative
+ * shifts and tick indices.
+ * @return 0 on success, -1 on failure (e.g., if audio data cannot be read).
+ */
 static int processTickTock(CapConfig* cfg,
                            AppResources* res,
                            CaptureCtx* ctx,

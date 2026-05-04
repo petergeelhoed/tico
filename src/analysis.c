@@ -12,6 +12,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Calculates total statistics and prints unweighted raw rate.
+ *
+ * @param count Number of samples.
+ * @param maxpos Array of maximum positions.
+ * @param ArrayLength Length of the array.
+ * @param threshold Threshold value for filtering.
+ * @param rate Sampling rate.
+ */
 static void calculateTotal(size_t count,
                            double* maxpos,
                            size_t ArrayLength,

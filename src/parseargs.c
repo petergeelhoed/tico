@@ -10,6 +10,9 @@
 #include <string.h>
 #include <unistd.h>
 
+/**
+ * @brief Prints usage information for the capture program.
+ */
 static void printUsage(void)
 {
     (void)fprintf(stderr,
@@ -75,6 +78,14 @@ int checkFileArg(int name, FILE** filePtr, const char* optArg, const char* mode)
     return 0;
 }
 
+/**
+ * @brief Checks and parses a float argument from the command line.
+ *
+ * @param name Option character.
+ * @param value Output pointer for the parsed value.
+ * @param optArg Input argument string.
+ * @return 0 on success, -1 on failure.
+ */
 static int checkFloatArg(int name, double* value, char* optArg)
 {
 
@@ -89,6 +100,12 @@ static int checkFloatArg(int name, double* value, char* optArg)
 }
 
 // Hulpfunctie om float conversie en validatie te isoleren
+/**
+ * @brief Parses and validates the standard deviation threshold argument.
+ *
+ * @param arg Input argument string.
+ * @param threshold Output pointer for the parsed threshold.
+ */
 static void parseSdThreshold(const char* arg, double* threshold)
 {
     char* endp = NULL;
@@ -103,6 +120,14 @@ static void parseSdThreshold(const char* arg, double* threshold)
     }
 }
 
+/**
+ * @brief Handles opening a file argument if not already open.
+ *
+ * @param opt Option character.
+ * @param filePtr Pointer to the FILE pointer.
+ * @param arg File name argument.
+ * @param mode File open mode.
+ */
 static void handleFileArg(int opt,
                           FILE** filePtr,
                           const char* arg,
@@ -117,6 +142,13 @@ static void handleFileArg(int opt,
     }
 }
 
+/**
+ * @brief Ensures an unsigned integer argument is valid, exits on failure.
+ *
+ * @param flag Option character.
+ * @param target Output pointer for the parsed value.
+ * @param arg Input argument string.
+ */
 static void enforceUint(int flag, unsigned int* target, char* arg)
 {
     if (checkUIntArg(flag, target, arg) != 0)

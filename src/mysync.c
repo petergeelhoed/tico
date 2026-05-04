@@ -27,9 +27,21 @@ struct file_state
 
 static struct file_state* file_states = NULL;
 
+/**
+ * @brief Lock the counter mutex.
+ */
 static void thread_ctr_lock(void) { (void)pthread_mutex_lock(&ctr_mutex); }
+/**
+ * @brief Unlock the counter mutex.
+ */
 static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
+/**
+ * @brief Lock the IO mutex.
+ */
 static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
+/**
+ * @brief Unlock the IO mutex.
+ */
 static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
 
 static struct file_state* find_file_state(FILE* file)
@@ -63,6 +75,11 @@ static struct file_state* get_or_create_file_state(FILE* file)
     return state;
 }
 
+/**
+ * @brief Remove the file state entry for a given file.
+ *
+ * @param file The file pointer whose state should be removed.
+ */
 static void remove_file_state(FILE* file)
 {
     struct file_state* prev = NULL;
@@ -87,6 +104,11 @@ static void remove_file_state(FILE* file)
     }
 }
 
+/**
+ * @brief Print the current date and time to the given output file.
+ *
+ * @param out Output file pointer.
+ */
 static void printTODUnlocked(FILE* out)
 {
     if (out == NULL)
@@ -118,6 +140,9 @@ static void printTODUnlocked(FILE* out)
                   (long)time.tv_usec);
 }
 
+/**
+ * @brief Decrement the global count and signal waiting threads if needed.
+ */
 static void decr_count(void)
 {
     thread_ctr_lock();
@@ -126,6 +151,12 @@ static void decr_count(void)
     thread_ctr_unlock();
 }
 
+/**
+ * @brief Decrement the append count for a file and signal waiting threads if
+ * needed.
+ *
+ * @param file The file pointer whose append count should be decremented.
+ */
 static void decr_append_count(FILE* file)
 {
     thread_ctr_lock();

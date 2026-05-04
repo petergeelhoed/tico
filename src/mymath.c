@@ -265,7 +265,26 @@ void fastlinreg(double coeffs[2],
     }
 }
 
-// Accumulate sufficient stats for weighted y = intercept + slope x
+/**
+ * @brief Accumulate sufficient statistics for weighted linear regression.
+ *
+ * @param Sum_w Output: sum of weights.
+ * @param Sum_wx Output: sum of weighted x.
+ * @param Sum_wy Output: sum of weighted y.
+ * @param Sum_wxx Output: sum of weighted x squared.
+ * @param Sum_wxy Output: sum of weighted x*y.
+ * @param Sum_w2 Output: sum of squared weights.
+ * @param curPos Current position in the data.
+ * @param fitwindow Number of points in the window.
+ * @param maxvals Array of weights.
+ * @param maxes Array of y values.
+ * @param subpos Array of sub-positions.
+ * @param skipOutliers Whether to skip outliers.
+ * @param intercept Intercept for outlier detection.
+ * @param slope Slope for outlier detection.
+ * @param stdevThreshold Threshold for outlier detection.
+ * @return 1 if successful, 0 otherwise.
+ */
 static int fastlinreg_sufficient_stats(
     long double* Sum_w,
     long double* Sum_wx,
@@ -323,6 +342,18 @@ static int fastlinreg_sufficient_stats(
     return (*Sum_w > 0.0L) ? 1 : 0;
 }
 
+/**
+ * @brief Solve for intercept and slope in weighted linear regression.
+ *
+ * @param intercept Output: intercept.
+ * @param slope Output: slope.
+ * @param Sum_w Sum of weights.
+ * @param Sum_wx Sum of weighted x.
+ * @param Sum_wy Sum of weighted y.
+ * @param Sum_wxx Sum of weighted x squared.
+ * @param Sum_wxy Sum of weighted x*y.
+ * @return 1 if successful, 0 otherwise.
+ */
 static int solve_weighted_line(double* intercept,
                                double* slope,
                                long double Sum_w,

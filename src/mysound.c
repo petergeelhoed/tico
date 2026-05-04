@@ -22,6 +22,15 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
+/**
+ * @brief Compute the absolute difference between consecutive audio samples and
+ * count clipping events.
+ *
+ * @param derivative Output array for the computed differences.
+ * @param ArrayLength Number of samples in the input array.
+ * @param samples Input array of 16-bit audio samples.
+ * @return The number of processed samples (ArrayLength).
+ */
 static int derived(int* derivative, size_t ArrayLength, int16_t* samples)
 {
 
@@ -44,7 +53,16 @@ static int derived(int* derivative, size_t ArrayLength, int16_t* samples)
     return (int)ArrayLength;
 }
 
-// Helper to handle repetitive ALSA parameter setting and error reporting
+/**
+ * @brief Helper to handle repetitive ALSA parameter setting and error
+ * reporting.
+ *
+ * @param err Error code returned by ALSA function.
+ * @param device Name of the audio device.
+ * @param msg Message describing the operation.
+ * @param handle ALSA PCM handle (may be NULL).
+ * @param params ALSA hardware parameters (may be NULL).
+ */
 static void checkAlsaErr(int err,
                          const char* device,
                          const char* msg,

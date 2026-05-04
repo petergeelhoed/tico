@@ -23,6 +23,13 @@ typedef struct
     unsigned int count;
 } Signal;
 
+/**
+ * @brief Safely reallocates memory for a double array, exits on failure.
+ *
+ * @param ptr Pointer to the current memory block.
+ * @param new_size New size for the array.
+ * @return Pointer to the reallocated memory.
+ */
 static double* safeRealloc(double* ptr, unsigned int new_size)
 {
     double* next = realloc(ptr, new_size * sizeof(double));
@@ -35,6 +42,12 @@ static double* safeRealloc(double* ptr, unsigned int new_size)
     return next;
 }
 
+/**
+ * @brief Reads double values from stdin into a dynamically allocated Signal
+ * struct.
+ *
+ * @return Signal struct containing the data and count.
+ */
 static Signal readInput(void)
 {
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
@@ -75,6 +88,12 @@ static Signal readInput(void)
     return signalStruct;
 }
 
+/**
+ * @brief Runs FFT and optional linear regression on the input signal.
+ *
+ * @param sig Input signal data.
+ * @param cfg Configuration parameters.
+ */
 static void runFft(Signal sig, Config cfg)
 {
     unsigned int arrayLength = sig.count * cfg.z;

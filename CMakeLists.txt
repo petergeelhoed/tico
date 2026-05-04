@@ -302,7 +302,7 @@ if (DOXYGEN_FOUND)
   add_custom_target(doxygen
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DOXYGEN_IN} ${DOXYGEN_OUT}
     COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen"
     VERBATIM)
 else()

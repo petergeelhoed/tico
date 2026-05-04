@@ -1,6 +1,16 @@
-#include "myarr.h"
+#pragma once
 
-/** @brief Transposes a matrix in-place.
+#include "myarr.h"
+#include <stddef.h>
+
+/**
+ * @defgroup mymath Mymath Library
+ * Math and matrix utilities.
+ * @{
+ */
+
+/** @ingroup mymath
+ * @brief Transposes a matrix in-place.
  *
  * @param arr The matrix to transpose, stored as a 1D array in row-major order.
  * @param Nrows The number of rows in the original matrix.
@@ -8,8 +18,9 @@
  */
 void transpone(double* arr, unsigned int Nrows, unsigned int Ncols);
 
-/** @brief Inverts a square matrix in-place.
-
+/** @ingroup mymath
+ * @brief Inverts a square matrix in-place.
+ *
  * @param arr The square matrix to invert, stored as a 1D array in row-major
  order. The result will overwrite the original matrix.
  * @param Nrows The number of rows (and columns) in the square matrix.
@@ -17,7 +28,8 @@ void transpone(double* arr, unsigned int Nrows, unsigned int Ncols);
  */
 void invert(double* arr, unsigned int Nrows, unsigned int Ncols);
 
-/** @brief Multiplies two matrices and returns the result as a new matrix.
+/** @ingroup mymath
+ * @brief Multiplies two matrices and returns the result as a new matrix.
  *
  * @param matrix0 The first matrix, stored as a 1D array in row-major order.
  * @param Nrows The number of rows in the first matrix.
@@ -35,7 +47,8 @@ double* mulmat(const double* matrix0,
                unsigned int Mrows,
                unsigned int Mcols);
 
-/** @brief Performs linear regression on a dataset with optional weighting.
+/** @ingroup mymath
+ * @brief Performs linear regression on a dataset with optional weighting.
  *
  * @param coeffs An array of size 2 where the resulting coefficients (intercept
  * and slope) will be stored.
@@ -46,6 +59,7 @@ double* mulmat(const double* matrix0,
  * @param weight An optional array of weights for each data point, stored as a
  * 1D array. If NULL, unweighted regression is performed.
  */
+
 void matlinreg(double coeffs[2],
                const double* xmat,
                unsigned int Nrows,
@@ -53,20 +67,17 @@ void matlinreg(double coeffs[2],
                double* vec,
                const double* weight);
 
-/** @brief Fits a linear model to a specified number of peaks in the data.
+/** @ingroup mymath
+ * @brief Fits a line to N peaks in the data, with outlier rejection.
  *
- * @param intercept A pointer where the resulting intercept of the fitted line
- * will be stored.
- * @param slope A pointer where the resulting slope of the fitted line will be
- * stored.
- * @param curPos The current position in the data from which to start fitting.
- * @param maxvals An array containing the maximum values of the peaks.
- * @param maxes An array containing the positions of the peaks.
- * @param subpos An array containing the positions of the sub-peaks or other
- * relevant positions.
- * @param npeaks The number of peaks to fit.
- * @param SDthreshold A threshold for standard deviation to determine which
- * peaks to include in the fit.
+ * @param intercept Pointer to store the intercept.
+ * @param slope Pointer to store the slope.
+ * @param curPos The current position in the data.
+ * @param maxvals Array of weights.
+ * @param maxes Array of y values.
+ * @param subpos Array of sub-positions.
+ * @param npeaks Number of peaks to fit.
+ * @param SDthreshold Standard deviation threshold for outlier rejection.
  */
 void fitNpeaks(double* intercept,
                double* slope,
@@ -77,52 +88,49 @@ void fitNpeaks(double* intercept,
                unsigned int npeaks,
                double SDthreshold);
 
-/** @brief A faster implementation of linear regression that may be less
- * accurate than matlinreg.
+/** @ingroup mymath
+ * @brief Performs fast weighted linear regression.
  *
- * @param coeffs An array of size 2 where the resulting coefficients (intercept
- * and slope) will be stored.
- * @param xmat The design matrix, stored as a 1D array in row-major order.
- * @param Npoints The number of data points (rows) in the design matrix.
- * @param vec The response vector, stored as a 1D array.
- * @param weight An optional array of weights for each data point, stored as a
- * 1D array. If NULL, unweighted regression is performed.
+ * @param coeffs Array to store the resulting coefficients (intercept and
+ * slope).
+ * @param xmat The array of x values.
+ * @param Npoints The number of points.
+ * @param vec The array of y values.
+ * @param weightArr The array of weights.
  */
 void fastlinreg(double coeffs[2],
                 const double* xmat,
                 unsigned int Npoints,
                 const double* vec,
-                const double* weight);
+                const double* weightArr);
 
-/** @brief Checks if two double precision floating-point numbers are nearly
- * equal, accounting for potential precision issues.
+/** @ingroup mymath
+ * @brief Returns 1 if two doubles are nearly equal, 0 otherwise.
  *
- * @param number0 The first number to compare.
- * @param number1 The second number to compare.
- * @return 1 if the numbers are nearly equal, 0 otherwise.
+ * @param number0 First number.
+ * @param number1 Second number.
+ * @return 1 if nearly equal, 0 otherwise.
  */
 int nearlyEqual(double number0, double number1);
 
-/** @brief Finds the position of the maximum value in an array of integers.
+/** @ingroup mymath
+ * @brief Returns the index of the maximum value in an integer array.
  *
- * @param array The array to search through.
- * @param ArrayLength The length of the array.
- * @return The index of the maximum value in the array.
+ * @param array The array to search.
+ * @param ArrayLength The number of elements in the array.
+ * @return The index of the maximum value.
  */
 size_t getmaxpos(const int* array, size_t ArrayLength);
 
-/** @brief Performs linear regression on two arrays of doubles and computes the
- * intercept, slope, and standard deviation of the fit.
+/** @ingroup mymath
+ * @brief Performs simple linear regression on two arrays.
  *
- * @param xarr The array of x-values.
- * @param yarr The array of y-values.
- * @param ArrayLength The length of the x and y arrays.
- * @param intercept A pointer where the resulting intercept of the fitted line
- * will be stored.
- * @param slope A pointer where the resulting slope of the fitted line will be
- * stored.
- * @param stdev A pointer where the resulting standard deviation of the fit will
- * be stored.
+ * @param xarr The array of x values.
+ * @param yarr The array of y values.
+ * @param ArrayLength The number of elements in the arrays.
+ * @param intercept Pointer to store the intercept.
+ * @param slope Pointer to store the slope.
+ * @param stdev Pointer to store the standard deviation of the fit.
  */
 void linreg(const double* xarr,
             const double* yarr,
@@ -131,7 +139,8 @@ void linreg(const double* xarr,
             double* slope,
             double* stdev);
 
-/** @brief Shifts a value by half the length of an array, wrapping around.
+/** @ingroup mymath
+ * @brief Shifts a value by half the array length, wrapping around.
  *
  * @param value The value to shift.
  * @param ArrayLength The length of the array.
@@ -139,7 +148,8 @@ void linreg(const double* xarr,
  */
 int shiftHalf(size_t value, size_t ArrayLength);
 
-/** @brief Computes the modulus of a signed integer value with respect to the
+/** @ingroup mymath
+ * @brief Computes the modulus of a signed integer value with respect to the
  * length of an array, ensuring a non-negative result.
  *
  * @param value The signed integer value to mod.
@@ -148,3 +158,5 @@ int shiftHalf(size_t value, size_t ArrayLength);
  * be non-negative.
  */
 size_t modSigned(int value, size_t ArrayLength);
+
+/** @} */

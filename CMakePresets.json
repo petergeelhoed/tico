@@ -161,6 +161,27 @@
       "inherits": "base-build",
       "configurePreset": "debug-clang",
       "targets": ["quality-gcc-build"]
+    },
+    {
+      "name": "doxygen",
+      "displayName": "Run doxygen documentation (debug-clang)",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang",
+      "targets": ["doxygen"]
+    },
+    {
+      "name": "doxygen-release",
+      "displayName": "Run doxygen documentation (release)",
+      "inherits": "base-build",
+      "configurePreset": "release",
+      "targets": ["doxygen"]
+    },
+    {
+      "name": "doxygen-release-clang",
+      "displayName": "Run doxygen documentation (release-clang)",
+      "inherits": "base-build",
+      "configurePreset": "release-clang",
+      "targets": ["doxygen"]
     }
   ],
 
@@ -232,7 +253,8 @@
       "steps": [
         { "type": "configure", "name": "release" },
         { "type": "build",     "name": "release" },
-        { "type": "test",      "name": "release_ctest" }
+        { "type": "test",      "name": "release_ctest" },
+        { "type": "build",     "name": "doxygen-release" }
       ]
     },
     {
@@ -250,7 +272,8 @@
       "steps": [
         { "type": "configure", "name": "release-clang" },
         { "type": "build",     "name": "release-clang" },
-        { "type": "test",      "name": "release_ctest-clang" }
+        { "type": "test",      "name": "release_ctest-clang" },
+        { "type": "build",     "name": "doxygen-release-clang" }
       ]
     },
 
@@ -298,6 +321,15 @@
         { "type": "build",     "name": "quality-gcc-build" },
         { "type": "build",     "name": "clang-tidy" },
         { "type": "test",      "name": "debug_ctest-clang" }
+        ,{ "type": "build",     "name": "doxygen" }
+      ]
+    },
+    {
+      "name": "doxygen",
+      "displayName": "Doxygen: configure + build documentation",
+      "steps": [
+        { "type": "configure", "name": "debug-clang" },
+        { "type": "build",     "name": "doxygen" }
       ]
     }
   ]

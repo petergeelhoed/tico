@@ -46,6 +46,7 @@ cmake --build --preset debug
 | `release-gcc` | GCC | Release | Explicit GCC release build |
 | `debug-clang` | Clang (auto-detected latest) | Debug | Debug build with newest installed Clang |
 | `release-clang` | Clang (auto-detected latest) | Release | Release build with newest installed Clang |
+| `doxygen` | Clang (auto-detected latest) | Debug | Generate API documentation with Doxygen |
 
 #### Build Examples
 
@@ -77,6 +78,7 @@ cmake --workflow --preset debug-gcc
 cmake --workflow --preset release-gcc
 cmake --workflow --preset debug-clang
 cmake --workflow --preset release-clang
+cmake --workflow --preset doxygen
 ```
 
 ### Quality Workflow
@@ -95,6 +97,41 @@ The `quality` workflow runs these steps:
 - Build (`debug-clang`)
 - Test (`debug_ctest-clang`)
 - GCC build (`quality-gcc-build` -> runs `debug-gcc` configure + build)
+- Documentation (`doxygen`)
+
+## Documentation
+
+API documentation is generated using [Doxygen](https://www.doxygen.nl/).
+
+### Doxygen Documentation Workflows
+
+You can generate API documentation as part of a workflow or as a standalone step:
+
+- **Debug/Clang docs:**
+  ```bash
+  cmake --workflow --preset doxygen
+  ```
+  Output: `build/clang-debug/html/`
+
+- **Release/GCC docs:**
+  ```bash
+  cmake --workflow --preset release
+  ```
+  (Runs doxygen as the last step; output: `build/release/html/`)
+
+- **Release/Clang docs:**
+  ```bash
+  cmake --workflow --preset release-clang
+  ```
+  (Runs doxygen as the last step; output: `build/clang-release/html/`)
+
+You can also use the build presets directly:
+
+- `cmake --build --preset doxygen` (debug/clang)
+- `cmake --build --preset doxygen-release` (release/gcc)
+- `cmake --build --preset doxygen-release-clang` (release/clang)
+
+> **Note:** The generated HTML documentation will be found in the `html/` directory inside the build directory for the preset you use.
 
 ## Testing
 

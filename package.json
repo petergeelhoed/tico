@@ -1,0 +1,12 @@
+{
+  "name": "tico",
+  "version": "1.0.0",
+  "description": "Audio capture and terminal visualization tool",
+  "devDependencies": {
+    "@commitlint/cli": "^18.0.0",
+    "@commitlint/config-conventional": "^18.0.0"
+  },
+  "scripts": {
+    "commitlint": "commitlint --from HEAD~1 --to HEAD"
+  }
+}

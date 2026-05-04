@@ -329,6 +329,7 @@
       "displayName": "Doxygen: configure + build documentation",
       "steps": [
         { "type": "configure", "name": "debug-clang" },
+        { "type": "build",     "name": "debug-clang" },
         { "type": "build",     "name": "doxygen" }
       ]
     }

@@ -91,6 +91,13 @@
   ],
 
   "buildPresets": [
+        {
+          "name": "quality-gcc-test",
+          "displayName": "Run GCC build and test from quality",
+          "inherits": "base-build",
+          "configurePreset": "debug-clang",
+          "targets": ["quality-gcc-test"]
+        },
     {
       "name": "base-build",
       "hidden": true,
@@ -318,10 +325,10 @@
         { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" },
         { "type": "build",     "name": "debug-clang" },
-        { "type": "build",     "name": "quality-gcc-build" },
+        { "type": "build",     "name": "quality-gcc-test" },
         { "type": "build",     "name": "clang-tidy" },
-        { "type": "test",      "name": "debug_ctest-clang" }
-        ,{ "type": "build",     "name": "doxygen" }
+        { "type": "test",      "name": "debug_ctest-clang" },
+        { "type": "build",     "name": "doxygen" }
       ]
     },
     {

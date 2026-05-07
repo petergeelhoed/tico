@@ -175,6 +175,13 @@ add_custom_target(quality-gcc-build
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset debug-gcc
   COMMENT "Configuring and building GCC debug preset")
 
+# Runs a GCC debug build and tests from the source root so quality can include GCC compilation and tests.
+add_custom_target(quality-gcc-test
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset debug-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset debug-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset debug-gcc
+  COMMENT "Configuring, building, and testing GCC debug preset")
+
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})

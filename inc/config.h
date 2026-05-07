@@ -24,5 +24,6 @@ typedef struct
     FILE* fpDefPeak;
     FILE* fpInput;
     snd_pcm_t* captureHandle;
+    struct AppState* appState;
 
 } CapConfig;

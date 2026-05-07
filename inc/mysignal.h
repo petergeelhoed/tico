@@ -14,14 +14,20 @@
  */
 void sigintHandler(int signal);
 
-/** @ingroup mysignal @brief Set signal handlers for SIGINT and SIGWINCH
+#include "appstate.h"
+
+/**
+ * @ingroup mysignal @brief Set signal handlers for SIGINT and SIGWINCH.
  *
  * @details This function sets the signal handlers for SIGINT and SIGWINCH
  * to the sigintHandler function. If there is an error setting the signal
  * handlers, the function will print an error message and exit with an error
  * code.
+ *
+ * @param appState Pointer to the AppState struct holding application state
+ * variables.
  */
-void setSignalAction(void);
+void setSignalAction(struct AppState* appState);
 
 /** @ingroup mysignal @brief Block SIGINT and SIGWINCH signals
  *

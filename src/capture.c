@@ -1,6 +1,5 @@
-
-
 #include "analysis.h"
+#include "appstate.h"
 #include "capture_helpers.h"
 #include "config.h"
 #include "myarr.h"
@@ -21,9 +20,6 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-
-volatile int keepRunning = 1;
-volatile unsigned int columns = DEFAULT_COLUMNS;
 
 typedef struct
 {
@@ -127,7 +123,7 @@ static int processTickTock(CapConfig* cfg,
                 cfg,
                 params->arrayLength,
                 params->mod,
-                columns);
+                cfg->appState->columns);
 
     state->tickIndex++;
     state->globalTickIndex++;
@@ -136,6 +132,7 @@ static int processTickTock(CapConfig* cfg,
 
 int main(int argc, char* argv[])
 {
+    AppState appState = {.keepRunning = 1, .columns = DEFAULT_COLUMNS};
     CapConfig cfg = {.rate = DEFAULT_RATE,
                      .bph = DEFAULT_BPH,
                      .evalue = DEFAULT_EVALUE,
@@ -171,8 +168,8 @@ int main(int argc, char* argv[])
 
     struct winsize windowSize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
-    columns = windowSize.ws_col;
-    setSignalAction();
+    appState.columns = windowSize.ws_col;
+    setSignalAction(&appState);
 
     unsigned int actualRate;
     if (initAudioSource(&cfg, &actualRate))
@@ -198,7 +195,8 @@ int main(int argc, char* argv[])
 
     LoopState state = {0};
 
-    while (keepRunning && !(state.globalTickIndex > params.maxTime && cfg.time))
+    while (cfg.appState->keepRunning &&
+           !(state.globalTickIndex > params.maxTime && cfg.time))
     {
         if (processTickTock(&cfg, &res, &ctx, &params, &state) < 0)
         {

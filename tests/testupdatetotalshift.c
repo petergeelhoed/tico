@@ -37,44 +37,36 @@ int main(void)
     resources.maxvals->arrd[0] = threshold + DELTA_SMALL;
     resources.maxvals->arrd[1] = threshold - DELTA_SMALL;
 
-    int shiftValue = SHIFT_INIT;
-
-    int shiftResult = updateTotalShiftIfNeeded(shiftValue,
-                                               UPDATE_INDEX,
-                                               AUTOCOR_LIMIT,
-                                               0,
-                                               &resources,
-                                               &captureConfig);
-    if (shiftResult != shiftValue)
+    LoopState state = {.cumulativeShift = SHIFT_INIT,
+                       .tickIndex = 0,
+                       .globalTickIndex = AUTOCOR_LIMIT};
+    updateTotalShiftIfNeeded(&state, UPDATE_INDEX, &resources, &captureConfig);
+    if (state.cumulativeShift != SHIFT_INIT)
     {
         (void)fprintf(stderr, "unexpected shift update at AUTOCOR_LIMIT\n");
         return RETURN_UNEXPECTED_UPDATE;
     }
 
-    shiftResult = updateTotalShiftIfNeeded(shiftValue,
-                                           UPDATE_INDEX,
-                                           AUTOCOR_LIMIT + 1,
-                                           1,
-                                           &resources,
-                                           &captureConfig);
-    if (shiftResult != shiftValue)
+    state = (LoopState){.tickIndex = 1,
+                        .globalTickIndex = AUTOCOR_LIMIT + 1,
+                        .cumulativeShift = SHIFT_INIT};
+    updateTotalShiftIfNeeded(&state, UPDATE_INDEX, &resources, &captureConfig);
+    if (state.cumulativeShift != SHIFT_INIT)
     {
         (void)fprintf(stderr, "unexpected shift update below threshold\n");
         return RETURN_BELOW_THRESHOLD;
     }
 
     resources.maxvals->arrd[0] = threshold + DELTA_LARGER;
-    shiftResult = updateTotalShiftIfNeeded(shiftValue,
-                                           UPDATE_INDEX,
-                                           AUTOCOR_LIMIT + 1,
-                                           0,
-                                           &resources,
-                                           &captureConfig);
-    if (shiftResult != shiftValue + UPDATE_INDEX)
+    state = (LoopState){.cumulativeShift = SHIFT_INIT,
+                        .tickIndex = 0,
+                        .globalTickIndex = AUTOCOR_LIMIT + 1};
+    updateTotalShiftIfNeeded(&state, UPDATE_INDEX, &resources, &captureConfig);
+    if (state.cumulativeShift != SHIFT_INIT + UPDATE_INDEX)
     {
         (void)fprintf(stderr,
                       "small-delta shift mismatch: got %d\n",
-                      shiftResult);
+                      state.cumulativeShift);
         return RETURN_SMALL_DELTA_MISMATCH;
     }
 
@@ -82,18 +74,19 @@ int main(void)
     int absDeltaValue = abs(largeDeltaValue);
     int expectedDeltaValue = (int)(PRESHIFT_THRESHOLD_ROOT * largeDeltaValue /
                                    sqrt((double)absDeltaValue));
-    shiftResult = updateTotalShiftIfNeeded(shiftValue,
-                                           largeDeltaValue,
-                                           AUTOCOR_LIMIT + 3,
-                                           0,
-                                           &resources,
-                                           &captureConfig);
-    if (shiftResult != shiftValue + expectedDeltaValue)
+    state = (LoopState){.cumulativeShift = SHIFT_INIT,
+                        .tickIndex = 0,
+                        .globalTickIndex = AUTOCOR_LIMIT + 3};
+    updateTotalShiftIfNeeded(&state,
+                             largeDeltaValue,
+                             &resources,
+                             &captureConfig);
+    if (state.cumulativeShift != SHIFT_INIT + expectedDeltaValue)
     {
         (void)fprintf(stderr,
                       "large-delta shift mismatch: got %d expected %d\n",
-                      shiftResult,
-                      shiftValue + expectedDeltaValue);
+                      state.cumulativeShift,
+                      SHIFT_INIT + expectedDeltaValue);
         return RETURN_LARGE_DELTA_MISMATCH;
     }
 

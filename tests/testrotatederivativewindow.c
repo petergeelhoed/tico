@@ -17,9 +17,9 @@ static const int kExpectedRotated[DERIVATIVE_ARRAY_LENGTH] = {14,
 
 int main(void)
 {
-    AppResources resources = {0};
-    resources.derivative = makemyarr(DERIVATIVE_ARRAY_LENGTH);
-    resources.tmpder = makemyarr(DERIVATIVE_ARRAY_LENGTH);
+    AppResources resources = {.arrayLength = DERIVATIVE_ARRAY_LENGTH,
+                              .derivative = makemyarr(DERIVATIVE_ARRAY_LENGTH),
+                              .tmpder = makemyarr(DERIVATIVE_ARRAY_LENGTH)};
 
     if (resources.derivative == NULL || resources.tmpder == NULL)
     {
@@ -32,9 +32,7 @@ int main(void)
             (int)(DERIVATIVE_INIT_OFFSET + index);
     }
 
-    rotateDerivativeWindow(&resources,
-                           DERIVATIVE_ARRAY_LENGTH,
-                           ROTATE_MINUS_ONE);
+    rotateDerivativeWindow(&resources, ROTATE_MINUS_ONE);
 
     for (unsigned int index = 0; index < DERIVATIVE_ARRAY_LENGTH; ++index)
     {
@@ -49,9 +47,7 @@ int main(void)
         }
     }
 
-    rotateDerivativeWindow(&resources,
-                           DERIVATIVE_ARRAY_LENGTH,
-                           ROTATE_PLUS_TWO);
+    rotateDerivativeWindow(&resources, ROTATE_PLUS_TWO);
 
     const int expected1[DERIVATIVE_ARRAY_LENGTH] = {12, 13, 14, 10, 11};
     for (unsigned int i = 0; i < DERIVATIVE_ARRAY_LENGTH; ++i)

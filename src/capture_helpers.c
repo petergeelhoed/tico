@@ -82,16 +82,13 @@ void printspaces(int maxpos,
     (void)fprintf(stderr, "\n");
 }
 
-void printFinals(CapConfig* cfg,
-                 AppResources* res,
-                 size_t ArrayLength,
-                 size_t totalTickTock)
+void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock)
 {
     if (cfg->fpposition)
     {
         calculateTotalFromFile(totalTickTock,
                                cfg->fpposition,
-                               ArrayLength,
+                               res->arrayLength,
                                cfg->SDthreshold,
                                cfg->rate);
     }
@@ -109,7 +106,7 @@ void printFinals(CapConfig* cfg,
             {
                 struct myarr cumulativeTick = *tmp;
                 int toothshift = getshift(*res->teethArray[0], cumulativeTick);
-                for (size_t j = 0; j < ArrayLength; ++j)
+                for (size_t j = 0; j < res->arrayLength; ++j)
                 {
                     (void)fprintf(cfg->fptotal,
                                   "%zu %d %zu %d\n",
@@ -224,8 +221,7 @@ void processLogging(CapConfig* cfg,
     }
 }
 
-void fitAndPrint(size_t tickIndex,
-                 size_t globalTickIndex,
+void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
@@ -237,31 +233,31 @@ void fitAndPrint(size_t tickIndex,
     double slope = 0.0;
     fitNpeaks(&intercept,
               &slope,
-              (unsigned int)tickIndex,
+              (unsigned int)state->tickIndex,
               res->maxvals,
               res->maxpos,
               res->subpos,
               cfg->fitN,
               cfg->SDthreshold);
 
-    printheader(slope * SECS_DAY / (double)arrayLength,
-                cfg->everyline,
-                getBeatError(cumulativeTick, cfg->rate, 0),
-                (double)globalTickIndex * (double)arrayLength / cfg->rate);
+    printheader(
+        slope * SECS_DAY / (double)arrayLength,
+        cfg->everyline,
+        getBeatError(cumulativeTick, cfg->rate, 0),
+        (double)state->globalTickIndex * (double)arrayLength / cfg->rate);
 
     printspaces(
-        res->maxpos->arr[(unsigned int)tickIndex],
-        (size_t)(res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE),
+        res->maxpos->arr[(unsigned int)state->tickIndex],
+        (size_t)(res->maxvals->arrd[(unsigned int)state->tickIndex] * HEX_BASE),
         mod,
         currentColumns - cfg->everyline,
         intercept,
         cfg->cvalue);
 }
 
-void rotateDerivativeWindow(AppResources* res,
-                            size_t arrayLength,
-                            int cumulativeShift)
+void rotateDerivativeWindow(AppResources* res, int cumulativeShift)
 {
+    const size_t arrayLength = res->arrayLength;
     memmove(res->tmpder->arr,
             res->derivative->arr + modSigned(cumulativeShift, arrayLength),
             arrayLength * sizeof(int));
@@ -273,40 +269,36 @@ void rotateDerivativeWindow(AppResources* res,
 
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
-                    unsigned int globalTickIndex,
-                    unsigned int tickIndex,
-                    size_t arrayLength,
+                    const LoopState* state,
                     CapConfig* cfg)
 {
-    const int useReference = (globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
+    const int useReference =
+        (state->globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
     return shiftHalf(
         fftfit(*res->tmpder,
                cumulativeTick->arr,
                useReference ? res->reference->arr : cumulativeTick->arr,
-               res->maxvals->arrd + tickIndex,
+               res->maxvals->arrd + state->tickIndex,
                res->filterFFT,
-               globalTickIndex == cfg->verbose,
-               res->subpos->arrd + tickIndex),
-        arrayLength);
+               state->globalTickIndex == cfg->verbose,
+               res->subpos->arrd + state->tickIndex),
+        cumulativeTick->ArrayLength);
 }
 
-int updateTotalShiftIfNeeded(int cumulativeShift,
-                             int peakOffset,
-                             size_t globalTickIndex,
-                             size_t tickIndex,
-                             AppResources* res,
-                             CapConfig* cfg)
+void updateTotalShiftIfNeeded(LoopState* state,
+                              int peakOffset,
+                              AppResources* res,
+                              CapConfig* cfg)
 {
-    if (globalTickIndex > AUTOCOR_LIMIT &&
-        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEX_BASE &&
-        globalTickIndex % cfg->teeth == 0)
+    if (state->globalTickIndex > AUTOCOR_LIMIT &&
+        res->maxvals->arrd[state->tickIndex] > (double)cfg->cvalue / HEX_BASE &&
+        state->globalTickIndex % cfg->teeth == 0)
     {
         int delta = peakOffset;
         if (abs(delta) > PRESHIFT_THRESHOLD)
         {
             delta = (int)(PRESHIFT_THRESHOLD_ROOT * delta / sqrt(abs(delta)));
         }
-        cumulativeShift += delta;
+        state->cumulativeShift += delta;
     }
-    return cumulativeShift;
 }

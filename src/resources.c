@@ -11,16 +11,18 @@ AppResources allocateResources(size_t arrayLength,
                                size_t ticktockBuffer,
                                CapConfig* cfg)
 {
-    AppResources res = {0};
-    res.subpos = makemyarrd(ticktockBuffer);
-    res.maxpos = makemyarr(ticktockBuffer);
-    res.maxvals = makemyarrd(ticktockBuffer);
-    res.derivative = makemyarr(arrayLength);
-    res.tmpder = makemyarr(arrayLength);
-    res.reference = makemyarr(arrayLength);
-    res.filterFFT = makeFilter(cfg->evalue, arrayLength);
-    res.audioBuffer16 = calloc(arrayLength, sizeof(*res.audioBuffer16));
-    res.teethArray = calloc(cfg->teeth, sizeof(*res.teethArray));
+    AppResources res = {
+        .arrayLength = arrayLength,
+        .subpos = makemyarrd(ticktockBuffer),
+        .maxpos = makemyarr(ticktockBuffer),
+        .maxvals = makemyarrd(ticktockBuffer),
+        .derivative = makemyarr(arrayLength),
+        .tmpder = makemyarr(arrayLength),
+        .reference = makemyarr(arrayLength),
+        .teethArray = calloc(cfg->teeth, sizeof(*res.teethArray)),
+        .filterFFT = makeFilter(cfg->evalue, arrayLength),
+        .audioBuffer16 = calloc(arrayLength, sizeof(*res.audioBuffer16))};
+
     if (res.teethArray == NULL || res.audioBuffer16 == NULL)
     {
         free(res.audioBuffer16);

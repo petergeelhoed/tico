@@ -6,6 +6,13 @@
 
 #include <stdio.h>
 
+typedef struct
+{
+    int cumulativeShift;
+    size_t tickIndex;
+    unsigned int globalTickIndex;
+} LoopState;
+
 /** Helper functions for capture.c, including printing, data shifting, logging,
  * and fitting. */
 
@@ -42,13 +49,9 @@ void printspaces(int maxpos,
  count, position data, and correlation data, based on the provided parameters.
  @param cfg The configuration settings for the capture process.
  @param res The resources used during the capture process.
- @param ArrayLength The length of the data arrays.
  @param totalTickTock The total tick count accumulated during the capture
  process. */
-void printFinals(CapConfig* cfg,
-                 AppResources* res,
-                 size_t ArrayLength,
-                 size_t totalTickTock);
+void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock);
 
 /** @brief Fills the reference array with data from the provided file pointer,
  * based on the specified number of teeth.
@@ -90,9 +93,8 @@ void processLogging(CapConfig* cfg,
  * calculating the intercept and slope, printing the header information, and
  * visualizing the position of the maximum correlation based on the provided
  * parameters.
- @param tickIndex The index of the current tick being processed.
- @param globalTickIndex The global index of the tick across the entire capture
- process.
+@param state The loop state structure for tracking cumulative shifts and tick
+indices
  @param cumulativeTick The myarr structure containing cumulative tick data for
  beat error calculation.
  @param res The resources used during the capture process, which may include
@@ -103,8 +105,7 @@ void processLogging(CapConfig* cfg,
  @param mod The modulus used for calculating positions in printing.
  @param currentColumns The current number of columns available for printing,
  which may be used to determine how to visualize the output. */
-void fitAndPrint(size_t tickIndex,
-                 size_t globalTickIndex,
+void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
@@ -117,13 +118,9 @@ void fitAndPrint(size_t tickIndex,
  window for the next iteration of processing.
  @param res The resources used during the capture process, which may include
  data arrays and other relevant information for rotating the derivative window.
- @param arrayLength The length of the data arrays used in the derivative window,
- which is necessary for calculating the correct positions for rotation.
  @param cumulativeShift The total shift that has been accumulated, which will be
  used to determine how much to rotate the derivative window. */
-void rotateDerivativeWindow(AppResources* res,
-                            size_t arrayLength,
-                            int cumulativeShift);
+void rotateDerivativeWindow(AppResources* res, int cumulativeShift);
 
 /** @brief Finds the maximum position of the correlation in the capture data by
  * performing an FFT fit and shifting the result based on the array length,
@@ -133,47 +130,31 @@ void rotateDerivativeWindow(AppResources* res,
  @param cumulativeTick The myarr structure containing cumulative tick data for
  beat error calculation, which may be used in the process of finding the maximum
  position.
- @param globalTickIndex The global index of the tick across the entire capture
- process, which may be used to determine the current position in the data for
- finding the maximum position.
- @param tickIndex The index of the current tick being processed, which may be
- used to access specific data for finding the maximum position.
- @param arrayLength The length of the data arrays used in finding the maximum
- position, which is necessary for performing the FFT fit and shifting the result
- correctly.
+ @param state The loop state structure for tracking cumulative shifts and tick
+ indices
  @param cfg The configuration settings for the capture process, which may
  include parameters for fitting and finding the maximum position, such as the
  number of peaks to fit and the standard deviation threshold. */
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
-                    unsigned int globalTickIndex,
-                    unsigned int tickIndex,
-                    size_t arrayLength,
+                    const LoopState* state,
                     CapConfig* cfg);
 
 /** @brief Updates the total shift if needed based on the cumulative shift, peak
  offset, and other parameters, using the provided resources and configuration
  settings.
- @param cumulativeShift The total shift that has been accumulated, which may be
- used to determine if an update to the total shift is needed based on the peak
- offset and other parameters.
+ @param state The loop state structure for tracking cumulative shifts and tick
+ indices on the peak
  @param peakOffset The offset of the peak position, which may be used to
  determine if an update to the total shift is needed based on the cumulative
  shift and other parameters.
- @param globalTickIndex The global index of the tick across the entire capture
- process, which may be used to determine the current position in the data for
- updating the total shift if needed.
- @param tickIndex The index of the current tick being processed, which may be
- used to access specific data for updating the total shift if needed.
  @param res The resources used during the capture process, which may include
  data arrays and other relevant information for updating the total shift if
  needed.
  @param cfg The configuration settings for the capture process, which may
  include parameters for fitting and updating the total shift, such as thresholds
  and other relevant settings. */
-int updateTotalShiftIfNeeded(int cumulativeShift,
-                             int peakOffset,
-                             size_t globalTickIndex,
-                             size_t tickIndex,
-                             AppResources* res,
-                             CapConfig* cfg);
+void updateTotalShiftIfNeeded(LoopState* state,
+                              int peakOffset,
+                              AppResources* res,
+                              CapConfig* cfg);

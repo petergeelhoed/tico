@@ -32,13 +32,6 @@ typedef struct
     unsigned int maxTime;
 } RuntimeParams;
 
-typedef struct
-{
-    int cumulativeShift;
-    size_t tickIndex;
-    unsigned int globalTickIndex;
-} LoopState;
-
 /**
  * @brief Computes runtime parameters based on the configuration and actual
  * audio rate.
@@ -99,29 +92,18 @@ static int processTickTock(CapConfig* cfg,
 
     struct myarr* cumulativeTick =
         res->teethArray[state->globalTickIndex % cfg->teeth];
-    rotateDerivativeWindow(res, params->arrayLength, state->cumulativeShift);
-    int peakOffset = findMaxPosition(res,
-                                     cumulativeTick,
-                                     state->globalTickIndex,
-                                     (unsigned int)state->tickIndex,
-                                     params->arrayLength,
-                                     cfg);
+    rotateDerivativeWindow(res, state->cumulativeShift);
+    int peakOffset = findMaxPosition(res, cumulativeTick, state, cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
-    state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
-                                                      peakOffset,
-                                                      state->globalTickIndex,
-                                                      state->tickIndex,
-                                                      res,
-                                                      cfg);
+    updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
     processLogging(cfg,
                    res,
                    state->tickIndex,
                    ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
 
-    fitAndPrint(state->tickIndex,
-                state->globalTickIndex,
+    fitAndPrint(state,
                 cumulativeTick,
                 res,
                 cfg,
@@ -206,7 +188,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    printFinals(&cfg, &res, params.arrayLength, state.globalTickIndex);
+    printFinals(&cfg, &res, state.globalTickIndex);
     cleanupResources(&res, &cfg, &ctx);
 
     return 0;

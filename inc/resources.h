@@ -10,6 +10,7 @@
 /** @brief Struct to hold all the resources needed for the application. */
 typedef struct
 {
+    size_t arrayLength;
     struct myarr* subpos;
     struct myarr* maxpos;
     struct myarr* maxvals;

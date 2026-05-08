@@ -224,8 +224,7 @@ void processLogging(CapConfig* cfg,
     }
 }
 
-void fitAndPrint(size_t tickIndex,
-                 size_t globalTickIndex,
+void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
@@ -237,21 +236,22 @@ void fitAndPrint(size_t tickIndex,
     double slope = 0.0;
     fitNpeaks(&intercept,
               &slope,
-              (unsigned int)tickIndex,
+              (unsigned int)state->tickIndex,
               res->maxvals,
               res->maxpos,
               res->subpos,
               cfg->fitN,
               cfg->SDthreshold);
 
-    printheader(slope * SECS_DAY / (double)arrayLength,
-                cfg->everyline,
-                getBeatError(cumulativeTick, cfg->rate, 0),
-                (double)globalTickIndex * (double)arrayLength / cfg->rate);
+    printheader(
+        slope * SECS_DAY / (double)arrayLength,
+        cfg->everyline,
+        getBeatError(cumulativeTick, cfg->rate, 0),
+        (double)state->globalTickIndex * (double)arrayLength / cfg->rate);
 
     printspaces(
-        res->maxpos->arr[(unsigned int)tickIndex],
-        (size_t)(res->maxvals->arrd[(unsigned int)tickIndex] * HEX_BASE),
+        res->maxpos->arr[(unsigned int)state->tickIndex],
+        (size_t)(res->maxvals->arrd[(unsigned int)state->tickIndex] * HEX_BASE),
         mod,
         currentColumns - cfg->everyline,
         intercept,

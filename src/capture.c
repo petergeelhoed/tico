@@ -103,8 +103,7 @@ static int processTickTock(CapConfig* cfg,
                    state->tickIndex,
                    ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
 
-    fitAndPrint(state->tickIndex,
-                state->globalTickIndex,
+    fitAndPrint(state,
                 cumulativeTick,
                 res,
                 cfg,

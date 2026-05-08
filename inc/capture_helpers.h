@@ -97,9 +97,8 @@ void processLogging(CapConfig* cfg,
  * calculating the intercept and slope, printing the header information, and
  * visualizing the position of the maximum correlation based on the provided
  * parameters.
- @param tickIndex The index of the current tick being processed.
- @param globalTickIndex The global index of the tick across the entire capture
- process.
+@param state The loop state structure for tracking cumulative shifts and tick
+indices
  @param cumulativeTick The myarr structure containing cumulative tick data for
  beat error calculation.
  @param res The resources used during the capture process, which may include
@@ -110,8 +109,7 @@ void processLogging(CapConfig* cfg,
  @param mod The modulus used for calculating positions in printing.
  @param currentColumns The current number of columns available for printing,
  which may be used to determine how to visualize the output. */
-void fitAndPrint(size_t tickIndex,
-                 size_t globalTickIndex,
+void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,

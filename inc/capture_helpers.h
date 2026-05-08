@@ -149,26 +149,18 @@ int findMaxPosition(AppResources* res,
 /** @brief Updates the total shift if needed based on the cumulative shift, peak
  offset, and other parameters, using the provided resources and configuration
  settings.
- @param cumulativeShift The total shift that has been accumulated, which may be
- used to determine if an update to the total shift is needed based on the peak
- offset and other parameters.
+ @param state The loop state structure for tracking cumulative shifts and tick
+ indices on the peak
  @param peakOffset The offset of the peak position, which may be used to
  determine if an update to the total shift is needed based on the cumulative
  shift and other parameters.
- @param globalTickIndex The global index of the tick across the entire capture
- process, which may be used to determine the current position in the data for
- updating the total shift if needed.
- @param tickIndex The index of the current tick being processed, which may be
- used to access specific data for updating the total shift if needed.
  @param res The resources used during the capture process, which may include
  data arrays and other relevant information for updating the total shift if
  needed.
  @param cfg The configuration settings for the capture process, which may
  include parameters for fitting and updating the total shift, such as thresholds
  and other relevant settings. */
-int updateTotalShiftIfNeeded(int cumulativeShift,
-                             int peakOffset,
-                             size_t globalTickIndex,
-                             size_t tickIndex,
-                             AppResources* res,
-                             CapConfig* cfg);
+void updateTotalShiftIfNeeded(LoopState* state,
+                              int peakOffset,
+                              AppResources* res,
+                              CapConfig* cfg);

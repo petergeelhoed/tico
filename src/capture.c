@@ -96,12 +96,7 @@ static int processTickTock(CapConfig* cfg,
     int peakOffset = findMaxPosition(res, cumulativeTick, state, cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
-    state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,
-                                                      peakOffset,
-                                                      state->globalTickIndex,
-                                                      state->tickIndex,
-                                                      res,
-                                                      cfg);
+    updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
     processLogging(cfg,
                    res,

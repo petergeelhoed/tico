@@ -288,23 +288,20 @@ int findMaxPosition(AppResources* res,
         cumulativeTick->ArrayLength);
 }
 
-int updateTotalShiftIfNeeded(int cumulativeShift,
-                             int peakOffset,
-                             size_t globalTickIndex,
-                             size_t tickIndex,
-                             AppResources* res,
-                             CapConfig* cfg)
+void updateTotalShiftIfNeeded(LoopState* state,
+                              int peakOffset,
+                              AppResources* res,
+                              CapConfig* cfg)
 {
-    if (globalTickIndex > AUTOCOR_LIMIT &&
-        res->maxvals->arrd[tickIndex] > (double)cfg->cvalue / HEX_BASE &&
-        globalTickIndex % cfg->teeth == 0)
+    if (state->globalTickIndex > AUTOCOR_LIMIT &&
+        res->maxvals->arrd[state->tickIndex] > (double)cfg->cvalue / HEX_BASE &&
+        state->globalTickIndex % cfg->teeth == 0)
     {
         int delta = peakOffset;
         if (abs(delta) > PRESHIFT_THRESHOLD)
         {
             delta = (int)(PRESHIFT_THRESHOLD_ROOT * delta / sqrt(abs(delta)));
         }
-        cumulativeShift += delta;
+        state->cumulativeShift += delta;
     }
-    return cumulativeShift;
 }

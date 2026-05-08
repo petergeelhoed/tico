@@ -258,10 +258,9 @@ void fitAndPrint(size_t tickIndex,
         cfg->cvalue);
 }
 
-void rotateDerivativeWindow(AppResources* res,
-                            size_t arrayLength,
-                            int cumulativeShift)
+void rotateDerivativeWindow(AppResources* res, int cumulativeShift)
 {
+    const size_t arrayLength = res->derivative->ArrayLength;
     memmove(res->tmpder->arr,
             res->derivative->arr + modSigned(cumulativeShift, arrayLength),
             arrayLength * sizeof(int));

@@ -124,13 +124,9 @@ void fitAndPrint(size_t tickIndex,
  window for the next iteration of processing.
  @param res The resources used during the capture process, which may include
  data arrays and other relevant information for rotating the derivative window.
- @param arrayLength The length of the data arrays used in the derivative window,
- which is necessary for calculating the correct positions for rotation.
  @param cumulativeShift The total shift that has been accumulated, which will be
  used to determine how much to rotate the derivative window. */
-void rotateDerivativeWindow(AppResources* res,
-                            size_t arrayLength,
-                            int cumulativeShift);
+void rotateDerivativeWindow(AppResources* res, int cumulativeShift);
 
 /** @brief Finds the maximum position of the correlation in the capture data by
  * performing an FFT fit and shifting the result based on the array length,

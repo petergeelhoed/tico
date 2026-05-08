@@ -32,9 +32,7 @@ int main(void)
             (int)(DERIVATIVE_INIT_OFFSET + index);
     }
 
-    rotateDerivativeWindow(&resources,
-                           DERIVATIVE_ARRAY_LENGTH,
-                           ROTATE_MINUS_ONE);
+    rotateDerivativeWindow(&resources, ROTATE_MINUS_ONE);
 
     for (unsigned int index = 0; index < DERIVATIVE_ARRAY_LENGTH; ++index)
     {
@@ -49,9 +47,7 @@ int main(void)
         }
     }
 
-    rotateDerivativeWindow(&resources,
-                           DERIVATIVE_ARRAY_LENGTH,
-                           ROTATE_PLUS_TWO);
+    rotateDerivativeWindow(&resources, ROTATE_PLUS_TWO);
 
     const int expected1[DERIVATIVE_ARRAY_LENGTH] = {12, 13, 14, 10, 11};
     for (unsigned int i = 0; i < DERIVATIVE_ARRAY_LENGTH; ++i)

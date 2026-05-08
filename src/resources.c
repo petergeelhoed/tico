@@ -35,6 +35,10 @@ AppResources allocateResources(size_t arrayLength,
     {
         res.teethArray[t] = makemyarr(arrayLength);
     }
+
+    res.mod = arrayLength / cfg->zoom;
+    res.maxTime = (unsigned int)cfg->rate *
+                  (cfg->time ? cfg->time : DEFAULT_TIME) / arrayLength;
     return res;
 }
 

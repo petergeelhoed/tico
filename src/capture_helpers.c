@@ -225,7 +225,6 @@ void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
-                 size_t mod,
                  size_t currentColumns)
 {
     double intercept = 0.0;
@@ -249,7 +248,7 @@ void fitAndPrint(const LoopState* state,
     printspaces(
         res->maxpos->arr[(unsigned int)state->tickIndex],
         (size_t)(res->maxvals->arrd[(unsigned int)state->tickIndex] * HEX_BASE),
-        mod,
+        res->mod,
         currentColumns - cfg->everyline,
         intercept,
         cfg->cvalue);

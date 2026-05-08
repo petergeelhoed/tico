@@ -25,31 +25,6 @@
 volatile int keepRunning = 1;
 volatile unsigned int columns = DEFAULT_COLUMNS;
 
-typedef struct
-{
-    unsigned int mod;
-    unsigned int maxTime;
-} RuntimeParams;
-
-/**
- * @brief Computes runtime parameters based on the configuration and actual
- * audio rate.
- *
- * @param cfg Pointer to the configuration structure containing user-defined
- * settings.
- * @return A RuntimeParams structure containing calculated parameters for the
- * capture loop.
- */
-static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
-                                          unsigned int arrayLength)
-{
-    RuntimeParams params = {0};
-    params.mod = arrayLength / cfg->zoom;
-    params.maxTime = (unsigned int)cfg->rate *
-                     (cfg->time ? cfg->time : DEFAULT_TIME) / arrayLength;
-    return params;
-}
-
 /**
  * @brief Processes a single ticktock of audio capture and analysis.
  *
@@ -58,9 +33,6 @@ static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
  * @param res Pointer to the application resources structure for managing
  * buffers and state.
  * @param ctx Pointer to the capture context structure for managing audio
- * capture state.
- * @param params Pointer to the runtime parameters structure containing
- * calculated parameters.
  * @param state Pointer to the loop state structure for tracking cumulative
  * shifts and tick indices.
  * @return 0 on success, -1 on failure (e.g., if audio data cannot be read).
@@ -68,7 +40,6 @@ static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
 static int processTickTock(CapConfig* cfg,
                            AppResources* res,
                            CaptureCtx* ctx,
-                           const RuntimeParams* params,
                            LoopState* state)
 {
     if (state->tickIndex == ARRAY_BUFFER_SIZE * 2)
@@ -97,7 +68,7 @@ static int processTickTock(CapConfig* cfg,
                    state->tickIndex,
                    ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
 
-    fitAndPrint(state, cumulativeTick, res, cfg, params->mod, columns);
+    fitAndPrint(state, cumulativeTick, res, cfg, columns);
 
     state->tickIndex++;
     state->globalTickIndex++;
@@ -159,7 +130,6 @@ int main(int argc, char* argv[])
 
     unsigned int arrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
     arrayLength += (arrayLength % 2);
-    RuntimeParams params = computeRuntimeParams(&cfg, arrayLength);
     AppResources res =
         allocateResources(arrayLength, ARRAY_BUFFER_SIZE * 2, &cfg);
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
@@ -170,9 +140,9 @@ int main(int argc, char* argv[])
 
     LoopState state = {0};
 
-    while (keepRunning && !(state.globalTickIndex > params.maxTime && cfg.time))
+    while (keepRunning && !(state.globalTickIndex > res.maxTime && cfg.time))
     {
-        if (processTickTock(&cfg, &res, &ctx, &params, &state) < 0)
+        if (processTickTock(&cfg, &res, &ctx, &state) < 0)
         {
             break;
         }

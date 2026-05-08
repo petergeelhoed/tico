@@ -20,6 +20,8 @@ typedef struct
     struct myarr** teethArray;
     fftw_complex* filterFFT;
     int16_t* audioBuffer16;
+    size_t mod;
+    size_t maxTime;
 } AppResources;
 
 /** @brief Allocates and initializes the resources needed for the application.

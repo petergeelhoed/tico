@@ -27,7 +27,6 @@ volatile unsigned int columns = DEFAULT_COLUMNS;
 
 typedef struct
 {
-    unsigned int arrayLength;
     unsigned int mod;
     unsigned int maxTime;
 } RuntimeParams;
@@ -38,21 +37,16 @@ typedef struct
  *
  * @param cfg Pointer to the configuration structure containing user-defined
  * settings.
- * @param actualRate The actual audio sampling rate obtained from the audio
- * source.
  * @return A RuntimeParams structure containing calculated parameters for the
  * capture loop.
  */
 static RuntimeParams computeRuntimeParams(const CapConfig* cfg,
-                                          unsigned int actualRate)
+                                          unsigned int arrayLength)
 {
     RuntimeParams params = {0};
-    params.arrayLength = (actualRate * 2 * SECS_HOUR / cfg->bph);
-    params.arrayLength += (params.arrayLength % 2);
-    params.mod = params.arrayLength / cfg->zoom;
+    params.mod = arrayLength / cfg->zoom;
     params.maxTime = (unsigned int)cfg->rate *
-                     (cfg->time ? cfg->time : DEFAULT_TIME) /
-                     params.arrayLength;
+                     (cfg->time ? cfg->time : DEFAULT_TIME) / arrayLength;
     return params;
 }
 
@@ -163,9 +157,11 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    RuntimeParams params = computeRuntimeParams(&cfg, actualRate);
+    unsigned int arrayLength = (actualRate * 2 * SECS_HOUR / cfg.bph);
+    arrayLength += (arrayLength % 2);
+    RuntimeParams params = computeRuntimeParams(&cfg, arrayLength);
     AppResources res =
-        allocateResources(params.arrayLength, ARRAY_BUFFER_SIZE * 2, &cfg);
+        allocateResources(arrayLength, ARRAY_BUFFER_SIZE * 2, &cfg);
     fillReference(cfg.fpDefPeak, res.reference, cfg.teeth);
 
     sigset_t block;

@@ -274,7 +274,6 @@ void rotateDerivativeWindow(AppResources* res,
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
                     const LoopState* state,
-                    size_t arrayLength,
                     CapConfig* cfg)
 {
     const int useReference =
@@ -287,7 +286,7 @@ int findMaxPosition(AppResources* res,
                res->filterFFT,
                state->globalTickIndex == cfg->verbose,
                res->subpos->arrd + state->tickIndex),
-        arrayLength);
+        cumulativeTick->ArrayLength);
 }
 
 int updateTotalShiftIfNeeded(int cumulativeShift,

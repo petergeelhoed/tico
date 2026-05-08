@@ -93,8 +93,7 @@ static int processTickTock(CapConfig* cfg,
     struct myarr* cumulativeTick =
         res->teethArray[state->globalTickIndex % cfg->teeth];
     rotateDerivativeWindow(res, params->arrayLength, state->cumulativeShift);
-    int peakOffset =
-        findMaxPosition(res, cumulativeTick, state, params->arrayLength, cfg);
+    int peakOffset = findMaxPosition(res, cumulativeTick, state, cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,

@@ -142,16 +142,12 @@ void rotateDerivativeWindow(AppResources* res,
  position.
  @param state The loop state structure for tracking cumulative shifts and tick
  indices
- @param arrayLength The length of the data arrays used in finding the maximum
- position, which is necessary for performing the FFT fit and shifting the result
- correctly.
  @param cfg The configuration settings for the capture process, which may
  include parameters for fitting and finding the maximum position, such as the
  number of peaks to fit and the standard deviation threshold. */
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
                     const LoopState* state,
-                    size_t arrayLength,
                     CapConfig* cfg);
 
 /** @brief Updates the total shift if needed based on the cumulative shift, peak

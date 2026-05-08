@@ -12,6 +12,7 @@ set(TEST_TARGETS
     testshiftbufferdata testrotatederivativewindow testupdatetotalshift
     testcheckargs testgetbeaterror
     testgetinput
+    testmicamplification
 )
 foreach(TEST ${TEST_TARGETS})
     add_executable(${TEST} ${TEST}.c)
@@ -33,6 +34,7 @@ target_link_libraries(testcalculateall analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MAT
 target_link_libraries(testcrosscorint analysis ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testtranspone mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testgetinput cli mymath ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
+target_link_libraries(testmicamplification mysound ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testshiftbufferdata ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testrotatederivativewindow ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})
 target_link_libraries(testupdatetotalshift ${INTERNAL_LIBS} ${ASOUND_LIB} ${FFTW3_LIB} ${MATH_LIB})

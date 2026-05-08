@@ -82,16 +82,13 @@ void printspaces(int maxpos,
     (void)fprintf(stderr, "\n");
 }
 
-void printFinals(CapConfig* cfg,
-                 AppResources* res,
-                 size_t ArrayLength,
-                 size_t totalTickTock)
+void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock)
 {
     if (cfg->fpposition)
     {
         calculateTotalFromFile(totalTickTock,
                                cfg->fpposition,
-                               ArrayLength,
+                               res->arrayLength,
                                cfg->SDthreshold,
                                cfg->rate);
     }
@@ -109,7 +106,7 @@ void printFinals(CapConfig* cfg,
             {
                 struct myarr cumulativeTick = *tmp;
                 int toothshift = getshift(*res->teethArray[0], cumulativeTick);
-                for (size_t j = 0; j < ArrayLength; ++j)
+                for (size_t j = 0; j < res->arrayLength; ++j)
                 {
                     (void)fprintf(cfg->fptotal,
                                   "%zu %d %zu %d\n",
@@ -260,7 +257,7 @@ void fitAndPrint(const LoopState* state,
 
 void rotateDerivativeWindow(AppResources* res, int cumulativeShift)
 {
-    const size_t arrayLength = res->derivative->ArrayLength;
+    const size_t arrayLength = res->arrayLength;
     memmove(res->tmpder->arr,
             res->derivative->arr + modSigned(cumulativeShift, arrayLength),
             arrayLength * sizeof(int));

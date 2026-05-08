@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    printFinals(&cfg, &res, params.arrayLength, state.globalTickIndex);
+    printFinals(&cfg, &res, state.globalTickIndex);
     cleanupResources(&res, &cfg, &ctx);
 
     return 0;

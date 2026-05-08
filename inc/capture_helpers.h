@@ -49,13 +49,9 @@ void printspaces(int maxpos,
  count, position data, and correlation data, based on the provided parameters.
  @param cfg The configuration settings for the capture process.
  @param res The resources used during the capture process.
- @param ArrayLength The length of the data arrays.
  @param totalTickTock The total tick count accumulated during the capture
  process. */
-void printFinals(CapConfig* cfg,
-                 AppResources* res,
-                 size_t ArrayLength,
-                 size_t totalTickTock);
+void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock);
 
 /** @brief Fills the reference array with data from the provided file pointer,
  * based on the specified number of teeth.

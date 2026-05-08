@@ -17,9 +17,9 @@ static const int kExpectedRotated[DERIVATIVE_ARRAY_LENGTH] = {14,
 
 int main(void)
 {
-    AppResources resources = {0};
-    resources.derivative = makemyarr(DERIVATIVE_ARRAY_LENGTH);
-    resources.tmpder = makemyarr(DERIVATIVE_ARRAY_LENGTH);
+    AppResources resources = {.arrayLength = DERIVATIVE_ARRAY_LENGTH,
+                              .derivative = makemyarr(DERIVATIVE_ARRAY_LENGTH),
+                              .tmpder = makemyarr(DERIVATIVE_ARRAY_LENGTH)};
 
     if (resources.derivative == NULL || resources.tmpder == NULL)
     {

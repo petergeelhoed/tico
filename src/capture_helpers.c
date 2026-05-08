@@ -273,20 +273,20 @@ void rotateDerivativeWindow(AppResources* res,
 
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
-                    unsigned int globalTickIndex,
-                    unsigned int tickIndex,
+                    const LoopState* state,
                     size_t arrayLength,
                     CapConfig* cfg)
 {
-    const int useReference = (globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
+    const int useReference =
+        (state->globalTickIndex < AUTOCOR_LIMIT * cfg->teeth);
     return shiftHalf(
         fftfit(*res->tmpder,
                cumulativeTick->arr,
                useReference ? res->reference->arr : cumulativeTick->arr,
-               res->maxvals->arrd + tickIndex,
+               res->maxvals->arrd + state->tickIndex,
                res->filterFFT,
-               globalTickIndex == cfg->verbose,
-               res->subpos->arrd + tickIndex),
+               state->globalTickIndex == cfg->verbose,
+               res->subpos->arrd + state->tickIndex),
         arrayLength);
 }
 

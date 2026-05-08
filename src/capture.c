@@ -32,13 +32,6 @@ typedef struct
     unsigned int maxTime;
 } RuntimeParams;
 
-typedef struct
-{
-    int cumulativeShift;
-    size_t tickIndex;
-    unsigned int globalTickIndex;
-} LoopState;
-
 /**
  * @brief Computes runtime parameters based on the configuration and actual
  * audio rate.
@@ -100,12 +93,8 @@ static int processTickTock(CapConfig* cfg,
     struct myarr* cumulativeTick =
         res->teethArray[state->globalTickIndex % cfg->teeth];
     rotateDerivativeWindow(res, params->arrayLength, state->cumulativeShift);
-    int peakOffset = findMaxPosition(res,
-                                     cumulativeTick,
-                                     state->globalTickIndex,
-                                     (unsigned int)state->tickIndex,
-                                     params->arrayLength,
-                                     cfg);
+    int peakOffset =
+        findMaxPosition(res, cumulativeTick, state, params->arrayLength, cfg);
 
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     state->cumulativeShift = updateTotalShiftIfNeeded(state->cumulativeShift,

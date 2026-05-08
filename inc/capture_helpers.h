@@ -6,6 +6,13 @@
 
 #include <stdio.h>
 
+typedef struct
+{
+    int cumulativeShift;
+    size_t tickIndex;
+    unsigned int globalTickIndex;
+} LoopState;
+
 /** Helper functions for capture.c, including printing, data shifting, logging,
  * and fitting. */
 
@@ -133,11 +140,8 @@ void rotateDerivativeWindow(AppResources* res,
  @param cumulativeTick The myarr structure containing cumulative tick data for
  beat error calculation, which may be used in the process of finding the maximum
  position.
- @param globalTickIndex The global index of the tick across the entire capture
- process, which may be used to determine the current position in the data for
- finding the maximum position.
- @param tickIndex The index of the current tick being processed, which may be
- used to access specific data for finding the maximum position.
+ @param state The loop state structure for tracking cumulative shifts and tick
+ indices
  @param arrayLength The length of the data arrays used in finding the maximum
  position, which is necessary for performing the FFT fit and shifting the result
  correctly.
@@ -146,8 +150,7 @@ void rotateDerivativeWindow(AppResources* res,
  number of peaks to fit and the standard deviation threshold. */
 int findMaxPosition(AppResources* res,
                     struct myarr* cumulativeTick,
-                    unsigned int globalTickIndex,
-                    unsigned int tickIndex,
+                    const LoopState* state,
                     size_t arrayLength,
                     CapConfig* cfg);
 

@@ -5,6 +5,17 @@
 #include <alsa/asoundlib.h> // IWYU pragma: export
 #include <stdio.h>
 
+struct AmpResult
+{
+    long avg;
+    int clipCount;
+    int clipStreak;
+    int gain_increase_locked;
+    int has_increased;
+    long min_gain;
+    long max_gain;
+};
+
 /** * @brief Context for audio capture, containing ALSA parameters and
  * configuration.
  */
@@ -16,7 +27,12 @@ typedef struct CaptureCtx
     snd_pcm_uframes_t periodSize;
     snd_pcm_uframes_t bufferSize;
     size_t ArrayLength; // frames per processing block
+    snd_mixer_t* mixerHandle;
+    snd_mixer_elem_t* mixerElem;
+    struct AmpResult ampResult;
 } CaptureCtx;
+
+void open_capture_elem(CaptureCtx* ctx, const CapConfig* cfg);
 
 /**@brief Retrieves the default ALSA audio capture device, preferring sysdefault
  * devices with 'usb' in their description. This function executes the 'arecord
@@ -147,3 +163,29 @@ int captureSetup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate);
  * failure.
  */
 int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out);
+
+/**
+ * @brief Get the current microphone amplification (capture volume) from ALSA
+ * mixer.
+ *
+ * This function queries the ALSA mixer for the current capture volume
+ * (microphone gain) for the specified capture context.
+ *
+ * @param ctx Pointer to the CaptureCtx containing the mixer handle and element.
+ * @param value Output pointer for the amplification value.
+ * @return 0 on success, -1 on failure.
+ */
+int get_mic_amplification(const CaptureCtx* ctx, long* value);
+
+/**
+ * @brief Set the microphone amplification (capture volume) using ALSA mixer.
+ *
+ * This function sets the ALSA mixer capture volume (microphone gain) to the
+ * specified value for the given capture context. The value should be within the
+ * hardware limits stored in the context's AmpResult struct.
+ *
+ * @param ctx Pointer to the CaptureCtx containing the mixer handle and element.
+ * @param value The amplification value to set.
+ * @return 0 on success, -1 on failure.
+ */
+int set_mic_amplification(const CaptureCtx* ctx, long value);

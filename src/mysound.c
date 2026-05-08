@@ -14,6 +14,7 @@
 #include <math.h>
 #include <poll.h>
 #include <pthread.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,135 @@
 #include <time.h>
 #include <unistd.h> // getopt, read
 
+/**
+ * @brief Open the ALSA mixer and find the 'Capture' element for microphone
+ * control.
+ *
+ * This function checks if the mixer handle and element are already stored in
+ * the configuration. If not, it opens the mixer, attaches to the specified
+ * device, registers simple elements, loads the mixer, and finds the 'Capture'
+ * element. The found element is stored in the configuration for future use.
+ *
+ * @param cfg Configuration containing device information and mixer state.
+ */
+void open_capture_elem(CaptureCtx* ctx, const CapConfig* cfg)
+{
+    if (ctx->mixerHandle && ctx->mixerElem)
+    {
+        return;
+    }
+    snd_mixer_t* handle = NULL;
+    snd_mixer_selem_id_t* sid = NULL;
+    const char* card = (cfg && cfg->device[0]) ? cfg->device : "default";
+    const char* selem_name = "Mic";
+
+    if (snd_mixer_open(&handle, 0) < 0)
+    {
+        return;
+    }
+    if (snd_mixer_attach(handle, card) < 0)
+    {
+        snd_mixer_close(handle);
+        return;
+    }
+    if (snd_mixer_selem_register(handle, NULL, NULL) < 0)
+    {
+        snd_mixer_close(handle);
+        return;
+    }
+    if (snd_mixer_load(handle) < 0)
+    {
+        snd_mixer_close(handle);
+        return;
+    }
+    if (snd_mixer_selem_id_malloc(&sid) < 0)
+    {
+        snd_mixer_close(handle);
+        return;
+    }
+    snd_mixer_selem_id_set_index(sid, 0);
+    snd_mixer_selem_id_set_name(sid, selem_name);
+    snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
+    snd_mixer_selem_id_free(sid);
+    if (!elem)
+    {
+        (void)fprintf(stderr,
+                      "Could not find mixer element '%s' for device '%s'\n",
+                      selem_name,
+                      card);
+        snd_mixer_close(handle);
+        exit(EXIT_FAILURE);
+    }
+    ctx->mixerHandle = handle;
+    ctx->mixerElem = elem;
+    // Store min/max gain in ampResult
+    if (ctx->ampResult.min_gain == 0 && ctx->ampResult.max_gain == 0)
+    {
+        long min = 0;
+        long max = 0;
+        if (snd_mixer_selem_get_capture_volume_range(elem, &min, &max) == 0)
+        {
+            ctx->ampResult.min_gain = min;
+            ctx->ampResult.max_gain = max;
+        }
+        else
+        {
+            ctx->ampResult.min_gain = 0;
+            ctx->ampResult.max_gain = 0;
+        }
+    }
+}
+/**
+ * @brief Adjust the microphone amplification (gain) by a specified amount.
+ *
+ * This function retrieves the current microphone amplification level from ALSA,
+ * clamps the new value to the hardware min/max stored in the context, and
+ * applies the new level. If the requested value is already at the limit, no
+ * change is made. Logs the change or any errors encountered during the process.
+ *
+ * @param cfg Pointer to the CaptureCtx containing the mixer and ampResult.
+ * @param increase_amount The amount to adjust the mic amplification by
+ * (positive to increase, negative to decrease).
+ */
+static void increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
+{
+    long current_value;
+    if (get_mic_amplification(cfg, &current_value) == 0)
+    {
+        long min = cfg->ampResult.min_gain;
+        long max = cfg->ampResult.max_gain;
+        long new_value = current_value + increase_amount;
+        if (new_value > max)
+        {
+            new_value = max;
+        }
+        if (new_value < min)
+        {
+            new_value = min;
+        }
+        if (new_value == current_value)
+        {
+            return;
+        }
+        if (set_mic_amplification(cfg, new_value) != 0)
+        {
+            (void)fprintf(stderr,
+                          "Failed to set mic amplification to %ld\n",
+                          new_value);
+        }
+        else
+        {
+            (void)fprintf(stderr,
+                          "Set mic amplification from %ld to %ld\n",
+                          current_value,
+                          new_value);
+        }
+    }
+    else
+    {
+        (void)fprintf(stderr, "Failed to get current mic amplification\n");
+    }
+}
 /**
  * @brief Compute the absolute difference between consecutive audio samples and
  * count clipping events.
@@ -51,6 +181,73 @@ static int derived(int* derivative, size_t ArrayLength, int16_t* samples)
     }
     derivative[ArrayLength - 1] = 0;
     return (int)ArrayLength;
+}
+
+/**
+ * @brief Compute the absolute difference between consecutive audio samples and
+ * count clipping events.
+ *
+ * @param derivative Output array for the computed differences.
+ * @param ArrayLength Number of samples in the input array.
+ * @param samples Input array of 16-bit audio samples.
+ * @param ctx Capture context containing amplitude results and clipping state.
+ * @return The number of processed samples (ArrayLength).
+ */
+static int derivedCtx(int* derivative,
+                      size_t ArrayLength,
+                      int16_t* samples,
+                      CaptureCtx* ctx)
+{
+    struct AmpResult* ampResult = &ctx->ampResult;
+    ampResult->avg = 0;
+    ampResult->clipCount = 0;
+
+    for (size_t k = 0; k < ArrayLength - 1; k++)
+    {
+        if (samples[k] == INT16_MAX || samples[k] == INT16_MIN)
+        {
+            ++ampResult->clipCount;
+        }
+        ampResult->avg += abs(samples[k]);
+        derivative[k] = abs(samples[k] - samples[k + 1]);
+    }
+    derivative[ArrayLength - 1] = 0;
+
+    if (ampResult->gain_increase_locked)
+    {
+        return (int)(ampResult->avg / (int)ArrayLength);
+    }
+    if (ampResult->clipCount > 1)
+    {
+        ampResult->clipStreak++;
+        (void)fprintf(stderr,
+                      "%d audio 16-bit clipping event(s)\n",
+                      ampResult->clipCount);
+    }
+    else
+    {
+        ampResult->clipStreak--;
+    }
+
+    if (ampResult->clipStreak > CLIPSTREAK)
+    {
+        ampResult->clipStreak = 0;
+        increase_mic_amplification(ctx, -1);
+        if (ampResult->has_increased)
+        {
+            ampResult->gain_increase_locked = 1;
+            (void)fprintf(stderr,
+                          "Mic amplification locked at %ld\n",
+                          ctx->ampResult.max_gain - 1);
+        }
+    }
+    else if (ampResult->clipStreak < -CLIPSTREAK)
+    {
+        ampResult->clipStreak = 0;
+        increase_mic_amplification(ctx, 1);
+        ampResult->has_increased = 1;
+    }
+    return (int)(ampResult->avg / (int)ArrayLength);
 }
 
 /**
@@ -245,21 +442,20 @@ int readBufferOrFile(int* derivative,
         {
             return INPUT_FILE_ERROR;
         }
-    }
-    else
-    {
-        ret = readSamples(ctx->cap, ArrayLength, buffer16);
-        if (ret < 0)
-        {
-            return ret;
-        }
-        if ((unsigned)ret != ArrayLength)
-        {
-            return INPUT_SOUND_ERROR;
-        }
+        return derived(derivative, ArrayLength, buffer16);
     }
 
-    return derived(derivative, ArrayLength, buffer16);
+    // audio input, use gain control
+    ret = readSamples(ctx->cap, ArrayLength, buffer16);
+    if (ret < 0)
+    {
+        return ret;
+    }
+    if ((unsigned)ret != ArrayLength)
+    {
+        return INPUT_SOUND_ERROR;
+    }
+    return derivedCtx(derivative, ArrayLength, buffer16, ctx);
 }
 
 // Get data from audio capture
@@ -319,6 +515,7 @@ int captureSetup(CaptureCtx* ctx, CapConfig* cfg, unsigned int rate)
         ctx->periodSize = ctx->ArrayLength;
     }
 
+    open_capture_elem(ctx, cfg);
     return 0;
 }
 
@@ -520,4 +717,28 @@ const char* get_default_device(void)
         return device;
     }
     return "default";
+}
+
+int get_mic_amplification(const CaptureCtx* ctx, long* value)
+{
+    assert(ctx && ctx->mixerElem &&
+           "get_mic_amplification: ctx or mixerElem is NULL");
+    if (snd_mixer_selem_get_capture_volume(ctx->mixerElem,
+                                           SND_MIXER_SCHN_FRONT_LEFT,
+                                           value) < 0)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+int set_mic_amplification(const CaptureCtx* ctx, long value)
+{
+    assert(ctx && ctx->mixerElem &&
+           "set_mic_amplification: ctx or mixerElem is NULL");
+    if (snd_mixer_selem_set_capture_volume_all(ctx->mixerElem, value) < 0)
+    {
+        return -1;
+    }
+    return 0;
 }

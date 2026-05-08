@@ -2,9 +2,11 @@
 
 #define ARRAY_BUFFER_SIZE 512
 #define AUTOCOR_LIMIT 1
+#define AVG_THRESHOLD 1000
 #define BEAT_WIDTH 5
 #define BITS_IN_BYTE 8
 #define BUFFER_SIZE 256
+#define CLIPSTREAK 10
 #define DEBUG 0
 #define DECIMAL 10
 #define DEFAULT_BPH 21600

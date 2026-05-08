@@ -101,16 +101,12 @@ indices
  data arrays and other relevant information for fitting and printing.
  @param cfg The configuration settings for the capture process, which may
  include parameters for fitting and printing.
- @param arrayLength The length of the data arrays used in fitting and printing.
- @param mod The modulus used for calculating positions in printing.
  @param currentColumns The current number of columns available for printing,
  which may be used to determine how to visualize the output. */
 void fitAndPrint(const LoopState* state,
                  struct myarr* cumulativeTick,
                  AppResources* res,
                  CapConfig* cfg,
-                 size_t arrayLength,
-                 size_t mod,
                  size_t currentColumns);
 
 /** @brief Rotates the derivative window by shifting the data in the derivative

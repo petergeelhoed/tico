@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 extern int keepRunning;
-extern unsigned int columns;
+extern volatile unsigned int columns;
 
 void sigintHandler(int signal)
 {

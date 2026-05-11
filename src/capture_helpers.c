@@ -12,6 +12,48 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdarg.h>
+
+void printmsg(unsigned int columns, const char* fmt, ...)
+{
+    char buf[BUFFER_SIZE];
+    va_list args;
+    va_start(args, fmt);
+    int err = vsnprintf(buf, sizeof(buf), fmt, args);
+    // Ensure null-termination and indicate truncation if needed
+    if (err < 0)
+    {
+        // Encoding error, print fallback message
+        strncpy(buf, "[format error]", sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+    }
+    else if ((size_t)err >= sizeof(buf))
+    {
+        // Truncated, add ellipsis
+        if (sizeof(buf) > 4)
+        {
+            buf[sizeof(buf) - 4] = '.';
+            buf[sizeof(buf) - 3] = '.';
+            buf[sizeof(buf) - 2] = '.';
+            buf[sizeof(buf) - 1] = '\0';
+        }
+    }
+    va_end(args);
+
+    size_t len = strlen(buf);
+    int col = (int)columns - (int)len + 1;
+    if (col < 1)
+    {
+        col = 1;
+    }
+
+    // Save cursor, move to line 5, move to col, print, restore cursor
+    (void)fprintf(stderr,
+                  "\033[s\033[5;0H\033[%dG\033[94m%s\033[0m\033[u",
+                  col,
+                  buf);
+}
+
 void printheader(double fittedRate,
                  unsigned int everyline,
                  double beatError,

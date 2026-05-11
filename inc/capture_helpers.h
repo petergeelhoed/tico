@@ -16,6 +16,19 @@ typedef struct
 /** Helper functions for capture.c, including printing, data shifting, logging,
  * and fitting. */
 
+/**
+ * @brief Prints a message right-aligned to the screen, 5 lines from the top, in
+ * light blue.
+ *
+ * Uses the global columns variable for width. Accepts printf-style format
+ * strings.
+ * @param columns The total number of columns available for printing.
+ * @param fmt The printf-style format string.
+ * @param ... Arguments for the format string.
+ */
+void printmsg(unsigned int columns, const char* fmt, ...)
+    __attribute__((format(printf, 2, 3)));
+
 /* @brief Prints the header information for the capture output, including beat
 error, fitted rate, and elapsed time.
 @param fittedRate The fitted rate in seconds per day.

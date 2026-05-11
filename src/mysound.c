@@ -5,8 +5,7 @@
 #include "myfft.h"
 #include "mysync.h"
 #include "parseargs.h"
-
-#include "capture_helpers.h"
+#include "printing.h"
 
 #include <alsa/asoundlib.h>
 #include <ctype.h>
@@ -143,10 +142,9 @@ static void increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
         }
         else
         {
-            (void)fprintf(stderr,
-                          "Set mic amplification from %ld to %ld\n",
-                          current_value,
-                          new_value);
+            printmsg("Set mic amplification from %ld to %ld\n",
+                     current_value,
+                     new_value);
         }
     }
     else

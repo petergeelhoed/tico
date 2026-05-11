@@ -1,6 +1,5 @@
 #include "analysis.h"
 
-#include "config.h"
 #include "crosscorint.h"
 #include "mydefs.h"
 #include "mymath.h"

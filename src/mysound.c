@@ -114,43 +114,40 @@ void open_capture_elem(CaptureCtx* ctx, const CapConfig* cfg)
  * @param increase_amount The amount to adjust the mic amplification by
  * (positive to increase, negative to decrease).
  */
-static void increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
+static long increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
 {
     long current_value;
-    if (get_mic_amplification(cfg, &current_value) == 0)
-    {
-        long min = cfg->ampResult.min_gain;
-        long max = cfg->ampResult.max_gain;
-        long new_value = current_value + increase_amount;
-        if (new_value > max)
-        {
-            new_value = max;
-        }
-        if (new_value < min)
-        {
-            new_value = min;
-        }
-        if (new_value == current_value)
-        {
-            return;
-        }
-        if (set_mic_amplification(cfg, new_value) != 0)
-        {
-            (void)fprintf(stderr,
-                          "Failed to set mic amplification to %ld\n",
-                          new_value);
-        }
-        else
-        {
-            printmsg("Set mic amplification from %ld to %ld\n",
-                     current_value,
-                     new_value);
-        }
-    }
-    else
+    if (get_mic_amplification(cfg, &current_value) != 0)
     {
         (void)fprintf(stderr, "Failed to get current mic amplification\n");
+        return -1;
     }
+    long min = cfg->ampResult.min_gain;
+    long max = cfg->ampResult.max_gain;
+    long new_value = current_value + increase_amount;
+    if (new_value > max)
+    {
+        new_value = max;
+    }
+    if (new_value < min)
+    {
+        new_value = min;
+    }
+    if (new_value == current_value)
+    {
+        return -1; // No change
+    }
+    if (set_mic_amplification(cfg, new_value) != 0)
+    {
+        (void)fprintf(stderr,
+                      "Failed to set mic amplification to %ld\n",
+                      new_value);
+        return -1;
+    }
+    printmsg("Set mic amplification from %ld to %ld\n",
+             current_value,
+             new_value);
+    return new_value;
 }
 /**
  * @brief Compute the absolute difference between consecutive audio samples and
@@ -232,19 +229,17 @@ static int derivedCtx(int* derivative,
     if (ampResult->clipStreak > CLIPSTREAK)
     {
         ampResult->clipStreak = 0;
-        increase_mic_amplification(ctx, -1);
+        long new_value = increase_mic_amplification(ctx, -1);
         if (ampResult->has_increased)
         {
             ampResult->gain_increase_locked = 1;
-            (void)fprintf(stderr,
-                          "Mic amplification locked at %ld\n",
-                          ctx->ampResult.max_gain - 1);
+            printmsg("Microphone amplification locked at %ld\n", new_value);
         }
     }
     else if (ampResult->clipStreak < -CLIPSTREAK)
     {
         ampResult->clipStreak = 0;
-        increase_mic_amplification(ctx, 1);
+        (void)increase_mic_amplification(ctx, 1);
         ampResult->has_increased = 1;
     }
     return (int)(ampResult->avg / (int)ArrayLength);

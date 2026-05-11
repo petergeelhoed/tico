@@ -187,15 +187,16 @@ include(CTest)
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 # Define the internal libraries group
 set(INTERNAL_LIBS
-  analysis
-  capture_helpers
-  cli
+    analysis
+    capture_helpers
+    cli
     mysound
     mysync
     mysignal
     myfft
     mymath
     myarr
+    printing
 )
 
 set(SRC ${PROJECT_ROOT}/src)
@@ -205,34 +206,36 @@ add_library(myarr STATIC ${SRC}/myarr.c)
 
 add_library(mysync STATIC ${SRC}/mysync.c)
 target_link_libraries(mysync PUBLIC myarr)
+target_link_libraries(mysync PUBLIC Threads::Threads)
 
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 
 add_library(mymath STATIC ${SRC}/mymath.c)
-target_link_libraries(mymath PUBLIC myarr)
+target_link_libraries(mymath PUBLIC myarr ${MATH_LIB})
 
 add_library(myfft STATIC ${SRC}/myfft.c)
-target_link_libraries(myfft PUBLIC mysync myarr)
+target_link_libraries(myfft PUBLIC mysync myarr ${FFTW3_LIB} ${MATH_LIB})
 
 add_library(mysound STATIC ${SRC}/mysound.c)
-target_link_libraries(mysound PUBLIC myarr)
+target_link_libraries(mysound PUBLIC myarr ${ASOUND_LIB} printing )
 
 add_library(cli STATIC ${SRC}/parseargs.c)
 
 add_library(analysis STATIC ${SRC}/analysis.c ${SRC}/crosscorint.c)
-target_link_libraries(analysis PUBLIC myarr mymath mysync myfft cli)
+target_link_libraries(analysis PUBLIC mymath myfft cli)
+
+add_library(printing STATIC ${SRC}/printing.c ${SRC}/columns.c)
+target_link_libraries(printing PUBLIC mymath)
 
 add_library(capture_helpers STATIC ${SRC}/capture_helpers.c ${SRC}/resources.c)
-add_library(printing STATIC ${SRC}/printing.c ${SRC}/columns.c)
-target_include_directories(printing PUBLIC ${PROJECT_ROOT}/inc)
 target_link_libraries(capture_helpers
-    PUBLIC myarr mysound analysis myfft mymath mysync cli)
+    PUBLIC mysound analysis)
 
 
 foreach(LIB ${INTERNAL_LIBS})
   target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT}/inc)
-  target_link_libraries(${LIB} PUBLIC Threads::Threads)
 endforeach()
+  
 
 
 # 5. Define Test Targets

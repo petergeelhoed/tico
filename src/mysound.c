@@ -6,6 +6,8 @@
 #include "mysync.h"
 #include "parseargs.h"
 
+#include "capture_helpers.h"
+
 #include <alsa/asoundlib.h>
 #include <ctype.h>
 #include <errno.h>

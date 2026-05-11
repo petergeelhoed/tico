@@ -223,13 +223,15 @@ add_library(analysis STATIC ${SRC}/analysis.c ${SRC}/crosscorint.c)
 target_link_libraries(analysis PUBLIC myarr mymath mysync myfft cli)
 
 add_library(capture_helpers STATIC ${SRC}/capture_helpers.c ${SRC}/resources.c)
+add_library(printing STATIC ${SRC}/printing.c ${SRC}/columns.c)
+target_include_directories(printing PUBLIC ${PROJECT_ROOT}/inc)
 target_link_libraries(capture_helpers
     PUBLIC myarr mysound analysis myfft mymath mysync cli)
 
 
 foreach(LIB ${INTERNAL_LIBS})
-    target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT}/inc)
-    target_link_libraries(${LIB} PUBLIC Threads::Threads)
+  target_include_directories(${LIB} PUBLIC ${PROJECT_ROOT}/inc)
+  target_link_libraries(${LIB} PUBLIC Threads::Threads)
 endforeach()
 
 
@@ -246,11 +248,12 @@ set(BINARIES
 add_subdirectory(tests)
 
 foreach(BIN ${BINARIES})
-    add_executable(${BIN} src/${BIN}.c)
+  add_executable(${BIN} src/${BIN}.c)
 endforeach()
 
 target_link_libraries(capture
   capture_helpers
+  printing
   mysignal
   mysound
   ${ASOUND_LIB}
@@ -290,6 +293,8 @@ target_link_libraries(linreg
 
 target_link_libraries(record
   mysound
+  capture_helpers
+  printing
   mysync
   cli
   myarr

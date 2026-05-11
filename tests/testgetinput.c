@@ -30,6 +30,30 @@ struct exp
 #define TEST_INT_5 INT_MIN
 #define TEST_DBL_5 1111111111111111.0
 
+static int nearlyEqual(double number0, double number1)
+{
+    if (isnan(number0) || isnan(number1))
+    {
+        return 0; // NaNs are never equal
+    }
+    if (isinf(number0) || isinf(number1))
+    {
+        return 0;
+    }
+
+    const double absEps = DOUBLE_LIMIT;
+    const double relEps = DOUBLE_LIMIT;
+
+    const double diff = fabs(number0 - number1);
+    if (diff <= absEps)
+    {
+        return 1;
+    }
+
+    const double maxab = fmax(fabs(number0), fabs(number1));
+    return diff <= relEps * maxab;
+}
+
 int main(void)
 {
     struct exp testCases[NR_TESTS];

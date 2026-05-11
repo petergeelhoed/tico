@@ -541,30 +541,6 @@ void fitNpeaks(double* intercept,
     }
 }
 
-int nearlyEqual(double number0, double number1)
-{
-    if (isnan(number0) || isnan(number1))
-    {
-        return 0; // NaNs are never equal
-    }
-    if (isinf(number0) || isinf(number1))
-    {
-        return 0;
-    }
-
-    const double absEps = DOUBLE_LIMIT;
-    const double relEps = DOUBLE_LIMIT;
-
-    const double diff = fabs(number0 - number1);
-    if (diff <= absEps)
-    {
-        return 1;
-    }
-
-    const double maxab = fmax(fabs(number0), fabs(number1));
-    return diff <= relEps * maxab;
-}
-
 int shiftHalf(size_t value, size_t ArrayLength)
 {
     return ((int)value + (int)ArrayLength / 2) % (int)(ArrayLength) -

@@ -105,15 +105,6 @@ void fastlinreg(double coeffs[2],
                 const double* weightArr);
 
 /** @ingroup mymath
- * @brief Returns 1 if two doubles are nearly equal, 0 otherwise.
- *
- * @param number0 First number.
- * @param number1 Second number.
- * @return 1 if nearly equal, 0 otherwise.
- */
-int nearlyEqual(double number0, double number1);
-
-/** @ingroup mymath
  * @brief Returns the index of the maximum value in an integer array.
  *
  * @param array The array to search.

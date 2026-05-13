@@ -40,3 +40,9 @@ void printspaces(int maxpos,
                  size_t acolumns,
                  double avgPos,
                  size_t correlationThreshold);
+
+/** @brief Prints a formatted message to the standard error stream, using a
+ printf-style format string and variable arguments.
+ @param fmt The printf-style format string.
+ @param ... Arguments for the format string. */
+void print(const char* fmt, ...) __attribute__((format(printf, 1, 2)));

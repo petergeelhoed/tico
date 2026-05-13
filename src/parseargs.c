@@ -1,11 +1,12 @@
 #include "parseargs.h"
+
 #include "config.h"
+#include "printing.h"
 
 #include <errno.h>
 #include <getopt.h>
 #include <limits.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,28 +16,27 @@
  */
 static void printUsage(void)
 {
-    (void)fprintf(stderr,
-                  "usage: capture\n"
-                  "capture reads from the microphone and timegraphs your "
-                  "mechanical watch\n"
-                  "options:\n"
-                  " -d default:2 capture device>\n"
-                  " -z 10 zoom\n"
-                  " -b 21600 bph of the watch\n"
-                  " -r 48000 sampling rate in Hz\n"
-                  " -t 30 measurement time in seconds\n"
-                  " -s 3.0 cutoff standard deviation\n"
-                  " -w <file> write positions to file\n"
-                  " -m <file> write correlation to file\n"
-                  " -p <file> write pulse to file\n"
-                  " -I <file> read from file instead of microphone\n"
-                  " -D <file> read pulse from file\n"
-                  " -c 7 cross-correlation limit\n"
-                  " -f 30 fit n points for local rate\n"
-                  " -e 4 Gaussian convolution over input\n"
-                  " -l print beat error and rate on each line\n"
-                  " -j 1 number of ratched wheel teeth\n"
-                  " -v <peak> write files for this peak\n");
+    print("usage: capture\n"
+          "capture reads from the microphone and timegraphs your "
+          "mechanical watch\n"
+          "options:\n"
+          " -d default:2 capture device>\n"
+          " -z 10 zoom\n"
+          " -b 21600 bph of the watch\n"
+          " -r 48000 sampling rate in Hz\n"
+          " -t 30 measurement time in seconds\n"
+          " -s 3.0 cutoff standard deviation\n"
+          " -w <file> write positions to file\n"
+          " -m <file> write correlation to file\n"
+          " -p <file> write pulse to file\n"
+          " -I <file> read from file instead of microphone\n"
+          " -D <file> read pulse from file\n"
+          " -c 7 cross-correlation limit\n"
+          " -f 30 fit n points for local rate\n"
+          " -e 4 Gaussian convolution over input\n"
+          " -l print beat error and rate on each line\n"
+          " -j 1 number of ratched wheel teeth\n"
+          " -v <peak> write files for this peak\n");
 }
 
 int checkUIntArg(int name, unsigned int* value, const char* optArg)
@@ -58,21 +58,17 @@ int checkFileArg(int name, FILE** filePtr, const char* optArg, const char* mode)
 {
     if (*optArg == '-')
     {
-        (void)fprintf(stderr,
-                      "expecting -%c <file>\n got -w %s\n",
-                      (char)name,
-                      optArg);
+        print("expecting -%c <file>\n got -w %s\n", (char)name, optArg);
         return -1;
     }
 
     *filePtr = fopen(optArg, mode);
     if (*filePtr == NULL)
     {
-        (void)fprintf(stderr,
-                      "cannot open file -%c '%s' for mode %s\n",
-                      (char)name,
-                      optArg,
-                      mode);
+        print("cannot open file -%c '%s' for mode %s\n",
+              (char)name,
+              optArg,
+              mode);
         return -4;
     }
     return 0;
@@ -113,7 +109,7 @@ static void parseSdThreshold(const char* arg, double* threshold)
     *threshold = strtod(arg, &endp);
     if (errno == ERANGE || endp == arg || *threshold <= 0.0)
     {
-        (void)fprintf(stderr, "invalid float argument for -s '%s'\n", arg);
+        print("invalid float argument for -s '%s'\n", arg);
         {
             exit(-1);
         }
@@ -196,7 +192,7 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
             enforceUint(flag, &cfg->bph, optarg);
             if (cfg->bph < SECS_HOUR)
             {
-                (void)fprintf(stderr, "refusing bph < 3600\n");
+                print("refusing bph < 3600\n");
                 exit(-1);
             }
             break;
@@ -237,9 +233,8 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
         case 'd':
             if (strlen(optarg) >= MAX_DEVICE_LENGTH)
             {
-                (void)fprintf(stderr,
-                              "truncating device length to %d\n",
-                              MAX_DEVICE_LENGTH - 1);
+                print("truncating device length to %d\n",
+                      MAX_DEVICE_LENGTH - 1);
             }
             strncpy(cfg->device, optarg, MAX_DEVICE_LENGTH - 1);
             cfg->device[MAX_DEVICE_LENGTH - 1] = '\n';
@@ -266,7 +261,7 @@ int getInt(char* ptr)
     // If ptr == endptr, no more numbers were found on this line
     if (ptr == endptr || errno == ERANGE || (val < INT_MIN || val > INT_MAX))
     {
-        (void)fprintf(stderr, "Invalid long or out of range\n");
+        print("Invalid long or out of range\n");
         return INT_MIN;
     }
 
@@ -283,7 +278,7 @@ double getDouble(char* ptr)
 
     if (ptr == endptr || errno == ERANGE)
     {
-        (void)fprintf(stderr, "Invalid double or out of range\n");
+        print("Invalid double or out of range\n");
         val = (double)NAN;
     }
 

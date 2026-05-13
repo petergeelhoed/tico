@@ -1,23 +1,24 @@
+#include "myfft.h"
+
+#include "mydefs.h"
+#include "parseargs.h"
+#include "printing.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <fftw3.h>
 #include <limits.h>
 #include <locale.h> // Optional: setlocale for decimal point
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "mydefs.h"
-#include "myfft.h"
-#include "parseargs.h"
 
 int main(void)
 {
     if (setlocale(LC_NUMERIC, "C") == NULL)
     {
-        (void)fprintf(stderr, "Cannot set LC_NUMERIC to C\n");
+        print("Cannot set LC_NUMERIC to C\n");
     };
 
     unsigned int bufferLength = INIT_N;
@@ -27,7 +28,7 @@ int main(void)
     double* tmpx = calloc(bufferLength, sizeof(double));
     if (!tmpx || !tmpy)
     {
-        (void)fprintf(stderr, "Memory allocation failed (initial buffers)\n");
+        print("Memory allocation failed (initial buffers)\n");
         free(tmpx);
         free(tmpy);
         return -2;
@@ -57,7 +58,7 @@ int main(void)
             double* newTmpy = realloc(tmpy, newN * sizeof(double));
             if (!newTmpy)
             {
-                (void)fprintf(stderr, "Memory allocation failed (grow tmpy)\n");
+                print("Memory allocation failed (grow tmpy)\n");
                 free(tmpx);
                 free(tmpy);
                 return -2;
@@ -67,7 +68,7 @@ int main(void)
             double* newTmpx = realloc(tmpx, newN * sizeof(double));
             if (!newTmpx)
             {
-                (void)fprintf(stderr, "Memory allocation failed (grow tmpx)\n");
+                print("Memory allocation failed (grow tmpx)\n");
                 free(tmpy);
                 free(tmpx);
                 return -2;
@@ -80,7 +81,7 @@ int main(void)
 
     if (index == 0)
     {
-        (void)fprintf(stderr, "No valid input parsed from stdin\n");
+        print("No valid input parsed from stdin\n");
         free(tmpy);
         free(tmpx);
         return -1;
@@ -91,7 +92,7 @@ int main(void)
     fftw_complex* input = fftw_alloc_complex(arrayLength);
     if (!input)
     {
-        (void)fprintf(stderr, "fftw_alloc_complex(input) failed\n");
+        print("fftw_alloc_complex(input) failed\n");
         free(tmpy);
         free(tmpx);
         return -2;
@@ -107,7 +108,7 @@ int main(void)
     fftw_complex* out = fftw_alloc_complex(arrayLength);
     if (!out)
     {
-        (void)fprintf(stderr, "fftw_alloc_complex(out) failed\n");
+        print("fftw_alloc_complex(out) failed\n");
         fftw_free(input);
         return -2;
     }
@@ -119,7 +120,7 @@ int main(void)
                                       FFTW_ESTIMATE);
     if (!plan)
     {
-        (void)fprintf(stderr, "fftw_plan_dft_1d failed\n");
+        print("fftw_plan_dft_1d failed\n");
         fftw_free(input);
         fftw_free(out);
         return -2;

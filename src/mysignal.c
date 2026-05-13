@@ -1,6 +1,7 @@
 #include "mysignal.h"
 
 #include "mydefs.h"
+#include "printing.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ void sigintHandler(int signal)
               TIOCGWINSZ,
               &windowSize); // NOLINT(misc-include-cleaner)
         columns = (unsigned int)windowSize.ws_col;
-        (void)fprintf(stderr, "new width %d\n", columns);
+        print("new width %d\n", columns);
     }
     else
     {
@@ -61,7 +62,7 @@ void setupBlockSignals(sigset_t* new_set) // NOLINT(misc-include-cleaner)
     sact.sa_handler = sigintHandler;
     if (sigaction(SIGWINCH, &sact, NULL) != 0)
     {
-        (void)fprintf(stderr, "sigaction() error");
+        print("sigaction() error");
         exit(ERROR_SIGNAL);
     }
     sigemptyset(new_set);

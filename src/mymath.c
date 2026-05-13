@@ -1,12 +1,13 @@
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "mymath.h"
 
 #include "myarr.h"
 #include "mydefs.h"
-#include "mymath.h"
+#include "printing.h"
+
+#include <limits.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct mymat
 {
@@ -67,7 +68,7 @@ void transpone(double* arr, unsigned int Nrows, unsigned int Ncols)
     double* transposeBuffer = (double*)calloc(Nrows * Ncols, sizeof(double));
     if (transposeBuffer == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in transpone\n");
+        print("Memory allocation failed in transpone\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned int i = 0; i < Ncols; ++i)
@@ -88,7 +89,7 @@ void invert(double* arr, unsigned int Nrows, unsigned int Ncols)
         (double*)calloc(Nrows * Ncols * 2, sizeof(double));
     if (augmentedMatrix == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in invert\n");
+        print("Memory allocation failed in invert\n");
         exit(EXIT_FAILURE);
     }
     unsigned int doubleNcols = Ncols * 2;
@@ -141,13 +142,13 @@ double* mulmat(const double* matrix0,
 {
     if (Ncols != Mrows)
     {
-        (void)fprintf(stderr, "Matrix multiplication dimension mismatch\n");
+        print("Matrix multiplication dimension mismatch\n");
         exit(EXIT_FAILURE);
     }
     double* resultMatrix = (double*)calloc(Nrows * Mcols, sizeof(double));
     if (resultMatrix == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in mulmat\n");
+        print("Memory allocation failed in mulmat\n");
         exit(EXIT_FAILURE);
     }
     for (unsigned int j = 0; j < Nrows; j++)
@@ -175,7 +176,7 @@ void matlinreg(double coeffs[2],
     double* xarrT = (double*)calloc((Ncols + 1) * Nrows, sizeof(double));
     if (xarrT == NULL || xarr == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed in matlinreg\n");
+        print("Memory allocation failed in matlinreg\n");
         free(xarr);
         free(xarrT);
         exit(EXIT_FAILURE);
@@ -260,8 +261,7 @@ void fastlinreg(double coeffs[2],
     }
     else
     {
-        (void)fprintf(stderr,
-                      "Degenerate data: cannot regress (denominator zero)\n");
+        print("Degenerate data: cannot regress (denominator zero)\n");
     }
 }
 
@@ -472,7 +472,7 @@ void fitNpeaks(double* intercept,
                                  Sum_wxx,
                                  Sum_wxy))
         {
-            (void)fprintf(stderr, "Degenerate data in initial fit\n");
+            print("Degenerate data in initial fit\n");
             *intercept = 0.0;
             *slope = 0.0;
             return;
@@ -547,9 +547,4 @@ int shiftHalf(size_t value, size_t ArrayLength)
            (int)(ArrayLength / 2);
 }
 
-// mods an int with a signed int, but makes sure the result is positive
-size_t modSigned(int value, size_t ArrayLength)
-{
-    return (size_t)(((value % (int)ArrayLength) + (int)ArrayLength) %
-                    (int)ArrayLength);
-}
+#include "modsigned.h"

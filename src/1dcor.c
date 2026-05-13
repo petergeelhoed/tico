@@ -1,11 +1,12 @@
+#include "myfft.h"
+
+#include "mydefs.h"
+#include "printing.h"
+
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
-
-#include "mydefs.h"
-#include "myfft.h"
 
 int main(void)
 {
@@ -17,7 +18,7 @@ int main(void)
 
     if (!peak || !peak2)
     {
-        (void)fprintf(stderr, "Failed memory allocation\n");
+        print("Failed memory allocation\n");
         exit(EXIT_FAILURE);
     }
     unsigned int length = 0;

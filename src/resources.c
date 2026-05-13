@@ -2,9 +2,9 @@
 
 #include "myfft.h"
 #include "mysync.h"
+#include "printing.h"
 
 #include <fftw3.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 AppResources allocateResources(size_t arrayLength,
@@ -27,7 +27,7 @@ AppResources allocateResources(size_t arrayLength,
     {
         free(res.audioBuffer16);
         free(res.teethArray);
-        (void)fprintf(stderr, "Failed memory allocation\n");
+        print("Failed memory allocation\n");
         exit(EXIT_FAILURE);
     }
 

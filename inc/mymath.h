@@ -139,15 +139,4 @@ void linreg(const double* xarr,
  */
 int shiftHalf(size_t value, size_t ArrayLength);
 
-/** @ingroup mymath
- * @brief Computes the modulus of a signed integer value with respect to the
- * length of an array, ensuring a non-negative result.
- *
- * @param value The signed integer value to mod.
- * @param ArrayLength The length of the array.
- * @return The modulus of the value with respect to the array length, wrapped to
- * be non-negative.
- */
-size_t modSigned(int value, size_t ArrayLength);
-
 /** @} */

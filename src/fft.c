@@ -1,14 +1,16 @@
+#include "myfft.h"
+
+#include "mydefs.h"
+#include "mymath.h"
+#include "printing.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <fftw3.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "mydefs.h"
-#include "myfft.h"
-#include "mymath.h"
 typedef struct
 {
     unsigned int z;
@@ -35,7 +37,7 @@ static double* safeRealloc(double* ptr, unsigned int new_size)
     double* next = realloc(ptr, new_size * sizeof(double));
     if (!next)
     {
-        (void)fprintf(stderr, "Memory allocation failed\n");
+        print("Memory allocation failed\n");
         free(ptr);
         exit(EXIT_FAILURE);
     }
@@ -53,7 +55,7 @@ static Signal readInput(void)
     Signal signalStruct = {malloc(INIT_N * sizeof(double)), 0};
     if (signalStruct.data == NULL)
     {
-        (void)fprintf(stderr, "Initial memory allocation failed\n");
+        print("Initial memory allocation failed\n");
         free(signalStruct.data);
         exit(EXIT_FAILURE);
     }
@@ -110,11 +112,7 @@ static void runFft(Signal sig, Config cfg)
             tmpx[i] = i;
         }
         linreg(tmpx, sig.data, sig.count, &intercept, &slope, &s_err);
-        (void)fprintf(stderr,
-                      "intercept=%lf slope=%lf s=%lf\n",
-                      intercept,
-                      slope,
-                      s_err);
+        print("intercept=%lf slope=%lf s=%lf\n", intercept, slope, s_err);
         free(tmpx);
     }
 

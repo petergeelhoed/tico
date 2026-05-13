@@ -1,6 +1,7 @@
 #include "capture_helpers.h"
 
 #include "analysis.h"
+#include "modsigned.h"
 #include "mydefs.h"
 #include "myfft.h"
 #include "mymath.h"
@@ -9,7 +10,6 @@
 #include "printing.h"
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

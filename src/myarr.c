@@ -1,5 +1,6 @@
 #include "myarr.h"
-#include <stdio.h>
+
+#include "printing.h"
 
 void freemyarr(struct myarr* arr)
 {
@@ -16,14 +17,14 @@ struct myarr* makemyarrd(size_t ArrayLength)
     struct myarr* ret = (struct myarr*)calloc(1, sizeof(struct myarr));
     if (ret == NULL)
     {
-        (void)fprintf(stderr, "Cannot allocate memory\n");
+        print("Cannot allocate memory\n");
         exit(EXIT_FAILURE);
     }
     ret->arrd = calloc(ArrayLength, sizeof(double));
     if (ret->arrd == NULL)
     {
         free(ret);
-        (void)fprintf(stderr, "Cannot allocate memory\n");
+        print("Cannot allocate memory\n");
         exit(EXIT_FAILURE);
     }
     ret->ArrayLength = ArrayLength;
@@ -34,14 +35,14 @@ struct myarr* makemyarr(size_t ArrayLength)
     struct myarr* ret = (struct myarr*)calloc(1, sizeof(struct myarr));
     if (ret == NULL)
     {
-        (void)fprintf(stderr, "Cannot allocate memory\n");
+        print("Cannot allocate memory\n");
         exit(EXIT_FAILURE);
     }
     ret->arr = calloc(ArrayLength, sizeof(int));
     if (ret->arr == NULL)
     {
         free(ret);
-        (void)fprintf(stderr, "Cannot allocate memory\n");
+        print("Cannot allocate memory\n");
         exit(EXIT_FAILURE);
     }
     ret->ArrayLength = ArrayLength;

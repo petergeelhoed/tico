@@ -1,5 +1,3 @@
-
-
 #include "analysis.h"
 #include "capture_helpers.h"
 #include "config.h"
@@ -10,6 +8,7 @@
 #include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"
+#include "printing.h"
 #include "resources.h"
 
 #include <alsa/asoundlib.h>
@@ -17,7 +16,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -105,7 +103,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            (void)fprintf(stderr, "No default audio device found.\n");
+            print("No default audio device found.\n");
             return EXIT_FAILURE;
         }
     }
@@ -123,7 +121,7 @@ int main(int argc, char* argv[])
     CaptureCtx ctx;
     if (captureSetup(&ctx, &cfg, actualRate) < 0)
     {
-        (void)fprintf(stderr, "captureSetup failed\n");
+        print("captureSetup failed\n");
         snd_pcm_close(cfg.captureHandle);
         return EXIT_FAILURE;
     }

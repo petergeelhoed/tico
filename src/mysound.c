@@ -1,4 +1,5 @@
 #include "mysound.h"
+
 #include "config.h"
 #include "myarr.h"
 #include "mydefs.h"
@@ -17,7 +18,6 @@
 #include <pthread.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // strlen, strncpy
 #include <sys/timerfd.h>
@@ -76,10 +76,9 @@ void open_capture_elem(CaptureCtx* ctx, const CapConfig* cfg)
     snd_mixer_selem_id_free(sid);
     if (!elem)
     {
-        (void)fprintf(stderr,
-                      "Could not find mixer element '%s' for device '%s'\n",
-                      selem_name,
-                      card);
+        print("Could not find mixer element '%s' for device '%s'\n",
+              selem_name,
+              card);
         snd_mixer_close(handle);
         exit(EXIT_FAILURE);
     }
@@ -119,7 +118,7 @@ static long increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
     long current_value;
     if (get_mic_amplification(cfg, &current_value) != 0)
     {
-        (void)fprintf(stderr, "Failed to get current mic amplification\n");
+        print("Failed to get current mic amplification\n");
         return -1;
     }
     long min = cfg->ampResult.min_gain;
@@ -139,9 +138,7 @@ static long increase_mic_amplification(CaptureCtx* cfg, int increase_amount)
     }
     if (set_mic_amplification(cfg, new_value) != 0)
     {
-        (void)fprintf(stderr,
-                      "Failed to set mic amplification to %ld\n",
-                      new_value);
+        print("Failed to set mic amplification to %ld\n", new_value);
         return -1;
     }
     printmsg("Set mic amplification from %ld to %ld\n",
@@ -174,7 +171,7 @@ static int derived(int* derivative, size_t ArrayLength, int16_t* samples)
 
     if (clipCount > 1)
     {
-        (void)fprintf(stderr, "%d audio 16-bit clipping event(s)\n", clipCount);
+        print("%d audio 16-bit clipping event(s)\n", clipCount);
     }
     derivative[ArrayLength - 1] = 0;
     return (int)ArrayLength;
@@ -217,9 +214,7 @@ static int derivedCtx(int* derivative,
     if (ampResult->clipCount > 1)
     {
         ampResult->clipStreak++;
-        (void)fprintf(stderr,
-                      "%d audio 16-bit clipping event(s)\n",
-                      ampResult->clipCount);
+        print("%d audio 16-bit clipping event(s)\n", ampResult->clipCount);
     }
     else
     {
@@ -263,11 +258,7 @@ static void checkAlsaErr(int err,
 {
     if (err < 0)
     {
-        (void)fprintf(stderr,
-                      "Device %s: %s (%s)\n",
-                      device,
-                      msg,
-                      snd_strerror(err));
+        print("Device %s: %s (%s)\n", device, msg, snd_strerror(err));
         if (params)
         {
             snd_pcm_hw_params_free(params);
@@ -354,10 +345,9 @@ snd_pcm_t* initAudio(snd_pcm_format_t format, char* device, unsigned int* rate)
     // Minor logic check
     if (*rate != requestedRate)
     {
-        (void)fprintf(stderr,
-                      "Requested audiorate %u unavailable, using %u\n",
-                      requestedRate,
-                      *rate);
+        print("Requested audiorate %u unavailable, using %u\n",
+              requestedRate,
+              *rate);
     }
 
     return captureHandle;
@@ -466,8 +456,7 @@ int getData(FILE* fpInput,
                                out);
     if (err == INPUT_FILE_ERROR)
     {
-        (void)fprintf(stderr,
-                      "Could not read integer from inputfile or audio\n");
+        print("Could not read integer from inputfile or audio\n");
     }
     return err;
 }
@@ -556,9 +545,7 @@ int readSamples(snd_pcm_t* cap, size_t ArrayLength, int16_t* out)
 
         if (got < 0)
         {
-            (void)fprintf(stderr,
-                          "ALSA read failed: %s\n",
-                          snd_strerror((int)got));
+            print("ALSA read failed: %s\n", snd_strerror((int)got));
             return -1;
         }
 

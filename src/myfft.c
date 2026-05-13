@@ -1,13 +1,14 @@
-#include <fftw3.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "myfft.h"
 
 #include "myarr.h"
 #include "mydefs.h"
-#include "myfft.h"
 #include "mysync.h"
+#include "printing.h"
+
+#include <fftw3.h>
+#include <limits.h>
+#include <math.h>
+#include <stdlib.h>
 
 fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
 {
@@ -21,7 +22,7 @@ fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
 
     if (filter == NULL || filterFFT == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed inData makeFilter\n");
+        print("Memory allocation failed inData makeFilter\n");
         return NULL;
     }
 
@@ -88,7 +89,7 @@ void remove50hz(size_t ArrayLength, int* array, unsigned int rate)
 
     if (inData == NULL || outData == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed inData remove50hz\n");
+        print("Memory allocation failed inData remove50hz\n");
         return;
     }
 
@@ -153,7 +154,7 @@ fftw_complex* convolute(const struct myarr array, fftw_complex* filterFFT)
 
     if (inData == NULL || outData == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed inData convolute\n");
+        print("Memory allocation failed inData convolute\n");
         return NULL;
     }
 
@@ -196,7 +197,7 @@ fftw_complex* crosscor(size_t ArrayLength,
 
     if (tmparr == NULL || tmpref == NULL || tmp == NULL || corr == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed inData crosscor\n");
+        print("Memory allocation failed inData crosscor\n");
         return NULL;
     }
 
@@ -293,7 +294,7 @@ size_t fftfit(const struct myarr input,
 
     if (Fbase == NULL || filteredinput == NULL)
     {
-        (void)fprintf(stderr, "Memory allocation failed inData fftfit\n");
+        print("Memory allocation failed inData fftfit\n");
         return 0;
     }
 
@@ -408,7 +409,7 @@ void writefftw(fftw_complex* arr, size_t ArrayLength, const char* file)
     FILE* filePtr = fopen(file, "w");
     if (filePtr == NULL)
     {
-        (void)fprintf(stderr, "File opening failed inData writefftw\n");
+        print("File opening failed inData writefftw\n");
         return;
     }
     for (size_t j = 0; j < ArrayLength; j++)

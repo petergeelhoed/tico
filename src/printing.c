@@ -28,6 +28,8 @@ void printmsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     int err = vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+
     if (err < 0)
     {
         strncpy(buf, "[format error]", sizeof(buf) - 1);
@@ -43,7 +45,6 @@ void printmsg(const char* fmt, ...)
             buf[sizeof(buf) - 1] = '\0';
         }
     }
-    va_end(args);
 
     size_t len = strlen(buf);
     int col = (int)columns - (int)len + 1;

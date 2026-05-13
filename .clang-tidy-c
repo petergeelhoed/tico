@@ -13,7 +13,7 @@ Checks: >
   cert-*,
   google-*,
   -google-runtime-int
-WarningsAsErrors: ''
+WarningsAsErrors: '*'
 FormatStyle: file
 
 CheckOptions:

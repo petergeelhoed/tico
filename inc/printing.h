@@ -1,10 +1,3 @@
-#ifdef __clang_analyzer__
-static void clang_tidy_test_func(void) { int unused_warning_test = 42; }
-#endif
-#ifdef __clang_analyzer__
-// This block is only parsed by clang-tidy/static analyzer, not compiled
-static void clang_tidy_test_func(void) { int unused_warning_test = 42; }
-#endif
 #pragma once
 
 #include <stddef.h>

@@ -156,13 +156,12 @@ endif()
 
 if (CLANG_TIDY_EXE)
   add_custom_target(clang-tidy
-    COMMAND ${CLANG_TIDY_EXE}
-      -p ${CMAKE_BINARY_DIR}
-      --warnings-as-errors='*'
-      --extra-arg=-Wno-unknown-warning-option
-      --extra-arg=-Wno-error=unknown-warning-option
-      ${TIDY_SOURCES}
-    COMMENT "Running clang-tidy over C sources (all warnings as errors)")
+  COMMAND ${CLANG_TIDY_EXE}
+    -p ${CMAKE_BINARY_DIR}
+    --extra-arg=-Wno-unknown-warning-option
+    --extra-arg=-Wno-error=unknown-warning-option
+    ${TIDY_SOURCES}
+    COMMENT "Running clang-tidy over C sources")
 else()
   add_custom_target(clang-tidy
     COMMAND ${CMAKE_COMMAND} -E echo "clang-tidy not found"

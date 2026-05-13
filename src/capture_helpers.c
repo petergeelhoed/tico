@@ -1,6 +1,7 @@
 #include "capture_helpers.h"
 
 #include "analysis.h"
+#include "modsigned.h"
 #include "mydefs.h"
 #include "myfft.h"
 #include "mymath.h"

@@ -211,7 +211,7 @@ target_link_libraries(mysync PUBLIC Threads::Threads)
 
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 
-add_library(mymath STATIC ${SRC}/mymath.c)
+add_library(mymath STATIC ${SRC}/mymath.c ${SRC}/modsigned.c)
 target_link_libraries(mymath PUBLIC myarr ${MATH_LIB})
 
 add_library(myfft STATIC ${SRC}/myfft.c)
@@ -226,7 +226,7 @@ target_link_libraries(cli PUBLIC printing)
 add_library(analysis STATIC ${SRC}/analysis.c ${SRC}/crosscorint.c)
 target_link_libraries(analysis PUBLIC mymath myfft cli)
 
-add_library(printing STATIC ${SRC}/printing.c ${SRC}/columns.c)
+add_library(printing STATIC ${SRC}/printing.c ${SRC}/columns.c ${SRC}/modsigned.c)
 target_link_libraries(printing PUBLIC mymath)
 
 add_library(capture_helpers STATIC ${SRC}/capture_helpers.c ${SRC}/resources.c)

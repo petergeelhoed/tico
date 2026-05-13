@@ -1,7 +1,7 @@
 #include "printing.h"
 
+#include "modsigned.h"
 #include "mydefs.h"
-#include "mymath.h"
 
 #include <math.h>
 #include <stdarg.h>

@@ -548,9 +548,4 @@ int shiftHalf(size_t value, size_t ArrayLength)
            (int)(ArrayLength / 2);
 }
 
-// mods an int with a signed int, but makes sure the result is positive
-size_t modSigned(int value, size_t ArrayLength)
-{
-    return (size_t)(((value % (int)ArrayLength) + (int)ArrayLength) %
-                    (int)ArrayLength);
-}
+#include "modsigned.h"

@@ -8,6 +8,19 @@
 #include <stdio.h>
 #include <string.h>
 
+// Terminal color and control escape sequences
+#define COLOR_CYAN "\033[96m"
+#define COLOR_RED "\033[31m"
+#define COLOR_GREEN "\033[32m"
+#define COLOR_RESET "\033[0m"
+#define CURSOR_SAVE "\033[s"
+#define CURSOR_RESTORE "\033[u"
+#define CLEAR_LINE "\033[0K"
+#define CURSOR_ROW12 "\033[12;0H"
+
+#define CURSOR_ROW2 "\033[2;0H"
+#define CURSOR_COL_FMT "\033[%dG"
+
 extern volatile unsigned int columns;
 void printmsg(const char* fmt, ...)
 {
@@ -39,7 +52,8 @@ void printmsg(const char* fmt, ...)
         col = 1;
     }
     (void)fprintf(stderr,
-                  "\033[s\033[12;0H\033[%dG\033[96m%s\033[0m\033[u",
+                  CURSOR_SAVE CURSOR_ROW12 CURSOR_COL_FMT COLOR_CYAN
+                  "%s" COLOR_RESET CURSOR_RESTORE,
                   col,
                   buf);
 }
@@ -60,12 +74,12 @@ void printheader(double fittedRate,
     }
     else
     {
-        (void)fprintf(
-            stderr,
-            "\033[s\033[2;0H\033[0K%8.2fms   %9.1fs/d   %12.2fs\033[u",
-            beatError,
-            fittedRate,
-            seconds);
+        (void)fprintf(stderr,
+                      CURSOR_SAVE CURSOR_ROW2 CLEAR_LINE
+                      "%8.2fms   %9.1fs/d   %12.2fs" CURSOR_RESTORE,
+                      beatError,
+                      fittedRate,
+                      seconds);
     }
 }
 
@@ -97,9 +111,9 @@ void printspaces(int maxpos,
     }
 
     (void)fprintf(stderr,
-                  "%s%s%zX\033[0m",
+                  "%s%s%zX" COLOR_RESET,
                   spaces,
-                  hexvalue < correlationThreshold ? "\033[31m" : "\033[32m",
+                  hexvalue < correlationThreshold ? COLOR_RED : COLOR_GREEN,
                   hexvalue);
 
     memset(spaces, ' ', width);

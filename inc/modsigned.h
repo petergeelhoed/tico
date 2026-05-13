@@ -1,6 +1,6 @@
 #pragma once
-
 #include <stddef.h>
+
 /** * @brief Computes the modulus of a signed integer with respect to an array
  * length.
  *

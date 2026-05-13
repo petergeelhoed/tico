@@ -1,8 +1,8 @@
 #pragma once
 
 #include "myarr.h"
-#include <fftw3.h>
 
+#include <fftw3.h>
 /**
  * @defgroup myfft Myfft Library
  * FFT and filter utilities.

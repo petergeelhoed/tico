@@ -1,8 +1,8 @@
 #include "crosscorint.h"
-#include "printing.h"
 
 #include "mydefs.h"
 #include "myfft.h"
+#include "printing.h"
 
 #include <limits.h>
 #include <math.h>

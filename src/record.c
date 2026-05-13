@@ -1,4 +1,12 @@
+#include "config.h"
+#include "myarr.h"
+#include "mydefs.h"
+#include "myfft.h"
+#include "mysound.h"
+#include "mysync.h"
+#include "parseargs.h"
 #include "printing.h"
+
 #include <alsa/asoundlib.h>
 #include <errno.h>
 #include <poll.h>
@@ -9,15 +17,6 @@
 #include <sys/timerfd.h>
 #include <time.h>
 #include <unistd.h> // getopt, read
-
-#include "config.h"
-#include "myarr.h"
-#include "mydefs.h"
-#include "myfft.h"
-#include "mysound.h"
-#include "mysync.h"
-#include "parseargs.h"
-
 /* -------------------- Capture Context -------------------- */
 
 /* -------------------- Main -------------------- */

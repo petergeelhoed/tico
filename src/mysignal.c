@@ -1,7 +1,7 @@
 #include "mysignal.h"
-#include "printing.h"
 
 #include "mydefs.h"
+#include "printing.h"
 
 #include <signal.h>
 #include <stdio.h>

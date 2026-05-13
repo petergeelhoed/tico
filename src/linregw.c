@@ -1,7 +1,7 @@
-
 #include "mymath.h"
 #include "parseargs.h"
 #include "printing.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

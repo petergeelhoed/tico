@@ -1,4 +1,9 @@
+#include "myfft.h"
+
+#include "mydefs.h"
+#include "mymath.h"
 #include "printing.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <fftw3.h>
@@ -7,9 +12,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "mydefs.h"
-#include "myfft.h"
-#include "mymath.h"
 typedef struct
 {
     unsigned int z;

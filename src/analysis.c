@@ -1,11 +1,11 @@
 #include "analysis.h"
-#include "printing.h"
 
 #include "crosscorint.h"
 #include "mydefs.h"
 #include "mymath.h"
 #include "mysync.h"
 #include "parseargs.h"
+#include "printing.h"
 
 #include <errno.h>
 #include <math.h>

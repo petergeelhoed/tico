@@ -1,13 +1,14 @@
+#include "mymath.h"
+
+#include "myarr.h"
+#include "mydefs.h"
 #include "printing.h"
+
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "myarr.h"
-#include "mydefs.h"
-#include "mymath.h"
 
 struct mymat
 {

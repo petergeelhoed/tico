@@ -1,6 +1,3 @@
-
-#include "printing.h"
-
 #include "analysis.h"
 #include "capture_helpers.h"
 #include "config.h"
@@ -11,6 +8,7 @@
 #include "mysound.h"
 #include "mysync.h"
 #include "parseargs.h"
+#include "printing.h"
 #include "resources.h"
 
 #include <alsa/asoundlib.h>

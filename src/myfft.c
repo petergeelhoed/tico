@@ -1,14 +1,15 @@
+#include "myfft.h"
+
+#include "myarr.h"
+#include "mydefs.h"
+#include "mysync.h"
 #include "printing.h"
+
 #include <fftw3.h>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "myarr.h"
-#include "mydefs.h"
-#include "myfft.h"
-#include "mysync.h"
 
 fftw_complex* makeFilter(size_t evalue, size_t ArrayLength)
 {

@@ -27,7 +27,9 @@ void printmsg(const char* fmt, ...)
     char buf[BUFFER_SIZE];
     va_list args;
     va_start(args, fmt);
+    // NOLINTBEGIN(clang-analyzer-valist.Uninitialized)
     int err = vsnprintf(buf, sizeof(buf), fmt, args);
+    // NOLINTEND(clang-analyzer-valist.Uninitialized)
     va_end(args);
 
     if (err < 0)
@@ -62,7 +64,9 @@ void print(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
+    // NOLINTBEGIN(clang-analyzer-valist.Uninitialized)
     (void)vfprintf(stderr, fmt, args);
+    // NOLINTEND(clang-analyzer-valist.Uninitialized)
     va_end(args);
 }
 

@@ -1,0 +1,22 @@
+name: Require linked issue
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for issue reference
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          BODY="${{ github.event.pull_request.body }}"
+
+          if echo "$TITLE $BODY" | grep -Eq '#[0-9]+'; then
+            echo "✅ Issue reference found"
+          else
+            echo "❌ No issue reference found"
+            echo "PR must reference an issue like #123"
+            exit 1
+          fi

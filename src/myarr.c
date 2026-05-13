@@ -1,6 +1,7 @@
 #include "myarr.h"
-
 #include "printing.h"
+
+#include <stdlib.h>
 
 void freemyarr(struct myarr* arr)
 {

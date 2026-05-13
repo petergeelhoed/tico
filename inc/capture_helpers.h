@@ -4,8 +4,6 @@
 #include "myarr.h"
 #include "resources.h"
 
-#include <stdio.h>
-
 typedef struct
 {
     int cumulativeShift;

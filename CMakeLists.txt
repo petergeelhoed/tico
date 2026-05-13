@@ -120,9 +120,9 @@ find_library(FFTW3_LIB fftw3)
 find_library(MATH_LIB m)
 
 find_program(CLANG_FORMAT_EXE
-  NAMES clang-format clang-format-19 clang-format-18 clang-format-17 clang-format-16 clang-format-15)
+  NAMES clang-format-19 clang-format-18 clang-format-17 clang-format-16 clang-format-15)
 find_program(CLANG_TIDY_EXE
-  NAMES clang-tidy clang-tidy-19 clang-tidy-18 clang-tidy-17 clang-tidy-16 clang-tidy-15)
+  NAMES clang-tidy-19 clang-tidy-18 clang-tidy-17 clang-tidy-16 clang-tidy-15)
 
 file(GLOB_RECURSE FORMAT_SOURCES CONFIGURE_DEPENDS
   ${PROJECT_SOURCE_DIR}/src/*.c

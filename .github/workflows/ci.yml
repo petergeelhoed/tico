@@ -23,9 +23,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
+            clang-19 clang-tidy-19 clang-format-19 \
             cmake \
             gcc g++ \
-            clang clang-tidy \
             libfftw3-dev \
             libasound2-dev \
             doxygen graphviz

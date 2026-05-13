@@ -18,7 +18,6 @@
 #include <pthread.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // strlen, strncpy
 #include <sys/timerfd.h>

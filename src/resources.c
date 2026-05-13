@@ -5,7 +5,6 @@
 #include "printing.h"
 
 #include <fftw3.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 AppResources allocateResources(size_t arrayLength,

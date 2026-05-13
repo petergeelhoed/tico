@@ -6,7 +6,6 @@
 #include <alsa/asoundlib.h>
 #include <fftw3.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int main(void)

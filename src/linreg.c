@@ -3,7 +3,6 @@
 #include "printing.h"
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 // this gives intercept liniar weight , not intercept squared one like gnuplot
 // or matlinreg from mymath

@@ -11,7 +11,6 @@
 #include <errno.h>
 #include <poll.h>
 #include <stdint.h> // uint64_t
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // strlen, strncpy
 #include <sys/timerfd.h>

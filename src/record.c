@@ -1,3 +1,4 @@
+#include "printing.h"
 #include <alsa/asoundlib.h>
 #include <errno.h>
 #include <poll.h>
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
     char* deviceMutable = (char*)malloc(deviceLen + 1);
     if (!deviceMutable)
     {
-        (void)fprintf(stderr, "device memory allocation failed\n");
+        print("device memory allocation failed\n");
         return EXIT_FAILURE;
     }
     strncpy(deviceMutable, device, deviceLen + 1);
@@ -118,7 +119,7 @@ int main(int argc, char* argv[])
 
     if (captureSetup(&ctx, &cfg, rate) < 0)
     {
-        (void)fprintf(stderr, "captureSetup failed\n");
+        print("captureSetup failed\n");
         free(deviceMutable);
         snd_pcm_close(cap);
         return EXIT_FAILURE;
@@ -139,7 +140,7 @@ int main(int argc, char* argv[])
         int read = readSamples(ctx.cap, ArrayLength, out);
         if (!read)
         {
-            (void)fprintf(stderr, "capture_next_block failed; stopping\n");
+            print("capture_next_block failed; stopping\n");
             break;
         }
 

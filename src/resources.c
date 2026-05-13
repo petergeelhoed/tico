@@ -1,4 +1,5 @@
 #include "resources.h"
+#include "printing.h"
 
 #include "myfft.h"
 #include "mysync.h"
@@ -27,7 +28,7 @@ AppResources allocateResources(size_t arrayLength,
     {
         free(res.audioBuffer16);
         free(res.teethArray);
-        (void)fprintf(stderr, "Failed memory allocation\n");
+        print("Failed memory allocation\n");
         exit(EXIT_FAILURE);
     }
 

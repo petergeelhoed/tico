@@ -51,11 +51,10 @@ void printmsg(const char* fmt, ...)
     {
         col = 1;
     }
-    (void)fprintf(stderr,
-                  CURSOR_SAVE CURSOR_ROW12 CURSOR_COL_FMT COLOR_CYAN
-                  "%s" COLOR_RESET CURSOR_RESTORE,
-                  col,
-                  buf);
+    print(CURSOR_SAVE CURSOR_ROW12 CURSOR_COL_FMT COLOR_CYAN
+          "%s" COLOR_RESET CURSOR_RESTORE,
+          col,
+          buf);
 }
 
 void print(const char* fmt, ...)
@@ -78,16 +77,15 @@ void printheader(double fittedRate,
         (void)sprintf(tmp + BEAT_WIDTH - 1, "ms%+5.1f", fittedRate);
         (void)sprintf(tmp + BEAT_WIDTH + RATE_WIDTH - 2, "s/d");
         tmp[EVERY_WIDTH] = '\0';
-        (void)fprintf(stderr, "%s", tmp);
+        print("%s", tmp);
     }
     else
     {
-        (void)fprintf(stderr,
-                      CURSOR_SAVE CURSOR_ROW2 CLEAR_LINE
-                      "%8.2fms   %9.1fs/d   %12.2fs" CURSOR_RESTORE,
-                      beatError,
-                      fittedRate,
-                      seconds);
+        print(CURSOR_SAVE CURSOR_ROW2 CLEAR_LINE
+              "%8.2fms   %9.1fs/d   %12.2fs" CURSOR_RESTORE,
+              beatError,
+              fittedRate,
+              seconds);
     }
 }
 
@@ -118,18 +116,17 @@ void printspaces(int maxpos,
         spaces[widtha] = '|';
     }
 
-    (void)fprintf(stderr,
-                  "%s%s%zX" COLOR_RESET,
-                  spaces,
-                  hexvalue < correlationThreshold ? COLOR_RED : COLOR_GREEN,
-                  hexvalue);
+    print("%s%s%zX" COLOR_RESET,
+          spaces,
+          hexvalue < correlationThreshold ? COLOR_RED : COLOR_GREEN,
+          hexvalue);
 
     memset(spaces, ' ', width);
     if (widtha > width)
     {
         spaces[widtha - width - 1] = '|';
         spaces[widtha - width] = '\0';
-        (void)fprintf(stderr, "%s", spaces);
+        print("%s", spaces);
     }
-    (void)fprintf(stderr, "\n");
+    print("\n");
 }

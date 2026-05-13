@@ -1,4 +1,5 @@
 #include "crosscorint.h"
+#include "printing.h"
 
 #include "mydefs.h"
 #include "myfft.h"
@@ -18,7 +19,7 @@ void crosscorint(size_t ArrayLength,
     fftw_complex* tmpref = fftw_alloc_complex(ArrayLength);
     if (!tmparr || !tmpref)
     {
-        (void)fprintf(stderr, "Memory allocation failed in crosscorint\n");
+        print("Memory allocation failed in crosscorint\n");
         if (tmparr)
         {
             fftw_free(tmparr);
@@ -44,7 +45,7 @@ void crosscorint(size_t ArrayLength,
     fftw_complex* coor = crosscor(ArrayLength, tmparr, tmpref);
     if (!coor)
     {
-        (void)fprintf(stderr, "Cross-correlation failed in crosscorint\n");
+        print("Cross-correlation failed in crosscorint\n");
         fftw_free(tmpref);
         fftw_free(tmparr);
         fftw_cleanup();

@@ -203,6 +203,7 @@ set(SRC ${PROJECT_ROOT}/src)
 # 3. Create Internal Static Libraries
 
 add_library(myarr STATIC ${SRC}/myarr.c)
+target_link_libraries(myarr PUBLIC printing)
 
 add_library(mysync STATIC ${SRC}/mysync.c)
 target_link_libraries(mysync PUBLIC myarr)
@@ -220,6 +221,7 @@ add_library(mysound STATIC ${SRC}/mysound.c)
 target_link_libraries(mysound PUBLIC myarr ${ASOUND_LIB} printing )
 
 add_library(cli STATIC ${SRC}/parseargs.c)
+target_link_libraries(cli PUBLIC printing)
 
 add_library(analysis STATIC ${SRC}/analysis.c ${SRC}/crosscorint.c)
 target_link_libraries(analysis PUBLIC mymath myfft cli)

@@ -1,5 +1,6 @@
 #include "mydefs.h"
 #include "parseargs.h"
+#include "printing.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -48,8 +49,7 @@ int main(void)
     }
     else
     {
-        (void)fprintf(stderr,
-                      "Degenerate data: cannot regress (denominator zero)\n");
+        print("Degenerate data: cannot regress (denominator zero)\n");
     }
 
     (void)printf("%10.6g %10.6g\n", intercept, slope);

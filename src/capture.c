@@ -1,4 +1,5 @@
 
+#include "printing.h"
 
 #include "analysis.h"
 #include "capture_helpers.h"
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            (void)fprintf(stderr, "No default audio device found.\n");
+            print("No default audio device found.\n");
             return EXIT_FAILURE;
         }
     }
@@ -123,7 +124,7 @@ int main(int argc, char* argv[])
     CaptureCtx ctx;
     if (captureSetup(&ctx, &cfg, actualRate) < 0)
     {
-        (void)fprintf(stderr, "captureSetup failed\n");
+        print("captureSetup failed\n");
         snd_pcm_close(cfg.captureHandle);
         return EXIT_FAILURE;
     }

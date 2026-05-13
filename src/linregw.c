@@ -1,6 +1,7 @@
 
 #include "mymath.h"
 #include "parseargs.h"
+#include "printing.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +16,7 @@ int main(void)
     double* wvec = (double*)malloc(initialSize * sizeof(double));
     if (!xarr || !yvec || !wvec)
     {
-        (void)fprintf(stderr, "memory allocation failed\n");
+        print("memory allocation failed\n");
         free(xarr);
         free(yvec);
         free(wvec);
@@ -43,9 +44,7 @@ int main(void)
         {
             // Line did not have 3 doubles -> depending on your policy:
             // either skip, or fill defaults, or break. Here we skip.
-            (void)fprintf(stderr,
-                          "Warning: line had only %d double(s); skipping\n",
-                          nrDoubles);
+            print("Warning: line had only %d double(s); skipping\n", nrDoubles);
             continue;
         }
 

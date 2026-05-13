@@ -1,4 +1,5 @@
 #include "analysis.h"
+#include "printing.h"
 
 #include "crosscorint.h"
 #include "mydefs.h"
@@ -42,11 +43,10 @@ static void calculateTotal(size_t count,
 
     linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
-    (void)fprintf(stderr,
-                  "unweighted raw rate: %f s/d, %zu samples σ=%.2gms\n",
-                  -slope * SECS_DAY / (double)ArrayLength,
-                  count,
-                  stdev * THOUSAND / rate);
+    print("unweighted raw rate: %f s/d, %zu samples σ=%.2gms\n",
+          -slope * SECS_DAY / (double)ArrayLength,
+          count,
+          stdev * THOUSAND / rate);
     unsigned int maxIndex = 0;
 
     double deviation;
@@ -69,12 +69,11 @@ static void calculateTotal(size_t count,
 
         linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
-        (void)fprintf(stderr,
-                      "after %.1fc3 (%.2gms) removal: %.2f s/d, %zu samples\n",
-                      threshold,
-                      stdev * THOUSAND / rate,
-                      -slope * SECS_DAY / (double)ArrayLength,
-                      count);
+        print("after %.1fc3 (%.2gms) removal: %.2f s/d, %zu samples\n",
+              threshold,
+              stdev * THOUSAND / rate,
+              -slope * SECS_DAY / (double)ArrayLength,
+              count);
         threshold /= 2;
     }
 
@@ -90,7 +89,7 @@ void calculateTotalFromFile(size_t count,
     errno = 0;
     if (fseek(rawfile, 0, SEEK_SET) == -1)
     {
-        (void)fprintf(stderr, "fseek failed with %d\n", errno);
+        print("fseek failed with %d\n", errno);
         return;
     }
     unsigned int index = 0;
@@ -101,7 +100,7 @@ void calculateTotalFromFile(size_t count,
         char* buf = (char*)malloc(bufsize * sizeof(char));
         if (buf == NULL)
         {
-            (void)fprintf(stderr, "Cannot allocate memory for totalFromFile\n");
+            print("Cannot allocate memory for totalFromFile\n");
             free(all);
             return;
         }
@@ -118,7 +117,7 @@ void calculateTotalFromFile(size_t count,
     }
     else
     {
-        (void)fprintf(stderr, "Cannot allocate memory for totalFromFile\n");
+        print("Cannot allocate memory for totalFromFile\n");
     }
 }
 
@@ -128,7 +127,7 @@ double getBeatError(const struct myarr* totaltick, double rate, int verbose)
     int* cross = malloc((ArrayLength / 2) * sizeof(int));
     if (cross == NULL)
     {
-        (void)fprintf(stderr, "Cannot allocate memory for getBeatError\n");
+        print("Cannot allocate memory for getBeatError\n");
         exit(EXIT_FAILURE);
     }
     crosscorint(ArrayLength / 2,

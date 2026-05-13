@@ -33,6 +33,7 @@
  * device, registers simple elements, loads the mixer, and finds the 'Capture'
  * element. The found element is stored in the configuration for future use.
  *
+ * @param ctx Capture context to store the mixer handle and element.
  * @param cfg Configuration containing device information and mixer state.
  */
 void open_capture_elem(CaptureCtx* ctx, const CapConfig* cfg)

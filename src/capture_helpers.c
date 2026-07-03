@@ -10,6 +10,7 @@
 #include "printing.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,32 +31,7 @@ void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock)
         printTOD(cfg->fpmaxcor);
     }
 
-    if (cfg->fptotal)
-    {
-        for (size_t t = 0; t < cfg->teeth; ++t)
-        {
-            struct myarr* tmp = res->teethArray[t];
-            if (tmp != NULL)
-            {
-                struct myarr cumulativeTick = *tmp;
-                int toothshift = getshift(*res->teethArray[0], cumulativeTick);
-                for (size_t j = 0; j < res->arrayLength; ++j)
-                {
-                    (void)fprintf(cfg->fptotal,
-                                  "%zu %d %zu %d\n",
-                                  j,
-                                  cumulativeTick.arr[j],
-                                  t,
-                                  toothshift);
-                }
-            }
-            else
-            {
-                break;
-            }
-            (void)fprintf(cfg->fptotal, "\n\n");
-        }
-    }
+    printPeak(cfg, res);
 }
 
 void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth)
@@ -151,6 +127,8 @@ void processLogging(CapConfig* cfg,
             syncAppendMyarr(correlationBatch, cfg->fpmaxcor);
             freemyarr(correlationBatch);
         }
+
+        printPeak(cfg, res);
     }
 }
 
@@ -232,5 +210,39 @@ void updateTotalShiftIfNeeded(LoopState* state,
             delta = (int)(PRESHIFT_THRESHOLD_ROOT * delta / sqrt(abs(delta)));
         }
         state->cumulativeShift += delta;
+    }
+}
+
+void printPeak(CapConfig* cfg, AppResources* res)
+{
+    if (cfg->fptotal)
+    {
+        if (fseek(cfg->fptotal, 0, SEEK_SET) != 0)
+        {
+            return;
+        }
+
+        for (size_t t = 0; t < cfg->teeth; ++t)
+        {
+            struct myarr* tmp = res->teethArray[t];
+            if (tmp != NULL)
+            {
+                struct myarr cumulativeTick = *tmp;
+                int toothshift = getshift(*res->teethArray[0], cumulativeTick);
+                for (size_t j = 0; j < res->arrayLength; ++j)
+                {
+                    (void)fprintf(cfg->fptotal,
+                                  "%zu %d %zu %d\n",
+                                  j,
+                                  cumulativeTick.arr[j],
+                                  t,
+                                  toothshift);
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 }

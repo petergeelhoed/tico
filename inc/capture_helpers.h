@@ -22,6 +22,13 @@ typedef struct
  process. */
 void printFinals(CapConfig* cfg, AppResources* res, size_t totalTickTock);
 
+/** @brief Prints the peak to the cfg->fpTotal file
+ count, position data, and correlation data, based on the provided parameters.
+ @param cfg The configuration settings for the capture process.
+ @param res The resources used during the capture process.
+ process. */
+void printPeak(CapConfig* cfg, AppResources* res);
+
 /** @brief Fills the reference array with data from the provided file pointer,
  * based on the specified number of teeth.
  @param fpDefPeak The file pointer to read the reference data from.

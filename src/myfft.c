@@ -363,9 +363,8 @@ void rescale(int* total, size_t ArrayLength)
     avg /= (double)ArrayLength;
     int avi = (int)avg;
 
-    const int magic = 100000000;
     const int ten = 10;
-    if (maxval > magic || minval < -magic)
+    if (maxval > INT_MAX / 4 || minval < -INT_MAX / 4)
     {
         for (unsigned int j = 0; j < ArrayLength; j++)
         {

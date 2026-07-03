@@ -67,7 +67,7 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth)
         {
             for (size_t j = 0; j < reference->ArrayLength; j++)
             {
-                int int_count = getIntsFromStdin(4, arr);
+                int int_count = getIntsFromFile(4, arr, fpDefPeak);
                 if (int_count < 0)
                 {
                     break;

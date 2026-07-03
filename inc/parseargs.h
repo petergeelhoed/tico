@@ -59,10 +59,11 @@ double getDouble(char* ptr);
  */
 int getDoublesFromStdin(size_t maxCount, double* arr);
 
-/** @brief Reads integers from standard input until EOF or maxCount is reached.
+/** @brief Reads integers from file until EOF or maxCount is reached.
  *
  * @param maxCount The maximum number of integers to read.
  * @param arr Pointer to an array where the read integers will be stored.
+ * @param file Pointer to read integers from
  * @return The number of integers successfully read.
  */
-int getIntsFromStdin(size_t maxCount, int* arr);
+int getIntsFromFile(size_t maxCount, int* arr, FILE* file);

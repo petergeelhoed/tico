@@ -330,7 +330,7 @@ int getDoublesFromStdin(size_t maxCount, double* arr)
     return (int)parsed; // returns 0..maxCount
 }
 
-int getIntsFromStdin(size_t maxCount, int* arr)
+int getIntsFromFile(size_t maxCount, int* arr, FILE* file)
 {
     if (!arr || maxCount == 0)
     {
@@ -339,7 +339,7 @@ int getIntsFromStdin(size_t maxCount, int* arr)
 
     char* line = NULL;
     size_t len = 0;
-    ssize_t nread = getline(&line, &len, stdin);
+    ssize_t nread = getline(&line, &len, file);
     if (nread == -1)
     {
         free(line);

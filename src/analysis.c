@@ -68,7 +68,7 @@ static void calculateTotal(size_t count,
 
         linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
-        print("after %.1fc3 (%.2gms) removal: %.2f s/d, %zu samples\n",
+        print("after %.1fσ (%.2gms) removal: %.2f s/d, %zu samples\n",
               threshold,
               stdev * THOUSAND / rate,
               -slope * SECS_DAY / (double)ArrayLength,

@@ -1,3 +1,5 @@
+#pragma once
+#include "appstate.h"
 
 #include <signal.h> // IWYU pragma: export
 
@@ -14,14 +16,18 @@
  */
 void sigintHandler(int signal);
 
-/** @ingroup mysignal @brief Set signal handlers for SIGINT and SIGWINCH
+/**
+ * @ingroup mysignal @brief Set signal handlers for SIGINT and SIGWINCH.
  *
  * @details This function sets the signal handlers for SIGINT and SIGWINCH
  * to the sigintHandler function. If there is an error setting the signal
  * handlers, the function will print an error message and exit with an error
  * code.
+ *
+ * @param appState Pointer to the AppState struct holding application state
+ * variables.
  */
-void setSignalAction(void);
+void setSignalAction(struct AppState* appState);
 
 /** @ingroup mysignal @brief Block SIGINT and SIGWINCH signals
  *

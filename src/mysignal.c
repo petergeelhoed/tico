@@ -1,5 +1,7 @@
+
 #include "mysignal.h"
 
+#include "appstate.h"
 #include "mydefs.h"
 #include "printing.h"
 
@@ -9,14 +11,17 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-extern int keepRunning;
-extern volatile unsigned int columns;
+static struct AppState* s_appState = NULL;
 
 void sigintHandler(int signal)
 {
+    if (!s_appState)
+    {
+        return;
+    }
     if (signal == SIGINT)
     {
-        keepRunning = 0;
+        s_appState->keepRunning = 0;
     }
     else if (signal == SIGWINCH)
     {
@@ -24,8 +29,8 @@ void sigintHandler(int signal)
         ioctl(STDOUT_FILENO,
               TIOCGWINSZ,
               &windowSize); // NOLINT(misc-include-cleaner)
-        columns = (unsigned int)windowSize.ws_col;
-        print("new width %d\n", columns);
+        s_appState->columns = (unsigned int)windowSize.ws_col;
+        print("new width %d\n", s_appState->columns);
     }
     else
     {
@@ -33,8 +38,9 @@ void sigintHandler(int signal)
     }
 }
 
-void setSignalAction(void)
+void setSignalAction(struct AppState* appState)
 {
+    s_appState = appState;
     struct sigaction sact;
     sigemptyset(&sact.sa_mask);
     sact.sa_flags = 0;

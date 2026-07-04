@@ -26,6 +26,7 @@ static void printUsage(void)
           " -r 48000 sampling rate in Hz\n"
           " -t 30 measurement time in seconds\n"
           " -s 3.0 cutoff standard deviation\n"
+          " -i 30 write interval (ticks)\n"
           " -w <file> write positions to file\n"
           " -m <file> write correlation to file\n"
           " -p <file> write pulse to file\n"
@@ -156,8 +157,9 @@ static void enforceUint(int flag, unsigned int* target, char* arg)
 void parseArguments(int argc, char* argv[], CapConfig* cfg)
 {
     int flag;
-    while ((flag = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:")) !=
-           -1)
+    while (
+        (flag = getopt(argc, argv, "b:r:z:ht:s:e:c:m:d:w:p:f:D:v:I:lj:i:")) !=
+        -1)
     {
         switch (flag)
         {
@@ -175,6 +177,9 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
                     ARRAY_BUFFER_SIZE);
                 cfg->fitN = ARRAY_BUFFER_SIZE;
             }
+            break;
+        case 'i':
+            enforceUint(flag, &cfg->writeInterval, optarg);
             break;
         case 'e':
             enforceUint(flag, &cfg->evalue, optarg);

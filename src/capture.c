@@ -61,10 +61,7 @@ static int processTickTock(CapConfig* cfg,
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
-    processLogging(cfg,
-                   res,
-                   state->tickIndex,
-                   ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
+    processLogging(cfg, res, state->tickIndex, cfg->writeInterval);
 
     fitAndPrint(state, cumulativeTick, res, cfg, columns);
 
@@ -84,6 +81,7 @@ int main(int argc, char* argv[])
                      .SDthreshold = DEFAULT_SDTHRESHOLD,
                      .device = "",
                      .cvalue = DEFAULT_CVALUE,
+                     .writeInterval = DEFAULT_WRITE_INTERVAL,
                      .fpposition = NULL,
                      .fpmaxcor = NULL,
                      .fptotal = NULL,

@@ -61,10 +61,7 @@ static int processTickTock(CapConfig* cfg,
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
-    processLogging(cfg,
-                   res,
-                   state->tickIndex,
-                   ARRAY_BUFFER_SIZE / DEFAULT_WRITE_FACTOR);
+    processLogging(cfg, res, state->tickIndex, DEFAULT_WRITE_INTERVAL);
 
     fitAndPrint(state, cumulativeTick, res, cfg, columns);
 

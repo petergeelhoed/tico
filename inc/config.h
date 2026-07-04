@@ -16,6 +16,7 @@ typedef struct
     unsigned int verbose;
     unsigned int fitN;
     unsigned int teeth;
+    unsigned int writeInterval;
     double SDthreshold;
     char device[MAX_DEVICE_LENGTH];
     FILE* fpposition;

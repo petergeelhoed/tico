@@ -52,6 +52,7 @@ static void calculateTotal(size_t count,
 
     for (unsigned int j = 0; j < 3; ++j)
     {
+        double old_stdev = stdev;
         for (size_t i = 0; i < count; ++i)
         {
             deviation =
@@ -68,11 +69,13 @@ static void calculateTotal(size_t count,
 
         linreg(xarr, maxpos, count, &intercept, &slope, &stdev);
 
-        print("after %.1fσ (%.2gms) removal: %.2f s/d, %zu samples\n",
-              threshold,
-              stdev * THOUSAND / rate,
-              -slope * SECS_DAY / (double)ArrayLength,
-              count);
+        print(
+            "after %.1fσ(%4.2fms) removal: %.2f s/d, %zu samples σ=(%4.2fms)\n",
+            threshold,
+            old_stdev * THOUSAND / rate * threshold,
+            -slope * SECS_DAY / (double)ArrayLength,
+            count,
+            stdev * THOUSAND / rate);
         threshold /= 2;
     }
 

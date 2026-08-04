@@ -249,12 +249,15 @@ set(BINARIES
     ifft
     linreg
     record
+    time
 )
 add_subdirectory(tests)
 
 foreach(BIN ${BINARIES})
   add_executable(${BIN} src/${BIN}.c)
 endforeach()
+
+target_link_libraries(time PRIVATE m)
 
 target_link_libraries(capture
   capture_helpers

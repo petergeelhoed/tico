@@ -83,6 +83,50 @@ static double invnorm(double p)
 // NOLINTEND(readability-magic-numbers)
 // NOLINTEND(readability-identifier-length)
 
+struct stats
+{
+    double stdev;
+    double mean;
+};
+
+static struct stats fit_erf(uint64_t* samples)
+{
+
+    struct stats stats = {.stdev = 0.0, .mean = 0.0};
+
+    qsort(samples, N, sizeof(samples[0]), cmp_u64);
+
+    double sumx = 0.0;
+    double sumz = 0.0;
+    double sumzz = 0.0;
+    double sumzx = 0.0;
+
+    for (int i = 0; i < N; i++)
+    {
+
+        /* Blom plotting position */
+        // NOLINTNEXTLINE(readability-magic-numbers)
+        double prob = (i + 0.625) / ((double)N + 0.25);
+
+        double zval = invnorm(prob);
+        double xval = (double)samples[i];
+
+        sumx += xval;
+        sumz += zval;
+        sumzz += zval * zval;
+        sumzx += zval * xval;
+    }
+
+    stats.stdev = (N * sumzx - sumz * sumx) / (N * sumzz - sumz * sumz);
+    stats.mean = (sumx - stats.stdev * sumz) / N;
+
+    if (stats.stdev < 0)
+    {
+        stats.stdev = -stats.stdev;
+    }
+    return stats;
+}
+
 int main(void)
 {
     uint64_t samples[N];
@@ -127,45 +171,15 @@ int main(void)
                tspec.tv_nsec / MEGA);
     }
 
-    qsort(samples, N, sizeof(samples[0]), cmp_u64);
-
-    double sumx = 0.0;
-    double sumz = 0.0;
-    double sumzz = 0.0;
-    double sumzx = 0.0;
-
-    for (int i = 0; i < N; i++)
-    {
-
-        /* Blom plotting position */
-        // NOLINTNEXTLINE(readability-magic-numbers)
-        double prob = (i + 0.625) / ((double)N + 0.25);
-
-        double zval = invnorm(prob);
-        double xval = (double)samples[i];
-
-        sumx += xval;
-        sumz += zval;
-        sumzz += zval * zval;
-        sumzx += zval * xval;
-    }
-
-    double sigma = (N * sumzx - sumz * sumx) / (N * sumzz - sumz * sumz);
-
-    double mean = (sumx - sigma * sumz) / N;
-
-    if (sigma < 0)
-    {
-        sigma = -sigma;
-    }
+    struct stats stats = fit_erf(samples);
     printf("\nSorted samples:\n");
     for (int i = 0; i < N; i++)
     {
         printf("%4llu ", (unsigned long long)samples[i]);
     }
     printf("\n\nQQ Gaussian fit:\n");
-    printf("Mean   = %.3f ms\n", mean);
-    printf("Stddev = %.3f ms\n", sigma);
+    printf("Mean   = %.3f ms\n", stats.mean);
+    printf("Stddev = %.3f ms\n", stats.stdev);
 
     return 0;
 }

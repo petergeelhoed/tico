@@ -116,11 +116,6 @@ int main(int argc, char** argv)
     printf("\n");
 
     const double limit = 150.;
-    printf("Mean   = %.3f ms\n", stats.mean / kilo);
-    printf("Stddev = %s%.3f%s ms\n",
-           stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
-           stats.stdev / kilo,
-           COLOR_RESET);
 
     /* Remove points outside ±2σ */
     const double lower = stats.mean - 2.0 * stats.stdev;
@@ -143,9 +138,17 @@ int main(int argc, char** argv)
         }
     }
 
-    for (unsigned int i = 0; i < outliers_n; i++)
+    if (outliers_n)
     {
-        printf("Removed outlier: %lu\n", outliers[i]);
+        printf("Mean   = %.3f ms\n", stats.mean / kilo);
+        printf("Stddev = %s%.3f%s ms\n",
+               stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
+               stats.stdev / kilo,
+               COLOR_RESET);
+        for (unsigned int i = 0; i < outliers_n; i++)
+        {
+            printf("Removed outlier: %lu\n", outliers[i]);
+        }
     }
     /* Refit using filtered data */
     if (filtered_n > 1)

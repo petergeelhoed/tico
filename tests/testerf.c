@@ -12,18 +12,18 @@
 int main(void)
 {
     // NOLINTBEGIN(readability-magic-numbers)
-    uint64_t samples[] = {2699,
-                          2746,
-                          2799,
-                          2901,
-                          2914,
-                          2921,
-                          2922,
-                          2978,
-                          3018,
-                          3077,
-                          3107,
-                          3150};
+    double samples[] = {2699,
+                        2746,
+                        2799,
+                        2901,
+                        2914,
+                        2921,
+                        2922,
+                        2978,
+                        3018,
+                        3077,
+                        3107,
+                        3150};
     // NOLINTEND(readability-magic-numbers)
 
     struct stats result =

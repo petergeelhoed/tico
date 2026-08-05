@@ -14,4 +14,4 @@ struct stats
     double mean;
 };
 
-struct stats fit_erf(uint64_t* samples, size_t size);
+struct stats fit_erf(double* samples, size_t size);

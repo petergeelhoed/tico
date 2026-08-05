@@ -80,7 +80,7 @@ double invnorm(double p)
 // NOLINTEND(readability-magic-numbers)
 // NOLINTEND(readability-identifier-length)
 
-struct stats fit_erf(uint64_t* samples, size_t size)
+struct stats fit_erf(double* samples, size_t size)
 {
 
     struct stats stats = {.stdev = 0.0, .mean = 0.0};
@@ -99,7 +99,7 @@ struct stats fit_erf(uint64_t* samples, size_t size)
         double prob = ((double)i + 0.625) / ((double)size + 0.25);
 
         double zval = invnorm(prob);
-        double xval = (double)samples[i];
+        double xval = samples[i];
 
         sumx += xval;
         sumz += zval;

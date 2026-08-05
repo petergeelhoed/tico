@@ -149,6 +149,7 @@ static double adjust_mean_to_target(double mean, double target)
     while (fabs(mean + step - target) < fabs(mean - target))
     {
         mean += step;
+        printf("%.3f %.3f\n", mean, target);
     }
 
     return mean;
@@ -220,7 +221,7 @@ int main(int argc, char** argv)
         const long long mod = 5;
         const double NANO = 1e-9;
         samples[i] =
-            (double)(tspec.tv_sec % mod) + (double)tspec.tv_nsec * NANO;
+            -(double)(tspec.tv_sec % mod) - (double)tspec.tv_nsec * NANO;
 
         struct tm time;
         char iso8601[ISO_LENGTH];
@@ -254,12 +255,12 @@ int main(int argc, char** argv)
 
     stats.mean = adjust_mean_to_target(stats.mean, value);
 
-    printf("Mean   = %.3f ms\n", stats.mean);
-    printf("Stddev = %s%.3f%s ms\n",
+    printf("Mean   = %.3f s\n", stats.mean);
+    printf("Stddev = %s%.3f%s s\n",
            stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
            stats.stdev,
            COLOR_RESET);
-    printf("prevval = %.3f ms\n", value);
+    printf("prevval = %.3f s\n", value);
 
     char valuestr[VALUESIZE];
     char arg[LINESIZE];

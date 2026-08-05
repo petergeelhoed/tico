@@ -61,7 +61,7 @@ static double read_last_value(const char* filename)
     return value;
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
     double value = read_last_value("/var/www/temp/seiko");
 
@@ -168,5 +168,22 @@ int main(void)
            COLOR_RESET);
     printf("prevval = %.3f ms\n", value);
 
+    const double prec_lim = 100.;
+    char extra[LINESIZE] = "";
+    if (argc > 1)
+    {
+        extra[0] = '#';
+        strncpy(extra + 1, argv[1], LINESIZE - 2);
+        extra[LINESIZE - 1] = '\0';
+    }
+
+    if (stats.stdev < prec_lim)
+    {
+        printf("\nskn %.2f %s\n", stats.mean / kilo, extra);
+    }
+    else
+    {
+        printf("\nskn %.1f %s\n", stats.mean / kilo, extra);
+    }
     return 0;
 }

@@ -92,7 +92,7 @@ static double read_last_value(const char* filename)
     return value;
 }
 
-static struct stats remove_outliers_and_refit(uint64_t* samples,
+static struct stats remove_outliers_and_refit(double* samples,
                                               unsigned int n,
                                               double limit)
 {
@@ -101,15 +101,15 @@ static struct stats remove_outliers_and_refit(uint64_t* samples,
     const double lower = stats.mean - 2.0 * stats.stdev;
     const double upper = stats.mean + 2.0 * stats.stdev;
 
-    uint64_t filtered[N];
-    uint64_t outliers[N];
+    double filtered[N];
+    double outliers[N];
 
     unsigned int filtered_n = 0;
     unsigned int outliers_n = 0;
 
     for (unsigned int i = 0; i < n; i++)
     {
-        if ((double)samples[i] >= lower && (double)samples[i] <= upper)
+        if (samples[i] >= lower && samples[i] <= upper)
         {
             filtered[filtered_n++] = samples[i];
         }
@@ -121,16 +121,15 @@ static struct stats remove_outliers_and_refit(uint64_t* samples,
 
     if (outliers_n > 0)
     {
-        const double kilo = 1000.0;
-        printf("Mean   = %.3f ms\n", stats.mean / kilo);
-        printf("Stddev = %s%.3f%s ms\n",
+        printf("Mean   = %.3f s\n", stats.mean);
+        printf("Stddev = %s%.3f%s s\n",
                stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
-               stats.stdev / kilo,
+               stats.stdev,
                COLOR_RESET);
 
         for (unsigned int i = 0; i < outliers_n; i++)
         {
-            printf("Removed outlier: %lu\n", outliers[i]);
+            printf("Removed outlier: %.3f\n", outliers[i]);
         }
     }
 
@@ -144,7 +143,7 @@ static struct stats remove_outliers_and_refit(uint64_t* samples,
 
 static double adjust_mean_to_target(double mean, double target)
 {
-    const double step = (mean < target) ? 5000.0 : -5000.0;
+    const double step = (mean < target) ? 5.0 : -5.0;
 
     while (fabs(mean + step - target) < fabs(mean - target))
     {
@@ -160,12 +159,10 @@ static void build_arg(char* valuestr,
                       char** argv,
                       struct stats stats)
 {
-    const uint64_t kilo = 1000ULL;
     const double prec_lim = 100.;
     if (stats.stdev < prec_lim)
     {
-        int printed =
-            snprintf(valuestr, sizeof(valuestr), "%.2f", stats.mean / kilo);
+        int printed = snprintf(valuestr, sizeof(valuestr), "%.2f", stats.mean);
         if (printed < 0 || (size_t)printed >= sizeof(valuestr))
         {
             exit(EXIT_FAILURE);
@@ -173,8 +170,7 @@ static void build_arg(char* valuestr,
     }
     else
     {
-        int printed =
-            snprintf(valuestr, sizeof(valuestr), "%.1f", stats.mean / kilo);
+        int printed = snprintf(valuestr, sizeof(valuestr), "%.1f", stats.mean);
         if (printed < 0 || (size_t)printed >= sizeof(valuestr))
         {
             exit(EXIT_FAILURE);
@@ -203,12 +199,8 @@ int main(int argc, char** argv)
 {
     double value = read_last_value("/var/www/temp/seiko");
 
-    uint64_t samples[N];
+    double samples[N];
     struct timespec tspec;
-    const uint64_t mod = 5000;
-    const uint64_t kilo = 1000ULL;
-    const uint64_t mega = 1000000ULL;
-    const long MEGA = 1000000UL;
     printf("Press ENTER %d times\n\n", N);
 
     for (int i = 0; i < N; i++)
@@ -225,10 +217,14 @@ int main(int argc, char** argv)
             exit(-1);
         }
 
+        const uint64_t kilo = 1000ULL;
+        const uint64_t mega = 1000000ULL;
         uint64_t msec =
             (uint64_t)tspec.tv_sec * kilo + (uint64_t)tspec.tv_nsec / mega;
 
-        samples[i] = msec % mod;
+        const double KILO = 1000.;
+        const uint64_t mod = 5000;
+        samples[i] = (msec % mod) / KILO;
         struct tm time;
         char iso8601[ISO_LENGTH];
         if (NULL == gmtime_r(&tspec.tv_sec, &time))
@@ -239,8 +235,9 @@ int main(int argc, char** argv)
         {
             exit(-1);
         }
-        printf("%llu ms  %s.%03ldZ\n",
-               (unsigned long long)samples[i],
+        const long MEGA = 1000000UL;
+        printf("%.3f s  %s.%03ldZ\n",
+               samples[i],
                iso8601,
                tspec.tv_nsec / MEGA);
     }
@@ -248,21 +245,21 @@ int main(int argc, char** argv)
     printf("\nSorted samples:\n");
     for (int i = 0; i < N; i++)
     {
-        printf("%4llu ", (unsigned long long)samples[i]);
+        printf("%.3f ", samples[i]);
     }
     printf("\n");
 
-    const double limit = 150.;
+    const double limit = .150;
     struct stats stats = remove_outliers_and_refit(samples, N, limit);
 
     printf("\n\nQQ Gaussian fit:\n");
 
-    stats.mean = adjust_mean_to_target(stats.mean, kilo * value);
+    stats.mean = adjust_mean_to_target(stats.mean, value);
 
-    printf("Mean   = %.3f ms\n", stats.mean / kilo);
+    printf("Mean   = %.3f ms\n", stats.mean);
     printf("Stddev = %s%.3f%s ms\n",
            stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
-           stats.stdev / kilo,
+           stats.stdev,
            COLOR_RESET);
     printf("prevval = %.3f ms\n", value);
 
@@ -288,7 +285,7 @@ int main(int argc, char** argv)
 
         if (adjust != 0.0)
         {
-            stats.mean += adjust * kilo;
+            stats.mean += adjust;
             build_arg(valuestr, arg, argc, argv, stats);
             continue;
         }

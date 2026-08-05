@@ -211,7 +211,7 @@ target_link_libraries(mysync PUBLIC Threads::Threads)
 
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 
-add_library(mymath STATIC ${SRC}/mymath.c ${SRC}/modsigned.c)
+add_library(mymath STATIC ${SRC}/mymath.c ${SRC}/modsigned.c ${SRC}/erf.c)
 target_link_libraries(mymath PUBLIC myarr ${MATH_LIB})
 
 add_library(myfft STATIC ${SRC}/myfft.c)
@@ -257,7 +257,8 @@ foreach(BIN ${BINARIES})
   add_executable(${BIN} src/${BIN}.c)
 endforeach()
 
-target_link_libraries(time PRIVATE m)
+target_link_libraries(time PRIVATE mymath)
+target_include_directories(time PRIVATE ${PROJECT_ROOT}/inc)
 
 target_link_libraries(capture
   capture_helpers

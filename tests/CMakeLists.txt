@@ -13,6 +13,7 @@ set(TEST_TARGETS
     testcheckargs testgetbeaterror
     testgetinput
     testmicamplification
+    testerf
 )
 foreach(TEST ${TEST_TARGETS})
     add_executable(${TEST} ${TEST}.c)
@@ -41,10 +42,12 @@ target_link_libraries(testrotatederivativewindow capture_helpers)
 target_link_libraries(testupdatetotalshift capture_helpers)
 target_link_libraries(testcheckargs cli)
 target_link_libraries(testgetbeaterror analysis )
+target_link_libraries(testerf mymath )
 
 target_compile_definitions(testcalculateall
     PRIVATE TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
+add_test(NAME testerf COMMAND testerf)
 set( TESTS
         testcalculateall
         testcrosscorint

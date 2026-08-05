@@ -17,18 +17,33 @@
 #define COLOR_RESET "\033[0m"
 
 extern char** environ;
-static int confirm(void)
+static int confirm(double* adjust)
 {
     char line[LINESIZE];
 
-    printf("OK? [Y/n] ");
+    *adjust = 0.0;
+
+    printf("OK? [Y/n or number] ");
 
     if (fgets(line, sizeof(line), stdin) == NULL)
     {
-        return 1; /* default yes on EOF */
+        return 1;
     }
 
-    return line[0] == '\n' || line[0] == 'y' || line[0] == 'Y';
+    if (line[0] == '\n' || line[0] == 'y' || line[0] == 'Y')
+    {
+        return 1;
+    }
+
+    char* end;
+    double value = strtod(line, &end);
+
+    if (end != line)
+    {
+        *adjust = value;
+    }
+
+    return 0;
 }
 
 static double read_last_value(const char* filename)
@@ -139,6 +154,51 @@ static double adjust_mean_to_target(double mean, double target)
     return mean;
 }
 
+static void build_arg(char* valuestr,
+                      char* arg,
+                      int argc,
+                      char** argv,
+                      struct stats stats)
+{
+    const uint64_t kilo = 1000ULL;
+    const double prec_lim = 100.;
+    if (stats.stdev < prec_lim)
+    {
+        int printed =
+            snprintf(valuestr, sizeof(valuestr), "%.2f", stats.mean / kilo);
+        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        int printed =
+            snprintf(valuestr, sizeof(valuestr), "%.1f", stats.mean / kilo);
+        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (argc > 1)
+    {
+        int printed = snprintf(arg, sizeof(arg), "%s # %s", valuestr, argv[1]);
+        if (printed < 0 || (size_t)printed >= sizeof(arg))
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        int printed = snprintf(arg, sizeof(arg), "%s", valuestr);
+        if (printed < 0 || (size_t)printed >= sizeof(arg))
+        {
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     double value = read_last_value("/var/www/temp/seiko");
@@ -206,65 +266,43 @@ int main(int argc, char** argv)
            COLOR_RESET);
     printf("prevval = %.3f ms\n", value);
 
-    const double prec_lim = 100.;
-
     char valuestr[LINESIZE];
-
-    if (stats.stdev < prec_lim)
-    {
-        int printed =
-            snprintf(valuestr, sizeof(valuestr), "%.2f", stats.mean / kilo);
-        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
-        {
-            return EXIT_FAILURE;
-        }
-    }
-    else
-    {
-        int printed =
-            snprintf(valuestr, sizeof(valuestr), "%.1f", stats.mean / kilo);
-        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
-        {
-            return EXIT_FAILURE;
-        }
-    }
-
     char arg[LINESIZE];
 
-    if (argc > 1)
-    {
-        int printed = snprintf(arg, sizeof(arg), "%s # %s", valuestr, argv[1]);
-        if (printed < 0 || (size_t)printed >= sizeof(arg))
-        {
-            return EXIT_FAILURE;
-        }
-    }
-    else
-    {
-        int printed = snprintf(arg, sizeof(arg), "%s", valuestr);
-        if (printed < 0 || (size_t)printed >= sizeof(arg))
-        {
-            return EXIT_FAILURE;
-        }
-    }
-
+    build_arg(valuestr, arg, argc, argv, stats);
     char skn_cmd[] = "skn";
-
     char* argv_exec[] = {skn_cmd, arg, NULL};
 
     pid_t pid;
 
-    printf("skn '%s'\n", arg);
-    if (confirm())
+    for (;;)
     {
-        int retval = posix_spawnp(&pid, "skn", NULL, NULL, argv_exec, environ);
+        printf("skn '%s'\n", arg);
 
-        if (retval == 0)
+        double adjust = 0.0;
+
+        if (confirm(&adjust))
         {
-            int status;
-            (void)waitpid(pid, &status, 0);
+            break;
         }
+
+        if (adjust != 0.0)
+        {
+            stats.mean += adjust * kilo;
+            build_arg(valuestr, arg, argc, argv, stats);
+            continue;
+        }
+
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    int retval = posix_spawnp(&pid, "skn", NULL, NULL, argv_exec, environ);
+
+    if (retval == 0)
+    {
+        int status;
+        retval = waitpid(pid, &status, 0);
+    }
+
+    return retval;
 }

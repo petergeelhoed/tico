@@ -9,7 +9,8 @@
 #include <time.h>
 #define N 12
 #define ISO_LENGTH 40
-#define LINESIZE 256
+#define LINESIZE 512
+#define VALUESIZE 512
 #define HALF 0.5
 #define COLOR_RED "\033[31m"
 #define COLOR_YELLOW "\033[34m"
@@ -23,7 +24,7 @@ static int confirm(double* adjust)
 
     *adjust = 0.0;
 
-    printf("OK? [Y/n or number] ");
+    printf("OK? [Y/n or seconds to add] ");
 
     if (fgets(line, sizeof(line), stdin) == NULL)
     {
@@ -162,16 +163,16 @@ static void build_arg(char* valuestr,
     const double prec_lim = 100.;
     if (stats.stdev < prec_lim)
     {
-        int printed = snprintf(valuestr, sizeof(valuestr), "%.2f", stats.mean);
-        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
+        int printed = snprintf(valuestr, VALUESIZE, "%.2f", stats.mean);
+        if (printed < 0 || (size_t)printed >= VALUESIZE)
         {
             exit(EXIT_FAILURE);
         }
     }
     else
     {
-        int printed = snprintf(valuestr, sizeof(valuestr), "%.1f", stats.mean);
-        if (printed < 0 || (size_t)printed >= sizeof(valuestr))
+        int printed = snprintf(valuestr, VALUESIZE, "%.1f", stats.mean);
+        if (printed < 0 || (size_t)printed >= VALUESIZE)
         {
             exit(EXIT_FAILURE);
         }
@@ -179,16 +180,16 @@ static void build_arg(char* valuestr,
 
     if (argc > 1)
     {
-        int printed = snprintf(arg, sizeof(arg), "%s # %s", valuestr, argv[1]);
-        if (printed < 0 || (size_t)printed >= sizeof(arg))
+        int printed = snprintf(arg, LINESIZE, "%s # %s", valuestr, argv[1]);
+        if (printed < 0 || (size_t)printed >= LINESIZE)
         {
             exit(EXIT_FAILURE);
         }
     }
     else
     {
-        int printed = snprintf(arg, sizeof(arg), "%s", valuestr);
-        if (printed < 0 || (size_t)printed >= sizeof(arg))
+        int printed = snprintf(arg, LINESIZE, "%s", valuestr);
+        if (printed < 0 || (size_t)printed >= LINESIZE)
         {
             exit(EXIT_FAILURE);
         }
@@ -214,28 +215,25 @@ int main(int argc, char** argv)
         int err = clock_gettime(CLOCK_REALTIME, &tspec);
         if (err)
         {
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
+        const long long mod = 5;
+        const double NANO = 1e-9;
+        samples[i] =
+            (double)(tspec.tv_sec % mod) + (double)tspec.tv_nsec * NANO;
 
-        const uint64_t kilo = 1000ULL;
-        const uint64_t mega = 1000000ULL;
-        uint64_t msec =
-            (uint64_t)tspec.tv_sec * kilo + (uint64_t)tspec.tv_nsec / mega;
-
-        const double KILO = 1000.;
-        const uint64_t mod = 5000;
-        samples[i] = (msec % mod) / KILO;
         struct tm time;
         char iso8601[ISO_LENGTH];
         if (NULL == gmtime_r(&tspec.tv_sec, &time))
         {
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
         if (0 == strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &time))
         {
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
-        const long MEGA = 1000000UL;
+
+        const long MEGA = 1000000L;
         printf("%.3f s  %s.%03ldZ\n",
                samples[i],
                iso8601,
@@ -263,7 +261,7 @@ int main(int argc, char** argv)
            COLOR_RESET);
     printf("prevval = %.3f ms\n", value);
 
-    char valuestr[LINESIZE];
+    char valuestr[VALUESIZE];
     char arg[LINESIZE];
 
     build_arg(valuestr, arg, argc, argv, stats);
@@ -283,7 +281,7 @@ int main(int argc, char** argv)
             break;
         }
 
-        if (adjust != 0.0)
+        if (fabs(adjust) > 0.0)
         {
             stats.mean += adjust;
             build_arg(valuestr, arg, argc, argv, stats);

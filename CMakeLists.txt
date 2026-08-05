@@ -249,7 +249,7 @@ set(BINARIES
     ifft
     linreg
     record
-    time
+    ssec
 )
 add_subdirectory(tests)
 
@@ -257,8 +257,8 @@ foreach(BIN ${BINARIES})
   add_executable(${BIN} src/${BIN}.c)
 endforeach()
 
-target_link_libraries(time PRIVATE mymath)
-target_include_directories(time PRIVATE ${PROJECT_ROOT}/inc)
+target_link_libraries(ssec PRIVATE mymath)
+target_include_directories(ssec PRIVATE ${PROJECT_ROOT}/inc)
 
 target_link_libraries(capture
   capture_helpers

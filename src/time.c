@@ -113,11 +113,49 @@ int main(void)
     {
         printf("%4llu ", (unsigned long long)samples[i]);
     }
+    printf("\n");
+
+    const double limit = 150.;
+    printf("Mean   = %.3f ms\n", stats.mean / kilo);
+    printf("Stddev = %s%.3f%s ms\n",
+           stats.stdev > limit ? COLOR_RED : COLOR_GREEN,
+           stats.stdev / kilo,
+           COLOR_RESET);
+
+    /* Remove points outside ±2σ */
+    const double lower = stats.mean - 2.0 * stats.stdev;
+    const double upper = stats.mean + 2.0 * stats.stdev;
+
+    uint64_t filtered[N];
+    uint64_t outliers[N];
+    unsigned int filtered_n = 0;
+    unsigned int outliers_n = 0;
+
+    for (int i = 0; i < N; i++)
+    {
+        if ((double)samples[i] >= lower && (double)samples[i] <= upper)
+        {
+            filtered[filtered_n++] = samples[i];
+        }
+        else
+        {
+            outliers[outliers_n++] = samples[i];
+        }
+    }
+
+    for (unsigned int i = 0; i < outliers_n; i++)
+    {
+        printf("Removed outlier: %lu\n", outliers[i]);
+    }
+    /* Refit using filtered data */
+    if (filtered_n > 1)
+    {
+        stats = fit_erf(filtered, filtered_n);
+    }
     printf("\n\nQQ Gaussian fit:\n");
 
     const double target = kilo * value;
     const double step = (stats.mean < target) ? 5000.0 : -5000.0;
-    const double limit = 150.;
     while (fabs(stats.mean + step - target) < fabs(stats.mean - target))
     {
         stats.mean += step;

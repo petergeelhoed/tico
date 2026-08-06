@@ -200,7 +200,6 @@ static void build_arg(char* valuestr,
 int main(int argc, char** argv)
 {
     double value = read_last_value("/var/www/temp/seiko");
-
     double samples[N];
     struct timespec tspec;
 

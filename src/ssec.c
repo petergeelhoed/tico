@@ -203,6 +203,7 @@ int main(int argc, char** argv)
 
     double samples[N];
     struct timespec tspec;
+
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
 
     for (int i = 0; i < N; i++)

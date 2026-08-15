@@ -108,8 +108,8 @@ static struct stats remove_outliers_and_refit(double* samples,
 {
     struct stats stats = fit_erf(samples, n);
 
-    const double lower = stats.mean - 2.0 * stats.stdev;
-    const double upper = stats.mean + 2.0 * stats.stdev;
+    const double lower = stats.mean - 1.5 * stats.stdev;
+    const double upper = stats.mean + 1.5 * stats.stdev;
 
     double filtered[N];
     double outliers[N];

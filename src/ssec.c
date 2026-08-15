@@ -18,6 +18,15 @@
 #define COLOR_RESET "\033[0m"
 
 extern char** environ;
+
+static int compare_double(const void* first, const void* second)
+{
+    double dfirst = *(const double*)first;
+    double dsecond = *(const double*)second;
+
+    return (dfirst > dsecond) - (dfirst < dsecond);
+}
+
 static int confirm(double* adjust)
 {
     char line[LINESIZE];
@@ -113,10 +122,16 @@ static struct stats remove_outliers_and_refit(double* samples,
         if (samples[i] >= lower && samples[i] <= upper)
         {
             filtered[filtered_n++] = samples[i];
+            printf("%7.3f %7.3f\n",
+                   samples[i],
+                   (stats.mean - samples[i]) / stats.stdev);
         }
         else
         {
             outliers[outliers_n++] = samples[i];
+            printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
+                   samples[i],
+                   (stats.mean - samples[i]) / stats.stdev);
         }
     }
 
@@ -130,7 +145,9 @@ static struct stats remove_outliers_and_refit(double* samples,
 
         for (unsigned int i = 0; i < outliers_n; i++)
         {
-            printf("Removed outlier: %.3f\n", outliers[i]);
+            printf("Removed outlier: %7.3f %7.3f\n",
+                   outliers[i],
+                   (stats.mean - outliers[i]) / stats.stdev);
         }
     }
 
@@ -242,14 +259,8 @@ int main(int argc, char** argv)
                tspec.tv_nsec / MEGA);
     }
 
-    printf("\nSorted samples:\n");
-    for (int i = 0; i < N; i++)
-    {
-        printf("%.3f ", samples[i]);
-    }
-    printf("\n");
-
     const double limit = .150;
+    qsort(samples, N, sizeof(double), compare_double);
     struct stats stats = remove_outliers_and_refit(samples, N, limit);
 
     printf("\n\nQQ Gaussian fit:\n");

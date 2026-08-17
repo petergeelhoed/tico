@@ -85,7 +85,7 @@ static double read_last_value(const char* filename)
 
     if (fclose(fileptr))
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     char timestamp[LINESIZE];

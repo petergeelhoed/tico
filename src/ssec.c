@@ -311,7 +311,7 @@ int main(int argc, char** argv)
     char skn_cmd[] = "skn";
     char* argv_exec[] = {skn_cmd, arg, NULL};
 
-    pid_t pid;
+    pid_t pid = -1;
 
     for (;;)
     {

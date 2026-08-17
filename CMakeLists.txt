@@ -182,6 +182,19 @@ add_custom_target(quality-gcc-test
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset debug-gcc
   COMMENT "Configuring, building, and testing GCC debug preset")
 
+# Runs a GCC release build from the source root.
+add_custom_target(quality-gcc-build-release
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset release-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset release-gcc
+  COMMENT "Configuring and building GCC release preset")
+
+# Runs a GCC release build and tests from the source root.
+add_custom_target(quality-gcc-test-release
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset release-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset release-gcc
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset release-gcc
+  COMMENT "Configuring, building, and testing GCC release preset")
+
 include(CTest)
 
 set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})

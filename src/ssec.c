@@ -270,13 +270,14 @@ int main(int argc, char** argv)
         samples[i] =
             -(double)(tspec.tv_sec % mod) - (double)tspec.tv_nsec * NANO;
 
-        struct tm time;
+        struct tm tm_info;
         char iso8601[ISO_LENGTH];
-        if (NULL == gmtime_r(&tspec.tv_sec, &time))
+        if (NULL == gmtime_r(&tspec.tv_sec, &tm_info))
         {
             exit(EXIT_FAILURE);
         }
-        if (0 == strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &time))
+        if (0 ==
+            strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &tm_info))
         {
             exit(EXIT_FAILURE);
         }

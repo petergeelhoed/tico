@@ -576,16 +576,28 @@ static int is_device_line(const char* line)
  */
 static int description_has_usb(const char* desc)
 {
-    for (const char* p = desc; *p; ++p)
+    if (!desc)
     {
-        if (tolower((unsigned char)*p) == 'u' &&
-            tolower((unsigned char)*(p + 1)) == 's' &&
-            tolower((unsigned char)*(p + 2)) == 'b')
-        {
-            return 1;
-        }
+        return 0;
     }
-    return 0;
+
+    // Create a lowercase copy of the description for case-insensitive search
+    size_t desc_len = strlen(desc);
+    char* desc_lower = malloc(desc_len + 1);
+    if (!desc_lower)
+    {
+        return 0;
+    }
+
+    for (size_t i = 0; i < desc_len; i++)
+    {
+        desc_lower[i] = (char)tolower((unsigned char)desc[i]);
+    }
+    desc_lower[desc_len] = '\0';
+
+    int found = strstr(desc_lower, "usb") != NULL;
+    free(desc_lower);
+    return found;
 }
 
 /**

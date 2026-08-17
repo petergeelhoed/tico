@@ -170,6 +170,13 @@
       "targets": ["quality-gcc-build"]
     },
     {
+      "name": "quality-gcc-test-release",
+      "displayName": "Run GCC release build and test from quality-release",
+      "inherits": "base-build",
+      "configurePreset": "release-clang",
+      "targets": ["quality-gcc-test-release"]
+    },
+    {
       "name": "doxygen",
       "displayName": "Run doxygen documentation (debug-clang)",
       "inherits": "base-build",
@@ -320,7 +327,7 @@
     },
     {
       "name": "quality",
-      "displayName": "Quality: clang checks + clang build/test + gcc build",
+      "displayName": "Quality: clang checks + debug build/test + gcc test",
       "steps": [
         { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" },
@@ -329,6 +336,16 @@
         { "type": "build",     "name": "clang-tidy" },
         { "type": "test",      "name": "debug_ctest-clang" },
         { "type": "build",     "name": "doxygen" }
+      ]
+    },
+    {
+      "name": "quality-release",
+      "displayName": "Quality Release: release build/test (clang and gcc)",
+      "steps": [
+        { "type": "configure", "name": "release-clang" },
+        { "type": "build",     "name": "release-clang" },
+        { "type": "build",     "name": "quality-gcc-test-release" },
+        { "type": "test",      "name": "release_ctest-clang" }
       ]
     },
     {

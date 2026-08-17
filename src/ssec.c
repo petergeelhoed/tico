@@ -28,6 +28,12 @@ static int compare_double(const void* first, const void* second)
     return (dfirst > dsecond) - (dfirst < dsecond);
 }
 
+static int is_effectively_zero(double value)
+{
+    const double epsilon = 1e-9;
+    return fabs(value) < epsilon;
+}
+
 static int confirm(double* adjust)
 {
     char line[LINESIZE];
@@ -123,16 +129,32 @@ static struct stats remove_outliers_and_refit(double* samples,
         if (samples[i] >= lower && samples[i] <= upper)
         {
             filtered[filtered_n++] = samples[i];
-            printf("%7.3f %7.3f\n",
-                   samples[i],
-                   (stats.mean - samples[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("%7.3f %7.3f\n",
+                       samples[i],
+                       (stats.mean - samples[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("%7.3f %7.3f\n", samples[i], 0.0);
+            }
         }
         else
         {
             outliers[outliers_n++] = samples[i];
-            printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
-                   samples[i],
-                   (stats.mean - samples[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
+                       samples[i],
+                       (stats.mean - samples[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
+                       samples[i],
+                       0.0);
+            }
         }
     }
 
@@ -146,9 +168,16 @@ static struct stats remove_outliers_and_refit(double* samples,
 
         for (unsigned int i = 0; i < outliers_n; i++)
         {
-            printf("Removed outlier: %7.3f %7.3f\n",
-                   outliers[i],
-                   (stats.mean - outliers[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("Removed outlier: %7.3f %7.3f\n",
+                       outliers[i],
+                       (stats.mean - outliers[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("Removed outlier: %7.3f %7.3f\n", outliers[i], 0.0);
+            }
         }
     }
 

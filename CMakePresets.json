@@ -163,6 +163,13 @@
       "targets": ["clang-tidy"]
     },
     {
+      "name": "clang-tidy-release",
+      "displayName": "Run clang-tidy (release)",
+      "inherits": "base-build",
+      "configurePreset": "release-clang",
+      "targets": ["clang-tidy"]
+    },
+    {
       "name": "quality-gcc-build",
       "displayName": "Run GCC build from quality",
       "inherits": "base-build",
@@ -344,6 +351,7 @@
       "steps": [
         { "type": "configure", "name": "release-clang" },
         { "type": "build",     "name": "release-clang" },
+        { "type": "build",     "name": "clang-tidy-release" },
         { "type": "build",     "name": "quality-gcc-test-release" },
         { "type": "test",      "name": "release_ctest-clang" }
       ]

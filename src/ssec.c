@@ -53,9 +53,10 @@ static int confirm(double* adjust)
     }
 
     char* end;
+    errno = 0;
     double value = strtod(line, &end);
 
-    if (end != line)
+    if ((end != line) && (*end == '\n' || *end == '\0') && (errno != ERANGE))
     {
         *adjust = value;
     }

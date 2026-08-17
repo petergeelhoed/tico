@@ -1,6 +1,7 @@
 #include "erf.h"
 
 #include <errno.h>
+#include <math.h>
 #include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +12,7 @@
 #define ISO_LENGTH 40
 #define LINESIZE 512
 #define VALUESIZE 512
-#define HALF 0.5
 #define COLOR_RED "\033[31m"
-#define COLOR_YELLOW "\033[34m"
 #define COLOR_GREEN "\033[32m"
 #define COLOR_RESET "\033[0m"
 
@@ -25,6 +24,12 @@ static int compare_double(const void* first, const void* second)
     double dsecond = *(const double*)second;
 
     return (dfirst > dsecond) - (dfirst < dsecond);
+}
+
+static int is_effectively_zero(double value)
+{
+    const double epsilon = 1e-9;
+    return fabs(value) < epsilon;
 }
 
 static int confirm(double* adjust)
@@ -46,9 +51,10 @@ static int confirm(double* adjust)
     }
 
     char* end;
+    errno = 0;
     double value = strtod(line, &end);
 
-    if (end != line)
+    if ((end != line) && (*end == '\n' || *end == '\0') && (errno != ERANGE))
     {
         *adjust = value;
     }
@@ -79,7 +85,7 @@ static double read_last_value(const char* filename)
 
     if (fclose(fileptr))
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     char timestamp[LINESIZE];
@@ -122,16 +128,32 @@ static struct stats remove_outliers_and_refit(double* samples,
         if (samples[i] >= lower && samples[i] <= upper)
         {
             filtered[filtered_n++] = samples[i];
-            printf("%7.3f %7.3f\n",
-                   samples[i],
-                   (stats.mean - samples[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("%7.3f %7.3f\n",
+                       samples[i],
+                       (stats.mean - samples[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("%7.3f %7.3f\n", samples[i], 0.0);
+            }
         }
         else
         {
             outliers[outliers_n++] = samples[i];
-            printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
-                   samples[i],
-                   (stats.mean - samples[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
+                       samples[i],
+                       (stats.mean - samples[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("%7.3f" COLOR_RED " %7.3f" COLOR_RESET "\n",
+                       samples[i],
+                       0.0);
+            }
         }
     }
 
@@ -145,9 +167,16 @@ static struct stats remove_outliers_and_refit(double* samples,
 
         for (unsigned int i = 0; i < outliers_n; i++)
         {
-            printf("Removed outlier: %7.3f %7.3f\n",
-                   outliers[i],
-                   (stats.mean - outliers[i]) / stats.stdev);
+            if (!is_effectively_zero(stats.stdev))
+            {
+                printf("Removed outlier: %7.3f %7.3f\n",
+                       outliers[i],
+                       (stats.mean - outliers[i]) / stats.stdev);
+            }
+            else
+            {
+                printf("Removed outlier: %7.3f %7.3f\n", outliers[i], 0.0);
+            }
         }
     }
 
@@ -241,13 +270,14 @@ int main(int argc, char** argv)
         samples[i] =
             -(double)(tspec.tv_sec % mod) - (double)tspec.tv_nsec * NANO;
 
-        struct tm time;
+        struct tm tm_info;
         char iso8601[ISO_LENGTH];
-        if (NULL == gmtime_r(&tspec.tv_sec, &time))
+        if (NULL == gmtime_r(&tspec.tv_sec, &tm_info))
         {
             exit(EXIT_FAILURE);
         }
-        if (0 == strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &time))
+        if (0 ==
+            strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &tm_info))
         {
             exit(EXIT_FAILURE);
         }
@@ -281,7 +311,7 @@ int main(int argc, char** argv)
     char skn_cmd[] = "skn";
     char* argv_exec[] = {skn_cmd, arg, NULL};
 
-    pid_t pid;
+    pid_t pid = -1;
 
     for (;;)
     {

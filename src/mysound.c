@@ -638,11 +638,13 @@ static int find_sysdefault_usb_device(char* out, size_t outlen)
         if (fgets(description, sizeof(description), alsa_pipe) &&
             description_has_usb(description))
         {
-            strncpy(out, device, outlen - 1);
-            out[outlen - 1] = '\0';
-            strip_newline(out);
-            pclose(alsa_pipe);
-            return 1;
+            int printed = snprintf(out, outlen, "%s", device);
+            if (printed >= 0)
+            {
+                strip_newline(out);
+                pclose(alsa_pipe);
+                return 1;
+            }
         }
         if (fseek(alsa_pipe, rewind_pos, SEEK_SET) != 0)
         {
@@ -677,11 +679,13 @@ static int find_any_sysdefault_device(char* out, size_t outlen)
         }
         if (strstr(device, "sysdefault:"))
         {
-            strncpy(out, device, outlen - 1);
-            out[outlen - 1] = '\0';
-            strip_newline(out);
-            pclose(alsa_pipe);
-            return 1;
+            int printed = snprintf(out, outlen, "%s", device);
+            if (printed >= 0)
+            {
+                strip_newline(out);
+                pclose(alsa_pipe);
+                return 1;
+            }
         }
     }
     pclose(alsa_pipe);

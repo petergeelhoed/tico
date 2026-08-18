@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <time.h>
+
 #define N 12
 #define ISO_LENGTH 40
 #define LINESIZE 512
@@ -142,7 +143,7 @@ static struct stats remove_outliers_and_refit(double* samples,
     unsigned int filtered_n = 0;
     unsigned int outliers_n = 0;
 
-    for (unsigned int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         if (samples[i] >= lower && samples[i] <= upper)
         {
@@ -262,51 +263,54 @@ static void build_arg(char* valuestr,
     }
 }
 
-int main(int argc, char** argv)
+static void get_values(double* samples)
 {
-    double value = read_last_value("/var/www/temp/seiko");
-
-    double samples[N];
     struct timespec tspec;
+    struct tm tm_info;
+    char iso8601[ISO_LENGTH];
+    const long long mod = 5;
+    const double NANO = 1e-9;
+    const long MEGA = 1000000L;
 
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
 
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
     {
-        printf("[%d/%d] ", i + 1, N);
+        printf("[%lu/%u] ", i + 1, N);
 
         while (getchar() != '\n')
         {
         }
 
-        int err = clock_gettime(CLOCK_REALTIME, &tspec);
-        if (err)
+        if (clock_gettime(CLOCK_REALTIME, &tspec))
         {
             exit(EXIT_FAILURE);
         }
-        const long long mod = 5;
-        const double NANO = 1e-9;
         samples[i] =
             -(double)(tspec.tv_sec % mod) - (double)tspec.tv_nsec * NANO;
 
-        struct tm tm_info;
-        char iso8601[ISO_LENGTH];
-        if (NULL == gmtime_r(&tspec.tv_sec, &tm_info))
-        {
-            exit(EXIT_FAILURE);
-        }
-        if (0 ==
-            strftime(iso8601, sizeof(iso8601), "%Y-%m-%dT%H:%M:%S", &tm_info))
+        if (NULL == gmtime_r(&tspec.tv_sec, &tm_info) ||
+            0 == strftime(iso8601,
+                          sizeof(iso8601),
+                          "%Y-%m-%dT%H:%M:%S",
+                          &tm_info))
         {
             exit(EXIT_FAILURE);
         }
 
-        const long MEGA = 1000000L;
         printf("%.3f s  %s.%03ldZ\n",
                samples[i],
                iso8601,
                tspec.tv_nsec / MEGA);
     }
+}
+
+int main(int argc, char** argv)
+{
+    double value = read_last_value("/var/www/temp/seiko");
+
+    double samples[N];
+    get_values(samples);
 
     const double limit = .150;
     qsort(samples, N, sizeof(double), compare_double);

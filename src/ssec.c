@@ -265,6 +265,11 @@ static void build_arg(char* valuestr,
 static void get_values(double* samples)
 {
     struct timespec tspec;
+    struct tm tm_info;
+    char iso8601[ISO_LENGTH];
+    const long long mod = 5;
+    const double NANO = 1e-9;
+    const long MEGA = 1000000L;
 
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
 
@@ -280,13 +285,9 @@ static void get_values(double* samples)
         {
             exit(EXIT_FAILURE);
         }
-        const long long mod = 5;
-        const double NANO = 1e-9;
         samples[i] =
             -(double)(tspec.tv_sec % mod) - (double)tspec.tv_nsec * NANO;
 
-        struct tm tm_info;
-        char iso8601[ISO_LENGTH];
         if (NULL == gmtime_r(&tspec.tv_sec, &tm_info))
         {
             exit(EXIT_FAILURE);
@@ -297,7 +298,6 @@ static void get_values(double* samples)
             exit(EXIT_FAILURE);
         }
 
-        const long MEGA = 1000000L;
         printf("%.3f s  %s.%03ldZ\n",
                samples[i],
                iso8601,

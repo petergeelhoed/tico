@@ -262,11 +262,8 @@ static void build_arg(char* valuestr,
     }
 }
 
-int main(int argc, char** argv)
+static void get_values(double* samples)
 {
-    double value = read_last_value("/var/www/temp/seiko");
-
-    double samples[N];
     struct timespec tspec;
 
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
@@ -307,6 +304,14 @@ int main(int argc, char** argv)
                iso8601,
                tspec.tv_nsec / MEGA);
     }
+}
+
+int main(int argc, char** argv)
+{
+    double value = read_last_value("/var/www/temp/seiko");
+
+    double samples[N];
+    get_values(samples);
 
     const double limit = .150;
     qsort(samples, N, sizeof(double), compare_double);

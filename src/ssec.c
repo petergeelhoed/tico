@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <time.h>
+
 #define N 12
 #define ISO_LENGTH 40
 #define LINESIZE 512
@@ -142,7 +143,7 @@ static struct stats remove_outliers_and_refit(double* samples,
     unsigned int filtered_n = 0;
     unsigned int outliers_n = 0;
 
-    for (unsigned int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         if (samples[i] >= lower && samples[i] <= upper)
         {
@@ -273,9 +274,9 @@ static void get_values(double* samples)
 
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
 
-    for (int i = 0; i < N; i++)
+    for (size_t i = 0; i < N; i++)
     {
-        printf("[%d/%d] ", i + 1, N);
+        printf("[%lu/%u] ", i + 1, N);
 
         while (getchar() != '\n')
         {

@@ -276,8 +276,7 @@ static void get_values(double* samples)
         {
         }
 
-        int err = clock_gettime(CLOCK_REALTIME, &tspec);
-        if (err)
+        if (clock_gettime(CLOCK_REALTIME, &tspec))
         {
             exit(EXIT_FAILURE);
         }

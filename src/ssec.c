@@ -108,6 +108,25 @@ static double read_last_value(const char* filename)
     return value;
 }
 
+static void unwrap(double* data, size_t n)
+{
+    const double modulo = 5.0;
+    const double half = modulo / 2.0;
+
+    for (size_t i = 0; i < n - 1; ++i)
+    {
+        if (data[i + 1] - data[i] > half)
+        {
+            /* wrap is between i and i+1 */
+            for (size_t j = 0; j <= i; ++j)
+            {
+                data[j] += modulo;
+            }
+            break;
+        }
+    }
+}
+
 static struct stats remove_outliers_and_refit(double* samples,
                                               unsigned int n,
                                               double limit)
@@ -291,8 +310,9 @@ int main(int argc, char** argv)
 
     const double limit = .150;
     qsort(samples, N, sizeof(double), compare_double);
-    struct stats stats = remove_outliers_and_refit(samples, N, limit);
+    unwrap(samples, N);
 
+    struct stats stats = remove_outliers_and_refit(samples, N, limit);
     printf("\n\nQQ Gaussian fit:\n");
 
     stats.mean = adjust_mean_to_target(stats.mean, value);

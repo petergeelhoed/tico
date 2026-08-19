@@ -276,6 +276,10 @@ static void get_values(double* samples, double prev)
     for (size_t i = 0; i < N; i++)
     {
         printf("[%lu/%u] ", i + 1, N);
+        for (size_t j = 0; j < i; ++j)
+        {
+            printf("-");
+        }
 
         while (getchar() != '\n')
         {

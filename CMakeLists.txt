@@ -224,7 +224,12 @@ target_link_libraries(mysync PUBLIC Threads::Threads)
 
 add_library(mysignal STATIC ${SRC}/mysignal.c)
 
-add_library(mymath STATIC ${SRC}/mymath.c ${SRC}/modsigned.c ${SRC}/erf.c)
+add_library(mymath STATIC
+        ${SRC}/mymath.c
+        ${SRC}/modsigned.c
+        ${SRC}/erf.c
+        ${SRC}/compare.c)
+
 target_link_libraries(mymath PUBLIC myarr ${MATH_LIB})
 
 add_library(myfft STATIC ${SRC}/myfft.c)

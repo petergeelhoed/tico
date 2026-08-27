@@ -5,10 +5,10 @@
 #include <stdlib.h>
 
 // NOLINTBEGIN(readability-identifier-length)
-int cmp_u64(const void* a, const void* b)
+static int cmp_double(const void* a, const void* b)
 {
-    uint64_t ua = *(const uint64_t*)a;
-    uint64_t ub = *(const uint64_t*)b;
+    double ua = *(const double*)a;
+    double ub = *(const double*)b;
 
     if (ua < ub)
     {
@@ -85,7 +85,7 @@ struct stats fit_erf(double* samples, size_t size)
 
     struct stats stats = {.stdev = 0.0, .mean = 0.0};
 
-    qsort(samples, size, sizeof(samples[0]), cmp_u64);
+    qsort(samples, size, sizeof(samples[0]), cmp_double);
 
     double sumx = 0.0;
     double sumz = 0.0;

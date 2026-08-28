@@ -3,21 +3,21 @@
 
 set(NO_RUN_TESTS
     testmicamplification
-    testfft
+    testcalculateall
 )
 set(TEST_ERROUT_TARGETS 
-    testcalculateall
    )
 
 set(TEST_EXPOUT_TARGETS 
     testcrosscorint
     testinvert
+    testgetdoubles
+    testfft
    )
 set(TEST_TARGETS 
     testsyncwrite
     testssecshift
     testsyncappend
-    testgetdoubles
     testmysync
     testfilter
     testremove50

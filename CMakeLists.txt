@@ -271,7 +271,6 @@ foreach(BIN ${BINARIES})
 endforeach()
 
 target_link_libraries(ssec PRIVATE mymath)
-target_include_directories(ssec PRIVATE ${PROJECT_ROOT}/inc)
 
 target_link_libraries(capture
   capture_helpers

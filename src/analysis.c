@@ -75,7 +75,7 @@ static void calculateTotal(size_t count,
             old_stdev * THOUSAND / rate * threshold,
             -slope * SECS_DAY / (double)ArrayLength,
             count,
-            stdev * THOUSAND / rate);
+            fabs(stdev * THOUSAND / rate));
         threshold /= 2;
     }
 

@@ -80,12 +80,12 @@ int main(void)
     runAutoTest("comma, separated: 12.3, -4.56, 78.9\n", BUFFER_SIZE);
 
     /* --------- Interactive test --------- */
-    printf("Enter a line with doubles (mixed text is okay). Press Ctrl+D "
-           "(Unix) or Ctrl+Z (Windows) to end:\n");
+    /*    printf("Enter a line with doubles (mixed text is okay). Press Ctrl+D "
+               "(Unix) or Ctrl+Z (Windows) to end:\n");
 
-    double arr[BUFFER_SIZE];
-    int count = getDoublesFromStdin(BUFFER_SIZE, arr);
-    printResult("Interactive parse result:", count, arr, BUFFER_SIZE);
-
+        double arr[BUFFER_SIZE];
+        int count = getDoublesFromStdin(BUFFER_SIZE, arr);
+        printResult("Interactive parse result:", count, arr, BUFFER_SIZE);
+    */
     return 0;
 }

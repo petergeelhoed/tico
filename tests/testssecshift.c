@@ -29,12 +29,6 @@ int main(void)
     struct stats result =
         fit_erf(samples, sizeof(samples) / sizeof(samples[0]));
 
-    if ((fabs(result.mean - EXPECTED_MEAN) >= EPSILON) ||
-        (fabs(result.stdev - EXPECTED_STDEV) >= EPSILON))
-    {
-        printf("%lf == %lf", result.mean, EXPECTED_MEAN);
-        printf("%lf == %lf", result.stdev, EXPECTED_STDEV);
-        exit(EXIT_FAILURE);
-    }
-    exit(0);
+    return ((fabs(result.mean - EXPECTED_MEAN) >= EPSILON) ||
+            (fabs(result.stdev - EXPECTED_STDEV) >= EPSILON));
 }

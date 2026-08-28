@@ -1,5 +1,7 @@
 #include "erf.h"
 
+#include "compare.h"
+
 #include <errno.h>
 #include <math.h>
 #include <spawn.h>
@@ -18,14 +20,6 @@
 #define COLOR_RESET "\033[0m"
 
 extern char** environ;
-
-static int compare_double(const void* first, const void* second)
-{
-    double dfirst = *(const double*)first;
-    double dsecond = *(const double*)second;
-
-    return (dfirst > dsecond) - (dfirst < dsecond);
-}
 
 static int is_effectively_zero(double value)
 {

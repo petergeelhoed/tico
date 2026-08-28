@@ -1,27 +1,13 @@
 #include "erf.h"
 
+#include "compare.h"
+
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-// NOLINTBEGIN(readability-identifier-length)
-int cmp_u64(const void* a, const void* b)
-{
-    uint64_t ua = *(const uint64_t*)a;
-    uint64_t ub = *(const uint64_t*)b;
-
-    if (ua < ub)
-    {
-        return -1;
-    }
-    if (ua > ub)
-    {
-        return 1;
-    }
-    return 0;
-}
-
 /* Acklam inverse normal CDF approximation */
+// NOLINTBEGIN(readability-identifier-length)
 double invnorm(double p)
 {
     static const double a[] = {-3.969683028665376e+01,
@@ -85,7 +71,7 @@ struct stats fit_erf(double* samples, size_t size)
 
     struct stats stats = {.stdev = 0.0, .mean = 0.0};
 
-    qsort(samples, size, sizeof(samples[0]), cmp_u64);
+    qsort(samples, size, sizeof(samples[0]), compare_double);
 
     double sumx = 0.0;
     double sumz = 0.0;

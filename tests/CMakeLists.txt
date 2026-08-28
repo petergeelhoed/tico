@@ -3,9 +3,9 @@
 
 set(NO_RUN_TESTS
     testmicamplification
-    testcalculateall
 )
 set(TEST_ERROUT_TARGETS 
+    testcalculateall
    )
 
 set(TEST_EXPOUT_TARGETS 

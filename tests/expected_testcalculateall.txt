@@ -1,0 +1,4 @@
+unweighted raw rate: -5.400000 s/d, 7 samples σ=0.00073ms
+after 3.0σ(0.00ms) removal: -5.40 s/d, 7 samples σ=(0.00ms)
+after 1.5σ(0.00ms) removal: -5.40 s/d, 6 samples σ=(0.00ms)
+after 0.8σ(0.00ms) removal: -nan s/d, 0 samples σ=(-nanms)

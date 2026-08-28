@@ -215,7 +215,6 @@ static double adjust_mean_to_target(double mean, double target)
     while (fabs(mean + step - target) < fabs(mean - target))
     {
         mean += step;
-        printf("%.3f %.3f\n", mean, target);
     }
 
     return mean;
@@ -263,7 +262,7 @@ static void build_arg(char* valuestr,
     }
 }
 
-static void get_values(double* samples)
+static void get_values(double* samples, double prev)
 {
     struct timespec tspec;
     struct tm tm_info;
@@ -277,6 +276,10 @@ static void get_values(double* samples)
     for (size_t i = 0; i < N; i++)
     {
         printf("[%lu/%u] ", i + 1, N);
+        for (size_t j = 0; j < i; ++j)
+        {
+            printf("-");
+        }
 
         while (getchar() != '\n')
         {
@@ -297,9 +300,10 @@ static void get_values(double* samples)
         {
             exit(EXIT_FAILURE);
         }
+        double closeValue = adjust_mean_to_target(samples[i], prev);
 
         printf("%.3f s  %s.%03ldZ\n",
-               samples[i],
+               closeValue,
                iso8601,
                tspec.tv_nsec / MEGA);
     }
@@ -310,7 +314,7 @@ int main(int argc, char** argv)
     double value = read_last_value("/var/www/temp/seiko");
 
     double samples[N];
-    get_values(samples);
+    get_values(samples, value);
 
     const double limit = .150;
     qsort(samples, N, sizeof(double), compare_double);

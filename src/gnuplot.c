@@ -17,6 +17,44 @@
 
 extern char** environ;
 
+static void safe_fclose(FILE* filePtr)
+{
+    if (filePtr && fclose(filePtr))
+    {
+        perror("fclose");
+    }
+}
+
+static void print_colored_line(const char* line)
+{
+    for (const char* p = line; *p; ++p)
+    {
+        switch (*p)
+        {
+        case 'X':
+            if (fputs(COLOR_RED "X" COLOR_RESET, stdout) == EOF)
+            {
+                perror("fputs");
+            }
+            break;
+
+        case 'O':
+            if (fputs(COLOR_GREEN "O" COLOR_RESET, stdout) == EOF)
+            {
+                perror("fputs");
+            }
+            break;
+
+        default:
+            if (fputc(*p, stdout) == EOF)
+            {
+                perror("fputc");
+            }
+            break;
+        }
+    }
+}
+
 int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
 {
 
@@ -86,10 +124,7 @@ int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
     if (!gnuplot_out)
     {
         perror("fdopen");
-        if (fclose(gnuplot_pipe))
-        {
-            perror("fclose");
-        };
+        safe_fclose(gnuplot_pipe);
         return 1;
     }
 
@@ -137,45 +172,16 @@ int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
         perror("flush");
     }
 
-    if (fclose(gnuplot_pipe))
-    {
-        perror("fclose");
-    }
+    safe_fclose(gnuplot_pipe);
 
     char line[MAX_COLUMNS];
 
     while (fgets(line, sizeof(line), gnuplot_out))
     {
-        for (char* p = line; *p; ++p)
-        {
-            if (*p == 'X')
-            {
-                if (EOF == fputs(COLOR_RED "X" COLOR_RESET, stdout))
-                {
-                    perror("fputs");
-                }
-            }
-            else if (*p == 'O')
-            {
-                if (EOF == fputs(COLOR_GREEN "O" COLOR_RESET, stdout))
-                {
-                    perror("fputs");
-                }
-            }
-            else
-            {
-                if (EOF == fputc(*p, stdout))
-                {
-                    perror("fputc");
-                }
-            }
-        }
+        print_colored_line(line);
     }
 
-    if (fclose(gnuplot_out))
-    {
-        perror("fclose");
-    }
+    safe_fclose(gnuplot_out);
 
     waitpid(pid, NULL, 0);
 

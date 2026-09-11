@@ -1,5 +1,4 @@
 #pragma once
-
 #define ARRAY_BUFFER_SIZE 512
 #define AUTOCOR_LIMIT 1
 #define AVG_THRESHOLD 1000
@@ -33,6 +32,7 @@
 #define FRAME_FALLBACK 64.0
 #define GAUSSIAN_CONST .398942280401
 #define GAUSSPOINTS 5
+#define HALF 0.5
 #define HEX_BASE 16
 #define INIT_ERROR -2
 #define INIT_N 4000
@@ -55,8 +55,8 @@
 #define RATE_WIDTH 8
 #define READ_FAILED -1
 #define REINIT_ERROR -32
-#define HALF 0.5
 #define SECS_DAY 86400
 #define SECS_HOUR 3600
+#define STDEV_LIMIT 1.5
 #define THOUSAND 1000
 #define TRUE 1

@@ -2,6 +2,10 @@
 
 #include "gnuplot.h"
 
+#include "mydefs.h"
+#include "stats.h"
+
+#include <math.h>
 #include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +14,7 @@
 
 extern char** environ;
 
-int gnuplot_cdf(double* data, size_t length)
+int gnuplot_cdf(double* data, size_t length, struct stats* stats)
 {
     int filedescriptors[2];
 
@@ -57,16 +61,30 @@ int gnuplot_cdf(double* data, size_t length)
     int printed =
         fprintf(gnuplot_pipe,
                 //"set term dumb; uns key; uns xtics; uns ytics; plot "
-                "set term dumb; uns key; plot "
-                "'-' with points pt 15\n");
+                "set term dumb; uns key; unset xtics; set ytics 1 out; plot "
+                "[-1:%lu][%lf:%lf]"
+                "'-' u 1:2:3 with points pt var\n",
+                length,
+                (data[0] - (stats->mean)) / stats->stdev - 1,
+                (data[length - 1] - (stats->mean)) / stats->stdev + 1);
     if (printed < 0)
     {
         perror("pipe");
     }
 
-    for (size_t x = 0; x < length; ++x)
+    const int pointtype_out = 24;
+    const int pointtype_in = 15;
+
+    for (size_t x = 0; x < length; x++, data++)
     {
-        printed = fprintf(gnuplot_pipe, "%lf\n", *(++data));
+        printed =
+            fprintf(gnuplot_pipe,
+                    "%lu %lf %d\n",
+                    x,
+                    (*data - stats->mean) / stats->stdev,
+                    fabs((*data - stats->mean) / stats->stdev) > STDEV_LIMIT
+                        ? pointtype_out
+                        : pointtype_in);
         if (printed < 0)
         {
             perror("pipe");

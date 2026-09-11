@@ -1,4 +1,5 @@
 #include "erf.h"
+#include "stats.h"
 
 #include "compare.h"
 #include "gnuplot.h"

@@ -3,4 +3,4 @@
 
 #include <unistd.h>
 
-int gnuplot_cdf(double* data, size_t length, struct stats* stats);
+int gnuplot_cdf(const double* data, size_t length, struct stats* stats);

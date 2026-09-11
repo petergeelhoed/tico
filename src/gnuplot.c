@@ -1,3 +1,4 @@
+/* NOLINTNEXTLINE(cert-dcl37-c,cert-dcl51-cpp) */
 #define _POSIX_C_SOURCE 200809L
 
 #include "gnuplot.h"
@@ -16,7 +17,7 @@
 
 extern char** environ;
 
-int gnuplot_cdf(double* data, size_t length, struct stats* stats)
+int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
 {
 
     struct winsize windowSize;
@@ -59,33 +60,36 @@ int gnuplot_cdf(double* data, size_t length, struct stats* stats)
     char gnuplot_cmd[] = "gnuplot";
     char* argv[] = {gnuplot_cmd, NULL};
 
-    int rc = posix_spawnp(&pid, gnuplot_cmd, &actions, NULL, argv, environ);
+    int retVal = posix_spawnp(&pid, gnuplot_cmd, &actions, NULL, argv, environ);
 
     posix_spawn_file_actions_destroy(&actions);
 
-    if (rc != 0)
+    if (retVal != 0)
     {
-        fprintf(stderr, "Failed to start gnuplot: %s\n", strerror(rc));
-        return 1;
+        // no gnuplot silent continue
+        return 0;
     }
 
     close(stdin_pipe[0]);
     close(stdout_pipe[1]);
 
     FILE* gnuplot_pipe = fdopen(stdin_pipe[1], "w");
-    FILE* gnuplot_out = fdopen(stdout_pipe[0], "r");
 
     if (!gnuplot_pipe)
     {
         perror("fdopen");
-        close(stdout_pipe[0]);
+        //    close(stdout_pipe[0]);
         return 1;
     }
+    FILE* gnuplot_out = fdopen(stdout_pipe[0], "r");
 
     if (!gnuplot_out)
     {
         perror("fdopen");
-        fclose(gnuplot_pipe);
+        if (fclose(gnuplot_pipe))
+        {
+            perror("fclose");
+        };
         return 1;
     }
 
@@ -109,13 +113,14 @@ int gnuplot_cdf(double* data, size_t length, struct stats* stats)
 
     for (size_t x = 0; x < length; ++x)
     {
-        double z = (data[x] - stats->mean) / stats->stdev;
+        const double zval = (data[x] - stats->mean) / stats->stdev;
 
-        printed = fprintf(gnuplot_pipe,
-                          "%zu %lf %d\n",
-                          x,
-                          z,
-                          fabs(z) > STDEV_LIMIT ? pointtype_out : pointtype_in);
+        printed =
+            fprintf(gnuplot_pipe,
+                    "%zu %lf %d\n",
+                    x,
+                    zval,
+                    fabs(zval) > STDEV_LIMIT ? pointtype_out : pointtype_in);
         if (printed < 0)
         {
             perror("pipe");

@@ -1,6 +1,7 @@
 #include "erf.h"
 
 #include "compare.h"
+#include "gnuplot.h"
 
 #include <errno.h>
 #include <math.h>
@@ -314,6 +315,8 @@ int main(int argc, char** argv)
     qsort(samples, N, sizeof(double), compare_double);
     unwrap(samples, N);
 
+    gnuplot_cdf(samples, N);
+
     struct stats stats = remove_outliers_and_refit(samples, N, limit);
     printf("\n\nQQ Gaussian fit:\n");
 
@@ -330,10 +333,6 @@ int main(int argc, char** argv)
     char arg[LINESIZE];
 
     build_arg(valuestr, arg, argc, argv, stats);
-    char skn_cmd[] = "skn";
-    char* argv_exec[] = {skn_cmd, arg, NULL};
-
-    pid_t pid = -1;
 
     for (;;)
     {
@@ -355,6 +354,11 @@ int main(int argc, char** argv)
 
         return EXIT_FAILURE;
     }
+
+    char skn_cmd[] = "skn";
+    char* argv_exec[] = {skn_cmd, arg, NULL};
+
+    pid_t pid = -1;
 
     int retval = posix_spawnp(&pid, "skn", NULL, NULL, argv_exec, environ);
 

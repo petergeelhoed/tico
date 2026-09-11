@@ -9,6 +9,7 @@
 #include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -16,45 +17,69 @@ extern char** environ;
 
 int gnuplot_cdf(double* data, size_t length, struct stats* stats)
 {
-    int filedescriptors[2];
+    int stdin_pipe[2];
+    int stdout_pipe[2];
 
-    if (pipe(filedescriptors) != 0)
+    if (pipe(stdin_pipe) != 0)
     {
         perror("pipe");
+        return 1;
+    }
+
+    if (pipe(stdout_pipe) != 0)
+    {
+        perror("pipe");
+        close(stdin_pipe[0]);
+        close(stdin_pipe[1]);
         return 1;
     }
 
     posix_spawn_file_actions_t actions;
     posix_spawn_file_actions_init(&actions);
 
-    /* Child stdin <- pipe read end */
-    posix_spawn_file_actions_adddup2(&actions,
-                                     filedescriptors[0],
-                                     STDIN_FILENO);
+    /* child stdin <- parent */
+    posix_spawn_file_actions_adddup2(&actions, stdin_pipe[0], STDIN_FILENO);
 
-    /* Close unneeded fds in child */
-    posix_spawn_file_actions_addclose(&actions, filedescriptors[0]);
-    posix_spawn_file_actions_addclose(&actions, filedescriptors[1]);
+    /* child stdout -> parent */
+    posix_spawn_file_actions_adddup2(&actions, stdout_pipe[1], STDOUT_FILENO);
+
+    /* capture stderr too */
+    posix_spawn_file_actions_adddup2(&actions, stdout_pipe[1], STDERR_FILENO);
+
+    posix_spawn_file_actions_addclose(&actions, stdin_pipe[1]);
+    posix_spawn_file_actions_addclose(&actions, stdout_pipe[0]);
 
     pid_t pid;
     char gnuplot_cmd[] = "gnuplot";
     char* argv[] = {gnuplot_cmd, NULL};
 
-    if (posix_spawnp(&pid, gnuplot_cmd, &actions, NULL, argv, environ) != 0)
-    {
-        perror("posix_spawnp");
-        return 1;
-    }
+    int rc = posix_spawnp(&pid, gnuplot_cmd, &actions, NULL, argv, environ);
 
     posix_spawn_file_actions_destroy(&actions);
 
-    /* Parent only writes */
-    close(filedescriptors[0]);
+    if (rc != 0)
+    {
+        fprintf(stderr, "Failed to start gnuplot: %s\n", strerror(rc));
+        return 1;
+    }
 
-    FILE* gnuplot_pipe = fdopen(filedescriptors[1], "w");
+    close(stdin_pipe[0]);
+    close(stdout_pipe[1]);
+
+    FILE* gnuplot_pipe = fdopen(stdin_pipe[1], "w");
+    FILE* gnuplot_out = fdopen(stdout_pipe[0], "r");
+
     if (!gnuplot_pipe)
     {
         perror("fdopen");
+        close(stdout_pipe[0]);
+        return 1;
+    }
+
+    if (!gnuplot_out)
+    {
+        perror("fdopen");
+        fclose(gnuplot_pipe);
         return 1;
     }
 
@@ -75,16 +100,15 @@ int gnuplot_cdf(double* data, size_t length, struct stats* stats)
     const int pointtype_out = 24;
     const int pointtype_in = 15;
 
-    for (size_t x = 0; x < length; x++, data++)
+    for (size_t x = 0; x < length; ++x)
     {
-        printed =
-            fprintf(gnuplot_pipe,
-                    "%lu %lf %d\n",
-                    x,
-                    (*data - stats->mean) / stats->stdev,
-                    fabs((*data - stats->mean) / stats->stdev) > STDEV_LIMIT
-                        ? pointtype_out
-                        : pointtype_in);
+        double z = (data[x] - stats->mean) / stats->stdev;
+
+        printed = fprintf(gnuplot_pipe,
+                          "%zu %lf %d\n",
+                          x,
+                          z,
+                          fabs(z) > STDEV_LIMIT ? pointtype_out : pointtype_in);
         if (printed < 0)
         {
             perror("pipe");
@@ -102,6 +126,41 @@ int gnuplot_cdf(double* data, size_t length, struct stats* stats)
     }
 
     if (fclose(gnuplot_pipe))
+    {
+        perror("fclose");
+    }
+
+    char line[MAX_COLUMNS];
+
+    while (fgets(line, sizeof(line), gnuplot_out))
+    {
+        for (char* p = line; *p; ++p)
+        {
+            if (*p == 'X')
+            {
+                if (EOF == fputs(COLOR_RED "X" COLOR_RESET, stdout))
+                {
+                    perror("fputs");
+                }
+            }
+            else if (*p == 'O')
+            {
+                if (EOF == fputs(COLOR_GREEN "O" COLOR_RESET, stdout))
+                {
+                    perror("fputs");
+                }
+            }
+            else
+            {
+                if (EOF == fputc(*p, stdout))
+                {
+                    perror("fputc");
+                }
+            }
+        }
+    }
+
+    if (fclose(gnuplot_out))
     {
         perror("fclose");
     }

@@ -8,19 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// Terminal color and control escape sequences
-#define COLOR_CYAN "\033[96m"
-#define COLOR_RED "\033[31m"
-#define COLOR_GREEN "\033[32m"
-#define COLOR_RESET "\033[0m"
-#define CURSOR_SAVE "\033[s"
-#define CURSOR_RESTORE "\033[u"
-#define CLEAR_LINE "\033[0K"
-#define CURSOR_ROW12 "\033[12;0H"
-
-#define CURSOR_ROW2 "\033[2;0H"
-#define CURSOR_COL_FMT "\033[%dG"
-
 extern volatile unsigned int columns;
 void printmsg(const char* fmt, ...)
 {

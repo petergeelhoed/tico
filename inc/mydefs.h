@@ -1,11 +1,20 @@
-#pragma once
 #define ARRAY_BUFFER_SIZE 512
 #define AUTOCOR_LIMIT 1
 #define AVG_THRESHOLD 1000
 #define BEAT_WIDTH 5
 #define BITS_IN_BYTE 8
 #define BUFFER_SIZE 256
+#define CLEAR_LINE "\033[0K"
 #define CLIPSTREAK 10
+#define COLOR_CYAN "\033[96m"
+#define COLOR_GREEN "\033[32m"
+#define COLOR_RED "\033[31m"
+#define COLOR_RESET "\033[0m"
+#define CURSOR_COL_FMT "\033[%dG"
+#define CURSOR_RESTORE "\033[u"
+#define CURSOR_ROW12 "\033[12;0H"
+#define CURSOR_ROW2 "\033[2;0H"
+#define CURSOR_SAVE "\033[s"
 #define DEBUG 0
 #define DECIMAL 10
 #define DEFAULT_BPH 21600
@@ -60,3 +69,4 @@
 #define STDEV_LIMIT 1.5
 #define THOUSAND 1000
 #define TRUE 1
+#pragma once

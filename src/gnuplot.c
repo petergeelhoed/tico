@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -17,6 +18,11 @@ extern char** environ;
 
 int gnuplot_cdf(double* data, size_t length, struct stats* stats)
 {
+
+    struct winsize windowSize;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
+    int columns = windowSize.ws_col;
+
     int stdin_pipe[2];
     int stdout_pipe[2];
 
@@ -83,15 +89,16 @@ int gnuplot_cdf(double* data, size_t length, struct stats* stats)
         return 1;
     }
 
-    int printed =
-        fprintf(gnuplot_pipe,
-                //"set term dumb; uns key; uns xtics; uns ytics; plot "
-                "set term dumb; uns key; unset xtics; set ytics 1 out; plot "
-                "[-1:%lu][%lf:%lf]"
-                "'-' u 1:2:3 with points pt var\n",
-                length,
-                (data[0] - (stats->mean)) / stats->stdev - 1,
-                (data[length - 1] - (stats->mean)) / stats->stdev + 1);
+    int printed = fprintf(
+        gnuplot_pipe,
+        //"set term dumb; uns key; uns xtics; uns ytics; plot "
+        "set term dumb size %d,24; uns key; unset xtics; set ytics 1 out; plot "
+        "[-1:%lu][%lf:%lf]"
+        "'-' u 1:2:3 with points pt var\n",
+        columns,
+        length,
+        (data[0] - (stats->mean)) / stats->stdev - 1,
+        (data[length - 1] - (stats->mean)) / stats->stdev + 1);
     if (printed < 0)
     {
         perror("pipe");

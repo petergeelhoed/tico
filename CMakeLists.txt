@@ -275,6 +275,7 @@ foreach(BIN ${BINARIES})
   add_executable(${BIN} src/${BIN}.c)
 endforeach()
 
+target_sources(ssec PRIVATE src/gnuplot.c)
 target_link_libraries(ssec PRIVATE mymath)
 
 target_link_libraries(capture

@@ -1,6 +1,8 @@
-#include "erf.h"
-
 #include "compare.h"
+#include "erf.h"
+#include "gnuplot.h"
+#include "mydefs.h"
+#include "stats.h"
 
 #include <errno.h>
 #include <math.h>
@@ -128,8 +130,8 @@ static struct stats remove_outliers_and_refit(double* samples,
 {
     struct stats stats = fit_erf(samples, n);
 
-    const double lower = stats.mean - 1.5 * stats.stdev;
-    const double upper = stats.mean + 1.5 * stats.stdev;
+    const double lower = stats.mean - STDEV_LIMIT * stats.stdev;
+    const double upper = stats.mean + STDEV_LIMIT * stats.stdev;
 
     double filtered[N];
     double outliers[N];
@@ -262,8 +264,6 @@ static void get_values(double* samples, double prev)
     struct tm tm_info;
     char iso8601[ISO_LENGTH];
     const long long mod = 5;
-    const double NANO = 1e-9;
-    const long MEGA = 1000000L;
 
     printf("Press ENTER %d times, every 5 seconds\n\n", N);
 
@@ -299,7 +299,7 @@ static void get_values(double* samples, double prev)
         printf("%.3f s  %s.%03ldZ\n",
                closeValue,
                iso8601,
-               tspec.tv_nsec / MEGA);
+               tspec.tv_nsec / MILLION);
     }
 }
 
@@ -314,7 +314,11 @@ int main(int argc, char** argv)
     qsort(samples, N, sizeof(double), compare_double);
     unwrap(samples, N);
 
+    struct stats prestats = fit_erf(samples, N);
+    gnuplot_cdf(samples, N, &prestats);
+
     struct stats stats = remove_outliers_and_refit(samples, N, limit);
+
     printf("\n\nQQ Gaussian fit:\n");
 
     stats.mean = adjust_mean_to_target(stats.mean, value);
@@ -330,10 +334,6 @@ int main(int argc, char** argv)
     char arg[LINESIZE];
 
     build_arg(valuestr, arg, argc, argv, stats);
-    char skn_cmd[] = "skn";
-    char* argv_exec[] = {skn_cmd, arg, NULL};
-
-    pid_t pid = -1;
 
     for (;;)
     {
@@ -355,6 +355,11 @@ int main(int argc, char** argv)
 
         return EXIT_FAILURE;
     }
+
+    char skn_cmd[] = "skn";
+    char* argv_exec[] = {skn_cmd, arg, NULL};
+
+    pid_t pid = -1;
 
     int retval = posix_spawnp(&pid, "skn", NULL, NULL, argv_exec, environ);
 

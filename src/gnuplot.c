@@ -130,14 +130,13 @@ int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
 
     int printed = fprintf(
         gnuplot_pipe,
-        //"set term dumb; uns key; uns xtics; uns ytics; plot "
-        "set term dumb size %d,24; uns key; unset xtics; set ytics 1 out; plot "
-        "[-1:%lu][%lf:%lf]"
-        "'-' u 1:2:3 with points pt var\n",
+        "set term dumb size %d,27; uns key; unset xtics; set ytics 1 "
+        "out; plot "
+        "[%lf:%lf][0:1]x*x>2.25?NaN:0.5*(1+erf(x)) ,'-' u 1:2:3 with points pt "
+        "var\n",
         columns,
-        length,
-        (data[0] - (stats->mean)) / stats->stdev - 1,
-        (data[length - 1] - (stats->mean)) / stats->stdev + 1);
+        (data[0] - (stats->mean)) / stats->stdev - GNUPLOTMARGIN,
+        (data[length - 1] - (stats->mean)) / stats->stdev + GNUPLOTMARGIN);
     if (printed < 0)
     {
         perror("pipe");
@@ -146,15 +145,15 @@ int gnuplot_cdf(const double* data, size_t length, struct stats* stats)
     const int pointtype_out = 24;
     const int pointtype_in = 15;
 
-    for (size_t x = 0; x < length; ++x)
+    for (int x = 0; x < (int)length; ++x)
     {
         const double zval = (data[x] - stats->mean) / stats->stdev;
 
         printed =
             fprintf(gnuplot_pipe,
-                    "%zu %lf %d\n",
-                    x,
+                    "%lf %lf %d\n",
                     zval,
+                    ((double)(x) + HALF) / (double)length,
                     fabs(zval) > STDEV_LIMIT ? pointtype_out : pointtype_in);
         if (printed < 0)
         {

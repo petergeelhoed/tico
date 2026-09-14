@@ -3,6 +3,7 @@
 #include "myarr.h"
 
 #include <stdio.h>
+#include <sys/time.h> // IWYU pragma: keep
 
 /**
  * @defgroup mysync Mysync Library
@@ -40,7 +41,8 @@ void printTOD(FILE* out);
 /** @ingroup mysync @brief Appends the input myarr struct to the specified file
   in a separate thread.
   @param input Pointer to the input myarr struct to append.
-  @param file Pointer to the file to append to. */
+  @param file Pointer to the file to append to.
+ */
 void syncAppendMyarr(struct myarr* input, FILE* file);
 
 /** @ingroup mysync @brief Worker function for appending a myarr struct to a

@@ -102,6 +102,32 @@ static void remove_file_state(FILE* file)
         iter = iter->next;
     }
 }
+static void printTODUnlockedTime(FILE* out, struct timeval* time)
+{
+    if (out == NULL || time == NULL)
+    {
+        return;
+    }
+    struct tm now;
+    if (localtime_r(&time->tv_sec, &now) == NULL)
+    {
+        perror("Error getting local time");
+        return;
+    }
+
+    const int nineteenhundred = 1900;
+    (void)fprintf(out,
+                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
+                  now.tm_year + nineteenhundred,
+                  now.tm_mon + 1,
+                  now.tm_mday,
+                  now.tm_hour,
+                  now.tm_min,
+                  now.tm_sec,
+                  (long)time->tv_usec,
+                  (long long)time->tv_sec,
+                  (long)time->tv_usec);
+}
 
 /**
  * @brief Print the current date and time to the given output file.
@@ -117,26 +143,7 @@ static void printTODUnlocked(FILE* out)
 
     struct timeval time;
     gettimeofday(&time, NULL);
-
-    struct tm today;
-    if (localtime_r(&time.tv_sec, &today) == NULL)
-    {
-        perror("Error getting local time");
-        return;
-    }
-
-    const int nineteenhundred = 1900;
-    (void)fprintf(out,
-                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
-                  today.tm_year + nineteenhundred,
-                  today.tm_mon + 1,
-                  today.tm_mday,
-                  today.tm_hour,
-                  today.tm_min,
-                  today.tm_sec,
-                  (long)time.tv_usec,
-                  (long long)time.tv_sec,
-                  (long)time.tv_usec);
+    printTODUnlockedTime(out, &time);
 }
 
 /**
@@ -174,6 +181,7 @@ struct append_task
 {
     struct myarr* array; /* deep copy of input->arr / input->arrd */
     FILE* file; /* not owned by worker; must stay open until worker finishes */
+    struct timeval time; /* time to print in the file */
 };
 
 void waitClose(FILE* file)
@@ -222,7 +230,7 @@ void* threadAppendMyarr(void* inStruct)
     /* Serialize all writes to the FILE* to prevent interleaving */
     thread_lock();
 
-    printTODUnlocked(mine->file);
+    printTODUnlockedTime(mine->file, &mine->time);
 
     if (mine->array->arr != NULL)
     {
@@ -255,6 +263,9 @@ void* threadAppendMyarr(void* inStruct)
 
 void syncAppendMyarr(struct myarr* input, FILE* file)
 {
+    struct timeval time;
+    gettimeofday(&time, NULL);
+
     if (input == NULL || file == NULL)
     {
         errno = EINVAL;
@@ -288,6 +299,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
     info->array = local;
     info->file = file;
+    memcpy(&info->time, &time, sizeof(struct timeval));
 
     thread_ctr_lock();
     struct file_state* state = get_or_create_file_state(file);

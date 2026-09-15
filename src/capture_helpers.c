@@ -85,7 +85,8 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth)
 void shiftBufferData(size_t* ticktock,
                      struct myarr* subpos,
                      struct myarr* maxpos,
-                     struct myarr* maxvals)
+                     struct myarr* maxvals,
+                     LoopState* state)
 {
     memmove(subpos->arrd,
             subpos->arrd + ARRAY_BUFFER_SIZE,
@@ -97,15 +98,30 @@ void shiftBufferData(size_t* ticktock,
             maxvals->arrd + ARRAY_BUFFER_SIZE,
             ARRAY_BUFFER_SIZE * sizeof(double));
     *ticktock -= ARRAY_BUFFER_SIZE;
+    state->shift_count++;
+    state->last_shift_tickIndex = *ticktock;
 }
 
 void processLogging(CapConfig* cfg,
                     AppResources* res,
                     size_t totalTime,
-                    size_t writeInterval)
+                    size_t writeInterval,
+                    LoopState* state)
 {
     if (totalTime > 0 && totalTime % writeInterval == 0)
     {
+        // Skip writes immediately after shift to avoid writing stale data
+        // Only write if we've had enough iterations to guarantee all indices
+        // are fresh
+        if (state->shift_count > 0)
+        {
+            size_t iterations_since_shift =
+                totalTime - state->last_shift_tickIndex;
+            if (iterations_since_shift < ARRAY_BUFFER_SIZE)
+            {
+                return;
+            }
+        }
         if (cfg->fpposition)
         {
             struct myarr* positionBatch = makemyarrd(writeInterval);

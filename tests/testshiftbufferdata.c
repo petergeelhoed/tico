@@ -34,7 +34,8 @@ int main(void)
         maxvals->arrd[index] = (double)index + SHIFTBUFFER_LARGE_OFFSET;
     }
 
-    shiftBufferData(&ticktockCounter, subpos, maxpos, maxvals);
+    LoopState state = {0}; // Initialize test state
+    shiftBufferData(&ticktockCounter, subpos, maxpos, maxvals, &state);
 
     if (ticktockCounter != ARRAY_BUFFER_SIZE)
     {

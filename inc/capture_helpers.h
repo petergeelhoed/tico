@@ -9,6 +9,9 @@ typedef struct
     int cumulativeShift;
     size_t tickIndex;
     unsigned int globalTickIndex;
+    unsigned int shift_count;    // Track number of buffer shifts to prevent
+                                 // duplicate writes
+    size_t last_shift_tickIndex; // Track tickIndex when last shift occurred
 } LoopState;
 
 /** Helper functions for capture.c, including printing, data shifting, logging,
@@ -43,11 +46,14 @@ void fillReference(FILE* fpDefPeak, struct myarr* reference, size_t teeth);
  @param subpos The myarr structure containing the subpos data to be shifted.
  @param maxpos The myarr structure containing the maxpos data to be shifted.
  @param maxvals The myarr structure containing the maxvals data to be shifted.
+ @param state Pointer to LoopState to track shift count and prevent duplicate
+ writes.
  */
 void shiftBufferData(size_t* ticktock,
                      struct myarr* subpos,
                      struct myarr* maxpos,
-                     struct myarr* maxvals);
+                     struct myarr* maxvals,
+                     LoopState* state);
 
 /** @brief Processes the logging of capture data, including printing the final
  results and handling any necessary logging based on the provided configuration
@@ -59,11 +65,13 @@ void shiftBufferData(size_t* ticktock,
  @param totalTime The total time elapsed during the capture process, which may
  be used for logging or final output.
  @param writeInterval The interval at which to write log data, which may be used
- to determine when to log certain information based on the total time. */
+ to determine when to log certain information based on the total time.
+ @param state Pointer to LoopState to prevent duplicate writes after shifts. */
 void processLogging(CapConfig* cfg,
                     AppResources* res,
                     size_t totalTime,
-                    size_t writeInterval);
+                    size_t writeInterval,
+                    LoopState* state);
 
 /** @brief Fits a model to the capture data and prints the results, including
  * calculating the intercept and slope, printing the header information, and

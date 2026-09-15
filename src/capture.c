@@ -43,7 +43,8 @@ static int processTickTock(CapConfig* cfg,
         shiftBufferData(&state->tickIndex,
                         res->subpos,
                         res->maxpos,
-                        res->maxvals);
+                        res->maxvals,
+                        state);
     }
 
     if (getData(cfg->fpInput, res->derivative, ctx, res->audioBuffer16) < 0)
@@ -59,7 +60,7 @@ static int processTickTock(CapConfig* cfg,
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
-    processLogging(cfg, res, state->tickIndex, cfg->writeInterval);
+    processLogging(cfg, res, state->tickIndex, cfg->writeInterval, state);
 
     fitAndPrint(state, cumulativeTick, res, cfg, cfg->appState->columns);
 

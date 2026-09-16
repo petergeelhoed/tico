@@ -180,6 +180,13 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
             break;
         case 'i':
             enforceUint(flag, &cfg->writeInterval, optarg);
+            if (ARRAY_BUFFER_SIZE % cfg->writeInterval != 0)
+            {
+                print("Write interval %d must be a divisor of %d.\n",
+                      cfg->writeInterval,
+                      ARRAY_BUFFER_SIZE);
+                exit(EXIT_FAILURE);
+            }
             break;
         case 'e':
             enforceUint(flag, &cfg->evalue, optarg);

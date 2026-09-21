@@ -209,10 +209,13 @@ void parseArguments(int argc, char* argv[], CapConfig* cfg)
             }
             break;
         case 'c':
-            enforceUint(flag, &cfg->cvalue, optarg);
-            if (cfg->cvalue > MAX_CVALUE)
+            if (checkFloatArg(flag, &cfg->cvalue, optarg) != 0)
             {
-                cfg->cvalue = MAX_CVALUE;
+                exit(-1);
+            }
+            if (cfg->cvalue > 1.0)
+            {
+                cfg->cvalue = 1.0;
             }
             break;
         case 's':

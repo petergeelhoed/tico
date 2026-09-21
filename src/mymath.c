@@ -300,8 +300,8 @@ static int fastlinreg_sufficient_stats(
     int skipOutliers,
     double intercept,
     double slope,
-    double stdevThreshold // absolute threshold; compare with residual
-)
+    double stdevThreshold, // absolute threshold; compare with residual
+    double minWeight)
 {
     *Sum_w = *Sum_wx = *Sum_wy = *Sum_wxx = *Sum_wxy = *Sum_w2 = 0.0L;
 
@@ -312,7 +312,7 @@ static int fastlinreg_sufficient_stats(
         const double xVal = (double)k;
         const double yVal = (double)maxes->arr[idx] + subpos->arrd[idx];
         const double weight = maxvals->arrd[idx];
-        if (!(weight > 0.0))
+        if (!(weight > minWeight))
         {
             continue;
         } // skip non-positive weights
@@ -425,7 +425,8 @@ void fitNpeaks(double* intercept,
                const struct myarr* maxes,
                const struct myarr* subpos,
                const unsigned int npeaks,
-               const double SDthreshold)
+               const double SDthreshold,
+               const double minWeight)
 {
     unsigned int fitwindow = (curPos > npeaks) ? npeaks : curPos;
 
@@ -453,7 +454,8 @@ void fitNpeaks(double* intercept,
                                               /*skipOutliers=*/0,
                                               /*intercept=*/0.0,
                                               /*slope=*/0.0,
-                                              /*stdevThreshold=*/0.0);
+                                              /*stdevThreshold=*/0.0,
+                                              minWeight);
         if (!ok1)
         {
             // No valid data
@@ -517,7 +519,8 @@ void fitNpeaks(double* intercept,
                                           /*skipOutliers=*/(thresh > 0.0),
                                           interceptPass1,
                                           slopePass1,
-                                          thresh);
+                                          thresh,
+                                          minWeight);
 
         double interceptPass2 = interceptPass1;
         double slopePass2 = slopePass1;

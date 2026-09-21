@@ -33,7 +33,7 @@ int main(void)
         return 1;
     }
 
-    const double threshold = (double)captureConfig.cvalue / HEX_BASE;
+    const double threshold = captureConfig.cvalue;
     resources.maxvals->arrd[0] = threshold + DELTA_SMALL;
     resources.maxvals->arrd[1] = threshold - DELTA_SMALL;
 

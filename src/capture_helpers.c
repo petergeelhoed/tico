@@ -148,7 +148,8 @@ void fitAndPrint(const LoopState* state,
               res->maxpos,
               res->subpos,
               cfg->fitN,
-              cfg->SDthreshold);
+              cfg->SDthreshold,
+              cfg->cvalue);
 
     printheader(
         slope * SECS_DAY / (double)arrayLength,
@@ -201,7 +202,7 @@ void updateTotalShiftIfNeeded(LoopState* state,
                               CapConfig* cfg)
 {
     if (state->globalTickIndex > AUTOCOR_LIMIT &&
-        res->maxvals->arrd[state->tickIndex] > (double)cfg->cvalue / HEX_BASE &&
+        res->maxvals->arrd[state->tickIndex] > cfg->cvalue &&
         state->globalTickIndex % cfg->teeth == 0)
     {
         int delta = peakOffset;

@@ -12,7 +12,7 @@ typedef struct
     unsigned int zoom;
     unsigned int time;
     unsigned int everyline;
-    unsigned int cvalue;
+    double cvalue;
     unsigned int verbose;
     unsigned int fitN;
     unsigned int teeth;

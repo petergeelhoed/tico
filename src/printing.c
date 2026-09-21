@@ -86,7 +86,7 @@ void printspaces(int maxpos,
                  size_t mod,
                  size_t acolumns,
                  double avgPos,
-                 size_t correlationThreshold)
+                 double correlationThreshold)
 {
     while (maxpos < (int)mod)
     {
@@ -110,7 +110,8 @@ void printspaces(int maxpos,
 
     print("%s%s%zX" COLOR_RESET,
           spaces,
-          hexvalue < correlationThreshold ? COLOR_RED : COLOR_GREEN,
+          (double)hexvalue / HEX_BASE < correlationThreshold ? COLOR_RED
+                                                             : COLOR_GREEN,
           hexvalue);
 
     memset(spaces, ' ', width);

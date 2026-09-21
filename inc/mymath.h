@@ -87,7 +87,8 @@ void fitNpeaks(double* intercept,
                const struct myarr* maxes,
                const struct myarr* subpos,
                unsigned int npeaks,
-               double SDthreshold);
+               double SDthreshold,
+               double minWeight);
 
 /** @ingroup mymath
  * @brief Performs fast weighted linear regression.

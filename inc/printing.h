@@ -39,7 +39,7 @@ void printspaces(int maxpos,
                  size_t mod,
                  size_t acolumns,
                  double avgPos,
-                 size_t correlationThreshold);
+                 double correlationThreshold);
 
 /** @brief Prints a formatted message to the standard error stream, using a
  printf-style format string and variable arguments.

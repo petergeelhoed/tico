@@ -28,12 +28,18 @@ jobs:
             gcc g++ \
             libfftw3-dev \
             libasound2-dev \
-            doxygen graphviz
+            doxygen graphviz \
+            lcov
 
       - name: Verify Doxygen and Graphviz installation
         run: |
           doxygen --version
           dot -V
+
+      - name: Verify gcov and lcov installation
+        run: |
+          gcov --version
+          lcov --version
 
       - name: Show toolchain versions
         run: |

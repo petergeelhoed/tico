@@ -100,6 +100,13 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     -Wduplicated-cond                   # duplicated conditions in if/else if
     -Wduplicated-branches               # duplicated branches
   )
+  
+  # Coverage support for GCC
+  option(ENABLE_COVERAGE "Enable code coverage (GCC only)" OFF)
+  if (ENABLE_COVERAGE)
+    add_compile_options(--coverage)
+    add_link_options(--coverage)
+  endif()
 endif()
 
 
@@ -194,6 +201,47 @@ add_custom_target(quality-gcc-test-release
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset release-gcc
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset release-gcc
   COMMENT "Configuring, building, and testing GCC release preset")
+
+# Quality workflow with coverage: runs gcc build + test + coverage in one target
+add_custom_target(quality-with-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset debug-gcc-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset debug-gcc-build-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset debug-gcc-build-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target coverage --preset debug-gcc-build-coverage
+  COMMENT "Building, testing, and generating coverage report with GCC")
+
+# 8. Code Coverage Target (gcov)
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  find_program(GCOV_PATH gcov)
+  find_program(LCOV_PATH lcov)
+  
+  if (LCOV_PATH)
+    add_custom_target(coverage
+      COMMAND ${CMAKE_COMMAND} -E echo "Generating code coverage report with lcov..."
+      COMMAND ${LCOV_PATH} --directory . --capture --output-file coverage.info
+      COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info.cleaned
+      COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated: coverage.info.cleaned"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "Generating code coverage with lcov")
+  elseif (GCOV_PATH)
+    add_custom_target(coverage
+      COMMAND ${CMAKE_COMMAND} -E echo "lcov not found; coverage data available in .gcda files"
+      COMMAND ${CMAKE_COMMAND} -E echo "Use 'gcov' command to analyze or install 'lcov' for HTML reports"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "Coverage enabled - use gcov or lcov to analyze")
+  else()
+    add_custom_target(coverage
+      COMMAND ${CMAKE_COMMAND} -E echo "ERROR: gcov not found"
+      COMMAND ${CMAKE_COMMAND} -E echo "To use coverage, install: sudo apt-get install build-essential lcov"
+      COMMAND ${CMAKE_COMMAND} -E false
+      COMMENT "gcov and lcov are required for coverage target")
+  endif()
+else()
+  add_custom_target(coverage
+    COMMAND ${CMAKE_COMMAND} -E echo "ERROR: Coverage only supported with GCC compiler"
+    COMMAND ${CMAKE_COMMAND} -E false
+    COMMENT "Coverage requires GCC compiler")
+endif()
 
 include(CTest)
 

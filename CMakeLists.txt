@@ -219,8 +219,8 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_custom_target(coverage
       COMMAND ${CMAKE_COMMAND} -E echo "Generating code coverage report with lcov..."
       COMMAND ${LCOV_PATH} --directory . --capture --output-file coverage.info
-      COMMAND ${LCOV_PATH} --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info.cleaned
-      COMMAND ${LCOV_PATH} --list coverage.info.cleaned
+      COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info.cleaned
+      COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated: coverage.info.cleaned"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Generating code coverage with lcov")
   elseif (GCOV_PATH)

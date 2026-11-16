@@ -202,6 +202,14 @@ add_custom_target(quality-gcc-test-release
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset release-gcc
   COMMENT "Configuring, building, and testing GCC release preset")
 
+# Quality workflow with coverage: runs gcc build + test + coverage in one target
+add_custom_target(quality-with-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --preset debug-gcc-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --preset debug-gcc-build-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target test --preset debug-gcc-build-coverage
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CMAKE_COMMAND} --build --target coverage --preset debug-gcc-build-coverage
+  COMMENT "Building, testing, and generating coverage report with GCC")
+
 # 8. Code Coverage Target (gcov)
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   find_program(GCOV_PATH gcov)

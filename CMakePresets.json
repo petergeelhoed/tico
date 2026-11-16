@@ -226,6 +226,13 @@
       "inherits": "base-build",
       "configurePreset": "debug-gcc-coverage",
       "targets": ["coverage"]
+    },
+    {
+      "name": "quality-with-coverage-build",
+      "displayName": "Quality with coverage (gcc build + test + coverage)",
+      "inherits": "base-build",
+      "configurePreset": "debug-clang",
+      "targets": ["quality-with-coverage"]
     }
   ],
 
@@ -363,7 +370,7 @@
     },
     {
       "name": "quality",
-      "displayName": "Quality: clang checks + debug build/test + gcc test",
+      "displayName": "Quality: clang checks + gcc test + coverage",
       "steps": [
         { "type": "configure", "name": "debug-clang" },
         { "type": "build",     "name": "format-check" },
@@ -371,7 +378,8 @@
         { "type": "build",     "name": "quality-gcc-test" },
         { "type": "build",     "name": "clang-tidy" },
         { "type": "test",      "name": "debug_ctest-clang" },
-        { "type": "build",     "name": "doxygen" }
+        { "type": "build",     "name": "doxygen" },
+        { "type": "build",     "name": "quality-with-coverage-build" }
       ]
     },
     {

@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <time.h>
+#include <unistd.h>
 
 #define N 12
 #define ISO_LENGTH 40
@@ -22,6 +24,22 @@
 #define COLOR_RESET "\033[0m"
 
 extern char** environ;
+
+static void getch(void)
+{
+    struct termios old_tio;
+    struct termios new_tio;
+
+    tcgetattr(STDIN_FILENO, &old_tio);
+    new_tio = old_tio;
+    new_tio.c_lflag &=
+        (tcflag_t) ~(ICANON | ECHO); // Disable canonical mode and echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
+
+    (void)getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
+}
 
 static int is_effectively_zero(double value)
 {
@@ -275,9 +293,7 @@ static void get_values(double* samples, double prev)
             printf("-");
         }
 
-        while (getchar() != '\n')
-        {
-        }
+        getch();
 
         if (clock_gettime(CLOCK_REALTIME, &tspec))
         {

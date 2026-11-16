@@ -80,6 +80,16 @@
       "binaryDir": "${sourceDir}/build/gcc-debug"
     },
     {
+      "name": "debug-gcc-coverage",
+      "displayName": "Debug configure (gcc, with coverage)",
+      "inherits": "base-config-gcc",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_COVERAGE": "ON"
+      },
+      "binaryDir": "${sourceDir}/build/gcc-debug-coverage"
+    },
+    {
       "name": "release-gcc",
       "displayName": "Release configure (gcc)",
       "inherits": "base-config-gcc",
@@ -203,6 +213,19 @@
       "inherits": "base-build",
       "configurePreset": "release-clang",
       "targets": ["doxygen"]
+    },
+    {
+      "name": "debug-gcc-build-coverage",
+      "displayName": "Build Debug (gcc, all, with coverage)",
+      "inherits": "base-build",
+      "configurePreset": "debug-gcc-coverage"
+    },
+    {
+      "name": "coverage",
+      "displayName": "Run code coverage (gcov/lcov)",
+      "inherits": "base-build",
+      "configurePreset": "debug-gcc-coverage",
+      "targets": ["coverage"]
     }
   ],
 
@@ -255,6 +278,12 @@
       "displayName": "Run CTest (Release, gcc, all tests)",
       "inherits": "base-test",
       "configurePreset": "release-gcc"
+    },
+    {
+      "name": "debug_ctest-gcc-coverage",
+      "displayName": "Run CTest (Debug, gcc, all tests, with coverage)",
+      "inherits": "base-test",
+      "configurePreset": "debug-gcc-coverage"
     }
   ],
 
@@ -364,7 +393,18 @@
         { "type": "build",     "name": "debug-clang" },
         { "type": "build",     "name": "doxygen" }
       ]
+    },
+    {
+      "name": "coverage",
+      "displayName": "Coverage: configure + build + test + coverage report (gcc with coverage)",
+      "steps": [
+        { "type": "configure", "name": "debug-gcc-coverage" },
+        { "type": "build",     "name": "debug-gcc-build-coverage" },
+        { "type": "test",      "name": "debug_ctest-gcc-coverage" },
+        { "type": "build",     "name": "coverage" }
+      ]
     }
   ]
 }
+
 

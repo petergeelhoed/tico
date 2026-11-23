@@ -316,6 +316,7 @@ set(BINARIES
     linreg
     record
     ssec
+    fiterf
 )
 add_subdirectory(tests)
 
@@ -325,6 +326,8 @@ endforeach()
 
 target_sources(ssec PRIVATE src/gnuplot.c)
 target_link_libraries(ssec PRIVATE mymath)
+
+target_link_libraries(fiterf PRIVATE mymath)
 
 target_link_libraries(capture
   capture_helpers

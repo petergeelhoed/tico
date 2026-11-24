@@ -40,4 +40,5 @@ struct myarr* makemyarrd(size_t ArrayLength);
  * struct.
  * @return A pointer to the myarr struct containing the read input. */
 struct myarr* readinput(void);
+struct myarr* readinputint(void);
 /** @} */

@@ -2,6 +2,7 @@
 #include "printing.h"
 
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -78,9 +79,21 @@ static double* safeRealloc(double* ptr, size_t new_size)
     return next;
 }
 
+static int* safeReallocInt(int* ptr, size_t new_size)
+{
+    int* next = realloc(ptr, new_size * sizeof(int));
+    if (!next)
+    {
+        print("Memory allocation failed\n");
+        free(ptr);
+        exit(EXIT_FAILURE);
+    }
+    return next;
+}
+
 struct myarr* readinput(void)
 {
-    struct myarr* signalStruct = makemyarrd(INIT_ARRSIZE);
+    struct myarr* arrd = makemyarrd(INIT_ARRSIZE);
     char line[BUFFER_SIZE];
     char* ptr;
     char* endptr;
@@ -98,17 +111,58 @@ struct myarr* readinput(void)
                 continue;
             }
 
-            if (signalStruct->ArrayLength >= signalStruct->capacity)
+            if (arrd->ArrayLength >= arrd->capacity)
             {
-                signalStruct->capacity = (signalStruct->capacity * 3) / 2;
-                signalStruct->arrd =
-                    safeRealloc(signalStruct->arrd, signalStruct->capacity);
+                arrd->capacity = (arrd->capacity * 3) / 2;
+                arrd->arrd = safeRealloc(arrd->arrd, arrd->capacity);
             }
 
-            signalStruct->arrd[signalStruct->ArrayLength++] = readDouble;
+            arrd->arrd[arrd->ArrayLength++] = readDouble;
             ptr = endptr;
         }
     }
 
-    return signalStruct;
+    return arrd;
+}
+
+struct myarr* readinputint(void)
+{
+    struct myarr* arr = makemyarr(INIT_ARRSIZE);
+    char line[BUFFER_SIZE];
+    char* ptr;
+    char* endptr;
+
+    while (fgets(line, sizeof(line), stdin))
+    {
+        ptr = line;
+        while (*ptr)
+        {
+            errno = 0;
+            const int DECIMAL_BASE = 10;
+            long readLong = strtol(ptr, &endptr, DECIMAL_BASE);
+            if (ptr == endptr)
+            {
+                ptr++;
+                continue;
+            }
+
+            if (arr->ArrayLength >= arr->capacity)
+            {
+                arr->capacity = (arr->capacity * 3) / 2;
+                arr->arr = safeReallocInt(arr->arr, arr->capacity);
+            }
+
+            if (readLong < INT_MIN || readLong > INT_MAX)
+            {
+                print("Integer overflow or underflow occurred\n");
+                free(arr->arr);
+                free(arr);
+                exit(EXIT_FAILURE);
+            }
+            arr->arr[arr->ArrayLength++] = (int)readLong;
+            ptr = endptr;
+        }
+    }
+
+    return arr;
 }

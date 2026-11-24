@@ -15,6 +15,7 @@ struct myarr
     int* arr;
     double* arrd;
     size_t ArrayLength;
+    size_t capacity;
 };
 
 /** @ingroup myarr @brief Frees the memory allocated for the arrays in a myarr

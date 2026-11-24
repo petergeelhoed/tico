@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "myarr.h"
 #include "myfft.h"
 
 // Magic number constants
@@ -32,7 +33,7 @@ int main(void)
         orig[j] = blah[j];
     }
 
-    struct myarr input = {blah, 0, FILTER_ARRAY_LENGTH};
+    struct myarr input = {blah, 0, FILTER_ARRAY_LENGTH, FILTER_ARRAY_LENGTH};
     fftw_complex* out = convolute(input, filterFFT);
 
     for (unsigned int j = 0; j < FILTER_ARRAY_LENGTH; j++)

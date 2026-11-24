@@ -13,6 +13,7 @@ void freemyarr(struct myarr* arr)
 {
     free(arr->arr);
     free(arr->arrd);
+    arr->capacity = 0;
     arr->ArrayLength = 0;
     arr->arr = NULL;
     arr->arrd = NULL;
@@ -35,6 +36,7 @@ struct myarr* makemyarrd(size_t ArrayLength)
         exit(EXIT_FAILURE);
     }
     ret->ArrayLength = ArrayLength;
+    ret->capacity = ArrayLength;
     return ret;
 }
 struct myarr* makemyarr(size_t ArrayLength)
@@ -53,6 +55,7 @@ struct myarr* makemyarr(size_t ArrayLength)
         exit(EXIT_FAILURE);
     }
     ret->ArrayLength = ArrayLength;
+    ret->capacity = ArrayLength;
     return ret;
 }
 
@@ -63,7 +66,7 @@ struct myarr* makemyarr(size_t ArrayLength)
  * @param new_size New size for the array.
  * @return Pointer to the reallocated memory.
  */
-static double* safeRealloc(double* ptr, unsigned int new_size)
+static double* safeRealloc(double* ptr, size_t new_size)
 {
     double* next = realloc(ptr, new_size * sizeof(double));
     if (!next)
@@ -74,14 +77,13 @@ static double* safeRealloc(double* ptr, unsigned int new_size)
     }
     return next;
 }
+
 struct myarr* readinput(void)
 {
-    unsigned int capacity = INIT_ARRSIZE;
-    struct myarr* signalStruct = makemyarrd(capacity);
+    struct myarr* signalStruct = makemyarrd(INIT_ARRSIZE);
     char line[BUFFER_SIZE];
     char* ptr;
     char* endptr;
-    size_t count = 0;
 
     while (fgets(line, sizeof(line), stdin))
     {
@@ -96,17 +98,17 @@ struct myarr* readinput(void)
                 continue;
             }
 
-            if (count >= capacity)
+            if (signalStruct->ArrayLength >= signalStruct->capacity)
             {
-                capacity = (capacity * 3) / 2;
-                signalStruct->arrd = safeRealloc(signalStruct->arrd, capacity);
+                signalStruct->capacity = (signalStruct->capacity * 3) / 2;
+                signalStruct->arrd =
+                    safeRealloc(signalStruct->arrd, signalStruct->capacity);
             }
 
-            signalStruct->arrd[count++] = readDouble;
+            signalStruct->arrd[signalStruct->ArrayLength++] = readDouble;
             ptr = endptr;
         }
     }
-    signalStruct->ArrayLength = count;
 
     return signalStruct;
 }

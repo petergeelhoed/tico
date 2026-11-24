@@ -4,6 +4,7 @@
 #define FFT_INDEX_1 4
 #define FFT_INDEX_2 7
 
+#include "myarr.h"
 #include "myfft.h"
 #include "mysync.h"
 #include <fftw3.h>
@@ -79,7 +80,7 @@ int main(void)
         (void)fprintf(stderr, "%6d %f == %f \n", j, corr[j][0], peak[j][0]);
     }
 
-    struct myarr input = {ipeak, 0, FFT_ARRAY_LENGTH};
+    struct myarr input = {ipeak, 0, FFT_ARRAY_LENGTH, FFT_ARRAY_LENGTH};
     fftw_complex* conv = convolute(input, filterFFT);
     (void)fprintf(stderr, "====convolution== filter == ipeak =====\n");
     for (unsigned int j = 0; j < FFT_ARRAY_LENGTH; j++)

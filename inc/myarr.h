@@ -35,4 +35,8 @@ struct myarr* makemyarr(size_t ArrayLength);
  * @return A pointer to the newly created myarr struct with the double array. */
 struct myarr* makemyarrd(size_t ArrayLength);
 
+/** @ingroup myarr @brief Reads input from stdin and stores it in a myarr
+ * struct.
+ * @return A pointer to the myarr struct containing the read input. */
+struct myarr* readinput(void);
 /** @} */

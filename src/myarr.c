@@ -1,7 +1,13 @@
 #include "myarr.h"
 #include "printing.h"
 
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#define INIT_ARRSIZE 10
+#define BUFFER_SIZE 512
 
 void freemyarr(struct myarr* arr)
 {
@@ -48,4 +54,59 @@ struct myarr* makemyarr(size_t ArrayLength)
     }
     ret->ArrayLength = ArrayLength;
     return ret;
+}
+
+/**
+ * @brief Safely reallocates memory for a double array, exits on failure.
+ *
+ * @param ptr Pointer to the current memory block.
+ * @param new_size New size for the array.
+ * @return Pointer to the reallocated memory.
+ */
+static double* safeRealloc(double* ptr, unsigned int new_size)
+{
+    double* next = realloc(ptr, new_size * sizeof(double));
+    if (!next)
+    {
+        print("Memory allocation failed\n");
+        free(ptr);
+        exit(EXIT_FAILURE);
+    }
+    return next;
+}
+struct myarr* readinput(void)
+{
+    unsigned int capacity = INIT_ARRSIZE;
+    struct myarr* signalStruct = makemyarrd(capacity);
+    char line[BUFFER_SIZE];
+    char* ptr;
+    char* endptr;
+    size_t count = 0;
+
+    while (fgets(line, sizeof(line), stdin))
+    {
+        ptr = line;
+        while (*ptr)
+        {
+            errno = 0;
+            double readDouble = strtod(ptr, &endptr);
+            if (ptr == endptr)
+            {
+                ptr++;
+                continue;
+            }
+
+            if (count >= capacity)
+            {
+                capacity = (capacity * 3) / 2;
+                signalStruct->arrd = safeRealloc(signalStruct->arrd, capacity);
+            }
+
+            signalStruct->arrd[count++] = readDouble;
+            ptr = endptr;
+        }
+    }
+    signalStruct->ArrayLength = count;
+
+    return signalStruct;
 }

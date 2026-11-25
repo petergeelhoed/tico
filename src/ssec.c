@@ -283,15 +283,16 @@ static void get_values(double* samples, double prev)
     char iso8601[ISO_LENGTH];
     const long long mod = 5;
 
-    printf("Press ENTER %d times, every 5 seconds\n\n", N);
+    printf("Press any key %d times, every 5 seconds\n\n", N);
 
     for (size_t i = 0; i < N; i++)
     {
         printf("[%lu/%u] ", i + 1, N);
         for (size_t j = 0; j < i; ++j)
         {
-            printf("-");
+            printf("*");
         }
+        printf("\n");
 
         getch();
 

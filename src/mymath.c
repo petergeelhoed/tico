@@ -9,10 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+/** @brief Stores a row-major matrix and its dimensions. */
 struct mymat
 {
+    /** Matrix elements in row-major order. */
     double* mat;
+    /** Number of columns. */
     unsigned int Ncols;
+    /** Number of rows. */
     unsigned int Nrows;
 };
 
@@ -283,6 +287,8 @@ void fastlinreg(double coeffs[2],
  * @param intercept Intercept for outlier detection.
  * @param slope Slope for outlier detection.
  * @param stdevThreshold Threshold for outlier detection.
+ * @param minWeight Minimum weight to consider a point.
+ *
  * @return 1 if successful, 0 otherwise.
  */
 static int fastlinreg_sufficient_stats(

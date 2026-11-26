@@ -12,33 +12,51 @@
  * with the length of the arrays. */
 struct myarr
 {
+    /** Integer data, or NULL when arrd holds the data. */
     int* arr;
+    /** Double-precision data, or NULL when arr holds the data. */
     double* arrd;
+    /** Number of initialized elements in the active array. */
     size_t ArrayLength;
+    /** Number of elements allocated in the active array. */
     size_t capacity;
 };
 
-/** @ingroup myarr @brief Frees the memory allocated for the arrays in a myarr
+/**
+ * @ingroup myarr
+ * @brief Frees the memory allocated for the arrays in a myarr
  * struct.
  * @param arr A pointer to the myarr struct whose arrays are to be freed. */
 void freemyarr(struct myarr* arr);
 
-/** @ingroup myarr @brief Creates a myarr struct with an array of integers of
+/**
+ * @ingroup myarr
+ * @brief Creates a myarr struct with an array of integers of
  * the specified length.
  * @param ArrayLength The length of the integer array to be created.
  * @return A pointer to the newly created myarr struct with the integer array.
  */
 struct myarr* makemyarr(size_t ArrayLength);
 
-/** @ingroup myarr @brief Creates a myarr struct with an array of doubles of the
+/**
+ * @ingroup myarr
+ * @brief Creates a myarr struct with an array of doubles of the
  * specified length.
  * @param ArrayLength The length of the double array to be created.
  * @return A pointer to the newly created myarr struct with the double array. */
 struct myarr* makemyarrd(size_t ArrayLength);
 
-/** @ingroup myarr @brief Reads input from stdin and stores it in a myarr
+/**
+ * @ingroup myarr
+ * @brief Reads input from stdin and stores it in a myarr
  * struct.
  * @return A pointer to the myarr struct containing the read input. */
 struct myarr* readinput(void);
+
+/**
+ * @ingroup myarr
+ * @brief Reads integer values from standard input into a myarr.
+ * @return A pointer to the array containing the values read.
+ */
 struct myarr* readinputint(void);
 /** @} */

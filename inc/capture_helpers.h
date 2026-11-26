@@ -4,10 +4,14 @@
 #include "myarr.h"
 #include "resources.h"
 
+/** @brief Tracks tick and shift positions while processing capture data. */
 typedef struct
 {
+    /** Accumulated sample shift applied to the derivative window. */
     int cumulativeShift;
+    /** Index of the current tick in per-tick arrays. */
     size_t tickIndex;
+    /** Total number of ticks processed. */
     unsigned int globalTickIndex;
 } LoopState;
 

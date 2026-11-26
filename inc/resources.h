@@ -10,17 +10,29 @@
 /** @brief Struct to hold all the resources needed for the application. */
 typedef struct
 {
+    /** Length of the working arrays. */
     size_t arrayLength;
+    /** Sub-position values for the active tick window. */
     struct myarr* subpos;
+    /** Maximum-position values for the active tick window. */
     struct myarr* maxpos;
+    /** Maximum-correlation values for the active tick window. */
     struct myarr* maxvals;
+    /** Audio derivative samples used for correlation. */
     struct myarr* derivative;
+    /** Temporary derivative buffer used during window rotation. */
     struct myarr* tmpder;
+    /** Reference samples used for correlation. */
     struct myarr* reference;
+    /** Per-tooth reference arrays. */
     struct myarr** teethArray;
+    /** FFT representation of the correlation filter. */
     fftw_complex* filterFFT;
+    /** Raw audio samples for one processing block. */
     int16_t* audioBuffer16;
+    /** Current offset used for circular-buffer operations. */
     size_t mod;
+    /** Maximum number of ticks to process. */
     size_t maxTime;
 } AppResources;
 

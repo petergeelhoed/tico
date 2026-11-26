@@ -206,6 +206,7 @@ void waitClose(FILE* file)
     {
         thread_ctr_unlock();
         errno = ENOMEM;
+        perror("waitClose");
         return;
     }
 
@@ -276,6 +277,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     if (input == NULL || file == NULL)
     {
         errno = EINVAL;
+        perror("syncAppendMyarr");
         return;
     }
 
@@ -322,6 +324,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         thread_ctr_unlock();
         errno = EPIPE;
+        perror("syncAppendMyarr: file is closing");
         freemyarr(local);
         free(info);
         return;
@@ -422,6 +425,7 @@ int syncwrite(int* input, size_t ArrayLength, const char* file)
     if (!input || !file)
     {
         errno = EINVAL;
+        perror("syncwrite");
         return -1;
     }
 

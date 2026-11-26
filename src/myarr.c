@@ -155,8 +155,7 @@ struct myarr* readinputint(void)
             if (readLong < INT_MIN || readLong > INT_MAX)
             {
                 print("Integer overflow or underflow occurred\n");
-                free(arr->arr);
-                free(arr);
+                freemyarr(arr);
                 exit(EXIT_FAILURE);
             }
             arr->arr[arr->ArrayLength++] = (int)readLong;

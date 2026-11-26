@@ -31,22 +31,50 @@ struct file_state
 
 static struct file_state* file_states = NULL;
 
+static void report_errno_error(const char* operation)
+{
+    const int error_code = errno;
+    (void)fprintf(stderr, "%s: %s\n", operation, strerror(error_code));
+}
+
+static void report_pthread_error(const char* operation, int error_code)
+{
+    if (error_code != 0)
+    {
+        (void)fprintf(stderr, "%s: %s\n", operation, strerror(error_code));
+    }
+}
+
 /**
  * @brief Lock the counter mutex.
  */
-static void thread_ctr_lock(void) { (void)pthread_mutex_lock(&ctr_mutex); }
+static void thread_ctr_lock(void)
+{
+    report_pthread_error("pthread_mutex_lock", pthread_mutex_lock(&ctr_mutex));
+}
 /**
  * @brief Unlock the counter mutex.
  */
-static void thread_ctr_unlock(void) { (void)pthread_mutex_unlock(&ctr_mutex); }
+static void thread_ctr_unlock(void)
+{
+    report_pthread_error("pthread_mutex_unlock",
+                         pthread_mutex_unlock(&ctr_mutex));
+}
 /**
  * @brief Lock the IO mutex.
  */
-static void thread_lock(void) { (void)pthread_mutex_lock(&io_mutex); }
+static void thread_lock(void)
+{
+    report_pthread_error("pthread_mutex_lock", pthread_mutex_lock(&io_mutex));
+}
 /**
  * @brief Unlock the IO mutex.
  */
-static void thread_unlock(void) { (void)pthread_mutex_unlock(&io_mutex); }
+static void thread_unlock(void)
+{
+    report_pthread_error("pthread_mutex_unlock",
+                         pthread_mutex_unlock(&io_mutex));
+}
 
 static struct file_state* find_file_state(FILE* file)
 {
@@ -116,22 +144,25 @@ static void printTODUnlockedTime(FILE* out, struct timeval* time)
     struct tm now;
     if (localtime_r(&time->tv_sec, &now) == NULL)
     {
-        perror("Error getting local time");
+        report_errno_error("localtime_r");
         return;
     }
 
     const int nineteenhundred = 1900;
-    (void)fprintf(out,
-                  "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
-                  now.tm_year + nineteenhundred,
-                  now.tm_mon + 1,
-                  now.tm_mday,
-                  now.tm_hour,
-                  now.tm_min,
-                  now.tm_sec,
-                  (long)time->tv_usec,
-                  (long long)time->tv_sec,
-                  (long)time->tv_usec);
+    if (fprintf(out,
+                "# %04d-%02d-%02dT%02d:%02d:%02d.%06ld %lld.%06ld\n",
+                now.tm_year + nineteenhundred,
+                now.tm_mon + 1,
+                now.tm_mday,
+                now.tm_hour,
+                now.tm_min,
+                now.tm_sec,
+                (long)time->tv_usec,
+                (long long)time->tv_sec,
+                (long)time->tv_usec) < 0)
+    {
+        perror("printTODUnlockedTime: fprintf");
+    }
 }
 
 /**
@@ -147,7 +178,11 @@ static void printTODUnlocked(FILE* out)
     }
 
     struct timeval time;
-    gettimeofday(&time, NULL);
+    if (gettimeofday(&time, NULL) != 0)
+    {
+        report_errno_error("printTODUnlocked: gettimeofday");
+        return;
+    }
     printTODUnlockedTime(out, &time);
 }
 
@@ -158,7 +193,8 @@ static void decr_count(void)
 {
     thread_ctr_lock();
     count--;
-    pthread_cond_broadcast(&ctr_zero);
+    report_pthread_error("pthread_cond_broadcast",
+                         pthread_cond_broadcast(&ctr_zero));
     thread_ctr_unlock();
 }
 
@@ -179,7 +215,8 @@ static void decr_append_count(FILE* file)
         state->pending--;
     }
 
-    pthread_cond_broadcast(&ctr_zero);
+    report_pthread_error("pthread_cond_broadcast",
+                         pthread_cond_broadcast(&ctr_zero));
     thread_ctr_unlock();
 }
 /** @brief Data passed to a worker that appends an array to a file. */
@@ -213,13 +250,22 @@ void waitClose(FILE* file)
     state->closing = 1;
     while (state->pending > 0)
     {
-        (void)pthread_cond_wait(&ctr_zero, &ctr_mutex);
+        int error_code = pthread_cond_wait(&ctr_zero, &ctr_mutex);
+        if (error_code != 0)
+        {
+            report_pthread_error("pthread_cond_wait", error_code);
+            thread_ctr_unlock();
+            return;
+        }
     }
 
     remove_file_state(file);
     thread_ctr_unlock();
 
-    (void)fclose(file);
+    if (fclose(file) != 0)
+    {
+        perror("waitClose: fclose");
+    }
 }
 
 void wait(void)
@@ -227,7 +273,13 @@ void wait(void)
     thread_ctr_lock();
     while (count > 0)
     {
-        (void)pthread_cond_wait(&ctr_zero, &ctr_mutex);
+        int error_code = pthread_cond_wait(&ctr_zero, &ctr_mutex);
+        if (error_code != 0)
+        {
+            report_pthread_error("pthread_cond_wait", error_code);
+            thread_ctr_unlock();
+            return;
+        }
     }
     thread_ctr_unlock();
 }
@@ -246,18 +298,29 @@ void* threadAppendMyarr(void* inStruct)
     {
         for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
-            (void)fprintf(mine->file, "%d\n", mine->array->arr[j]);
+            if (fprintf(mine->file, "%d\n", mine->array->arr[j]) < 0)
+            {
+                perror("threadAppendMyarr: fprintf");
+                break;
+            }
         }
     }
     if (mine->array->arrd != NULL)
     {
         for (unsigned int j = 0; j < mine->array->ArrayLength; j++)
         {
-            (void)fprintf(mine->file, "%f\n", mine->array->arrd[j]);
+            if (fprintf(mine->file, "%f\n", mine->array->arrd[j]) < 0)
+            {
+                perror("threadAppendMyarr: fprintf");
+                break;
+            }
         }
     }
 
-    (void)fflush(mine->file);
+    if (fflush(mine->file) != 0)
+    {
+        perror("threadAppendMyarr: fflush");
+    }
 
     thread_unlock();
 
@@ -271,13 +334,17 @@ void* threadAppendMyarr(void* inStruct)
 
 void syncAppendMyarr(struct myarr* input, FILE* file)
 {
-    struct timeval time;
-    gettimeofday(&time, NULL);
-
     if (input == NULL || file == NULL)
     {
         errno = EINVAL;
         perror("syncAppendMyarr");
+        return;
+    }
+
+    struct timeval time;
+    if (gettimeofday(&time, NULL) != 0)
+    {
+        report_errno_error("syncAppendMyarr: gettimeofday");
         return;
     }
 
@@ -334,9 +401,10 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     thread_ctr_unlock();
 
     pthread_attr_t attr;
-    if (pthread_attr_init(&attr) != 0)
+    int error_code = pthread_attr_init(&attr);
+    if (error_code != 0)
     {
-        perror("pthread_attr_init failed");
+        report_pthread_error("pthread_attr_init", error_code);
 
         decr_append_count(file);
 
@@ -344,11 +412,13 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         free(info);
         return;
     }
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0)
+    error_code = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (error_code != 0)
     {
-        perror("pthread_attr_setdetachstate failed");
+        report_pthread_error("pthread_attr_setdetachstate", error_code);
 
-        (void)pthread_attr_destroy(&attr);
+        report_pthread_error("pthread_attr_destroy",
+                             pthread_attr_destroy(&attr));
 
         decr_append_count(file);
 
@@ -359,11 +429,11 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
     pthread_t tid;
     const int succes = pthread_create(&tid, &attr, threadAppendMyarr, info);
-    (void)pthread_attr_destroy(&attr);
+    report_pthread_error("pthread_attr_destroy", pthread_attr_destroy(&attr));
 
     if (succes != 0)
     {
-        perror("Error creating thread");
+        report_pthread_error("pthread_create", succes);
 
         decr_append_count(file);
 
@@ -393,7 +463,7 @@ static void* threadWrite(void* arg)
         return NULL;
     }
     FILE* file = fopen(task->file, "w");
-    if (file)
+    if (file != NULL)
     {
 
         for (unsigned int i = 0; i < task->len; ++i)
@@ -413,6 +483,10 @@ static void* threadWrite(void* arg)
         {
             perror("threadWrite: fclose failed");
         }
+    }
+    else
+    {
+        perror("threadWrite: fopen");
     }
     free(task ? task->array : NULL);
     free(task);
@@ -453,23 +527,26 @@ int syncwrite(int* input, size_t ArrayLength, const char* file)
     strncpy(task->file, file, FILE_NAME_LENGTH - 1);
     task->file[FILE_NAME_LENGTH - 1] = '\0';
 
-    pthread_mutex_lock(&ctr_mutex);
+    thread_ctr_lock();
     count++;
-    pthread_mutex_unlock(&ctr_mutex);
+    thread_ctr_unlock();
 
     pthread_attr_t attr;
-    if (pthread_attr_init(&attr) != 0)
+    int error_code = pthread_attr_init(&attr);
+    if (error_code != 0)
     {
-        perror("attr_init");
+        report_pthread_error("pthread_attr_init", error_code);
         decr_count();
         free(copyarr);
         free(task);
         return -1;
     }
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0)
+    error_code = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (error_code != 0)
     {
-        perror("setdetach");
-        pthread_attr_destroy(&attr);
+        report_pthread_error("pthread_attr_setdetachstate", error_code);
+        report_pthread_error("pthread_attr_destroy",
+                             pthread_attr_destroy(&attr));
         decr_count();
         free(copyarr);
         free(task);
@@ -478,11 +555,11 @@ int syncwrite(int* input, size_t ArrayLength, const char* file)
 
     pthread_t tid;
     int success = pthread_create(&tid, &attr, threadWrite, task);
-    pthread_attr_destroy(&attr);
+    report_pthread_error("pthread_attr_destroy", pthread_attr_destroy(&attr));
 
     if (success != 0)
     {
-        perror("pthread_create");
+        report_pthread_error("pthread_create", success);
         decr_count();
         free(copyarr);
         free(task);

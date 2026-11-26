@@ -12,16 +12,22 @@ struct myarr;
  * @{
  */
 
-/** @ingroup mysync @brief Waits for the file to be closed before proceeding.
+/**
+  @ingroup mysync
+  @brief Waits for the file to be closed before proceeding.
   @param file Pointer to the file to wait on. */
 void waitClose(FILE* file);
 
-/** @ingroup mysync @brief Waits for all pending operations to complete before
+/**
+  @ingroup mysync
+  @brief Waits for all pending operations to complete before
   proceeding. checks locks for ctr_mutex and waits on ctr_zero until count is
   zero, then releases lock. */
 void wait(void);
 
-/** @ingroup mysync @brief Writes the input array to the specified file in a
+/**
+  @ingroup mysync
+  @brief Writes the input array to the specified file in a
   separate thread.
   @param input Pointer to the input array to write.
   @param ArrayLength Length of the input array.
@@ -29,7 +35,9 @@ void wait(void);
   @return 0 on success, -1 on failure. */
 int syncwrite(int* input, size_t ArrayLength, const char* file);
 
-/** @ingroup mysync @brief Prints the current time of day to the specified file
+/**
+  @ingroup mysync
+  @brief Prints the current time of day to the specified file
   with synchronization.
   @param out Pointer to the file to write to. */
 void printTOD(FILE* out);

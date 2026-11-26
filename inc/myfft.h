@@ -9,7 +9,9 @@
  * @{
  */
 
-/** @ingroup myfft @brief Make a filter for the given evalue and array length.
+/**
+ * @ingroup myfft
+ * @brief Make a filter for the given evalue and array length.
  *
  * @param evalue The evalue to use for the filter.
  * @param ArrayLength The length of the array to filter.
@@ -17,7 +19,9 @@
  */
 fftw_complex* makeFilter(size_t evalue, size_t ArrayLength);
 
-/** @ingroup myfft @brief Fit the input array to the filter and return the total
+/**
+ * @ingroup myfft
+ * @brief Fit the input array to the filter and return the total
  * shift.
  *
  * @param input The input array to fit.
@@ -40,7 +44,9 @@ size_t fftfit(struct myarr input,
               int verb,
               double* subpos);
 
-/** @ingroup myfft @brief Convolute the input array with the given filter in the
+/**
+ * @ingroup myfft
+ * @brief Convolute the input array with the given filter in the
  * frequency domain.
  *
  * @param array The input array to convolute.
@@ -49,7 +55,9 @@ size_t fftfit(struct myarr input,
  */
 fftw_complex* convolute(struct myarr array, fftw_complex* filter);
 
-/** @ingroup myfft @brief Get the maximum value from the given array in the
+/**
+ * @ingroup myfft
+ * @brief Get the maximum value from the given array in the
  * frequency domain.
  *
  * @param array The input array in the frequency domain to search for the

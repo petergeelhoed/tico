@@ -79,6 +79,7 @@ void matlinreg(double coeffs[2],
  * @param subpos Array of sub-positions.
  * @param npeaks Number of peaks to fit.
  * @param SDthreshold Standard deviation threshold for outlier rejection.
+ * @param minWeight Minimum weight threshold for including a peak in the fit.
  */
 void fitNpeaks(double* intercept,
                double* slope,

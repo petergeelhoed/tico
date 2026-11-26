@@ -1,18 +1,14 @@
 #pragma once
 
-#include "myarr.h"
-
 #include <stdio.h>
 #include <sys/time.h> // IWYU pragma: keep
+
+struct myarr;
 
 /**
  * @defgroup mysync Mysync Library
  * Synchronization functions for myarr struct and file operations.
  * @nosubgrouping
- * @note Functions syncAppendMyarr() and threadAppendMyarr() are documented in
- the @ref myarr group due to Doxygen's automatic grouping. See their
- documentation in the myarr module for details.
-
  * @{
  */
 
@@ -38,14 +34,14 @@ int syncwrite(int* input, size_t ArrayLength, const char* file);
   @param out Pointer to the file to write to. */
 void printTOD(FILE* out);
 
-/** @ingroup mysync @brief Appends the input myarr struct to the specified file
+/** @brief Appends the input myarr struct to the specified file
   in a separate thread.
   @param input Pointer to the input myarr struct to append.
   @param file Pointer to the file to append to.
  */
 void syncAppendMyarr(struct myarr* input, FILE* file);
 
-/** @ingroup mysync @brief Worker function for appending a myarr struct to a
+/** @brief Worker function for appending a myarr struct to a
   file in a separate thread.
   @param inStruct Pointer to the append_task struct containing the myarr and
   file information.

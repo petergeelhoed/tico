@@ -12,9 +12,13 @@
  * with the length of the arrays. */
 struct myarr
 {
+    /** Integer data, or NULL when arrd holds the data. */
     int* arr;
+    /** Double-precision data, or NULL when arr holds the data. */
     double* arrd;
+    /** Number of initialized elements in the active array. */
     size_t ArrayLength;
+    /** Number of elements allocated in the active array. */
     size_t capacity;
 };
 
@@ -40,5 +44,11 @@ struct myarr* makemyarrd(size_t ArrayLength);
  * struct.
  * @return A pointer to the myarr struct containing the read input. */
 struct myarr* readinput(void);
+
+/**
+ * @ingroup myarr
+ * @brief Reads integer values from standard input into a myarr.
+ * @return A pointer to the array containing the values read.
+ */
 struct myarr* readinputint(void);
 /** @} */

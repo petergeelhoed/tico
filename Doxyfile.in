@@ -90,7 +90,7 @@ EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = NO
 EXTRACT_PRIV_VIRTUAL   = NO
 EXTRACT_PACKAGE        = NO
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_LOCAL_METHODS  = NO
 EXTRACT_ANON_NSPACES   = NO
@@ -131,8 +131,6 @@ CITE_BIB_FILES         =
 #--------------------------------------------------------------------------
 INPUT                  = README.md src inc
 RECURSIVE              = YES
-EXTRACT_ALL            = NO
-EXTRACT_STATIC         = NO
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_INCOMPLETE_DOC = YES
 WARN_AS_ERROR          = YES

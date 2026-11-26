@@ -16,11 +16,16 @@ static pthread_cond_t ctr_zero = PTHREAD_COND_INITIALIZER;
 
 static int count = 0;
 
+/** @brief Tracks pending writes and close state for one output file. */
 struct file_state
 {
+    /** File associated with this state. */
     FILE* file;
+    /** Number of append operations still pending for the file. */
     unsigned int pending;
+    /** Nonzero once closing has been requested. */
     int closing;
+    /** Next file state in the global linked list. */
     struct file_state* next;
 };
 
@@ -177,11 +182,15 @@ static void decr_append_count(FILE* file)
     pthread_cond_broadcast(&ctr_zero);
     thread_ctr_unlock();
 }
+/** @brief Data passed to a worker that appends an array to a file. */
 struct append_task
 {
-    struct myarr* array; /* deep copy of input->arr / input->arrd */
-    FILE* file; /* not owned by worker; must stay open until worker finishes */
-    struct timeval time; /* time to print in the file */
+    /** Deep copy of the input array. */
+    struct myarr* array;
+    /** Output file, which must remain open until the worker finishes. */
+    FILE* file;
+    /** Timestamp written before the array data. */
+    struct timeval time;
 };
 
 void waitClose(FILE* file)
@@ -373,10 +382,14 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     }
 }
 
+/** @brief Data passed to a worker that writes integer values to a file. */
 struct write_task
 {
+    /** Owned copy of the values to write. */
     int* array;
+    /** Number of values in array. */
     size_t len;
+    /** Output file path. */
     char file[FILE_NAME_LENGTH];
 };
 

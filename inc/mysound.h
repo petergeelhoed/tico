@@ -5,14 +5,22 @@
 #include <alsa/asoundlib.h> // IWYU pragma: export
 #include <stdio.h>
 
+/** @brief Tracks automatic audio-level adjustment and clipping statistics. */
 struct AmpResult
 {
+    /** Sum of absolute sample amplitudes for the current block. */
     long avg;
+    /** Number of saturated samples in the current block. */
     int clipCount;
+    /** Signed streak of blocks with or without clipping. */
     int clipStreak;
+    /** Nonzero when further automatic gain adjustments are locked. */
     int gain_increase_locked;
+    /** Nonzero after an automatic gain increase has occurred. */
     int has_increased;
+    /** Minimum permitted capture gain. */
     long min_gain;
+    /** Maximum permitted capture gain. */
     long max_gain;
 };
 
@@ -21,14 +29,21 @@ struct AmpResult
  */
 typedef struct CaptureCtx
 {
-    /* ALSA */
+    /** ALSA capture PCM handle. */
     snd_pcm_t* cap;
+    /** Actual capture sample rate in samples per second. */
     unsigned int rate;
+    /** Number of frames in one ALSA period. */
     snd_pcm_uframes_t periodSize;
+    /** Total ALSA buffer size in frames. */
     snd_pcm_uframes_t bufferSize;
-    size_t ArrayLength; // frames per processing block
+    /** Frames processed in each block. */
+    size_t ArrayLength;
+    /** ALSA mixer handle used for capture gain control. */
     snd_mixer_t* mixerHandle;
+    /** ALSA mixer element used for capture gain control. */
     snd_mixer_elem_t* mixerElem;
+    /** State used to track clipping and automatic gain changes. */
     struct AmpResult ampResult;
 } CaptureCtx;
 

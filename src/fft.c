@@ -11,17 +11,25 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/** @brief Stores command-line options for the FFT utility. */
 typedef struct
 {
+    /** Zero-padding multiplier for the FFT. */
     unsigned int z;
+    /** Nonzero to print positive-frequency magnitudes. */
     int pval;
+    /** Nonzero to remove a linear trend before the transform. */
     int lval;
+    /** Optional frequency scaling value for the output. */
     int fval;
 } Config;
 
+/** @brief Holds a dynamically allocated signal and its sample count. */
 typedef struct
 {
+    /** Signal samples. */
     double* data;
+    /** Number of samples in data. */
     unsigned int count;
 } Signal;
 

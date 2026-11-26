@@ -261,9 +261,7 @@ void* threadAppendMyarr(void* inStruct)
     thread_unlock();
 
     /* Free deep copies and task struct */
-    free(mine->array->arr);
-    free(mine->array->arrd);
-    free(mine->array);
+    freemyarr(mine->array);
     free(mine);
 
     decr_append_count(file);
@@ -316,9 +314,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         thread_ctr_unlock();
         perror("Error tracking file state");
-        free(local->arrd);
-        free(local->arr);
-        free(local);
+        freemyarr(local);
         free(info);
         return;
     }
@@ -326,9 +322,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         thread_ctr_unlock();
         errno = EPIPE;
-        free(local->arrd);
-        free(local->arr);
-        free(local);
+        freemyarr(local);
         free(info);
         return;
     }
@@ -343,9 +337,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
         decr_append_count(file);
 
-        free(local->arrd);
-        free(local->arr);
-        free(local);
+        freemyarr(local);
         free(info);
         return;
     }
@@ -357,9 +349,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
         decr_append_count(file);
 
-        free(local->arrd);
-        free(local->arr);
-        free(local);
+        freemyarr(local);
         free(info);
         return;
     }
@@ -375,9 +365,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         decr_append_count(file);
 
         /* Free payload */
-        free(local->arrd);
-        free(local->arr);
-        free(local);
+        freemyarr(local);
         free(info);
     }
 }

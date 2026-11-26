@@ -131,6 +131,7 @@ int main(int argc, char* argv[])
     const unsigned int ArrayLength = 16000;
 
     int16_t* out = calloc(ArrayLength, sizeof(int16_t)); // 16bit
+    int exitCode = EXIT_SUCCESS;
     while (out != NULL && blocksLeft > 0)
     {
 
@@ -139,6 +140,8 @@ int main(int argc, char* argv[])
         if (!read)
         {
             print("capture_next_block failed; stopping\n");
+            freemyarr(filled);
+            exitCode = EXIT_FAILURE;
             break;
         }
 
@@ -148,7 +151,13 @@ int main(int argc, char* argv[])
         }
 
         // Your existing persist/processing step
-        syncAppendMyarr(filled, filePtr);
+        if (syncAppendMyarr(filled, filePtr) != 0)
+        {
+            freemyarr(filled);
+            exitCode = EXIT_FAILURE;
+            break;
+        }
+        freemyarr(filled);
 
         // Progress print (once per block)
         printf("%u\n", blocksLeft - 1);
@@ -171,5 +180,5 @@ int main(int argc, char* argv[])
     }
     free(out);
     captureTeardown(&ctx);
-    return 0;
+    return exitCode;
 }

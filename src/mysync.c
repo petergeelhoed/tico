@@ -332,27 +332,27 @@ void* threadAppendMyarr(void* inStruct)
     return NULL;
 }
 
-void syncAppendMyarr(struct myarr* input, FILE* file)
+int syncAppendMyarr(struct myarr* input, FILE* file)
 {
     if (input == NULL || file == NULL)
     {
         errno = EINVAL;
         perror("syncAppendMyarr");
-        return;
+        return -1;
     }
 
     struct timeval time;
     if (gettimeofday(&time, NULL) != 0)
     {
         report_errno_error("syncAppendMyarr: gettimeofday");
-        return;
+        return -1;
     }
 
     struct append_task* info = malloc(sizeof(*info));
     if (info == NULL)
     {
         perror("Error allocating task");
-        return;
+        return -1;
     }
 
     struct myarr* local = input->arr != NULL ? makemyarr(input->ArrayLength)
@@ -361,7 +361,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
     {
         perror("Error allocating myarr");
         free(info);
-        return;
+        return -1;
     }
     if (input->arr != NULL && input->ArrayLength > 0)
     {
@@ -385,7 +385,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         perror("Error tracking file state");
         freemyarr(local);
         free(info);
-        return;
+        return -1;
     }
     if (state->closing)
     {
@@ -394,7 +394,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         perror("syncAppendMyarr: file is closing");
         freemyarr(local);
         free(info);
-        return;
+        return -1;
     }
     state->pending++;
     count++;
@@ -410,7 +410,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
         freemyarr(local);
         free(info);
-        return;
+        return -1;
     }
     error_code = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     if (error_code != 0)
@@ -424,7 +424,7 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
 
         freemyarr(local);
         free(info);
-        return;
+        return -1;
     }
 
     pthread_t tid;
@@ -440,7 +440,10 @@ void syncAppendMyarr(struct myarr* input, FILE* file)
         /* Free payload */
         freemyarr(local);
         free(info);
+        return -1;
     }
+
+    return 0;
 }
 
 /** @brief Data passed to a worker that writes integer values to a file. */

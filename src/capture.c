@@ -59,7 +59,10 @@ static int processTickTock(CapConfig* cfg,
     res->maxpos->arr[state->tickIndex] = state->cumulativeShift + peakOffset;
     updateTotalShiftIfNeeded(state, peakOffset, res, cfg);
 
-    processLogging(cfg, res, state->tickIndex, cfg->writeInterval);
+    if (processLogging(cfg, res, state->tickIndex, cfg->writeInterval) != 0)
+    {
+        return -1;
+    }
 
     fitAndPrint(state, cumulativeTick, res, cfg, cfg->appState->columns);
 
@@ -136,11 +139,13 @@ int main(int argc, char* argv[])
 
     LoopState state = {0};
 
+    int exitCode = EXIT_SUCCESS;
     while (cfg.appState->keepRunning &&
            !(state.globalTickIndex > res.maxTime && cfg.time))
     {
         if (processTickTock(&cfg, &res, &ctx, &state) < 0)
         {
+            exitCode = EXIT_FAILURE;
             break;
         }
     }
@@ -148,5 +153,5 @@ int main(int argc, char* argv[])
     printFinals(&cfg, &res, state.globalTickIndex);
     cleanupResources(&res, &cfg, &ctx);
 
-    return 0;
+    return exitCode;
 }

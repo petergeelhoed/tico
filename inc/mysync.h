@@ -42,12 +42,14 @@ int syncwrite(int* input, size_t ArrayLength, const char* file);
   @param out Pointer to the file to write to. */
 void printTOD(FILE* out);
 
-/** @brief Appends the input myarr struct to the specified file
-  in a separate thread.
+/**
+  @brief Queues the input myarr struct to be appended to the specified file on
+  a separate worker thread.
   @param input Pointer to the input myarr struct to append.
   @param file Pointer to the file to append to.
+  @return 0 if the append was queued, -1 if it could not be queued.
  */
-void syncAppendMyarr(struct myarr* input, FILE* file);
+int syncAppendMyarr(struct myarr* input, FILE* file);
 
 /** @brief Worker function for appending a myarr struct to a
   file in a separate thread.

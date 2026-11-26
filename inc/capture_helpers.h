@@ -63,11 +63,12 @@ void shiftBufferData(size_t* ticktock,
  @param totalTime The total time elapsed during the capture process, which may
  be used for logging or final output.
  @param writeInterval The interval at which to write log data, which may be used
- to determine when to log certain information based on the total time. */
-void processLogging(CapConfig* cfg,
-                    AppResources* res,
-                    size_t totalTime,
-                    size_t writeInterval);
+ to determine when to log certain information based on the total time.
+ @return 0 on success, -1 if an append could not be queued. */
+int processLogging(CapConfig* cfg,
+                   AppResources* res,
+                   size_t totalTime,
+                   size_t writeInterval);
 
 /** @brief Fits a model to the capture data and prints the results, including
  * calculating the intercept and slope, printing the header information, and

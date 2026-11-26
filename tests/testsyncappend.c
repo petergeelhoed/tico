@@ -12,11 +12,22 @@ int main(void)
 {
     FILE* filePtr = fopen("testsync", "w");
     struct myarr* test = makemyarr(TESTSYNC_SIZE);
+    if (filePtr == NULL)
+    {
+        freemyarr(test);
+        return EXIT_FAILURE;
+    }
+
     printf("%d %d %d \n", test->arr[0], test->arr[1], test->arr[2]);
     for (int i = 0; i < TESTSYNC_LOOP_COUNT; i++)
     {
         test->arr[0] = i;
-        syncAppendMyarr(test, filePtr);
+        if (syncAppendMyarr(test, filePtr) != 0)
+        {
+            freemyarr(test);
+            waitClose(filePtr);
+            return EXIT_FAILURE;
+        }
     }
     freemyarr(test);
     waitClose(filePtr);

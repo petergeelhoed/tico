@@ -18,9 +18,25 @@ int main(void)
         refdouble->arrd[i] = (double)i * i;
     }
     FILE* file = fopen("out", "a");
-    syncAppendMyarr(reference, file);
+    if (file == NULL || syncAppendMyarr(reference, file) != 0 ||
+        syncAppendMyarr(refdouble, file) != 0)
+    {
+        if (file != NULL)
+        {
+            waitClose(file);
+        }
+        freemyarr(reference);
+        freemyarr(refdouble);
+        return EXIT_FAILURE;
+    }
 
-    syncAppendMyarr(refdouble, file);
+    if (syncAppendMyarr(reference, NULL) != -1)
+    {
+        waitClose(file);
+        freemyarr(reference);
+        freemyarr(refdouble);
+        return EXIT_FAILURE;
+    }
 
     waitClose(file);
     freemyarr(reference);

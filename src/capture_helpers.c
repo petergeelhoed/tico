@@ -99,10 +99,10 @@ void shiftBufferData(size_t* ticktock,
     *ticktock -= ARRAY_BUFFER_SIZE;
 }
 
-void processLogging(CapConfig* cfg,
-                    AppResources* res,
-                    size_t totalTime,
-                    size_t writeInterval)
+int processLogging(CapConfig* cfg,
+                   AppResources* res,
+                   size_t totalTime,
+                   size_t writeInterval)
 {
     if (totalTime > 0 && totalTime % writeInterval == 0)
     {
@@ -115,8 +115,12 @@ void processLogging(CapConfig* cfg,
                     res->subpos->arrd[totalTime - writeInterval + k] +
                     (double)res->maxpos->arr[totalTime - writeInterval + k];
             }
-            syncAppendMyarr(positionBatch, cfg->fpposition);
+            int result = syncAppendMyarr(positionBatch, cfg->fpposition);
             freemyarr(positionBatch);
+            if (result != 0)
+            {
+                return -1;
+            }
         }
         if (cfg->fpmaxcor)
         {
@@ -124,12 +128,18 @@ void processLogging(CapConfig* cfg,
             memcpy(correlationBatch->arrd,
                    res->maxvals->arrd + totalTime - writeInterval,
                    writeInterval * sizeof(double));
-            syncAppendMyarr(correlationBatch, cfg->fpmaxcor);
+            int result = syncAppendMyarr(correlationBatch, cfg->fpmaxcor);
             freemyarr(correlationBatch);
+            if (result != 0)
+            {
+                return -1;
+            }
         }
 
         printPeak(cfg, res);
     }
+
+    return 0;
 }
 
 void fitAndPrint(const LoopState* state,
